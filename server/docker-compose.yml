@@ -14,7 +14,7 @@ services:
       - /app/node_modules # Prevents overwriting node_modules
 
   db:
-    image: postgres:16
+    image: postgres:18
     container_name: managment_postgres_db
     restart: always
     env_file:
