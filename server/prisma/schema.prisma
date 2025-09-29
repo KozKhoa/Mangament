@@ -1,0 +1,200 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  user
+  admin
+}
+
+enum StoryStatus {
+  ongoing
+  finished
+  postpone
+  upcoming
+}
+
+enum StoryType {
+  manga
+  light_novel
+  web_novel
+  anime
+}
+
+enum StoryNodeType {
+  chapter
+  arc
+  volume
+}
+
+enum Gender {
+  male
+  female
+  other
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String
+  gender    Gender?  @default(other)
+  join_date DateTime @default(now())
+  role      Role     @default(user)
+  avatar_id String?  @db.Uuid
+
+  avatar Image? @relation(fields: [avatar_id], references: [id], onDelete: SetNull)
+
+  ReadingHistory ReadingHistory[]
+  FavouriteStory FavouriteStory[]
+  Rating         Rating[]
+  Comment        Comment[]
+}
+
+model Story {
+  id                String      @id @default(uuid())
+  title             String
+  nation            String?
+  view              Int         @default(0)
+  type              StoryType
+  status            StoryStatus @default(ongoing)
+  next_chapter_in   DateTime?
+  number_of_chapter Int?
+  cover_art_id      String?     @db.Uuid
+
+  cover_art Image? @relation(fields: [cover_art_id], references: [id], onDelete: SetNull)
+
+  StoryNode      StoryNode[]
+  ReadingHistory ReadingHistory[]
+  Story_Genre    Story_Genre[]
+  Rating         Rating[]
+  FavouriteStory FavouriteStory[]
+  Comment        Comment[]
+  Story_Author   Story_Author[]
+}
+
+model StoryNode {
+  id            String                  @id @default(uuid())
+  story_id      String?                 @db.Uuid
+  parent_id     String?                 @db.Uuid
+  title         String
+  type          StoryNodeType
+  order_index   Int?
+  view          Int                     @default(0)
+  update_at     DateTime                @default(now())
+  content       Json?
+  plain_text    String?
+  search_vector Unsupported("tsvector") // Prisma chưa hỗ trợ tsvector
+
+  story    Story?      @relation(fields: [story_id], references: [id], onDelete: Cascade)
+  parent   StoryNode?  @relation("StoryNodeToStoryNode", fields: [parent_id], references: [id], onDelete: Cascade)
+  children StoryNode[] @relation("StoryNodeToStoryNode")
+
+  ReadingHistory ReadingHistory[]
+  Comment        Comment[]
+
+  @@unique([parent_id, order_index])
+}
+
+model Image {
+  id     String @id @default(uuid())
+  url    String
+  width  Int?
+  height Int?
+
+  Story Story[]
+  User  User[]
+}
+
+model Author {
+  id   String @id @default(uuid())
+  name String
+
+  Story_Author Story_Author[]
+}
+
+model Story_Author {
+  story_id  String @db.Uuid
+  author_id String @db.Uuid
+
+  story  Story  @relation(fields: [story_id], references: [id], onDelete: Cascade)
+  author Author @relation(fields: [author_id], references: [id], onDelete: Cascade)
+
+  @@id([story_id, author_id])
+}
+
+model ReadingHistory {
+  id            String   @id @default(uuid())
+  user_id       String   @db.Uuid
+  story_id      String   @db.Uuid
+  story_node_id String   @db.Uuid
+  read_at       DateTime @default(now())
+  last_position Json? // e.g., { "page": 5, "offset": 120 }
+
+  user       User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  story      Story     @relation(fields: [story_id], references: [id], onDelete: Cascade)
+  story_node StoryNode @relation(fields: [story_node_id], references: [id], onDelete: Cascade)
+}
+
+model FavouriteStory {
+  user_id  String @db.Uuid
+  story_id String @db.Uuid
+
+  user  User  @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  story Story @relation(fields: [story_id], references: [id], onDelete: Cascade)
+
+  @@id([user_id, story_id])
+}
+
+model Genre {
+  id   String @id @default(uuid())
+  name String
+
+  Story_Genre Story_Genre[]
+}
+
+model Story_Genre {
+  story_id String @db.Uuid
+  genre_id String @db.Uuid
+
+  story Story @relation(fields: [story_id], references: [id], onDelete: Cascade)
+  genre Genre @relation(fields: [genre_id], references: [id], onDelete: Cascade)
+
+  @@id([story_id, genre_id])
+}
+
+model Rating {
+  user_id  String @db.Uuid
+  story_id String @db.Uuid
+  rating   Float
+
+  user  User  @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  story Story @relation(fields: [story_id], references: [id], onDelete: Cascade)
+
+  @@id([user_id, story_id])
+}
+
+model Comment {
+  id            String   @id @default(uuid())
+  story_id      String   @db.Uuid
+  story_node_id String?  @db.Uuid
+  user_id       String   @db.Uuid
+  message       String
+  created_at    DateTime @default(now())
+
+  user       User       @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  story      Story      @relation(fields: [story_id], references: [id], onDelete: Cascade)
+  story_node StoryNode? @relation(fields: [story_node_id], references: [id], onDelete: Cascade)
+}
