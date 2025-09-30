@@ -46,14 +46,15 @@ enum Gender {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  name      String
-  email     String   @unique
-  password  String
-  gender    Gender?  @default(other)
-  join_date DateTime @default(now())
-  role      Role     @default(user)
-  avatar_id String?  @db.Uuid
+  id         String   @id @default(uuid()) @db.Uuid
+  name       String
+  email      String   @unique
+  password   String
+  gender     Gender?  @default(other)
+  join_date  DateTime @default(now())
+  role       Role     @default(user)
+  avatar_id  String?  @db.Uuid
+  is_deleted Boolean  @default(false)
 
   avatar Image? @relation(fields: [avatar_id], references: [id], onDelete: SetNull)
 
@@ -64,8 +65,8 @@ model User {
 }
 
 model Story {
-  id                String      @id @default(uuid())
-  title             String
+  id                String      @id @default(uuid()) @db.Uuid
+  title             String      @unique
   nation            String?
   view              Int         @default(0)
   type              StoryType
@@ -73,6 +74,7 @@ model Story {
   next_chapter_in   DateTime?
   number_of_chapter Int?
   cover_art_id      String?     @db.Uuid
+  is_deleted        Boolean     @default(false)
 
   cover_art Image? @relation(fields: [cover_art_id], references: [id], onDelete: SetNull)
 
@@ -86,7 +88,7 @@ model Story {
 }
 
 model StoryNode {
-  id            String                  @id @default(uuid())
+  id            String                  @id @default(uuid()) @db.Uuid
   story_id      String?                 @db.Uuid
   parent_id     String?                 @db.Uuid
   title         String
@@ -97,6 +99,7 @@ model StoryNode {
   content       Json?
   plain_text    String?
   search_vector Unsupported("tsvector") // Prisma chưa hỗ trợ tsvector
+  is_deleted    Boolean                 @default(false)
 
   story    Story?      @relation(fields: [story_id], references: [id], onDelete: Cascade)
   parent   StoryNode?  @relation("StoryNodeToStoryNode", fields: [parent_id], references: [id], onDelete: Cascade)
@@ -109,17 +112,18 @@ model StoryNode {
 }
 
 model Image {
-  id     String @id @default(uuid())
-  url    String
-  width  Int?
-  height Int?
+  id         String  @id @default(uuid()) @db.Uuid
+  url        String
+  width      Int?
+  height     Int?
+  is_deleted Boolean @default(false)
 
-  Story Story[]
   User  User[]
+  Story Story[]
 }
 
 model Author {
-  id   String @id @default(uuid())
+  id   String @id @default(uuid()) @db.Uuid
   name String
 
   Story_Author Story_Author[]
@@ -136,12 +140,13 @@ model Story_Author {
 }
 
 model ReadingHistory {
-  id            String   @id @default(uuid())
+  id            String   @id @default(uuid()) @db.Uuid
   user_id       String   @db.Uuid
   story_id      String   @db.Uuid
   story_node_id String   @db.Uuid
   read_at       DateTime @default(now())
   last_position Json? // e.g., { "page": 5, "offset": 120 }
+  is_deleted    Boolean  @default(false)
 
   user       User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
   story      Story     @relation(fields: [story_id], references: [id], onDelete: Cascade)
@@ -149,8 +154,9 @@ model ReadingHistory {
 }
 
 model FavouriteStory {
-  user_id  String @db.Uuid
-  story_id String @db.Uuid
+  user_id    String  @db.Uuid
+  story_id   String  @db.Uuid
+  is_deleted Boolean @default(false)
 
   user  User  @relation(fields: [user_id], references: [id], onDelete: Cascade)
   story Story @relation(fields: [story_id], references: [id], onDelete: Cascade)
@@ -159,7 +165,7 @@ model FavouriteStory {
 }
 
 model Genre {
-  id   String @id @default(uuid())
+  id   String @id @default(uuid()) @db.Uuid
   name String
 
   Story_Genre Story_Genre[]
@@ -176,9 +182,10 @@ model Story_Genre {
 }
 
 model Rating {
-  user_id  String @db.Uuid
-  story_id String @db.Uuid
-  rating   Float
+  user_id    String  @db.Uuid
+  story_id   String  @db.Uuid
+  rating     Float
+  is_deleted Boolean @default(false)
 
   user  User  @relation(fields: [user_id], references: [id], onDelete: Cascade)
   story Story @relation(fields: [story_id], references: [id], onDelete: Cascade)
@@ -187,12 +194,13 @@ model Rating {
 }
 
 model Comment {
-  id            String   @id @default(uuid())
+  id            String   @id @default(uuid()) @db.Uuid
   story_id      String   @db.Uuid
   story_node_id String?  @db.Uuid
   user_id       String   @db.Uuid
   message       String
   created_at    DateTime @default(now())
+  is_deleted    Boolean  @default(false)
 
   user       User       @relation(fields: [user_id], references: [id], onDelete: Cascade)
   story      Story      @relation(fields: [story_id], references: [id], onDelete: Cascade)
