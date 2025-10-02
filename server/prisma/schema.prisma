@@ -45,6 +45,58 @@ enum Gender {
   other
 }
 
+enum Genre {
+  action
+  adventure
+  comedy
+  crime
+  cyberpunk
+  dark_fantasy
+  detective
+  drama
+  dystopian_fiction
+  ecchi
+  fairy_tale
+  fantasy
+  fiction
+  gekiga
+  gothic_fiction
+  harem
+  high_fantasy
+  historical
+  historical_fiction
+  horror
+  isekai
+  josei
+  kodomo
+  literary_fiction
+  low_fantasy
+  magical_realism
+  martial_arts
+  mecha
+  mystery
+  parody
+  post_apocalyptic
+  psychology
+  romance
+  science_fiction
+  seinen
+  shojo
+  shonen
+  shoujo_ai
+  shounen_ai
+  slice_of_life
+  space_opera
+  sport
+  steampunk
+  supernatural
+  survival
+  thriller
+  tragedy
+  yaoi
+  yuri
+}
+
 model User {
   id         String   @id @default(uuid()) @db.Uuid
   name       String
@@ -62,6 +114,7 @@ model User {
   FavouriteStory FavouriteStory[]
   Rating         Rating[]
   Comment        Comment[]
+  RefreshToken   RefreshToken[]
 }
 
 model Story {
@@ -88,18 +141,18 @@ model Story {
 }
 
 model StoryNode {
-  id            String                  @id @default(uuid()) @db.Uuid
-  story_id      String?                 @db.Uuid
-  parent_id     String?                 @db.Uuid
+  id            String                   @id @default(uuid()) @db.Uuid
+  story_id      String?                  @db.Uuid
+  parent_id     String?                  @db.Uuid
   title         String
   type          StoryNodeType
   order_index   Int?
-  view          Int                     @default(0)
-  update_at     DateTime                @default(now())
+  view          Int                      @default(0)
+  update_at     DateTime                 @default(now())
   content       Json?
   plain_text    String?
-  search_vector Unsupported("tsvector") // Prisma chưa hỗ trợ tsvector
-  is_deleted    Boolean                 @default(false)
+  search_vector Unsupported("tsvector")? // Prisma chưa hỗ trợ tsvector
+  is_deleted    Boolean                  @default(false)
 
   story    Story?      @relation(fields: [story_id], references: [id], onDelete: Cascade)
   parent   StoryNode?  @relation("StoryNodeToStoryNode", fields: [parent_id], references: [id], onDelete: Cascade)
@@ -113,7 +166,7 @@ model StoryNode {
 
 model Image {
   id         String  @id @default(uuid()) @db.Uuid
-  url        String
+  url        String  @unique
   width      Int?
   height     Int?
   is_deleted Boolean @default(false)
@@ -164,21 +217,13 @@ model FavouriteStory {
   @@id([user_id, story_id])
 }
 
-model Genre {
-  id   String @id @default(uuid()) @db.Uuid
-  name String
-
-  Story_Genre Story_Genre[]
-}
-
 model Story_Genre {
   story_id String @db.Uuid
-  genre_id String @db.Uuid
+  genre    Genre
 
   story Story @relation(fields: [story_id], references: [id], onDelete: Cascade)
-  genre Genre @relation(fields: [genre_id], references: [id], onDelete: Cascade)
 
-  @@id([story_id, genre_id])
+  @@id([story_id, genre])
 }
 
 model Rating {
@@ -205,4 +250,13 @@ model Comment {
   user       User       @relation(fields: [user_id], references: [id], onDelete: Cascade)
   story      Story      @relation(fields: [story_id], references: [id], onDelete: Cascade)
   story_node StoryNode? @relation(fields: [story_node_id], references: [id], onDelete: Cascade)
+}
+
+model RefreshToken {
+  user_id String @db.Uuid
+  token   String @unique
+
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@id([user_id, token])
 }

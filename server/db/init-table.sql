@@ -2,7 +2,7 @@
 CREATE EXTENSION IF NOT EXISTS "pg_trgm"; -- for text search optimization
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp"; -- for UUID generation
 
-CREATE TABLE Users (
+CREATE TABLE User (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(), 
     name TEXT NOT NULL,
     email TEXT UNIQUE NOT NULL CHECK (email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$'),
@@ -81,7 +81,7 @@ CREATE TABLE FavouriteStory (
     PRIMARY KEY (user_id, story_id)
 );
 -- COMMENT
-CREATE TABLE Review (
+CREATE TABLE Comment (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID,
     story_id UUID,
@@ -93,15 +93,15 @@ CREATE TABLE Review (
 ALTER TABLE Story ADD FOREIGN KEY (cover_art) REFERENCES Image(id) ON DELETE SET NULL;
 ALTER TABLE StoryNode ADD FOREIGN KEY (story_id) REFERENCES Story(id) ON DELETE CASCADE; -- StoryNode belongs to a Story, if Story is deleted, delete its StoryNodes too
 ALTER TABLE StoryNode ADD FOREIGN KEY (parent_id) REFERENCES StoryNode(id) ON DELETE CASCADE; -- StoryNode can have a parent StoryNode, if parent is deleted, delete its children too
-ALTER TABLE ReadingHistory ADD FOREIGN KEY (user_id) REFERENCES Users(id) ON DELETE CASCADE; -- if user is deleted, delete their reading history  
+ALTER TABLE ReadingHistory ADD FOREIGN KEY (user_id) REFERENCES User(id) ON DELETE CASCADE; -- if user is deleted, delete their reading history  
 ALTER TABLE ReadingHistory ADD FOREIGN KEY (story_id) REFERENCES Story(id) ON DELETE CASCADE; -- if story is deleted, delete its reading history
 ALTER TABLE ReadingHistory ADD FOREIGN KEY (story_node_id) REFERENCES StoryNode(id) ON DELETE CASCADE; -- if story node is deleted, delete its reading history
 ALTER TABLE Story_Genre ADD FOREIGN KEY (genre_id) REFERENCES Genre(id) ON DELETE CASCADE; -- if genre is deleted, delete its associations
 ALTER TABLE Story_Genre ADD FOREIGN KEY (story_id) REFERENCES Story(id) ON DELETE CASCADE; -- if story is deleted, delete its associations
 ALTER TABLE Rating ADD FOREIGN KEY (story_id) REFERENCES Story(id) ON DELETE CASCADE; -- if story is deleted, delete its ratings
-ALTER TABLE Rating ADD FOREIGN KEY (user_id) REFERENCES Users(id) ON DELETE CASCADE; -- if user is deleted, delete their ratings
-ALTER TABLE FavouriteStory ADD FOREIGN KEY (user_id) REFERENCES Users(id) ON DELETE CASCADE; -- if user is deleted, delete their favorite stories
+ALTER TABLE Rating ADD FOREIGN KEY (user_id) REFERENCES User(id) ON DELETE CASCADE; -- if user is deleted, delete their ratings
+ALTER TABLE FavouriteStory ADD FOREIGN KEY (user_id) REFERENCES User(id) ON DELETE CASCADE; -- if user is deleted, delete their favorite stories
 ALTER TABLE FavouriteStory ADD FOREIGN KEY (story_id) REFERENCES Story(id) ON DELETE CASCADE; -- if story is deleted, delete its favorite associations
-ALTER TABLE Review ADD FOREIGN KEY (user_id) REFERENCES Users(id) ON DELETE CASCADE; -- if user is deleted, delete their comments
-ALTER TABLE Review ADD FOREIGN KEY (story_id) REFERENCES Story(id) ON DELETE CASCADE; -- if story is deleted, delete its comments
-ALTER TABLE Review ADD FOREIGN KEY (story_node_id) REFERENCES StoryNode(id) ON DELETE CASCADE; -- if story node is deleted, delete its comments 
+ALTER TABLE Comment ADD FOREIGN KEY (user_id) REFERENCES User(id) ON DELETE CASCADE; -- if user is deleted, delete their comments
+ALTER TABLE Comment ADD FOREIGN KEY (story_id) REFERENCES Story(id) ON DELETE CASCADE; -- if story is deleted, delete its comments
+ALTER TABLE Comment ADD FOREIGN KEY (story_node_id) REFERENCES StoryNode(id) ON DELETE CASCADE; -- if story node is deleted, delete its comments 

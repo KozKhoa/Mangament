@@ -13,6 +13,9 @@ CREATE TYPE "public"."StoryNodeType" AS ENUM ('chapter', 'arc', 'volume');
 -- CreateEnum
 CREATE TYPE "public"."Gender" AS ENUM ('male', 'female', 'other');
 
+-- CreateEnum
+CREATE TYPE "public"."Genre" AS ENUM ('action', 'adventure', 'comedy', 'crime', 'cyberpunk', 'dark_fantasy', 'detective', 'drama', 'dystopian_fiction', 'ecchi', 'fairy_tale', 'fantasy', 'fiction', 'gekiga', 'gothic_fiction', 'harem', 'high_fantasy', 'historical', 'historical_fiction', 'horror', 'isekai', 'josei', 'kodomo', 'literary_fiction', 'low_fantasy', 'magical_realism', 'martial_arts', 'mecha', 'mystery', 'parody', 'post_apocalyptic', 'psychology', 'romance', 'science_fiction', 'seinen', 'shojo', 'shonen', 'shoujo_ai', 'shounen_ai', 'slice_of_life', 'space_opera', 'sport', 'steampunk', 'supernatural', 'survival', 'thriller', 'tragedy', 'yaoi', 'yuri');
+
 -- CreateTable
 CREATE TABLE "public"."User" (
     "id" UUID NOT NULL,
@@ -56,7 +59,7 @@ CREATE TABLE "public"."StoryNode" (
     "update_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "content" JSONB,
     "plain_text" TEXT,
-    "search_vector" tsvector NOT NULL,
+    "search_vector" tsvector,
     "is_deleted" BOOLEAN NOT NULL DEFAULT false,
 
     CONSTRAINT "StoryNode_pkey" PRIMARY KEY ("id")
@@ -112,19 +115,11 @@ CREATE TABLE "public"."FavouriteStory" (
 );
 
 -- CreateTable
-CREATE TABLE "public"."Genre" (
-    "id" UUID NOT NULL,
-    "name" TEXT NOT NULL,
-
-    CONSTRAINT "Genre_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
 CREATE TABLE "public"."Story_Genre" (
     "story_id" UUID NOT NULL,
-    "genre_id" UUID NOT NULL,
+    "genre" "public"."Genre" NOT NULL,
 
-    CONSTRAINT "Story_Genre_pkey" PRIMARY KEY ("story_id","genre_id")
+    CONSTRAINT "Story_Genre_pkey" PRIMARY KEY ("story_id","genre")
 );
 
 -- CreateTable
@@ -194,9 +189,6 @@ ALTER TABLE "public"."FavouriteStory" ADD CONSTRAINT "FavouriteStory_story_id_fk
 
 -- AddForeignKey
 ALTER TABLE "public"."Story_Genre" ADD CONSTRAINT "Story_Genre_story_id_fkey" FOREIGN KEY ("story_id") REFERENCES "public"."Story"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "public"."Story_Genre" ADD CONSTRAINT "Story_Genre_genre_id_fkey" FOREIGN KEY ("genre_id") REFERENCES "public"."Genre"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "public"."Rating" ADD CONSTRAINT "Rating_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
