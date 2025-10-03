@@ -33,14 +33,14 @@ const AuthorizationMiddleware = async (req, res, next) => {
 
     // Check if user exist
     const checkUser = await FindUser({ id: decodedToken.id });
-    if (!checkUser || !checkUser.success || !checkUser.data[0]) {
+    if (!checkUser || !checkUser.success || !checkUser.data) {
       return res
         .status(ErrorCodes.TOKEN_INVALID.status)
         .json({ success: false, message: ErrorCodes.TOKEN_INVALID.message });
     }
 
     // Put user info into reqeust
-    const user = checkUser.data[0];
+    const user = checkUser.data;
     req.user = { id: user.id, name: user.name, email: user.email };
 
     next();

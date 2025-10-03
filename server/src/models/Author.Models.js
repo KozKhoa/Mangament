@@ -1,8 +1,18 @@
 import db from "../configs/db.js";
 
-export const FindAllAuthors = async () => {
+export const FindAllAuthors = async ({
+  where: {},
+  orderBy: {},
+  take,
+  skip,
+}) => {
   try {
-    const result = await db.author.findMany();
+    const result = await db.author.findMany({
+      where: where,
+      orderBy: orderBy,
+      take,
+      skip,
+    });
     return { success: true, data: result };
   } catch (error) {
     console.error("❌ [Author.Model.js] Error finding all author:", error);

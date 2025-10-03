@@ -1,12 +1,30 @@
 import db from "../configs/db.js";
 
-export const FindStory = async ({ id, title }) => {
+export const FindAllStories = async (where = {}, orderBy = {}, take, skip) => {
   try {
     const result = await db.story.findMany({
       where: {
         is_deleted: false,
-        ...(id && { id }),
-        ...(title && { title }),
+        ...where,
+      },
+      ...(orderBy && { orderBy }),
+      ...(take && { take }),
+      ...(skip && { skip }),
+    });
+    return { success: true, data: result };
+  } catch (error) {
+    console.error("❌ [Story.Model.js] Error finding add stories: ", error);
+    return { success: false, error: error.code };
+  }
+};
+
+export const FindStory = async (where = { id, title }) => {
+  try {
+    if (!where.id && !where.title) return { success: false, data: null };
+    const result = await db.story.findFirst({
+      where: {
+        is_deleted: false,
+        ...where,
       },
     });
     return { success: true, data: result };
@@ -16,8 +34,14 @@ export const FindStory = async ({ id, title }) => {
   }
 };
 
-export const AddStory = async (data = {}) => {
+export const AddStory = async (data = { title, type }) => {
   try {
+    // Check if story exist or not;
+    const story = await FindStory({ title: data.title });
+    if (story && story.success && story.data) {
+      return { success: false, data: story.data };
+    }
+    // If not exist
     const result = await db.story.create({ data: data });
     return { success: true, data: result };
   } catch (error) {
@@ -26,20 +50,19 @@ export const AddStory = async (data = {}) => {
   }
 };
 
-export const SoftDeleteStory = async ({ id, title }) => {
+export const SoftDeleteStory = async (where = { id, title }) => {
   try {
-    let result;
-    if (id) {
-      result = await db.story.update({
-        where: { id: id },
-        data: { is_deleted: true },
-      });
-    } else if (title) {
-      result = await db.story.update({
-        where: { title: title },
-        data: { is_deleted: true },
-      });
+    const story = await FindStory({ id: where.id, title: where.title });
+    if (!story || !story.success || !story.data) {
+      return { success: false, data: result };
     }
+
+    const result = await db.story.update({
+      where: where,
+      data: {
+        is_deleted: true,
+      },
+    });
     return { success: true, data: result };
   } catch (error) {
     console.error("❌ [Story.Model.js] Error soft delete story: ", error);
@@ -47,14 +70,9 @@ export const SoftDeleteStory = async ({ id, title }) => {
   }
 };
 
-export const HardDeleteStory = async ({ id, title }) => {
+export const HardDeleteStory = async (where = { id, title }) => {
   try {
-    let result;
-    if (id) {
-      result = await db.story.delete({ where: { id: id } });
-    } else if (title) {
-      result = await db.story.delete({ where: { title: title } });
-    }
+    const result = await db.story.delete({ where: where });
     return { success: true, data: result };
   } catch (error) {
     console.error("❌ [Story.Model.js] Error hard delete story: ", error);
@@ -62,14 +80,15 @@ export const HardDeleteStory = async ({ id, title }) => {
   }
 };
 
-export const UpdateStory = async ({ id, title, data = {} }) => {
+export const UpdateStory = async (where = { id, title }, data = {}) => {
   try {
-    let result;
-    if (id) {
-      result = await db.story.update({ where: { id: id }, data: data });
-    } else if (title) {
-      result = await db.story.update({ where: { title: title }, data: data });
+    // Check if story exist or not
+    const story = await FindStory({ id: where.id, title: where.title });
+    if (!story || !story.success || !story.data) {
+      return { success: false, data: null };
     }
+    // If  exist
+    const result = await db.story.update({ where: where, data: data });
     return { success: true, data: result };
   } catch (error) {
     console.error("❌ [Story.Model.js] Error updating story: ", error);
@@ -77,10 +96,40 @@ export const UpdateStory = async ({ id, title, data = {} }) => {
   }
 };
 
-export const FindStoryNode = async ({ id }) => {
+export const FindAllStoryNodes = async (
+  where = {},
+  orderBy = {},
+  skip,
+  take
+) => {
   try {
     const result = await db.storyNode.findMany({
-      where: { is_deleted: false, ...(id && { id }) },
+      where: {
+        is_deleted: false,
+        ...where,
+      },
+      ...(orderBy && { orderBy }),
+      ...(take && { take }),
+      ...(skip && { skip }),
+    });
+    return { success: true, data: result };
+  } catch (error) {
+    console.error("❌ [Story.Model.js] Error finding all story nodes: ", error);
+    return { success: false, error: error.code };
+  }
+};
+
+export const FindStoryNode = async (
+  data = { id, story_id, parent_id, order_index }
+) => {
+  try {
+    if (!data.id && !data.story_id && !data.parent_id && !data.order_index)
+      return { success: false, data: null };
+    const result = await db.storyNode.findFirst({
+      where: {
+        is_deleted: false,
+        ...data,
+      },
     });
     return { success: true, data: result };
   } catch (error) {
@@ -89,33 +138,40 @@ export const FindStoryNode = async ({ id }) => {
   }
 };
 
-export const AddStoryNode = async ({
-  title,
-  type,
-  story_id,
-  parent_id,
-  ...props
-}) => {
+export const AddStoryNode = async (
+  data = { title, type, story_id, parent_id, order_index }
+) => {
   try {
+    // Check if story node exist or not
+    const storyNode = await FindStoryNode({
+      story_id: data.story_id,
+      parent_id: data.parent_id,
+      order_index: data.order_index,
+    });
+    if (storyNode && storyNode.success && storyNode.data) {
+      return { success: false, data: storyNode.data };
+    }
+
+    // If story node does not exist
     const result = await db.storyNode.create({
       data: {
-        ...(story_id && {
+        ...(data.story_id && {
           story: {
             connect: {
-              id: story_id,
+              id: data.story_id,
             },
           },
         }),
-        ...(parent_id && {
+        ...(data.parent_id && {
           parent: {
             connect: {
-              id: parent_id,
+              id: data.parent_id,
             },
           },
         }),
-        title,
-        type,
-        ...props,
+        title: data.title,
+        type: data.type,
+        order_index: data.order_index,
       },
     });
     return { success: true, data: result };
@@ -125,10 +181,15 @@ export const AddStoryNode = async ({
   }
 };
 
-export const SoftDeleteStoryNode = async ({ id }) => {
+export const SoftDeleteStoryNode = async (where = { id }) => {
   try {
+    const storyNode = await FindStoryNode({ id: where.id });
+    if (!storyNode || !storyNode.success || !storyNode.data) {
+      return { success: false, data: null };
+    }
+
     const result = await db.storyNode.update({
-      where: { id: id },
+      where: where,
       data: { is_deleted: true },
     });
     return { success: true, data: result };
@@ -141,9 +202,9 @@ export const SoftDeleteStoryNode = async ({ id }) => {
   }
 };
 
-export const HardDeleteStoryNode = async ({ id }) => {
+export const HardDeleteStoryNode = async (where = { id }) => {
   try {
-    const result = await db.storyNode.delete({ where: { id: id } });
+    const result = await db.storyNode.delete({ where: where });
     return { success: true, data: result };
   } catch (error) {
     console.error(
@@ -154,9 +215,15 @@ export const HardDeleteStoryNode = async ({ id }) => {
   }
 };
 
-export const UpdateStoryNode = async ({ id, data = {} }) => {
+export const UpdateStoryNode = async (where = { id }, data = {}) => {
   try {
-    const result = await db.storyNode.update({ where: { id: id }, data: data });
+    // Check if story node exist or not
+    const storyNode = await FindStoryNode({ id: where.id });
+    if (!storyNode || !storyNode.success || !storyNode.data) {
+      return { success: false, data: null };
+    }
+    // If exist
+    const result = await db.storyNode.update({ where: where, data: data });
     return { success: true, data: result };
   } catch (error) {
     console.error("❌ [StoryNode.Model.js] Error updating story nodes:", error);

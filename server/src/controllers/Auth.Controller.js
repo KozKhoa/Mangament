@@ -27,10 +27,10 @@ export const Login = async (req, res, next) => {
     CheckEmailAndPasswordFormat(email, password); // Check email and email format
 
     const result = await FindUser({ email: email }); // Check if user exist in db
-    if (!result.success || !result.data[0]) {
+    if (!result.success || !result.data) {
       throw CreateError(ErrorCodes.USER_NOT_FOUND);
     }
-    const user = result.data[0]; // Get user from the result
+    const user = result.data; // Get user from the result
 
     if (!(await ComparePassword(password, user.password))) {
       // Compare password
@@ -82,7 +82,7 @@ export const Register = async (req, res, next) => {
     CheckEmailAndPasswordFormat(email, password); // Check email and password format
 
     const checkUserExist = await FindUser({ email: email }); // Check user aldready exist
-    if (checkUserExist.success && checkUserExist.data[0]) {
+    if (checkUserExist.success && checkUserExist.data) {
       throw CreateError(ErrorCodes.USER_ALREADY_EXIST);
     }
 

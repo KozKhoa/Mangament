@@ -1,8 +1,19 @@
 import db from "../configs/db.js";
 
+export const FindAllUser = async () => {
+  try {
+    const result = await db.user.findMany();
+    return { success: true, data: result };
+  } catch (error) {
+    console.error("❌ [User.Model.js] Error finding user:", error);
+    return { success: false, error: error.code };
+  }
+};
+
 export const FindUser = async ({ id, email }) => {
   try {
-    const result = await db.user.findMany({
+    if (!id && !email) return { success: false, data: null };
+    const result = await db.user.findFirst({
       where: {
         is_deleted: false,
         ...(id && { id }),

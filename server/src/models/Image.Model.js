@@ -2,7 +2,7 @@ import db from "../configs/db.js";
 
 export const FindImage = async ({ id, url }) => {
   try {
-    const result = await db.image.findMany({
+    const result = await db.image.findUnique({
       where: {
         is_deleted: false,
         ...(id && { id }),
@@ -16,17 +16,12 @@ export const FindImage = async ({ id, url }) => {
   }
 };
 
-export const AddImage = async ({ url, ...props }) => {
+export const AddImage = async (data = { url }) => {
   try {
-    const result = await db.image.create({
-      data: {
-        url: url,
-        ...props,
-      },
-    });
+    const result = await db.image.create({ data: data });
     return { success: true, data: result };
   } catch (error) {
-    console.error("❌ [Image.Model.js] Error adding image:", error);
+    // console.error("❌ [Image.Model.js] Error adding image:", error);
     return { success: false, error: error.code };
   }
 };

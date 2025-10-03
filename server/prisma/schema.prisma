@@ -122,6 +122,7 @@ model Story {
   title             String      @unique
   nation            String?
   view              Int         @default(0)
+  rating            Float       @default(0)
   type              StoryType
   status            StoryStatus @default(ongoing)
   next_chapter_in   DateTime?
@@ -161,7 +162,7 @@ model StoryNode {
   ReadingHistory ReadingHistory[]
   Comment        Comment[]
 
-  @@unique([parent_id, order_index])
+  @@unique([story_id, parent_id, order_index])
 }
 
 model Image {
