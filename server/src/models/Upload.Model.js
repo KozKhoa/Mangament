@@ -16,6 +16,7 @@ import {
   FindStory,
   FindStoryNode,
 } from "./Story.Model.js";
+import { uptime } from "process";
 
 const root = path.resolve("../../uploads");
 
@@ -30,8 +31,8 @@ const HandleAdding = async (filePath) => {
 
   let parentId = null;
   for (let i = 2; i < node.length - 1; i++) {
-    // add story node
-    let storyNodeName = node[i].split(" "); // story name could be chapter 12, etc
+    // Add story node
+    let storyNodeName = node[i].split(" "); // story name could be Chapter 12, etc
     let storyNodeType = storyNodeName[0].toLowerCase();
     let storyNodeIndex = storyNodeName[1];
 
@@ -67,7 +68,10 @@ const HandleAdding = async (filePath) => {
 
       await UpdateStoryNode(
         { id: storyNode?.data?.id },
-        { content: newStoryNodeContent }
+        // Update parent's number of children
+        {
+          content: newStoryNodeContent,
+        }
       );
     }
   }

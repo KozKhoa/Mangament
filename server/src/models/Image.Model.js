@@ -1,12 +1,11 @@
 import db from "../configs/db.js";
 
-export const FindImage = async ({ id, url }) => {
+export const FindImage = async (where = { id, url }) => {
   try {
     const result = await db.image.findUnique({
       where: {
         is_deleted: false,
-        ...(id && { id }),
-        ...(url && { url }),
+        ...where,
       },
     });
     return { success: true, data: result };
@@ -26,13 +25,17 @@ export const AddImage = async (data = { url }) => {
   }
 };
 
-export const SoftDeleteImage = async ({ id, url }) => {
+export const SoftDeleteImage = async (where = { id, url }) => {
   try {
+    const image = await FindImage(where);
+    if (!image || image.success || image.data) {
+      // If not image is not found
+      return { success: false, data: null };
+    }
+
+    // Image is found
     const result = await db.image.update({
-      where: {
-        ...(id && { id }),
-        ...(url && { url }),
-      },
+      where: where,
       data: {
         is_deleted: true,
       },
@@ -44,13 +47,10 @@ export const SoftDeleteImage = async ({ id, url }) => {
   }
 };
 
-export const HardDeleteImage = async ({ id, url }) => {
+export const HardDeleteImage = async (where = { id, url }) => {
   try {
     const result = await db.image.delete({
-      where: {
-        ...(id && { id }),
-        ...(url && { url }),
-      },
+      where: where,
     });
     return { success: true, data: result };
   } catch (error) {
@@ -59,13 +59,16 @@ export const HardDeleteImage = async ({ id, url }) => {
   }
 };
 
-export const UpdateImage = async ({ id, url, data = {} }) => {
+export const UpdateImage = async (where = { id, url }, data = {}) => {
   try {
+    const image = await FindImage(where);
+    if (!image || image.success || image.data) {
+      // If not image is not found
+      return { success: false, data: null };
+    }
+    // If image is found
     const result = await db.image.update({
-      where: {
-        ...(id && { id }),
-        ...(url && { url }),
-      },
+      where: where,
       data: data,
     });
     return { success: true, data: result };

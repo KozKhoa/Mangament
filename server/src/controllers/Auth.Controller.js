@@ -19,6 +19,7 @@ import {
 import ErrorCodes from "../constants/Error.js";
 
 import { COOKIES_REFRESH_TOKEN_KEY } from "../configs/env.js";
+import logger from "../models/LogReport.Model.js";
 
 export const Login = async (req, res, next) => {
   try {
@@ -70,7 +71,9 @@ export const Login = async (req, res, next) => {
       },
     });
   } catch (error) {
-    console.error("❌ [Auth.Controller.js] Error login:", error);
+    if (!error.status) {
+      logger.error("❌ [Auth.Controller.js] Error login:", error);
+    }
     next(error);
   }
 };
@@ -90,7 +93,11 @@ export const Register = async (req, res, next) => {
     const hashedPassword = await HashPassword(password);
 
     // Try to add user to db, if adding is fail with code P2002 => user already existed
-    const addingUser = await AddUser({ name, email, password: hashedPassword });
+    const addingUser = await AddUser({
+      name: name,
+      email: email,
+      password: hashedPassword,
+    });
     if (!addingUser.success) {
       throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
     }
@@ -117,6 +124,7 @@ export const Register = async (req, res, next) => {
     SaveTokenOnCookies(res, refreshToken);
 
     // Response to user
+
     res.status(200).json({
       success: true,
       message: "Register success",
@@ -129,7 +137,8 @@ export const Register = async (req, res, next) => {
       },
     });
   } catch (error) {
-    console.error("❌ [Auth.Controller.js] Error register:", error);
+    if (!error.status)
+      console.error("❌ [Auth.Controller.js] Error register:", error);
     next(error);
   }
 };
@@ -156,7 +165,8 @@ export const Logout = async (req, res, next) => {
       message: "Logout success",
     });
   } catch (error) {
-    console.error("❌ [Auth.Controller.js] Error logout:", error);
+    if (!error.status)
+      console.error("❌ [Auth.Controller.js] Error logout:", error);
     next(error);
   }
 };
@@ -206,7 +216,8 @@ export const Refresh = async (req, res, next) => {
       },
     });
   } catch (error) {
-    console.error("❌ [Auth.Controller.js] Error refresh:", error);
+    if (!error.status)
+      console.error("❌ [Auth.Controller.js] Error refresh:", error);
     next(error);
   }
 };

@@ -20,9 +20,9 @@ export const FindAllAuthors = async ({
   }
 };
 
-export const FindAuthor = async ({ id }) => {
+export const FindAuthor = async (where = { id }) => {
   try {
-    const result = await db.author.findUnique({ where: { id: id } });
+    const result = await db.author.findUnique({ where: where });
     return { success: true, data: result };
   } catch (error) {
     console.error("❌ [Author.Model.js] Error finding author:", error);

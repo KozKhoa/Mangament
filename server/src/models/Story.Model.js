@@ -1,8 +1,41 @@
 import db from "../configs/db.js";
 
-export const FindAllStories = async (where = {}, orderBy = {}, take, skip) => {
+export const GetStoryTree = async (story_id, isGettingContent = false) => {
+  const nodes = await db.storyNode.findMany({
+    where: {
+      OR: [{ parent_id: story_id }, { story_id: story_id }],
+    },
+    select: {
+      id: true,
+      title: true,
+      view: true,
+      order_index: true,
+      update_at: true,
+      type: true,
+      ...(isGettingContent && { content: true }),
+    },
+    orderBy: {
+      order_index: "asc",
+    },
+  });
+
+  for (const node of nodes) {
+    node.children = await GetStoryTree(node.id, isGettingContent);
+  }
+
+  return nodes;
+};
+
+export const FindAllStories = async (
+  where = {},
+  orderBy = {},
+  take,
+  skip,
+  isGettingChildren = false,
+  isGettingContent = false
+) => {
   try {
-    const result = await db.story.findMany({
+    const stories = await db.story.findMany({
       where: {
         is_deleted: false,
         ...where,
@@ -10,24 +43,64 @@ export const FindAllStories = async (where = {}, orderBy = {}, take, skip) => {
       ...(orderBy && { orderBy }),
       ...(take && { take }),
       ...(skip && { skip }),
+      select: {
+        id: true,
+        title: true,
+        nation: true,
+        view: true,
+        star: true,
+        type: true,
+        status: true,
+        next_chapter_in: true,
+        number_of_children: true,
+        author: {
+          select: {
+            author: {
+              select: { id: true, name: true },
+            },
+          },
+        },
+        genre: true,
+        cover_art: {
+          select: { url: true, width: true, height: true },
+        },
+      },
     });
+
+    for (const story of stories) {
+      story.author = story.author.map((author) => author.author);
+      story.genre = story.genre.map((genre) => genre.genre);
+      if (isGettingChildren)
+        story.children = await GetStoryTree(story.id, isGettingContent);
+    }
+
+    const result = stories;
     return { success: true, data: result };
   } catch (error) {
-    console.error("❌ [Story.Model.js] Error finding add stories: ", error);
+    console.error("❌ [Story.Model.js] Error finding all stories: ", error);
     return { success: false, error: error.code };
   }
 };
 
-export const FindStory = async (where = { id, title }) => {
+export const FindStory = async (
+  where = { id, title },
+  isGettingChildren = false,
+  isGettingContent = false
+) => {
   try {
     if (!where.id && !where.title) return { success: false, data: null };
-    const result = await db.story.findFirst({
-      where: {
-        is_deleted: false,
-        ...where,
-      },
-    });
-    return { success: true, data: result };
+    const story = (
+      await FindAllStories(
+        where,
+        null,
+        1,
+        0,
+        isGettingChildren,
+        isGettingContent
+      )
+    ).data[0];
+
+    return { success: true, data: story };
   } catch (error) {
     console.error("❌ [Story.Model.js] Error finding story: ", error);
     return { success: false, error: error.code };
@@ -100,10 +173,12 @@ export const FindAllStoryNodes = async (
   where = {},
   orderBy = {},
   skip,
-  take
+  take,
+  isGettingChildren = false,
+  isGettingContent = false
 ) => {
   try {
-    const result = await db.storyNode.findMany({
+    const nodes = await db.storyNode.findMany({
       where: {
         is_deleted: false,
         ...where,
@@ -111,8 +186,26 @@ export const FindAllStoryNodes = async (
       ...(orderBy && { orderBy }),
       ...(take && { take }),
       ...(skip && { skip }),
+      select: {
+        id: true,
+        story_id: true,
+        parent_id: true,
+        title: true,
+        type: true,
+        order_index: true,
+        view: true,
+        number_of_children: true,
+        update_at: true,
+        ...(isGettingContent && { content: true }),
+      },
     });
-    return { success: true, data: result };
+
+    if (isGettingChildren)
+      for (const node of nodes) {
+        node.children = await GetStoryTree(node.id, isGettingContent);
+      }
+
+    return { success: true, data: nodes };
   } catch (error) {
     console.error("❌ [Story.Model.js] Error finding all story nodes: ", error);
     return { success: false, error: error.code };
@@ -120,18 +213,24 @@ export const FindAllStoryNodes = async (
 };
 
 export const FindStoryNode = async (
-  data = { id, story_id, parent_id, order_index }
+  where = { id, story_id, parent_id, order_index },
+  isGettingChildren = false,
+  isGettingContent = false
 ) => {
   try {
-    if (!data.id && !data.story_id && !data.parent_id && !data.order_index)
+    if (!where.id && !where.story_id && !where.parent_id && !where.order_index)
       return { success: false, data: null };
-    const result = await db.storyNode.findFirst({
-      where: {
-        is_deleted: false,
-        ...data,
-      },
-    });
-    return { success: true, data: result };
+    const node = (
+      await FindAllStoryNodes(
+        where,
+        null,
+        0,
+        1,
+        isGettingChildren,
+        isGettingContent
+      )
+    ).data[0];
+    return { success: true, data: node };
   } catch (error) {
     console.error("❌ [StoryNode.Model.js] Error finding story nodes:", error);
     return { success: false, error: error.code };
@@ -174,6 +273,20 @@ export const AddStoryNode = async (
         order_index: data.order_index,
       },
     });
+
+    // Update number of children for parent node
+    if (data.parent_id) {
+      const ans = await UpdateStoryNode(
+        { id: data.parent_id },
+        { number_of_children: { increment: 1 } }
+      );
+    } else {
+      // Update number of children for story
+      await UpdateStory(
+        { id: data.story_id },
+        { number_of_children: { increment: 1 } }
+      );
+    }
     return { success: true, data: result };
   } catch (error) {
     console.error("❌ [StoryNode.Model.js] Error adding story nodes:", error);

@@ -1,3 +1,4 @@
+import { getRounds } from "bcrypt";
 import { CreateError } from "../configs/ErrorHandle.js";
 import ErrorCodes from "../constants/Error.js";
 import { FindImage } from "../models/Image.Model.js";
@@ -6,17 +7,27 @@ import {
   FindStory,
   FindAllStoryNodes,
   FindStoryNode,
+  GetStoryTree,
 } from "../models/Story.Model.js";
 
 export const GetStoryInfo = async (req, res, next) => {
   try {
     const storyId = req?.params?.id;
+    const isGettingChildren =
+      req?.query?.isGettingChildren === "true" ? true : false;
+    const isGettingContent =
+      req?.query?.isGettingContent === "true" ? true : false;
     // Check user request
     if (!storyId) {
       throw CreateError(ErrorCodes.BAD_REQUEST);
     }
 
-    const story = await FindStory({ id: storyId });
+    const story = await FindStory(
+      { id: storyId },
+      isGettingChildren,
+      isGettingContent
+    );
+
     if (!story || !story.success) {
       // If server not return anything or return success = false => fail to find story
       throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
@@ -25,44 +36,127 @@ export const GetStoryInfo = async (req, res, next) => {
       throw CreateError(ErrorCodes.STORY_NOT_FOUND);
     }
 
-    // Get cover art;
-    let cover_art;
-    if (story.data?.cover_art_id) {
-      cover_art = FindImage({ id: story.cover_art });
-    }
-
     res.status(200).json({
       success: true,
       message: "Getting story successfully",
-      story: {
-        id: story.data?.id,
-        title: story.data?.title,
-        nation: story.data?.nation,
-        view: story.data?.view,
-        rating: story.data?.rating,
-        type: story.data?.type,
-        status: story.data?.status,
-        next_chapter_in: story.data?.next_chapter_in,
-        number_of_chapter: story.data?.number_of_chapter,
-        cover_art_url: cover_art?.url || null,
-      },
+      data: story.data,
     });
   } catch (error) {
-    console.error("❌ [Story.Controller.js] Error getting user info:", error);
+    if (!error.status)
+      console.error("❌ [Story.Controller.js] Error getting user info:", error);
     next(error);
   }
 };
 
 export const GetListStory = async (req, res, next) => {
   try {
-    const query = req?.query; //query = { limit, page, author, raing, orderBy,  }
+    const query = req?.query;
     if (!query) {
       throw CreateError(ErrorCodes.BAD_REQUEST);
     }
 
-    const stories = await FindAllStories((orderBy = query.orderBy));
+    // split query
+    const limit = query.limit ? Number(query.limit) : 1;
+    const page = query.page ? Number(query.page) : 1;
+    const types = query.type ? query.type.split(",") : null;
+    const authors = query.author ? query.author.split(",") : null;
+    const genres = query.genre ? query.genre.split(",") : null;
+    // rating = [[1,2], [4,5]]
+    const rating = query.rating
+      ? query.rating
+          .split(",")
+          .map((range) => range.split("-").map((number) => parseFloat(number)))
+      : [[0, 5]];
+    // view = [[0, 100], [1000, 100000]]
+    const view = query.view
+      ? query.view
+          .split(",")
+          .map((range) => range.split("-").map((number) => Number(number)))
+      : [[0, 2147483647]];
+
+    // Create where
+    const where = {
+      ...(types && { type: { in: types } }),
+      ...(authors && {
+        author: { some: { author_id: { in: authors } } },
+      }),
+      ...(genres && {
+        genre: { some: { genre: { in: genres } } },
+      }),
+      OR: [
+        ...rating.map(([min, max]) => ({
+          star: { gte: min, lte: max },
+        })),
+        ...view.map(([min, max]) => ({
+          view: { gte: min, lte: max },
+        })),
+      ],
+    };
+
+    const order = {};
+    if (query?.orderBy) {
+      const [field, direction] = query.orderBy.split(":");
+      order[field.toLowerCase()] = direction.toLowerCase();
+    } else {
+      order["update_at"] = "asc";
+    }
+
+    const stories = await FindAllStories(
+      where,
+      order,
+      limit,
+      (page - 1) * limit,
+      false
+    );
+
+    if (!stories) {
+      throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Get story list successfully",
+      data: stories.data,
+    });
   } catch (error) {
-    console.error("❌ [Story.Controller.js] Error getting list user:", error);
+    if (!error.status)
+      console.error("❌ [Story.Controller.js] Error getting list user:", error);
+    next(error);
+  }
+};
+
+export const GetStoryNodeInfo = async (req, res, next) => {
+  try {
+    const storyNodeId = req?.params?.id;
+    const isGettingChildren =
+      req?.query?.isGettingChildren === "true" ? true : false;
+    const isGettingContent =
+      req?.query?.isGettingContent === "true" ? true : false;
+
+    if (!storyNodeId) {
+      throw CreateError(ErrorCodes.BAD_REQUEST);
+    }
+
+    const node = await FindStoryNode(
+      { id: storyNodeId },
+      isGettingChildren,
+      isGettingContent
+    );
+    if (!node || !node.success) {
+      throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
+    }
+    if (!node.data) {
+      throw CreateError(ErrorCodes.STORY_NODE_NOT_FOUND);
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Get story node successfully",
+      data: node.data,
+    });
+  } catch (error) {
+    if (!error.status)
+      console.error("❌ [Story.Controller.js] Error getting user info:", error);
     next(error);
   }
 };

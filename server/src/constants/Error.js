@@ -112,7 +112,7 @@ const ErrorCodes = {
     message: "Password format is not valid ",
   },
 
-  // Domain-specific (business logic)
+  // Not found assets
   USER_NOT_FOUND: {
     status: 404,
     message: "User not found",

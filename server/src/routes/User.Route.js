@@ -1,11 +1,23 @@
 import express from "express";
 
-import AuthorizationMiddleware from "../middlewares/Auth.Middleware.js";
+import {
+  AuthorizationRole,
+  AuthenticationToken,
+} from "../middlewares/Auth.Middleware.js";
 
-import { GetUserInfo } from "../controllers/User.Controller.js";
+import {
+  GetUserInfo,
+  GetListUserInfo,
+} from "../controllers/User.Controller.js";
 
 const userRoute = express.Router();
 
-userRoute.get("/get-user-info/:id", AuthorizationMiddleware, GetUserInfo);
+userRoute.get("/get-user-info/:id", AuthenticationToken, GetUserInfo);
+userRoute.get(
+  "/get-list-user-info",
+  AuthenticationToken,
+  AuthorizationRole,
+  GetListUserInfo
+);
 
 export default userRoute;
