@@ -1,4 +1,3 @@
-import { getRounds } from "bcrypt";
 import { CreateError } from "../configs/ErrorHandle.js";
 import ErrorCodes from "../constants/Error.js";
 import { FindImage } from "../models/Image.Model.js";
@@ -8,6 +7,7 @@ import {
   FindAllStoryNodes,
   FindStoryNode,
   GetStoryTree,
+  FindComments,
 } from "../models/Story.Model.js";
 
 export const GetStoryInfo = async (req, res, next) => {
@@ -98,15 +98,14 @@ export const GetListStory = async (req, res, next) => {
       const [field, direction] = query.orderBy.split(":");
       order[field.toLowerCase()] = direction.toLowerCase();
     } else {
-      order["update_at"] = "asc";
+      order["update_at"] = "desc";
     }
 
     const stories = await FindAllStories(
       where,
       order,
       limit,
-      (page - 1) * limit,
-      false
+      (page - 1) * limit
     );
 
     if (!stories) {
@@ -160,3 +159,54 @@ export const GetStoryNodeInfo = async (req, res, next) => {
     next(error);
   }
 };
+
+export async function GetComments(req, res, next) {
+  try {
+    const storyId = req?.params?.storyId;
+    const storyNodeId = req?.params?.storyNodeId;
+    // Check user request
+    if (!storyId) {
+      throw CreateError(ErrorCodes.BAD_REQUEST);
+    }
+
+    const query = req?.query;
+    const limit = query.limit ? Number(query.limit) : 1;
+    const page = query.page ? Number(query.page) : 1;
+    const order = {};
+    if (query?.orderBy) {
+      const [field, direction] = query.orderBy.split(":");
+      order[field.toLowerCase()] = direction.toLowerCase();
+    } else {
+      order["create_at"] = "desc";
+    }
+    const userId = query.userId ? query.userId : null;
+
+    const comments = await FindComments(
+      {
+        user_id: userId,
+        story_id: storyId,
+        story_node_id: storyNodeId,
+      },
+      order,
+      limit,
+      (page - 1) * limit
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Get comments successfully",
+      data: comments.data || [],
+    });
+  } catch (error) {
+    console.error("❌ [Story.Controller.js] Error getting comment", error);
+    next(error);
+  }
+}
+
+export async function AddNewComment(req, res, next) {
+  try {
+  } catch (error) {
+    console.error("❌ [Story.Controller.js] Error getting comment", error);
+    next(error);
+  }
+}

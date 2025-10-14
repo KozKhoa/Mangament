@@ -27,6 +27,9 @@ const HandleAdding = async (filePath) => {
   const storyName = node[1];
 
   const story = await AddStory({ title: storyName, type: type });
+  if (story.success === true) {
+    console.log(`✅ [Upload.Model.js] Story ${storyName} added`);
+  }
   const storyId = story.data.id;
 
   let parentId = null;
@@ -44,27 +47,44 @@ const HandleAdding = async (filePath) => {
       order_index: Number(storyNodeIndex) || 0,
     });
 
+    if (storyNode.success === true) {
+      console.log(
+        `✅ [Upload.Model.js] StoryNode ${storyNodeType} ${storyNodeIndex} added`
+      );
+    }
+
     parentId = storyNode.data.id;
   }
 
   let contentName = node[node.length - 1];
   let contentType = path.extname(contentName).toLowerCase().replace(".", "");
-
   if (contentType === "png" || contentType === "jpg") {
     const image = await AddImage({ url: filePath });
     const imageId = image?.data?.id || null;
-    if (imageId) {
+
+    // Update cover art for story
+    const fileName = node[node.length - 1].split(".")[0];
+    if (fileName === "cover_art" && imageId) {
+      const coverArt = await UpdateStory(
+        { id: storyId },
+        { cover_art: { connect: { id: image?.data?.id || null } } }
+      );
+      if (coverArt && coverArt.success) {
+        console.log(`✅ [Upload.Model.js] Cover art for ${storyName} added`);
+      }
+    } else if (imageId) {
       // Add image id to story node
-      const storyNode = await FindStoryNode({ id: parentId });
+      const storyNode = await FindStoryNode({ id: parentId }, false, true);
       const oldStoryNodeContent = storyNode?.data?.content || [];
 
       const newStoryNodeContent = [
         ...oldStoryNodeContent,
         {
           type: "iamge",
-          image_id: imageId,
+          image_url: image.data.url,
         },
       ];
+      console.log("✅ [Upload.Model.js] Image added: ", filePath);
 
       await UpdateStoryNode(
         { id: storyNode?.data?.id },
@@ -86,7 +106,6 @@ const ProccessAddingQueue = async () => {
     const dir = addingQueue.shift();
     try {
       await HandleAdding(dir);
-      console.log(`${dir} is added`);
     } catch (error) {
       console.error("❌ [Upload.Model.js] Error update change: ", error);
     }
@@ -110,13 +129,14 @@ const ProccessRemovingQueue = async () => {
 
 const TrackingFoler = (filePath) => {
   const watch = chokidar.watch(filePath, {
+    ignored: /(^|[\/\\])\../, // ignore file và folder ẩn bắt đầu bằng .
     persistent: true,
   });
 
   watch.on("add", async (filePath) => {
     const dir = path.relative(root, filePath);
     addingQueue.push(dir);
-    ProccessAddingQueue();
+    await ProccessAddingQueue();
   });
   // watch.on("unlink", async (filePath) => {
   //   const dir = path.relative(root, filePath);

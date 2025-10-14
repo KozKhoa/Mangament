@@ -98,15 +98,16 @@ enum Genre {
 }
 
 model User {
-  id         String   @id @default(uuid()) @db.Uuid
+  id         String    @id @default(uuid()) @db.Uuid
   name       String
-  email      String   @unique
+  email      String    @unique
   password   String
-  gender     Gender?  @default(other)
-  join_date  DateTime @default(now())
-  role       Role     @default(user)
-  avatar_id  String?  @db.Uuid
-  is_deleted Boolean  @default(false)
+  gender     Gender?   @default(other)
+  birthday   DateTime?
+  join_date  DateTime  @default(now())
+  role       Role      @default(user)
+  avatar_id  String?   @db.Uuid
+  is_deleted Boolean   @default(false)
 
   avatar Image? @relation(fields: [avatar_id], references: [id], onDelete: SetNull)
 
@@ -200,8 +201,8 @@ model ReadingHistory {
   user_id       String   @db.Uuid
   story_id      String   @db.Uuid
   story_node_id String   @db.Uuid
-  read_at       DateTime @default(now())
   last_position Json? // e.g., { "page": 5, "offset": 120 }
+  create_at     DateTime @default(now())
   is_deleted    Boolean  @default(false)
 
   user       User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
@@ -210,14 +211,14 @@ model ReadingHistory {
 }
 
 model FavouriteStory {
-  user_id    String  @db.Uuid
-  story_id   String  @db.Uuid
-  is_deleted Boolean @default(false)
+  id         String   @id @default(uuid()) @db.Uuid
+  user_id    String   @db.Uuid
+  story_id   String   @db.Uuid
+  create_at  DateTime @default(now())
+  is_deleted Boolean  @default(false)
 
   user  User  @relation(fields: [user_id], references: [id], onDelete: Cascade)
   story Story @relation(fields: [story_id], references: [id], onDelete: Cascade)
-
-  @@id([user_id, story_id])
 }
 
 model Story_Genre {
@@ -230,19 +231,21 @@ model Story_Genre {
 }
 
 model Rating {
-  user_id    String  @db.Uuid
-  story_id   String  @db.Uuid
-  rating     Float
-  is_deleted Boolean @default(false)
+  id         String   @id @default(uuid()) @db.Uuid
+  user_id    String   @db.Uuid
+  story_id   String   @db.Uuid
+  star       Int      @default(0) // 0-5
+  message    String?
+  create_at  DateTime @default(now())
+  is_deleted Boolean  @default(false)
 
   user  User  @relation(fields: [user_id], references: [id], onDelete: Cascade)
   story Story @relation(fields: [story_id], references: [id], onDelete: Cascade)
-
-  @@id([user_id, story_id])
 }
 
 model Comment {
   id            String   @id @default(uuid()) @db.Uuid
+  parent_id     String?  @db.Uuid // reply to another comment
   story_id      String   @db.Uuid
   story_node_id String?  @db.Uuid
   user_id       String   @db.Uuid
@@ -253,6 +256,8 @@ model Comment {
   user       User       @relation(fields: [user_id], references: [id], onDelete: Cascade)
   story      Story      @relation(fields: [story_id], references: [id], onDelete: Cascade)
   story_node StoryNode? @relation(fields: [story_node_id], references: [id], onDelete: Cascade)
+  parent     Comment?   @relation("CommentToComment", fields: [parent_id], references: [id], onDelete: Cascade)
+  children   Comment[]  @relation("CommentToComment")
 }
 
 model RefreshToken {

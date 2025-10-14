@@ -20,7 +20,10 @@ export const AddImage = async (data = { url }) => {
     const result = await db.image.create({ data: data });
     return { success: true, data: result };
   } catch (error) {
-    // console.error("❌ [Image.Model.js] Error adding image:", error);
+    if (error.code !== "P2002") {
+      // Ignore duplicate error
+      console.error("❌ [Image.Model.js] Error adding image:", error);
+    }
     return { success: false, error: error.code };
   }
 };

@@ -17,8 +17,8 @@ app.use(RequestLogger);
 
 // Main routes
 app.use("/auth", authRouter);
-app.use("/user", userRoute);
-app.use("/story", storyRoute);
+app.use("/users", userRoute);
+app.use("/stories", storyRoute);
 
 //api for getting image
 app.use("/uploads", express.static("uploads"));

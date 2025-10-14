@@ -6,18 +6,26 @@ import {
 } from "../middlewares/Auth.Middleware.js";
 
 import {
-  GetUserInfo,
-  GetListUserInfo,
+  GetUser,
+  GetAllUsers,
+  GetReadingHistory,
+  PutUser,
 } from "../controllers/User.Controller.js";
 
 const userRoute = express.Router();
 
-userRoute.get("/get-user-info/:id", AuthenticationToken, GetUserInfo);
+userRoute.get("/me", AuthenticationToken, GetUser);
+userRoute.get("/:id", AuthenticationToken, AuthorizationRole, GetUser);
+
+userRoute.put("/me", AuthenticationToken, PutUser);
+userRoute.put("/:id", AuthenticationToken, AuthorizationRole, PutUser);
+
+userRoute.get("/list/get", AuthenticationToken, AuthorizationRole, GetAllUsers);
+
 userRoute.get(
-  "/get-list-user-info",
+  "/reading-history/list/get/:id",
   AuthenticationToken,
-  AuthorizationRole,
-  GetListUserInfo
+  GetReadingHistory
 );
 
 export default userRoute;

@@ -1,4 +1,5 @@
 import db from "../configs/db.js";
+import { GetParentStoryNodeTree } from "./Story.Model.js";
 
 const IsUserExist = async (where = { id, email }) => {
   if (!where.id && !where.email) return false;
@@ -105,7 +106,11 @@ export const UpdateUser = async (where = { id, email }, data = {}) => {
   try {
     if (IsUserExist(where) === false) return { success: false, data: null };
 
-    const result = await db.user.update({ where: where, data: data });
+    const update = await db.user.update({ where: where, data: data });
+    const result = {
+      ...update,
+      ...{ password: "" },
+    };
     return { success: true, data: result };
   } catch (error) {
     console.error("❌ [User.Model.js] Error updating user data: ", error);
@@ -167,6 +172,137 @@ export const HardDeleteRefreshToken = async (where = { user_id, token }) => {
       "❌ [User.Model.js] Error hard delete refresh token: ",
       error
     );
+    return { success: false, error: error.code };
+  }
+};
+
+export const FindReadingHistory = async (
+  where = { id, user_id, story_id, story_node_id },
+  take = 1,
+  skip = 0,
+  orderyBy
+) => {
+  try {
+    const readingHistory = await db.readingHistory.findMany({
+      where: { is_deleted: false, ...where },
+      take: take,
+      skip: skip,
+      ...(orderyBy
+        ? { orderBy: orderyBy }
+        : { orderBy: { create_at: "desc" } }),
+      select: {
+        id: true,
+        user_id: true,
+        story_node_id: true,
+        create_at: true,
+        story: {
+          select: {
+            id: true,
+            title: true,
+            type: true,
+            cover_art: {
+              select: { url: true, width: true, height: true },
+            },
+          },
+        },
+      },
+    });
+
+    for (const history of readingHistory) {
+      history.story_node = await GetParentStoryNodeTree(history.story_node_id);
+    }
+
+    return { success: true, data: readingHistory };
+  } catch (error) {
+    console.error("❌ [User.Model.js] Error finding reading history:", error);
+    return { success: false, error: error.code };
+  }
+};
+
+export const AddReadingHistory = async (
+  data = {
+    user_id,
+    story_id,
+    story_node_id,
+    ...props,
+  }
+) => {
+  try {
+    const result = await db.readingHistory.create({
+      data: {
+        user: {
+          connect: {
+            id: data.user_id,
+          },
+        },
+        story: {
+          connect: {
+            id: story_id,
+          },
+        },
+        story_node: {
+          connect: {
+            id: story_node_id,
+          },
+        },
+        ...props,
+      },
+    });
+    return { success: true, data: result };
+  } catch (error) {
+    console.error("❌ [User.Model.js] Error adding reading history:", error);
+    return { success: false, error: error.code };
+  }
+};
+
+export const HardDeleteReadingHistory = async (where = { id }) => {
+  try {
+    const result = await db.readingHistory.delete({ where: where });
+    return { success: true, data: result };
+  } catch (error) {
+    console.error(
+      "❌ [User.Model.js] Error hard delete reading history: ",
+      error
+    );
+    return { success: false, error: error.code };
+  }
+};
+
+export const SoftDeleteReadingHistory = async (where = { id }) => {
+  try {
+    const readingHistory = await FindReadingHistory({ id: where.id });
+    if (!readingHistory || !readingHistory.success || !readingHistory.data) {
+      return { success: false, data: null };
+    }
+
+    const result = await db.readingHistory.update({
+      where: where,
+      data: { is_deleted: true },
+    });
+    return { success: true, data: result };
+  } catch (error) {
+    console.error(
+      "❌ [User.Model.js] Error soft delete reading history: ",
+      error
+    );
+    return { success: false, error: error.code };
+  }
+};
+
+export const UpdateReadingHistory = async (where = { id }, data = {}) => {
+  try {
+    const readingHistory = await FindReadingHistory({ id: where.id });
+    if (!readingHistory || !readingHistory.success || !readingHistory.data) {
+      return { success: false, data: null };
+    }
+
+    const result = await db.readingHistory.update({
+      where: where,
+      data: data,
+    });
+    return { success: true, data: result };
+  } catch (error) {
+    console.error("❌ [User.Model.js] Error updating reading history: ", error);
     return { success: false, error: error.code };
   }
 };
