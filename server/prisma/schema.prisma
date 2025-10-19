@@ -219,6 +219,8 @@ model FavouriteStory {
 
   user  User  @relation(fields: [user_id], references: [id], onDelete: Cascade)
   story Story @relation(fields: [story_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, story_id])
 }
 
 model Story_Genre {

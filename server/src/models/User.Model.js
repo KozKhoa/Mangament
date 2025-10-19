@@ -24,6 +24,7 @@ export const FindAllUser = async (where = {}, orderBy = {}, take, skip) => {
         name: true,
         email: true,
         gender: true,
+        birthday: true,
         join_date: true,
         role: true,
         avatar: {
@@ -50,6 +51,22 @@ export const FindUser = async (where = { id, email }) => {
     return { success: true, data: result };
   } catch (error) {
     console.error("❌ [User.Model.js] Error finding user:", error);
+    return { success: false, error: error.code };
+  }
+};
+
+export const GetUserPassword = async (where = { id }) => {
+  try {
+    if (!where.id) return { success: false, data: null };
+    const password = await db.user.findFirst({
+      where: where,
+      select: {
+        password: true,
+      },
+    });
+    return { success: true, data: password };
+  } catch (error) {
+    console.error("❌ [User.Model.js] Error getting user password:", error);
     return { success: false, error: error.code };
   }
 };
@@ -83,8 +100,8 @@ export const HardDeleteUser = async (where = { id, email }) => {
 export const SoftDeleteUser = async (where = { id, email }) => {
   try {
     const user = await FindUser(where);
+    // If user does not exist
     if (!user || !user.success || !user.data) {
-      // If user does not exist
       return { success: false, data: null };
     }
     // If user exist
@@ -176,25 +193,23 @@ export const HardDeleteRefreshToken = async (where = { user_id, token }) => {
   }
 };
 
-export const FindReadingHistory = async (
+export const FindAllReadingHistories = async (
   where = { id, user_id, story_id, story_node_id },
   take = 1,
   skip = 0,
-  orderyBy
+  orderBy
 ) => {
   try {
     const readingHistory = await db.readingHistory.findMany({
       where: { is_deleted: false, ...where },
       take: take,
       skip: skip,
-      ...(orderyBy
-        ? { orderBy: orderyBy }
-        : { orderBy: { create_at: "desc" } }),
+      ...(orderBy ? { orderBy: orderBy } : { orderBy: { create_at: "desc" } }),
       select: {
         id: true,
         user_id: true,
-        story_node_id: true,
         create_at: true,
+        story_node_id: true,
         story: {
           select: {
             id: true,
@@ -214,7 +229,10 @@ export const FindReadingHistory = async (
 
     return { success: true, data: readingHistory };
   } catch (error) {
-    console.error("❌ [User.Model.js] Error finding reading history:", error);
+    console.error(
+      "❌ [User.Model.js] Error finding all reading histories:",
+      error
+    );
     return { success: false, error: error.code };
   }
 };
@@ -224,7 +242,6 @@ export const AddReadingHistory = async (
     user_id,
     story_id,
     story_node_id,
-    ...props,
   }
 ) => {
   try {
@@ -237,15 +254,14 @@ export const AddReadingHistory = async (
         },
         story: {
           connect: {
-            id: story_id,
+            id: data.story_id,
           },
         },
         story_node: {
           connect: {
-            id: story_node_id,
+            id: data.story_node_id,
           },
         },
-        ...props,
       },
     });
     return { success: true, data: result };
@@ -270,7 +286,7 @@ export const HardDeleteReadingHistory = async (where = { id }) => {
 
 export const SoftDeleteReadingHistory = async (where = { id }) => {
   try {
-    const readingHistory = await FindReadingHistory({ id: where.id });
+    const readingHistory = await FindAllReadingHistories({ id: where.id });
     if (!readingHistory || !readingHistory.success || !readingHistory.data) {
       return { success: false, data: null };
     }
@@ -306,3 +322,125 @@ export const UpdateReadingHistory = async (where = { id }, data = {}) => {
     return { success: false, error: error.code };
   }
 };
+
+export async function FindAllFavouriteStories(
+  where = { id, user_id },
+  orderBy,
+  take = 1,
+  skip = 0
+) {
+  try {
+    const favouriteStories = await db.favouriteStory.findMany({
+      where: { is_deleted: false, ...where },
+      take: take,
+      skip: skip,
+      ...(orderBy ? { orderBy: orderBy } : { orderBy: { create_at: "desc" } }),
+      select: {
+        id: true,
+        create_at: true,
+        user_id: true,
+        story: {
+          select: {
+            id: true,
+            title: true,
+            star: true,
+            view: true,
+            cover_art: {
+              select: { url: true, width: true, height: true },
+            },
+          },
+        },
+      },
+    });
+
+    if (!favouriteStories) return { success: false, data: null };
+    return { success: true, data: favouriteStories };
+  } catch (error) {
+    console.error(
+      "❌ [User.Model.js] Error finding all favourite stories:",
+      error
+    );
+    return { success: false, error: error.code };
+  }
+}
+
+export async function AddFavouriteStory(data = { user_id, story_id }) {
+  try {
+    const favouriteStory = await db.favouriteStory.create({
+      data: {
+        user: {
+          connect: {
+            id: data.user_id,
+          },
+        },
+        story: {
+          connect: {
+            id: data.story_id,
+          },
+        },
+      },
+    });
+
+    if (!favouriteStory) return { success: false, data: null };
+
+    return { success: true, data: favouriteStory };
+  } catch (error) {
+    if (error.code !== "P2002")
+      // Unique error => already exist
+      console.error(
+        "❌ [User.Model.js] Error adding new favourite story:",
+        error
+      );
+    return { success: false, error: error.code };
+  }
+}
+
+export async function HardDeleteFavouriteStory(where = { id }) {
+  try {
+    const favouriteStory = await db.favouriteStory.delete({ where: where });
+    return { success: true, data: favouriteStory };
+  } catch (error) {
+    console.error(
+      "❌ [User.Model.js] Error hard delete favourite story:",
+      error
+    );
+    return { success: false, error: error.code };
+  }
+}
+
+export async function SoftDeleteFavouriteStory(where = { id }) {
+  try {
+    const favouriteStory = await FindAllFavouriteStories({ id: where.id });
+    if (!favouriteStory || !favouriteStory.success || !favouriteStory.data)
+      return { success: false, data: null };
+
+    const result = await db.favouriteStory.update({
+      where: where,
+      data: { is_deleted: true },
+    });
+    return { success: true, data: result };
+  } catch (error) {
+    console.error(
+      "❌ [User.Model.js] Error soft delete favourite story:",
+      error
+    );
+    return { success: false, error: error.code };
+  }
+}
+
+export async function UpdateFavouriteStory(where = { id }, data) {
+  try {
+    const favouriteStory = await FindAllFavouriteStories({ id: where.id });
+    if (!favouriteStory || !favouriteStory.success || !favouriteStory.data)
+      return { success: false, data: null };
+
+    const updating = await db.favouriteStory.update({
+      where: where,
+      data: data,
+    });
+    return { success: true, data: updating };
+  } catch (error) {
+    console.error("❌ [User.Model.js] Error updating favourite story:", error);
+    return { success: false, error: error.code };
+  }
+}

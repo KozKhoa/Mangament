@@ -80,7 +80,10 @@ export const Login = async (req, res, next) => {
 
 export const Register = async (req, res, next) => {
   try {
-    const { name, email, password } = req.body; // get user name, email, password from require
+    // Get user name, email, password from require
+    const { name, email, password } = req?.body;
+    if (!name || !email || !password)
+      throw CreateError(ErrorCodes.MISSING_FIELD);
 
     CheckEmailAndPasswordFormat(email, password); // Check email and password format
 

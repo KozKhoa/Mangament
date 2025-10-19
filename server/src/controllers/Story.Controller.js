@@ -94,8 +94,8 @@ export const GetListStory = async (req, res, next) => {
     };
 
     const order = {};
-    if (query?.orderBy) {
-      const [field, direction] = query.orderBy.split(":");
+    if (query?.sort) {
+      const [field, direction] = query.sort.split(":");
       order[field.toLowerCase()] = direction.toLowerCase();
     } else {
       order["update_at"] = "desc";
@@ -173,8 +173,8 @@ export async function GetComments(req, res, next) {
     const limit = query.limit ? Number(query.limit) : 1;
     const page = query.page ? Number(query.page) : 1;
     const order = {};
-    if (query?.orderBy) {
-      const [field, direction] = query.orderBy.split(":");
+    if (query?.sort) {
+      const [field, direction] = query.sort.split(":");
       order[field.toLowerCase()] = direction.toLowerCase();
     } else {
       order["create_at"] = "desc";
