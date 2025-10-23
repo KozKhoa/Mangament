@@ -1,6 +1,4 @@
-import { rmSync } from "fs";
 import db from "../configs/db.js";
-import { SaveTokenOnCookies } from "../utils/TokenHandle.js";
 
 export const GetStoryTree = async (story_id, isGettingContent = false) => {
   const nodes = await db.storyNode.findMany({
@@ -13,8 +11,8 @@ export const GetStoryTree = async (story_id, isGettingContent = false) => {
       title: true,
       view: true,
       order_index: true,
-      update_at: true,
-      create_at: true,
+      updated_at: true,
+      created_at: true,
       type: true,
       ...(isGettingContent && { content: true }),
     },
@@ -137,8 +135,8 @@ export const AddStory = async (data = { title, type }) => {
         status: true,
         next_chapter_in: true,
         number_of_children: true,
-        update_at: true,
-        create_at: true,
+        updated_at: true,
+        created_at: true,
         cover_art: {
           select: { url: true, width: true, height: true },
         },
@@ -215,51 +213,3 @@ export const UpdateStory = async (where = { id, title }, data) => {
     return { success: false, error: error.code };
   }
 };
-
-export async function FindComments(
-  where = { id, user_id, story_id, story_node_id },
-  orderBy,
-  take = 1,
-  skip = 0
-) {
-  try {
-    const comments = await db.comment.findMany({
-      where: { is_deleted: false, ...where },
-      ...(orderBy ? { orderBy: orderBy } : { orderBy: { create_at: "desc" } }),
-      take: take,
-      skip: skip,
-      select: {
-        id: true,
-        user_id: true,
-        story_id: true,
-        story_node_id: true,
-        message: true,
-        created_at: true,
-      },
-    });
-    return { success: true, data: comments };
-  } catch (error) {
-    console.error("❌ [User.Model.js] Error finding comment", error);
-    return { success: false, error: error.code };
-  }
-}
-
-export async function AddComment(
-  data = { user_id, story_id, story_node_id, message }
-) {
-  try {
-    if (
-      !data.story_id ||
-      !data.user_id ||
-      !data.message ||
-      !data.message.length === 0
-    )
-      return { success: false, data: null };
-
-    const newComment = await db.comment.create({ data: data });
-    return { success: true, data: newComment };
-  } catch (error) {
-    console.error("❌ [User.Model.js] Error adding new comment: ", error);
-    return { success: false, error: error.code };
-  }
-}

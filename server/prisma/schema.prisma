@@ -132,8 +132,8 @@ model Story {
   cover_art_id       String?     @db.Uuid
   is_deleted         Boolean     @default(false)
   poster_id          String?     @db.Uuid // Admin who post this story on
-  create_at          DateTime    @default(now())
-  update_at          DateTime    @default(now())
+  created_at         DateTime    @default(now())
+  updated_at         DateTime    @default(now())
   summary            String?
 
   cover_art Image? @relation(fields: [cover_art_id], references: [id], onDelete: SetNull)
@@ -157,8 +157,8 @@ model StoryNode {
   order_index        Int?
   view               Int                      @default(0)
   number_of_children Int                      @default(0)
-  update_at          DateTime                 @default(now())
-  create_at          DateTime                 @default(now())
+  updated_at         DateTime                 @default(now())
+  created_at         DateTime                 @default(now())
   content            Json?
   plain_text         String?
   search_vector      Unsupported("tsvector")? // Prisma chưa hỗ trợ tsvector
@@ -208,7 +208,7 @@ model ReadingHistory {
   story_id      String   @db.Uuid
   story_node_id String   @db.Uuid
   last_position Json? // e.g., { "page": 5, "offset": 120 }
-  create_at     DateTime @default(now())
+  created_at    DateTime @default(now())
   is_deleted    Boolean  @default(false)
 
   user       User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
@@ -220,7 +220,7 @@ model FavouriteStory {
   id         String   @id @default(uuid()) @db.Uuid
   user_id    String   @db.Uuid
   story_id   String   @db.Uuid
-  create_at  DateTime @default(now())
+  created_at DateTime @default(now())
   is_deleted Boolean  @default(false)
 
   user  User  @relation(fields: [user_id], references: [id], onDelete: Cascade)
@@ -244,7 +244,7 @@ model Rating {
   story_id   String   @db.Uuid
   star       Int      @default(0) // 0-5
   message    String?
-  create_at  DateTime @default(now())
+  created_at DateTime @default(now())
   is_deleted Boolean  @default(false)
 
   user  User  @relation(fields: [user_id], references: [id], onDelete: Cascade)

@@ -23,13 +23,12 @@ import {
   FindAllStories,
   FindStory,
   GetStoryTree,
-  FindComments,
   UpdateStory,
   AddStory,
+  SoftDeleteStory,
 } from "../models/Story.Model.js";
 
 import { FindAllStoryNodes, FindStoryNode } from "../models/StoryNode.Model.js";
-import { urlencoded } from "express";
 
 import {
   CreateNewFolder,
@@ -37,6 +36,7 @@ import {
   SoftDeleteFile,
 } from "../utils/FileHandle.js";
 import DIRECTORY from "../constants/Directory.js";
+import { threadId } from "worker_threads";
 
 export async function GetStory(req, res, next) {
   try {
@@ -133,7 +133,7 @@ export async function GetAllStories(req, res, next) {
       const [field, direction] = query.sort.split(":");
       order[field.toLowerCase()] = direction.toLowerCase();
     } else {
-      order["creat_at"] = "desc";
+      order["created_at"] = "desc";
     }
 
     const stories = await FindAllStories(
@@ -145,7 +145,7 @@ export async function GetAllStories(req, res, next) {
       isGettingContent
     );
 
-    if (!stories) {
+    if (!stories || !stories.success) {
       throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
     }
 
@@ -321,7 +321,7 @@ export async function PutStory(req, res, next) {
               },
             },
           }),
-        update_at: new Date(),
+        updated_at: new Date(),
       }
     );
 
@@ -340,6 +340,24 @@ export async function PutStory(req, res, next) {
       success: true,
       message: "Update story successfully",
       data: update,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function DeleteStory(req, res, next) {
+  try {
+    const userId = req.user.id;
+    const storyId = req.params?.id;
+    if (!storyId) throw CreateError(ErrorCodes.BAD_REQUEST);
+
+    const removing = await SoftDeleteStory({ id: storyId });
+    if (!removing) throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
+
+    return res.status(200).json({
+      success: true,
+      message: "Delete story successfully",
     });
   } catch (error) {
     next(error);
@@ -379,54 +397,3 @@ export const GetStoryNodeInfo = async (req, res, next) => {
     next(error);
   }
 };
-
-export async function GetComments(req, res, next) {
-  try {
-    const storyId = req?.params?.storyId;
-    const storyNodeId = req?.params?.storyNodeId;
-    // Check user request
-    if (!storyId) {
-      throw CreateError(ErrorCodes.BAD_REQUEST);
-    }
-
-    const query = req?.query;
-    const limit = query.limit ? Number(query.limit) : 1;
-    const page = query.page ? Number(query.page) : 1;
-    const order = {};
-    if (query?.sort) {
-      const [field, direction] = query.sort.split(":");
-      order[field.toLowerCase()] = direction.toLowerCase();
-    } else {
-      order["create_at"] = "desc";
-    }
-    const userId = query.userId ? query.userId : null;
-
-    const comments = await FindComments(
-      {
-        user_id: userId,
-        story_id: storyId,
-        story_node_id: storyNodeId,
-      },
-      order,
-      limit,
-      (page - 1) * limit
-    );
-
-    return res.status(200).json({
-      success: true,
-      message: "Get comments successfully",
-      data: comments.data || [],
-    });
-  } catch (error) {
-    console.error("❌ [Story.Controller.js] Error getting comment", error);
-    next(error);
-  }
-}
-
-export async function AddNewComment(req, res, next) {
-  try {
-  } catch (error) {
-    console.error("❌ [Story.Controller.js] Error getting comment", error);
-    next(error);
-  }
-}

@@ -281,7 +281,7 @@ export async function GetAllFavouriteStories(req, res, next) {
       const [field, direction] = query.sort.split(":");
       order[field.toLowerCase()] = direction.toLowerCase();
     } else {
-      order["create_at"] = "desc";
+      order["created_at"] = "desc";
     }
 
     const favouriteStories = await FindAllFavouriteStories(
@@ -414,7 +414,7 @@ export async function GetAllReadingHistories(req, res, next) {
       const [field, direction] = query.sort.split(":");
       order[field.toLowerCase()] = direction.toLowerCase();
     } else {
-      order["create_at"] = "desc";
+      order["created_at"] = "desc";
     }
 
     const readingHistory = await FindAllReadingHistories(
@@ -472,7 +472,7 @@ export async function PostReadingHistory(req, res, next) {
       user_id: userId,
       story_id: storyId,
       story_node_id: storyNodeId,
-      create_at: datetime,
+      created_at: datetime,
     });
 
     if (!histories || !histories.success)
@@ -486,7 +486,7 @@ export async function PostReadingHistory(req, res, next) {
         user: { id: histories.data.user_id },
         story: { id: histories.data.story_id },
         story_node: { id: histories.data.story_node_id },
-        create_at: histories.data.create_at,
+        created_at: histories.data.created_at,
       },
     });
   } catch (error) {

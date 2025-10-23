@@ -11,10 +11,10 @@ export async function FindAllFavouriteStories(
       where: { is_deleted: false, ...where },
       take: take,
       skip: skip,
-      ...(orderBy ? { orderBy: orderBy } : { orderBy: { create_at: "desc" } }),
+      ...(orderBy ? { orderBy: orderBy } : { orderBy: { created_at: "desc" } }),
       select: {
         id: true,
-        create_at: true,
+        created_at: true,
         user_id: true,
         story: {
           select: {

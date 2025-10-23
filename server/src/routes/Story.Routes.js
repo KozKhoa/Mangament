@@ -4,17 +4,21 @@ import path from "path";
 
 import {
   AddOneViewForStory,
+  DeleteStory,
   GetAllStories,
   GetStory,
   PostStory,
   PutStory,
 } from "../controllers/Story.Controller.js";
 
-import { GetComments } from "../controllers/Story.Controller.js";
 import {
   AuthenticationToken,
   AuthorizationRole,
 } from "../middlewares/Auth.Middleware.js";
+import {
+  GetAllComments,
+  PostComment,
+} from "../controllers/Comment.Controller.js";
 
 const saveLocation = "uploads/image";
 
@@ -47,5 +51,10 @@ storyRoute.put(
   upload.single("coverArt"),
   PutStory
 );
+storyRoute.delete("/:id", AuthenticationToken, AuthorizationRole, DeleteStory);
+
+// Comment
+storyRoute.post("/:storyId/comments", AuthenticationToken, PostComment);
+storyRoute.get("/:storyId/comments", GetAllComments);
 
 export default storyRoute;
