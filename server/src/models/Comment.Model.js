@@ -1,5 +1,6 @@
 import { connect } from "http2";
 import db from "../configs/db.js";
+import { toUSVString } from "util";
 
 export async function FindAllComments(
   where = { id, user_id, story_id, story_node_id },
@@ -15,7 +16,13 @@ export async function FindAllComments(
       skip: skip,
       select: {
         id: true,
-        user_id: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+            avatar: { select: { url: true, width: true, height: true } },
+          },
+        },
         story_id: true,
         story_node_id: true,
         message: true,
