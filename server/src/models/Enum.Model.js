@@ -1,20 +1,19 @@
 import db from "../configs/db.js";
-import { Role, Gender, Genre } from "../configs/db.js";
-
-export function GetAllGenre() {
-  return Object.values(Genre)
-}
-
-export function ValidateGenre( genre) {
-  const genreList = GetAllGenre();
-  return genreList.includes(genre);
-}
+import {
+  Role,
+  Gender,
+  Genre,
+  StoryNodeType,
+  StoryType,
+  StoryStatus,
+} from "../configs/db.js";
 
 export function GetAllGender() {
   return Object.values(Gender);
 }
 
 export function ValidateGender(gender) {
+  if (!gender) return false;
   const genderList = GetAllGender();
   return genderList.includes(gender);
 }
@@ -24,6 +23,43 @@ export function GetAllRole() {
 }
 
 export function ValidateRole(role) {
+  if (!role) return false;
   const roleList = GetAllRole();
   return roleList.includes(role);
+}
+
+export function GetAllStoryType() {
+  return Object.values(StoryType);
+}
+
+export function ValidateStoryType(storyType) {
+  if (!storyType) return true;
+  const list = GetAllStoryType();
+  return list.includes(storyType);
+}
+
+export function GetAllStoryNodeType() {
+  return Object.values(StoryNodeType);
+}
+
+export function ValidateStoryNodeType(storyNodeType) {
+  if (!storyNodeType) return true;
+  let returnValue = true;
+  const storyNodeTypes = GetAllStoryNodeType();
+  storyNodeType.forEach((e) => {
+    if (storyNodeTypes.includes(e)) {
+      returnValue = false;
+      return false;
+    }
+  });
+  return returnValue;
+}
+
+export function GetAllStoryStatus() {
+  return Object.values(StoryStatus);
+}
+
+export function ValidateStoryStatus(status) {
+  if (!status) return true;
+  return GetAllStoryStatus().includes(status);
 }

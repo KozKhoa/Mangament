@@ -8,17 +8,16 @@ import {
   FindImage,
 } from "./Image.Model.js";
 
+import { AddStory, UpdateStory, FindStory } from "./Story.Model.js";
 import {
-  AddStory,
-  UpdateStory,
-  AddStoryNode,
-  UpdateStoryNode,
-  FindStory,
   FindStoryNode,
-} from "./Story.Model.js";
-import { uptime } from "process";
+  UpdateStoryNode,
+  AddStoryNode,
+} from "./StoryNode.Model.js";
 
-const root = path.resolve("../../uploads");
+import DIRECTORY from "../constants/Directory.js";
+
+const root = path.resolve("../../uploads/story"); // ""
 
 const HandleAdding = async (filePath) => {
   const node = filePath.split(path.sep);
@@ -59,7 +58,9 @@ const HandleAdding = async (filePath) => {
   let contentName = node[node.length - 1];
   let contentType = path.extname(contentName).toLowerCase().replace(".", "");
   if (contentType === "png" || contentType === "jpg") {
-    const image = await AddImage({ url: filePath });
+    const image = await AddImage({
+      url: `${DIRECTORY.UPLOADS_STORY}/${filePath}`,
+    });
     const imageId = image?.data?.id || null;
 
     // Update cover art for story

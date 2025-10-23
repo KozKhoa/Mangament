@@ -134,7 +134,7 @@ model Story {
   poster_id          String?     @db.Uuid // Admin who post this story on
   create_at          DateTime    @default(now())
   update_at          DateTime    @default(now())
-
+  summary            String?
 
   cover_art Image? @relation(fields: [cover_art_id], references: [id], onDelete: SetNull)
   poster    User?  @relation(fields: [poster_id], references: [id], onDelete: SetNull) // admin who post this story on
@@ -158,6 +158,7 @@ model StoryNode {
   view               Int                      @default(0)
   number_of_children Int                      @default(0)
   update_at          DateTime                 @default(now())
+  create_at          DateTime                 @default(now())
   content            Json?
   plain_text         String?
   search_vector      Unsupported("tsvector")? // Prisma chưa hỗ trợ tsvector
@@ -275,4 +276,3 @@ model RefreshToken {
 
   @@id([user_id, token])
 }
-

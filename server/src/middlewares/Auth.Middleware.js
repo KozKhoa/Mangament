@@ -1,6 +1,6 @@
-import { CreateError } from "../configs/ErrorHandle.js";
+import { CreateError } from "../utils/ErrorHandle.js";
 import ErrorCodes from "../constants/Error.js";
-import { VerifyAccessToken } from "../configs/TokenHandle.js";
+import { VerifyAccessToken } from "../utils/TokenHandle.js";
 import { FindUser } from "../models/User.Model.js";
 
 export const AuthenticationToken = async (req, res, next) => {

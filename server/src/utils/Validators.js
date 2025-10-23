@@ -1,4 +1,4 @@
-import { CreateError } from "../configs/ErrorHandle.js";
+import { CreateError } from "../utils/ErrorHandle.js";
 import ErrorCodes from "../constants/Error.js";
 
 export const IsValidEmail = (email) => {

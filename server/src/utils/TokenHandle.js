@@ -6,7 +6,7 @@ import {
   JWT_REFRESH_SECRET,
   JWT_REFRESH_EXPIRES_IN,
   COOKIES_REFRESH_TOKEN_KEY,
-} from "./env.js";
+} from "../configs/env.js";
 
 export const GenRefreshToken = ({ id, name, email, role }) => {
   try {

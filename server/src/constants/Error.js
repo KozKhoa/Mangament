@@ -147,6 +147,10 @@ const ErrorCodes = {
     status: 409,
     message: "Email has alrealy been used",
   },
+  TITLE_ALDREADY_EXIST: {
+    status: 409,
+    message: "Title has already been used",
+  },
 };
 
 export default ErrorCodes;

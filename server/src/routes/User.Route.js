@@ -12,9 +12,9 @@ import {
   PutUserPassword,
   DeleteUser,
   PostFavouriteStory,
-  GetFavouriteStories,
+  GetAllFavouriteStories,
   DeleteFavouriteStory,
-  GetReadingHistories,
+  GetAllReadingHistories,
   PostReadingHistory,
   DeleteReadingHistory,
 } from "../controllers/User.Controller.js";
@@ -33,7 +33,7 @@ userRoute.delete("/:id", AuthenticationToken, AuthorizationRole, DeleteUser); //
 
 // Favourite story
 userRoute.post("/me/favourites", AuthenticationToken, PostFavouriteStory);
-userRoute.get("/me/favourites", AuthenticationToken, GetFavouriteStories);
+userRoute.get("/me/favourites", AuthenticationToken, GetAllFavouriteStories);
 userRoute.delete(
   "/me/favourites/:favouriteId",
   AuthenticationToken,
@@ -42,7 +42,7 @@ userRoute.delete(
 
 // Reading history
 userRoute.post("/me/histories", AuthenticationToken, PostReadingHistory);
-userRoute.get("/me/histories", AuthenticationToken, GetReadingHistories);
+userRoute.get("/me/histories", AuthenticationToken, GetAllReadingHistories);
 userRoute.delete(
   "/me/histories/:historyId",
   AuthenticationToken,

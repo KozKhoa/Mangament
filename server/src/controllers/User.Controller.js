@@ -1,23 +1,31 @@
 import {
   FindAllUser,
   FindUser,
-  FindAllReadingHistories,
-  AddReadingHistory,
   UpdateUser,
   GetUserPassword,
   SoftDeleteUser,
+} from "../models/User.Model.js";
+
+import {
   FindAllFavouriteStories,
   AddFavouriteStory,
   SoftDeleteFavouriteStory,
+} from "../models/Favourite.Model.js";
+
+import {
+  FindAllReadingHistories,
+  AddReadingHistory,
   SoftDeleteReadingHistory,
-} from "../models/User.Model.js";
+} from "../models/History.Model.js";
+
 import { FindImage } from "../models/Image.Model.js";
-import { CreateError } from "../configs/ErrorHandle.js";
+import { CreateError } from "../utils/ErrorHandle.js";
 import ErrorCodes from "../constants/Error.js";
 import { ValidateGender } from "../models/Enum.Model.js";
-import { HashPassword, ComparePassword } from "../configs/PasswordHandle.js";
+import { HashPassword, ComparePassword } from "../utils/PasswordHandle.js";
 import { CheckEmailAndPasswordFormat } from "../utils/Validators.js";
-import { FindStory, FindStoryNode } from "../models/Story.Model.js";
+import { FindStory } from "../models/Story.Model.js";
+import { FindStoryNode } from "../models/StoryNode.Model.js";
 
 export const GetUser = async (req, res, next) => {
   try {
@@ -145,9 +153,9 @@ export const PutUser = async (req, res, next) => {
     const updateUser = await UpdateUser(
       { id: userId },
       {
-        name: name,
-        gender: gender,
-        birthday: birthday,
+        ...(name && name),
+        ...(gender && gender),
+        ...(birthday && birthday),
       }
     );
     if (!updateUser || !updateUser.success) {
@@ -260,7 +268,7 @@ export async function DeleteUser(req, res, next) {
   }
 }
 
-export async function GetFavouriteStories(req, res, next) {
+export async function GetAllFavouriteStories(req, res, next) {
   try {
     // It is not neccessary to check user exist because authentication already did it
     const userId = req.user?.id;
@@ -392,7 +400,7 @@ export async function DeleteFavouriteStory(req, res, next) {
   }
 }
 
-export async function GetReadingHistories(req, res, next) {
+export async function GetAllReadingHistories(req, res, next) {
   try {
     // It is not neccessary to check user exist because authentication already did it
     const userId = req.user?.id;

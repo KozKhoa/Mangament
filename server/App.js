@@ -20,8 +20,8 @@ app.use("/auth", authRouter);
 app.use("/users", userRoute);
 app.use("/stories", storyRoute);
 
-//api for getting image
-app.use("/uploads", express.static("uploads"));
+//api for getting story image
+app.use("/uploads/story", express.static("uploads/story"));
 
 // Middlewares
 app.use(ErrorMiddleware);

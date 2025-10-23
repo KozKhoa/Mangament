@@ -8,14 +8,14 @@ import {
   FindRefreshToken,
 } from "../models/User.Model.js";
 import { CheckEmailAndPasswordFormat } from "../utils/Validators.js";
-import { CreateError } from "../configs/ErrorHandle.js";
-import { ComparePassword, HashPassword } from "../configs/PasswordHandle.js";
+import { CreateError } from "../utils/ErrorHandle.js";
+import { ComparePassword, HashPassword } from "../utils/PasswordHandle.js";
 import {
   GenAccessToken,
   GenRefreshToken,
   SaveTokenOnCookies,
   VerifyRefreshToken,
-} from "../configs/TokenHandle.js";
+} from "../utils/TokenHandle.js";
 import ErrorCodes from "../constants/Error.js";
 
 import { COOKIES_REFRESH_TOKEN_KEY } from "../configs/env.js";
