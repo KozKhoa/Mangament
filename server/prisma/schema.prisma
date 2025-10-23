@@ -116,6 +116,7 @@ model User {
   story_rating    Rating[]
   comment         Comment[]
   refresh_token   RefreshToken[]
+  posted_story    Story[] // List of story that admin posted
 }
 
 model Story {
@@ -130,9 +131,13 @@ model Story {
   number_of_children Int         @default(0)
   cover_art_id       String?     @db.Uuid
   is_deleted         Boolean     @default(false)
+  poster_id          String?     @db.Uuid // Admin who post this story on
+  create_at          DateTime    @default(now())
   update_at          DateTime    @default(now())
 
+
   cover_art Image? @relation(fields: [cover_art_id], references: [id], onDelete: SetNull)
+  poster    User?  @relation(fields: [poster_id], references: [id], onDelete: SetNull) // admin who post this story on
 
   story_node           StoryNode[]
   user_reading_history ReadingHistory[]
@@ -270,3 +275,4 @@ model RefreshToken {
 
   @@id([user_id, token])
 }
+
