@@ -245,6 +245,7 @@ model Rating {
   star       Int      @default(0) // 0-5
   message    String?
   created_at DateTime @default(now())
+  updated_at DateTime @default(now())
   is_deleted Boolean  @default(false)
 
   user  User  @relation(fields: [user_id], references: [id], onDelete: Cascade)

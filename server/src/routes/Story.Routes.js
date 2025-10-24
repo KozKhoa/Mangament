@@ -61,4 +61,7 @@ storyRoute.get("/:storyId/comments", GetAllComments);
 storyRoute.put("/comments/:id", AuthenticationToken, PutComment);
 storyRoute.delete("/comments/:id", AuthenticationToken, DeleteComment);
 
+// Rating
+storyRoute.post("/:storyId/ratings", AuthenticationToken);
+
 export default storyRoute;
