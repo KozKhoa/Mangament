@@ -2,8 +2,6 @@ import path from "path";
 import { CreateError } from "../utils/ErrorHandle.js";
 import ErrorCodes from "../constants/Error.js";
 import {
-  ValidateRole,
-  ValidateGender,
   ValidateStoryType,
   ValidateStoryStatus,
 } from "../models/Enum.Model.js";
@@ -13,30 +11,23 @@ import {
   HardDeleteStoryGenre,
   ValidateGenre,
 } from "../models/Genre.Model.js";
-import {
-  AddImage,
-  FindImage,
-  SoftDeleteImage,
-  UpdateImage,
-} from "../models/Image.Model.js";
+import { AddImage, UpdateImage } from "../models/Image.Model.js";
 import {
   FindAllStories,
   FindStory,
-  GetStoryTree,
   UpdateStory,
   AddStory,
   SoftDeleteStory,
+  CountStory,
 } from "../models/Story.Model.js";
-
-import { FindAllStoryNodes, FindStoryNode } from "../models/StoryNode.Model.js";
 
 import {
   CreateNewFolder,
+  IsFileExist,
   MoveFile,
-  SoftDeleteFile,
+  SoftRemoveFile,
 } from "../utils/FileHandle.js";
 import DIRECTORY from "../constants/Directory.js";
-import { threadId } from "worker_threads";
 
 export async function GetStory(req, res, next) {
   try {
@@ -68,6 +59,45 @@ export async function GetStory(req, res, next) {
       success: true,
       message: "Getting story successfully",
       data: story.data,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function GetRandomStory(req, res, next) {
+  try {
+    const storyType = req.query?.type;
+    if (storyType && !ValidateStoryType(storyType))
+      throw CreateError(ErrorCodes.BAD_REQUEST);
+
+    const isGettingChildren =
+      req.query?.isGettingChildren == "true" ? true : false;
+    const isGettingContent =
+      req.query?.isGettingContent == "true" ? true : false;
+    const isGettingSummary =
+      req.query?.isGettingSummary == "true" ? true : false;
+
+    const count = await CountStory();
+    const random = parseInt(((Math.random() * count * 100) % count) + 1);
+    console.log(random);
+
+    const story = await FindAllStories(
+      { ...(storyType && { type: storyType }) },
+      {},
+      1,
+      random - 1,
+      isGettingChildren,
+      isGettingContent,
+      isGettingSummary
+    );
+    if (!story || !story.success)
+      throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
+
+    return res.status(200).json({
+      success: true,
+      message: "Get random story successfully",
+      data: story.data[0],
     });
   } catch (error) {
     next(error);
@@ -215,7 +245,7 @@ export async function PostStory(req, res, next) {
       const newFolderPath = `${DIRECTORY.UPLOADS_STORY}/${type}/${title}`;
       const newFilePath = `${newFolderPath}/${newFileName}`;
       await CreateNewFolder(newFolderPath);
-      MoveFile(req.file.path, newFilePath);
+      await MoveFile(req.file.path, newFilePath);
 
       var image = await AddImage({ url: newFilePath }); // Update image to db
     }
@@ -255,7 +285,7 @@ export async function PostStory(req, res, next) {
     return res.status(200).json({
       success: true,
       message: "Post new story successfully",
-      data: story,
+      data: story.data,
     });
   } catch (error) {
     next(error);
@@ -292,13 +322,16 @@ export async function PutStory(req, res, next) {
       const folderPath = `${DIRECTORY.UPLOADS_STORY}/${story.data.type}/${story.data.title}`;
       const filePath = `${folderPath}/${fileName}`;
 
-      const delteFilePath = await SoftDeleteFile(filePath); // remove the previous image
-      MoveFile(req.file.path, filePath); // move new file to its path
-      // soft delete old image in db
-      await UpdateImage(
-        { url: filePath },
-        { url: delteFilePath, is_deleted: true }
-      );
+      if (await IsFileExist(filePath)) {
+        const delteFilePath = SoftRemoveFile(filePath); // remove the previous image
+        await MoveFile(req.file.path, filePath); // move new file to its path
+        // soft delete old image in db
+        await UpdateImage(
+          { url: filePath },
+          { url: delteFilePath, is_deleted: true }
+        );
+      }
+
       var image = await AddImage({ url: filePath }); // Update image to db
     }
 
@@ -339,7 +372,7 @@ export async function PutStory(req, res, next) {
     return res.status(200).json({
       success: true,
       message: "Update story successfully",
-      data: update,
+      data: update.data,
     });
   } catch (error) {
     next(error);
@@ -363,37 +396,3 @@ export async function DeleteStory(req, res, next) {
     next(error);
   }
 }
-
-export const GetStoryNodeInfo = async (req, res, next) => {
-  try {
-    const storyNodeId = req?.params?.id;
-    const isGettingChildren =
-      req?.query?.isGettingChildren === "true" ? true : false;
-    const isGettingContent =
-      req?.query?.isGettingContent === "true" ? true : false;
-
-    if (!storyNodeId) {
-      throw CreateError(ErrorCodes.BAD_REQUEST);
-    }
-
-    const node = await FindStoryNode(
-      { id: storyNodeId },
-      isGettingChildren,
-      isGettingContent
-    );
-    if (!node || !node.success) {
-      throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
-    }
-    if (!node.data) {
-      throw CreateError(ErrorCodes.STORY_NODE_NOT_FOUND);
-    }
-
-    res.status(200).json({
-      success: true,
-      message: "Get story node successfully",
-      data: node.data,
-    });
-  } catch (error) {
-    next(error);
-  }
-};

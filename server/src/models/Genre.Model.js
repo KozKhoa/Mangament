@@ -9,6 +9,7 @@ export function ValidateGenre(genre) {
   if (!genre) return true;
   let returnValue = true;
   const genreList = GetAllGenre();
+  if (genre.length > genreList.length) return false;
   const checkDuplicate = {};
   genre.forEach((e) => {
     if (checkDuplicate[e] !== true) checkDuplicate[e] = true;

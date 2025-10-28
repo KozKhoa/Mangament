@@ -1,10 +1,14 @@
 import db from "../configs/db.js";
 
-export const GetStoryTree = async (story_id, isGettingContent = false) => {
+export const GetStoryTree = async (
+  story_id,
+  parent_id,
+  isGettingContent = false
+) => {
   const nodes = await db.storyNode.findMany({
     where: {
       is_deleted: false,
-      OR: [{ parent_id: story_id }, { story_id: story_id }],
+      AND: [{ parent_id: parent_id }, { story_id: story_id }],
     },
     select: {
       id: true,
@@ -17,12 +21,12 @@ export const GetStoryTree = async (story_id, isGettingContent = false) => {
       ...(isGettingContent && { content: true }),
     },
     orderBy: {
-      order_index: "desc",
+      order_index: "asc",
     },
   });
 
   for (const node of nodes) {
-    node.children = await GetStoryTree(node.id, isGettingContent);
+    node.children = await GetStoryTree(story_id, node.id, isGettingContent);
   }
 
   return nodes;
@@ -77,7 +81,7 @@ export const FindAllStories = async (
       story.author = story.author.map((author) => author.author);
       story.genre = story.genre.map((genre) => genre.genre);
       if (isGettingChildren)
-        story.children = await GetStoryTree(story.id, isGettingContent);
+        story.children = await GetStoryTree(story.id, null, isGettingContent);
     }
 
     const result = stories;
@@ -135,13 +139,11 @@ export const AddStory = async (data = { title, type }) => {
         status: true,
         next_chapter_in: true,
         number_of_children: true,
+        poster_id: true,
         updated_at: true,
         created_at: true,
         cover_art: {
           select: { url: true, width: true, height: true },
-        },
-        poster: {
-          select: { id: true },
         },
         genre: {
           select: {
@@ -213,3 +215,7 @@ export const UpdateStory = async (where = { id, title }, data) => {
     return { success: false, error: error.code };
   }
 };
+
+export async function CountStory() {
+  return await db.story.count();
+}

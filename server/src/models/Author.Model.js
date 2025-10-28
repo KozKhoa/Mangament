@@ -1,17 +1,12 @@
 import db from "../configs/db.js";
 
-export const FindAllAuthors = async ({
-  where: {},
-  orderBy: {},
-  take,
-  skip,
-}) => {
+export const FindAllAuthors = async (where, orderBy, take = 1, skip = 0) => {
   try {
     const result = await db.author.findMany({
-      where: where,
-      orderBy: orderBy,
-      take,
-      skip,
+      ...(where && { where: where }),
+      ...(orderBy && { orderBy: orderBy }),
+      take: take,
+      skip: skip,
     });
     return { success: true, data: result };
   } catch (error) {
@@ -30,9 +25,9 @@ export const FindAuthor = async (where = { id }) => {
   }
 };
 
-export const AddAuthor = async ({ name, ...props }) => {
+export const AddAuthor = async (data = {}) => {
   try {
-    const result = await db.author.create({ data: { name, ...props } });
+    const result = await db.author.create({ data: data });
     return { success: true, data: result };
   } catch (error) {
     console.error("❌ [Author.Model.js] Error adding author:", error);
@@ -40,9 +35,9 @@ export const AddAuthor = async ({ name, ...props }) => {
   }
 };
 
-export const HardDeleteAuthor = async ({ id }) => {
+export const HardDeleteAuthor = async (where = { id }) => {
   try {
-    const result = await db.author.delete({ where: { id: id } });
+    const result = await db.author.delete({ where: where });
     return { success: true, data: result };
   } catch (error) {
     console.error("❌ [Author.Model.js] Error hard delete author:", error);
@@ -50,9 +45,9 @@ export const HardDeleteAuthor = async ({ id }) => {
   }
 };
 
-export const UpdateAuthor = async ({ id, data = {} }) => {
+export const UpdateAuthor = async (where = { id }, data = { name }) => {
   try {
-    const result = await db.author.update({ where: { id: id }, data: data });
+    const result = await db.author.update({ where: where, data: data });
     return { success: true, data: result };
   } catch (error) {
     console.error("❌ [Author.Model.js] Error updating author:", error);

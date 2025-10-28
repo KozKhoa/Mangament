@@ -5,6 +5,8 @@ import {
   SoftDeleteComment,
   UpdateComment,
 } from "../models/Comment.Model.js";
+import { FindStory } from "../models/Story.Model.js";
+import { FindStoryNode } from "../models/StoryNode.Model.js";
 import { CreateError } from "../utils/ErrorHandle.js";
 
 export async function GetAllComments(req, res, next) {
@@ -17,14 +19,16 @@ export async function GetAllComments(req, res, next) {
     const page = req.query?.page ? Number(req.query.page) : 1;
     const sort = {};
     if (req.query?.sort) {
-      const [field, direction] = req.query.sort.split("-");
+      const [field, direction] = req.query.sort.split(":");
       sort[field.toLowerCase()] = direction.toLowerCase();
     } else sort["created_at"] = "desc";
 
     const comments = await FindAllComments(
       {
         ...(storyId && { story_id: storyId }),
-        ...(storyNodeId && { story_node_id: storyNodeId }),
+        ...(storyNodeId
+          ? { story_node_id: storyNodeId }
+          : { story_node_id: null }),
       },
       sort,
       limit,
@@ -37,7 +41,7 @@ export async function GetAllComments(req, res, next) {
     return res.status(200).json({
       success: true,
       message: "Get all comments successfully",
-      data: comments,
+      data: comments.data,
     });
   } catch (error) {
     next(error);
@@ -53,14 +57,29 @@ export async function PostComment(req, res, next) {
     if (!storyId && !storyNodeId) throw CreateError(ErrorCodes.BAD_REQUEST);
     if (!message) throw CreateError(ErrorCodes.MISSING_FIELD);
 
-    console.log(storyNodeId);
+    // Make sure story and story node exist
+    let storyNode;
+    if (storyNodeId) {
+      storyNode = await FindStoryNode({ id: storyNodeId });
+      if (!storyNode || !storyNode.success || !storyNode.data)
+        throw CreateError(ErrorCodes.STORY_NODE_NOT_FOUND);
+    }
+    const story = await FindStory({ id: storyId || storyNode.data.story_id });
+    if (!story || !story || !story.data)
+      throw CreateError(ErrorCodes.STORY_NOT_FOUND);
+
+    console.log(storyId, storyNodeId);
 
     const comment = await AddComment({
       user_id: userId,
-      story_id: storyId,
-      ...(storyNodeId && { story_node_id: storyNodeId }),
+      story_id: storyId || story.data.id,
       message: message,
+      ...(storyNodeId
+        ? { story_node_id: storyNodeId }
+        : { story_node_id: null }),
     });
+
+    console.log(comment);
 
     if (!comment || !comment.success)
       throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
@@ -70,9 +89,12 @@ export async function PostComment(req, res, next) {
       message: "Add new comment successfully",
       data: {
         user_id: userId,
-        story_id: storyId,
+        story_id: story.data.id,
         ...(storyNodeId && { story_node_id: storyNodeId }),
-        comment_id: comment.data.id,
+        comment: {
+          id: comment.data.id,
+          message: comment.data.message,
+        },
       },
     });
   } catch (error) {

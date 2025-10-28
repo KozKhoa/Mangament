@@ -111,12 +111,13 @@ model User {
 
   avatar Image? @relation(fields: [avatar_id], references: [id], onDelete: SetNull)
 
-  reading_history ReadingHistory[]
-  favourite_story FavouriteStory[]
-  story_rating    Rating[]
-  comment         Comment[]
-  refresh_token   RefreshToken[]
-  posted_story    Story[] // List of story that admin posted
+  reading_history   ReadingHistory[]
+  favourite_story   FavouriteStory[]
+  story_rating      Rating[]
+  comment           Comment[]
+  refresh_token     RefreshToken[]
+  posted_story      Story[] // List of story that admin posted
+  poster_story_node StoryNode[]
 }
 
 model Story {
@@ -152,9 +153,9 @@ model StoryNode {
   id                 String                   @id @default(uuid()) @db.Uuid
   story_id           String?                  @db.Uuid
   parent_id          String?                  @db.Uuid
-  title              String
+  title              String?
   type               StoryNodeType
-  order_index        Int?
+  order_index        Float?                   @db.Real
   view               Int                      @default(0)
   number_of_children Int                      @default(0)
   updated_at         DateTime                 @default(now())
@@ -163,15 +164,17 @@ model StoryNode {
   plain_text         String?
   search_vector      Unsupported("tsvector")? // Prisma chưa hỗ trợ tsvector
   is_deleted         Boolean                  @default(false)
+  poster_id          String?                  @db.Uuid // Which admin post it
 
   story    Story?      @relation(fields: [story_id], references: [id], onDelete: Cascade)
   parent   StoryNode?  @relation("StoryNodeToStoryNode", fields: [parent_id], references: [id], onDelete: Cascade)
   children StoryNode[] @relation("StoryNodeToStoryNode")
+  poster   User?       @relation(fields: [poster_id], references: [id], onDelete: SetNull)
 
   reading_history ReadingHistory[]
   comment         Comment[]
 
-  @@unique([story_id, parent_id, order_index])
+  @@unique([story_id, parent_id, type, order_index])
 }
 
 model Image {
@@ -250,6 +253,8 @@ model Rating {
 
   user  User  @relation(fields: [user_id], references: [id], onDelete: Cascade)
   story Story @relation(fields: [story_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, story_id])
 }
 
 model Comment {

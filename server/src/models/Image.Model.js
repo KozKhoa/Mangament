@@ -16,15 +16,14 @@ export const FindImage = async (where = { id, url }) => {
 };
 
 export const AddImage = async (data = { url }) => {
+  let image;
   try {
-    const result = await db.image.create({ data: data });
-    return { success: true, data: result };
+    image = await db.image.create({ data: data });
+    return { success: true, data: image };
   } catch (error) {
-    if (error.code !== "P2002") {
-      // Ignore duplicate error
+    if (error.code !== "P2002")
       console.error("❌ [Image.Model.js] Error adding image:", error);
-    }
-    return { success: false, error: error.code };
+    return { success: false, error: error, data: image };
   }
 };
 

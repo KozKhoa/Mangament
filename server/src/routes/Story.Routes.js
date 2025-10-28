@@ -6,6 +6,7 @@ import {
   AddOneViewForStory,
   DeleteStory,
   GetAllStories,
+  GetRandomStory,
   GetStory,
   PostStory,
   PutStory,
@@ -21,6 +22,12 @@ import {
   PostComment,
   PutComment,
 } from "../controllers/Comment.Controller.js";
+import {
+  DeleteRating,
+  GetAllRatings,
+  PostRating,
+  PutRating,
+} from "../controllers/Rating.Controller.js";
 
 const saveLocation = "uploads/image";
 
@@ -36,6 +43,7 @@ const upload = multer({ storage: storage });
 const storyRoute = express.Router();
 
 // Story
+storyRoute.get("/random", GetRandomStory);
 storyRoute.get("/:id", GetStory);
 storyRoute.get("/", GetAllStories);
 storyRoute.patch("/:id/view", AddOneViewForStory);
@@ -62,6 +70,9 @@ storyRoute.put("/comments/:id", AuthenticationToken, PutComment);
 storyRoute.delete("/comments/:id", AuthenticationToken, DeleteComment);
 
 // Rating
-storyRoute.post("/:storyId/ratings", AuthenticationToken);
+storyRoute.post("/:id/ratings", AuthenticationToken, PostRating);
+storyRoute.get("/:id/ratings", GetAllRatings);
+storyRoute.put("/ratings/:id", AuthenticationToken, PutRating);
+storyRoute.delete("/ratings/:id", AuthenticationToken, DeleteRating);
 
 export default storyRoute;

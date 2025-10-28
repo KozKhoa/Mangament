@@ -1,6 +1,11 @@
-import db from "../configs/db";
+import db from "../configs/db.js";
 
-export async function FindAllRatings(where = { id, story_id, user_id }) {
+export async function FindAllRatings(
+  where = { id, story_id, user_id },
+  sort,
+  take = 1,
+  skip = 0
+) {
   try {
     const ratings = await db.rating.findMany({
       where: {
@@ -22,6 +27,9 @@ export async function FindAllRatings(where = { id, story_id, user_id }) {
           },
         },
       },
+      ...(sort && { orderBy: sort }),
+      ...(take && { take: take }),
+      ...(skip && { skip: skip }),
     });
 
     return { success: true, data: ratings };
@@ -40,11 +48,14 @@ export async function AddRatings(data = { user_id, story_id, star, message }) {
       data: data,
       select: {
         id: true,
+        star: true,
+        message: true,
       },
     });
     return { success: true, data: newRating };
   } catch (error) {
-    console.error("❌ [Rating.Model.js] Error adding new rating:", error);
+    if (error.code !== "P2002")
+      console.error("❌ [Rating.Model.js] Error adding new rating:", error);
     return { success: false, error: error.code };
   }
 }

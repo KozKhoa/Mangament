@@ -1,6 +1,17 @@
 import db from "../configs/db.js";
+import { StoryNodeType } from "../configs/db.js";
 
-import { GetStoryTree } from "./Story.Model.js";
+import { GetStoryTree, UpdateStory } from "./Story.Model.js";
+
+export function GetAllStoryNodeType() {
+  return Object.values(StoryNodeType);
+}
+
+export function ValidateStoryNodeType(storyNodeType) {
+  if (!storyNodeType) return true;
+  const storyNodeTypeList = GetAllStoryNodeType();
+  return storyNodeTypeList.includes(storyNodeType);
+}
 
 export const GetParentStoryNodeTree = async (
   story_node_id,
@@ -25,7 +36,7 @@ export const GetParentStoryNodeTree = async (
 };
 
 export const FindAllStoryNodes = async (
-  where = {},
+  where = { id, story_id, parent_id },
   orderBy = {},
   skip,
   take,
@@ -95,21 +106,12 @@ export const FindStoryNode = async (
 };
 
 export const AddStoryNode = async (
-  data = { title, type, story_id, parent_id, order_index }
+  data = { title, type, story_id, parent_id, order_index, poster_id, content }
 ) => {
+  let result;
   try {
-    // Check if story node exist or not
-    const storyNode = await FindStoryNode({
-      story_id: data.story_id,
-      parent_id: data.parent_id,
-      order_index: data.order_index,
-    });
-    if (storyNode && storyNode.success && storyNode.data) {
-      return { success: false, data: storyNode.data };
-    }
-
     // If story node does not exist
-    const result = await db.storyNode.create({
+    result = await db.storyNode.create({
       data: {
         ...(data.story_id && {
           story: {
@@ -125,9 +127,29 @@ export const AddStoryNode = async (
             },
           },
         }),
+        ...(data.poster_id && {
+          poster: {
+            connect: {
+              id: data.poster_id,
+            },
+          },
+        }),
+        ...(data.content && { content: data.content }),
         title: data.title,
-        type: data.type,
+        type: data.type || console.log(data.type),
         order_index: data.order_index,
+        number_of_children: data.number_of_children,
+      },
+      select: {
+        id: true,
+        story_id: true,
+        parent_id: true,
+        title: true,
+        type: true,
+        order_index: true,
+        updated_at: true,
+        created_at: true,
+        poster_id: true,
       },
     });
 
@@ -146,8 +168,9 @@ export const AddStoryNode = async (
     }
     return { success: true, data: result };
   } catch (error) {
-    console.error("❌ [StoryNode.Model.js] Error adding story nodes:", error);
-    return { success: false, error: error.code };
+    if (error.code !== "P2002")
+      console.error("❌ [StoryNode.Model.js] Error adding story nodes:", error);
+    return { success: false, error: error.code, data: result };
   }
 };
 
@@ -193,7 +216,13 @@ export const UpdateStoryNode = async (where = { id }, data = {}) => {
       return { success: false, data: null };
     }
     // If exist
-    const result = await db.storyNode.update({ where: where, data: data });
+    const result = await db.storyNode.update({
+      where: where,
+      data: data,
+      select: {
+        id: true,
+      },
+    });
     return { success: true, data: result };
   } catch (error) {
     console.error("❌ [StoryNode.Model.js] Error updating story nodes:", error);

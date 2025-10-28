@@ -38,23 +38,6 @@ export function ValidateStoryType(storyType) {
   return list.includes(storyType);
 }
 
-export function GetAllStoryNodeType() {
-  return Object.values(StoryNodeType);
-}
-
-export function ValidateStoryNodeType(storyNodeType) {
-  if (!storyNodeType) return true;
-  let returnValue = true;
-  const storyNodeTypes = GetAllStoryNodeType();
-  storyNodeType.forEach((e) => {
-    if (storyNodeTypes.includes(e)) {
-      returnValue = false;
-      return false;
-    }
-  });
-  return returnValue;
-}
-
 export function GetAllStoryStatus() {
   return Object.values(StoryStatus);
 }

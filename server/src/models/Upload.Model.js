@@ -34,7 +34,7 @@ const HandleAdding = async (filePath) => {
   let parentId = null;
   for (let i = 2; i < node.length - 1; i++) {
     // Add story node
-    let storyNodeName = node[i].split(" "); // story name could be Chapter 12, etc
+    let storyNodeName = node[i].split(" "); // story name could be Chapter 12, Chapter 12.5, etc
     let storyNodeType = storyNodeName[0].toLowerCase();
     let storyNodeIndex = storyNodeName[1];
 
@@ -97,6 +97,7 @@ const HandleAdding = async (filePath) => {
     }
   }
 };
+
 const addingQueue = [];
 let isProccessingAdding = false;
 const ProccessAddingQueue = async () => {

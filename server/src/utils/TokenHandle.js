@@ -58,7 +58,7 @@ export const VerifyAccessToken = (token) => {
     if (err.name === "TokenExpiredError") {
       return { decodedToken: null, isExpire: true };
     }
-    return { decodedToken: null, isExpire: true }; // token sai hoặc hết hạn
+    return { decodedToken: null, isExpire: false }; // token sai hoặc hết hạn
   }
 };
 

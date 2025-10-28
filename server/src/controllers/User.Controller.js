@@ -6,26 +6,16 @@ import {
   SoftDeleteUser,
 } from "../models/User.Model.js";
 
-import {
-  FindAllFavouriteStories,
-  AddFavouriteStory,
-  SoftDeleteFavouriteStory,
-} from "../models/Favourite.Model.js";
-
-import {
-  FindAllReadingHistories,
-  AddReadingHistory,
-  SoftDeleteReadingHistory,
-} from "../models/History.Model.js";
-
-import { FindImage } from "../models/Image.Model.js";
+import { AddImage, FindImage } from "../models/Image.Model.js";
 import { CreateError } from "../utils/ErrorHandle.js";
 import ErrorCodes from "../constants/Error.js";
 import { ValidateGender } from "../models/Enum.Model.js";
 import { HashPassword, ComparePassword } from "../utils/PasswordHandle.js";
 import { CheckEmailAndPasswordFormat } from "../utils/Validators.js";
-import { FindStory } from "../models/Story.Model.js";
-import { FindStoryNode } from "../models/StoryNode.Model.js";
+import { MoveFile } from "../utils/FileHandle.js";
+
+import DIRECTORY from "../constants/Directory.js";
+import path from "path";
 
 export const GetUser = async (req, res, next) => {
   try {
@@ -107,7 +97,7 @@ export const GetAllUsers = async (req, res, next) => {
     return res.status(200).json({
       success: true,
       message: "Get user list successfully",
-      data: users,
+      data: users.data,
     });
   } catch (error) {
     if (!error.status)
@@ -241,6 +231,45 @@ export async function PutUserPassword(req, res, next) {
   }
 }
 
+export async function PatchUserAvatar(req, res, next) {
+  try {
+    const userId = req.user.id;
+    const avatar = req.file;
+    if (!avatar) throw CreateError(ErrorCodes.MISSING_FIELD);
+
+    const folderPath = DIRECTORY.UPLOADS_AVATAR;
+    const fileName = userId + "_" + new Date() + path.extname(avatar.filename);
+    const filePath = path.join(folderPath, fileName);
+
+    MoveFile(avatar.path, filePath);
+    const image = await AddImage({ url: filePath });
+
+    const updating = await UpdateUser(
+      { id: userId },
+      { avatar: { connect: { id: image.data.id } } }
+    );
+    if (!updating || !updating.success)
+      throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
+
+    return res.status(200).json({
+      success: true,
+      message: "Update user avatar successfully",
+      data: {
+        user: {
+          id: userId,
+          avatar: {
+            url: image.data.url,
+            width: image.data.width,
+            height: image.data.height,
+          },
+        },
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
 export async function DeleteUser(req, res, next) {
   try {
     const userId = req.params?.id;
@@ -264,271 +293,6 @@ export async function DeleteUser(req, res, next) {
   } catch (error) {
     if (!error.status)
       console.error("❌ [User.Controller.js] Error delete user:", error);
-    next(error);
-  }
-}
-
-export async function GetAllFavouriteStories(req, res, next) {
-  try {
-    // It is not neccessary to check user exist because authentication already did it
-    const userId = req.user?.id;
-    const query = req?.query;
-
-    const limit = query?.limit ? Number(query.limit) : 1;
-    const page = query?.page ? Number(query.page) : 1;
-    const order = {};
-    if (query?.sort) {
-      const [field, direction] = query.sort.split(":");
-      order[field.toLowerCase()] = direction.toLowerCase();
-    } else {
-      order["created_at"] = "desc";
-    }
-
-    const favouriteStories = await FindAllFavouriteStories(
-      { user_id: userId },
-      order,
-      limit,
-      (page - 1) * limit
-    );
-    if (!favouriteStories || !favouriteStories.success)
-      throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
-    if (!favouriteStories.data || favouriteStories.data.length <= 0) {
-      return res.status(200).json({
-        success: true,
-        message: "User has no favourite stories",
-        data: null,
-      });
-    }
-
-    return res.status(200).json({
-      success: true,
-      message: "Getting favourite stories successfully",
-      data: favouriteStories,
-    });
-  } catch (error) {
-    if (!error.status)
-      console.error(
-        "❌ [User.Controller.js] Error getting user favourite story:",
-        error
-      );
-    next(error);
-  }
-}
-
-export async function PostFavouriteStory(req, res, next) {
-  try {
-    // It is not neccessary to check user exist because authentication already did it
-    const userId = req.user?.id;
-    const storyId = req.body?.storyId;
-    if (!storyId) throw CreateError(ErrorCodes.MISSING_FIELD);
-
-    // Check if the story exist
-    const story = await FindStory({ id: storyId });
-    if (!story || !story.success || !story.data)
-      throw CreateError(ErrorCodes.STORY_NOT_FOUND);
-
-    const favouriteStory = await AddFavouriteStory({
-      user_id: userId,
-      story_id: storyId,
-    });
-    if (!favouriteStory || !favouriteStory.success)
-      if (favouriteStory.error == "P2002")
-        throw CreateError(ErrorCodes.ASSET_ALREADY_EXIST);
-      else throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
-
-    return res.status(200).json({
-      success: true,
-      message: "Add new favourite story successfully",
-      data: {
-        favourite: {
-          id: favouriteStory.data.id,
-        },
-        user: {
-          id: userId,
-        },
-        story: {
-          id: storyId,
-        },
-      },
-    });
-  } catch (error) {
-    if (!error.status)
-      console.error(
-        "❌ [User.Controller.js] Error posting user favourite story:",
-        error
-      );
-    next(error);
-  }
-}
-
-export async function DeleteFavouriteStory(req, res, next) {
-  try {
-    // It is not neccessary to check user exist because authentication already did it
-    const userId = req.user?.id;
-
-    const favouriteId = req.params?.favouriteId;
-    if (!favouriteId) throw CreateError(ErrorCodes.BAD_REQUEST);
-
-    // Check if the favourite story exist
-    const favouriteStory = await FindAllFavouriteStories({ id: favouriteId });
-    if (
-      !favouriteStory ||
-      !favouriteStory.success ||
-      favouriteStory.data.length <= 0
-    )
-      throw CreateError(ErrorCodes.ASSET_NOT_FOUND);
-
-    // Check if this favourite story belong to the user
-    if (favouriteStory.data[0].user_id !== userId)
-      throw CreateError(ErrorCodes.FORBIDDEN);
-
-    const removing = await SoftDeleteFavouriteStory({ id: favouriteId });
-    if (!removing || !removing.success)
-      throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
-
-    return res.status(200).json({
-      success: true,
-      message: "Delete user favourite story successfully",
-    });
-  } catch (error) {
-    if (!error.status)
-      console.error(
-        "❌ [User.Controller.js] Error deleting user favourite story:",
-        error
-      );
-    next(error);
-  }
-}
-
-export async function GetAllReadingHistories(req, res, next) {
-  try {
-    // It is not neccessary to check user exist because authentication already did it
-    const userId = req.user?.id;
-    const query = req.query;
-
-    // Analys the query from the user
-    const limit = query?.limit ? Number(query.limit) : 1;
-    const page = query?.page ? Number(query.page) : 1;
-    const order = {};
-    if (query?.sort) {
-      const [field, direction] = query.sort.split(":");
-      order[field.toLowerCase()] = direction.toLowerCase();
-    } else {
-      order["created_at"] = "desc";
-    }
-
-    const readingHistory = await FindAllReadingHistories(
-      { user_id: userId },
-      limit,
-      (page - 1) * limit,
-      order
-    );
-
-    if (!readingHistory || !readingHistory.success)
-      throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
-    if (!readingHistory.data || readingHistory.data.length <= 0) {
-      return res.status(200).json({
-        success: true,
-        message: "User has no reading history",
-        data: null,
-      });
-    }
-
-    return res.status(200).json({
-      success: true,
-      message: "Get reading history successfully",
-      data: readingHistory.data,
-    });
-  } catch (error) {
-    if (!error.status)
-      console.error(
-        "❌ [ReadingHistory.Controller.js] Error getting reading histories:",
-        error
-      );
-    next(error);
-  }
-}
-
-export async function PostReadingHistory(req, res, next) {
-  try {
-    const userId = req.user?.id;
-    const storyId = req.body?.storyId;
-    const storyNodeId = req.body?.storyNodeId;
-    const datetime = req.body?.dateTime
-      ? new Date(req.body.dateTime)
-      : new Date();
-
-    // Position will be added later
-
-    // Make sure story and story node exist
-    const story = await FindStory({ id: storyId });
-    if (!story || !story.success || !story.data)
-      throw CreateError(ErrorCodes.STORY_NOT_FOUND);
-    const storyNode = await FindStoryNode({ id: storyNodeId });
-    if (!storyNode || !storyNode.success || !storyNode.data)
-      throw CreateError(ErrorCodes.STORY_NODE_NOT_FOUND);
-
-    const histories = await AddReadingHistory({
-      user_id: userId,
-      story_id: storyId,
-      story_node_id: storyNodeId,
-      created_at: datetime,
-    });
-
-    if (!histories || !histories.success)
-      throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
-
-    return res.status(200).json({
-      success: true,
-      message: "Adding reading history successfully",
-      data: {
-        history: { id: histories.data.id },
-        user: { id: histories.data.user_id },
-        story: { id: histories.data.story_id },
-        story_node: { id: histories.data.story_node_id },
-        created_at: histories.data.created_at,
-      },
-    });
-  } catch (error) {
-    if (!error.status)
-      console.error(
-        "❌ [ReadingHistory.Controller.js] Error posting reading history:",
-        error
-      );
-    next(error);
-  }
-}
-
-export async function DeleteReadingHistory(req, res, next) {
-  try {
-    const userId = req.user?.id;
-    const historyId = req.params?.historyId;
-
-    if (!historyId) throw CreateError(ErrorCodes.BAD_REQUEST);
-
-    // Make sure history exist
-    const history = await FindAllReadingHistories({ id: historyId });
-    if (!history || !history.success || history.data.length <= 0)
-      throw CreateError(ErrorCodes.ASSET_NOT_FOUND);
-
-    // Make sure reading history belong to user
-    if (history.data[0].user_id !== userId)
-      throw CreateError(ErrorCodes.FORBIDDEN);
-
-    const removing = await SoftDeleteReadingHistory({ id: historyId });
-    if (!removing || !removing.success)
-      throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
-
-    return res.status(200).json({
-      success: true,
-      message: "Delete reading history successfully",
-    });
-  } catch (error) {
-    if (!error.status)
-      console.error(
-        "❌ [ReadingHistory.Controller.js] Error deleting reading history:",
-        error
-      );
     next(error);
   }
 }

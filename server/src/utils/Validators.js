@@ -22,3 +22,12 @@ export const CheckEmailAndPasswordFormat = (email, password) => {
     throw CreateError(ErrorCodes.INVALID_PASSWORD_FORMAT);
   }
 };
+
+export function IsJsonString(string) {
+  try {
+    JSON.parse(string);
+    return true;
+  } catch (e) {
+    return false;
+  }
+}

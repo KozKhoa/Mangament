@@ -1,4 +1,6 @@
 import express from "express";
+import multer from "multer";
+import path from "path";
 
 import {
   AuthorizationRole,
@@ -11,13 +13,31 @@ import {
   PutUser,
   PutUserPassword,
   DeleteUser,
+  PatchUserAvatar,
+} from "../controllers/User.Controller.js";
+
+import {
+  PostReadingHistory,
+  GetAllReadingHistories,
+  DeleteReadingHistory,
+} from "../controllers/History.Controller.js";
+
+import {
   PostFavouriteStory,
   GetAllFavouriteStories,
   DeleteFavouriteStory,
-  GetAllReadingHistories,
-  PostReadingHistory,
-  DeleteReadingHistory,
-} from "../controllers/User.Controller.js";
+} from "../controllers/Favourite.Controller.js";
+
+const saveLocation = "uploads/image";
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, saveLocation), // save location
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + path.extname(file.originalname)); // file name
+  },
+});
+
+const upload = multer({ storage: storage });
 
 const userRoute = express.Router();
 
@@ -30,6 +50,12 @@ userRoute.put("/me", AuthenticationToken, PutUser); // Update user info
 userRoute.put("/:id", AuthenticationToken, AuthorizationRole, PutUser); // Update user info
 userRoute.patch("/me/password", AuthenticationToken, PutUserPassword); // Change user password
 userRoute.delete("/:id", AuthenticationToken, AuthorizationRole, DeleteUser); // Remove user
+userRoute.patch(
+  "/me/avatar",
+  AuthenticationToken,
+  upload.single("image"),
+  PatchUserAvatar
+);
 
 // Favourite story
 userRoute.post("/me/favourites", AuthenticationToken, PostFavouriteStory);
