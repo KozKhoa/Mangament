@@ -1,4 +1,4 @@
-import { CreateError } from "../configs/ErrorHandle.js";
+import { CreateError } from "../utils/ErrorHandle.js";
 import ErrorCodes from "../constants/Error.js";
 
 export const IsValidEmail = (email) => {
@@ -22,3 +22,12 @@ export const CheckEmailAndPasswordFormat = (email, password) => {
     throw CreateError(ErrorCodes.INVALID_PASSWORD_FORMAT);
   }
 };
+
+export function IsJsonString(string) {
+  try {
+    JSON.parse(string);
+    return true;
+  } catch (e) {
+    return false;
+  }
+}

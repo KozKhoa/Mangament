@@ -98,70 +98,83 @@ enum Genre {
 }
 
 model User {
-  id         String   @id @default(uuid()) @db.Uuid
+  id         String    @id @default(uuid()) @db.Uuid
   name       String
-  email      String   @unique
+  email      String    @unique
   password   String
-  gender     Gender?  @default(other)
-  join_date  DateTime @default(now())
-  role       Role     @default(user)
-  avatar_id  String?  @db.Uuid
-  is_deleted Boolean  @default(false)
+  gender     Gender?   @default(other)
+  birthday   DateTime?
+  join_date  DateTime  @default(now())
+  role       Role      @default(user)
+  avatar_id  String?   @db.Uuid
+  is_deleted Boolean   @default(false)
 
   avatar Image? @relation(fields: [avatar_id], references: [id], onDelete: SetNull)
 
-  ReadingHistory ReadingHistory[]
-  FavouriteStory FavouriteStory[]
-  Rating         Rating[]
-  Comment        Comment[]
-  RefreshToken   RefreshToken[]
+  reading_history   ReadingHistory[]
+  favourite_story   FavouriteStory[]
+  story_rating      Rating[]
+  comment           Comment[]
+  refresh_token     RefreshToken[]
+  posted_story      Story[] // List of story that admin posted
+  poster_story_node StoryNode[]
 }
 
 model Story {
-  id                String      @id @default(uuid()) @db.Uuid
-  title             String      @unique
-  nation            String?
-  view              Int         @default(0)
-  type              StoryType
-  status            StoryStatus @default(ongoing)
-  next_chapter_in   DateTime?
-  number_of_chapter Int?
-  cover_art_id      String?     @db.Uuid
-  is_deleted        Boolean     @default(false)
+  id                 String      @id @default(uuid()) @db.Uuid
+  title              String      @unique
+  nation             String?
+  view               Int         @default(0)
+  star               Float       @default(0)
+  type               StoryType
+  status             StoryStatus @default(ongoing)
+  next_chapter_in    DateTime?
+  number_of_children Int         @default(0)
+  cover_art_id       String?     @db.Uuid
+  is_deleted         Boolean     @default(false)
+  poster_id          String?     @db.Uuid // Admin who post this story on
+  created_at         DateTime    @default(now())
+  updated_at         DateTime    @default(now())
+  summary            String?
 
   cover_art Image? @relation(fields: [cover_art_id], references: [id], onDelete: SetNull)
+  poster    User?  @relation(fields: [poster_id], references: [id], onDelete: SetNull) // admin who post this story on
 
-  StoryNode      StoryNode[]
-  ReadingHistory ReadingHistory[]
-  Story_Genre    Story_Genre[]
-  Rating         Rating[]
-  FavouriteStory FavouriteStory[]
-  Comment        Comment[]
-  Story_Author   Story_Author[]
+  story_node           StoryNode[]
+  user_reading_history ReadingHistory[]
+  genre                Story_Genre[]
+  rating               Rating[]
+  user_favourite       FavouriteStory[]
+  comment              Comment[]
+  author               Story_Author[]
 }
 
 model StoryNode {
-  id            String                   @id @default(uuid()) @db.Uuid
-  story_id      String?                  @db.Uuid
-  parent_id     String?                  @db.Uuid
-  title         String
-  type          StoryNodeType
-  order_index   Int?
-  view          Int                      @default(0)
-  update_at     DateTime                 @default(now())
-  content       Json?
-  plain_text    String?
-  search_vector Unsupported("tsvector")? // Prisma chưa hỗ trợ tsvector
-  is_deleted    Boolean                  @default(false)
+  id                 String                   @id @default(uuid()) @db.Uuid
+  story_id           String?                  @db.Uuid
+  parent_id          String?                  @db.Uuid
+  title              String?
+  type               StoryNodeType
+  order_index        Float?                   @db.Real
+  view               Int                      @default(0)
+  number_of_children Int                      @default(0)
+  updated_at         DateTime                 @default(now())
+  created_at         DateTime                 @default(now())
+  content            Json?
+  plain_text         String?
+  search_vector      Unsupported("tsvector")? // Prisma chưa hỗ trợ tsvector
+  is_deleted         Boolean                  @default(false)
+  poster_id          String?                  @db.Uuid // Which admin post it
 
   story    Story?      @relation(fields: [story_id], references: [id], onDelete: Cascade)
   parent   StoryNode?  @relation("StoryNodeToStoryNode", fields: [parent_id], references: [id], onDelete: Cascade)
   children StoryNode[] @relation("StoryNodeToStoryNode")
+  poster   User?       @relation(fields: [poster_id], references: [id], onDelete: SetNull)
 
-  ReadingHistory ReadingHistory[]
-  Comment        Comment[]
+  reading_history ReadingHistory[]
+  comment         Comment[]
 
-  @@unique([parent_id, order_index])
+  @@unique([story_id, parent_id, type, order_index])
 }
 
 model Image {
@@ -171,15 +184,15 @@ model Image {
   height     Int?
   is_deleted Boolean @default(false)
 
-  User  User[]
-  Story Story[]
+  user  User[]
+  story Story[]
 }
 
 model Author {
   id   String @id @default(uuid()) @db.Uuid
   name String
 
-  Story_Author Story_Author[]
+  story Story_Author[]
 }
 
 model Story_Author {
@@ -197,8 +210,8 @@ model ReadingHistory {
   user_id       String   @db.Uuid
   story_id      String   @db.Uuid
   story_node_id String   @db.Uuid
-  read_at       DateTime @default(now())
   last_position Json? // e.g., { "page": 5, "offset": 120 }
+  created_at    DateTime @default(now())
   is_deleted    Boolean  @default(false)
 
   user       User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
@@ -207,14 +220,16 @@ model ReadingHistory {
 }
 
 model FavouriteStory {
-  user_id    String  @db.Uuid
-  story_id   String  @db.Uuid
-  is_deleted Boolean @default(false)
+  id         String   @id @default(uuid()) @db.Uuid
+  user_id    String   @db.Uuid
+  story_id   String   @db.Uuid
+  created_at DateTime @default(now())
+  is_deleted Boolean  @default(false)
 
   user  User  @relation(fields: [user_id], references: [id], onDelete: Cascade)
   story Story @relation(fields: [story_id], references: [id], onDelete: Cascade)
 
-  @@id([user_id, story_id])
+  @@unique([user_id, story_id])
 }
 
 model Story_Genre {
@@ -227,29 +242,37 @@ model Story_Genre {
 }
 
 model Rating {
-  user_id    String  @db.Uuid
-  story_id   String  @db.Uuid
-  rating     Float
-  is_deleted Boolean @default(false)
+  id         String   @id @default(uuid()) @db.Uuid
+  user_id    String   @db.Uuid
+  story_id   String   @db.Uuid
+  star       Int      @default(0) // 0-5
+  message    String?
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now())
+  is_deleted Boolean  @default(false)
 
   user  User  @relation(fields: [user_id], references: [id], onDelete: Cascade)
   story Story @relation(fields: [story_id], references: [id], onDelete: Cascade)
 
-  @@id([user_id, story_id])
+  @@unique([user_id, story_id])
 }
 
 model Comment {
   id            String   @id @default(uuid()) @db.Uuid
+  parent_id     String?  @db.Uuid // reply to another comment
   story_id      String   @db.Uuid
   story_node_id String?  @db.Uuid
   user_id       String   @db.Uuid
   message       String
   created_at    DateTime @default(now())
+  updated_at    DateTime @default(now())
   is_deleted    Boolean  @default(false)
 
   user       User       @relation(fields: [user_id], references: [id], onDelete: Cascade)
   story      Story      @relation(fields: [story_id], references: [id], onDelete: Cascade)
   story_node StoryNode? @relation(fields: [story_node_id], references: [id], onDelete: Cascade)
+  parent     Comment?   @relation("CommentToComment", fields: [parent_id], references: [id], onDelete: Cascade)
+  children   Comment[]  @relation("CommentToComment")
 }
 
 model RefreshToken {

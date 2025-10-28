@@ -5,6 +5,10 @@ const ErrorCodes = {
     status: 401,
     message: "Email or password is not correct",
   },
+  INVALID_PASSWORD: {
+    status: 401,
+    message: "Password is not correct",
+  },
   REQUIRED_EMAIL: {
     status: 400,
     message: "Email is required",
@@ -112,7 +116,7 @@ const ErrorCodes = {
     message: "Password format is not valid ",
   },
 
-  // Domain-specific (business logic)
+  // Not found assets
   USER_NOT_FOUND: {
     status: 404,
     message: "User not found",
@@ -129,13 +133,23 @@ const ErrorCodes = {
     status: 404,
     message: "Image not found",
   },
-  READING_HISTORY_NOT_FOUND: {
+  ASSET_NOT_FOUND: {
     status: 404,
-    message: "Reading history not found",
+    message: "Asset not found",
+  },
+
+  // Assets already exist
+  ASSET_ALREADY_EXIST: {
+    status: 409,
+    message: "Asset already exist",
   },
   USER_ALREADY_EXIST: {
     status: 409,
     message: "Email has alrealy been used",
+  },
+  TITLE_ALDREADY_EXIST: {
+    status: 409,
+    message: "Title has already been used",
   },
 };
 

@@ -6,7 +6,7 @@ import {
   JWT_REFRESH_SECRET,
   JWT_REFRESH_EXPIRES_IN,
   COOKIES_REFRESH_TOKEN_KEY,
-} from "./env.js";
+} from "../configs/env.js";
 
 export const GenRefreshToken = ({ id, name, email, role }) => {
   try {
@@ -58,7 +58,7 @@ export const VerifyAccessToken = (token) => {
     if (err.name === "TokenExpiredError") {
       return { decodedToken: null, isExpire: true };
     }
-    return { decodedToken: null, isExpire: true }; // token sai hoặc hết hạn
+    return { decodedToken: null, isExpire: false }; // token sai hoặc hết hạn
   }
 };
 

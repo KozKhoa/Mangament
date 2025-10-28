@@ -1,6 +1,7 @@
 const ErrorMiddleware = (err, req, res, next) => {
   try {
-    res.status(err.status || 500).json({
+    console.log(err);
+    const result = res.status(err.status || 500).json({
       success: false,
       message: err.message,
     });

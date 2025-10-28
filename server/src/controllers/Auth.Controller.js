@@ -8,17 +8,18 @@ import {
   FindRefreshToken,
 } from "../models/User.Model.js";
 import { CheckEmailAndPasswordFormat } from "../utils/Validators.js";
-import { CreateError } from "../configs/ErrorHandle.js";
-import { ComparePassword, HashPassword } from "../configs/PasswordHandle.js";
+import { CreateError } from "../utils/ErrorHandle.js";
+import { ComparePassword, HashPassword } from "../utils/PasswordHandle.js";
 import {
   GenAccessToken,
   GenRefreshToken,
   SaveTokenOnCookies,
   VerifyRefreshToken,
-} from "../configs/TokenHandle.js";
+} from "../utils/TokenHandle.js";
 import ErrorCodes from "../constants/Error.js";
 
 import { COOKIES_REFRESH_TOKEN_KEY } from "../configs/env.js";
+import logger from "../models/LogReport.Model.js";
 
 export const Login = async (req, res, next) => {
   try {
@@ -27,10 +28,10 @@ export const Login = async (req, res, next) => {
     CheckEmailAndPasswordFormat(email, password); // Check email and email format
 
     const result = await FindUser({ email: email }); // Check if user exist in db
-    if (!result.success || !result.data[0]) {
+    if (!result.success || !result.data) {
       throw CreateError(ErrorCodes.USER_NOT_FOUND);
     }
-    const user = result.data[0]; // Get user from the result
+    const user = result.data; // Get user from the result
 
     if (!(await ComparePassword(password, user.password))) {
       // Compare password
@@ -70,19 +71,24 @@ export const Login = async (req, res, next) => {
       },
     });
   } catch (error) {
-    console.error("❌ [Auth.Controller.js] Error login:", error);
+    if (!error.status) {
+      logger.error("❌ [Auth.Controller.js] Error login:", error);
+    }
     next(error);
   }
 };
 
 export const Register = async (req, res, next) => {
   try {
-    const { name, email, password } = req.body; // get user name, email, password from require
+    // Get user name, email, password from require
+    const { name, email, password } = req?.body;
+    if (!name || !email || !password)
+      throw CreateError(ErrorCodes.MISSING_FIELD);
 
     CheckEmailAndPasswordFormat(email, password); // Check email and password format
 
     const checkUserExist = await FindUser({ email: email }); // Check user aldready exist
-    if (checkUserExist.success && checkUserExist.data[0]) {
+    if (checkUserExist.success && checkUserExist.data) {
       throw CreateError(ErrorCodes.USER_ALREADY_EXIST);
     }
 
@@ -90,7 +96,11 @@ export const Register = async (req, res, next) => {
     const hashedPassword = await HashPassword(password);
 
     // Try to add user to db, if adding is fail with code P2002 => user already existed
-    const addingUser = await AddUser({ name, email, password: hashedPassword });
+    const addingUser = await AddUser({
+      name: name,
+      email: email,
+      password: hashedPassword,
+    });
     if (!addingUser.success) {
       throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
     }
@@ -117,6 +127,7 @@ export const Register = async (req, res, next) => {
     SaveTokenOnCookies(res, refreshToken);
 
     // Response to user
+
     res.status(200).json({
       success: true,
       message: "Register success",
@@ -129,7 +140,8 @@ export const Register = async (req, res, next) => {
       },
     });
   } catch (error) {
-    console.error("❌ [Auth.Controller.js] Error register:", error);
+    if (!error.status)
+      console.error("❌ [Auth.Controller.js] Error register:", error);
     next(error);
   }
 };
@@ -156,7 +168,8 @@ export const Logout = async (req, res, next) => {
       message: "Logout success",
     });
   } catch (error) {
-    console.error("❌ [Auth.Controller.js] Error logout:", error);
+    if (!error.status)
+      console.error("❌ [Auth.Controller.js] Error logout:", error);
     next(error);
   }
 };
@@ -206,7 +219,8 @@ export const Refresh = async (req, res, next) => {
       },
     });
   } catch (error) {
-    console.error("❌ [Auth.Controller.js] Error refresh:", error);
+    if (!error.status)
+      console.error("❌ [Auth.Controller.js] Error refresh:", error);
     next(error);
   }
 };
