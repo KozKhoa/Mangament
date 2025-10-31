@@ -2,6 +2,22 @@
 
 import { useRef, useState } from "react";
 
+interface SwithProps {
+  onToggle?: (isOn: boolean) => void;
+  duration?: number;
+  width?: number;
+  height?: number;
+  roundHeight?: number;
+  bgColorOn?: string;
+  bgColorOff?: string;
+  roundColorOn?: string;
+  roundColorOff?: string;
+  roundImageBgOnUrl?: string;
+  roundImageBgOffUrl?: string;
+  borderWeight?: number;
+  borderColor?: string;
+}
+
 function Switch({
   onToggle = (isOn: boolean) => {},
   duration = 100,
@@ -16,7 +32,7 @@ function Switch({
   roundImageBgOffUrl = "",
   borderWeight = 1,
   borderColor = "black",
-}) {
+}: SwithProps) {
   const [stage, setStage] = useState(false);
 
   function handleToggle() {
