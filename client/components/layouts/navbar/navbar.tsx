@@ -16,9 +16,10 @@ import ButtonDropdown from "@/components/buttons/dropdown/btn-dropdown";
 
 interface NavBarProps {
   duration?: number;
+  className?: string;
 }
 
-function NavBar({ duration = 100 }: NavBarProps) {
+function NavBar({ duration = 100, className }: NavBarProps) {
   const [openSidebar, setOpenSidebar] = useState(false);
 
   function toggleSidebar() {
@@ -26,12 +27,14 @@ function NavBar({ duration = 100 }: NavBarProps) {
   }
   return (
     <div
-      className="flex flex-row font-afacad justify-between text-center text-size-default text-foreground 
-       items-center mx-2.5 px-2.5 py-1 h-fit
-       rounded-b-md border-b-3 border-x-2 shadow-[5px_8px_4px_rgba(0,0,0,0.3)] "
+      className={`flex flex-row font-afacad justify-between text-center text-size-default text-foreground 
+       items-center px-2.5 py-1 h-fit bg-background z-20
+       rounded-b-md border-b-3 border-x-2 shadow-[5px_8px_4px_rgba(0,0,0,0.3)]
+       ${className}
+       `}
     >
       <div className="flex flex-row justify-center items-center gap-5">
-        <Link href={"/users"}>
+        <Link href={"/"}>
           <p className={`text-2xl sm:text-3xl md:text-4xl font-holtwood`}>
             Mangament
           </p>

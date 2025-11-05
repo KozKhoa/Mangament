@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
 import { Afacad, Geist, Geist_Mono, Holtwood_One_SC } from "next/font/google";
 import { ThemeProvider } from "next-themes";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { Toaster } from "sonner";
 import "./globals.css";
+
+import NavBar from "@/components/layouts/navbar/navbar";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -38,15 +42,23 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${afacad.variable}  ${holtwood.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${afacad.variable}  ${holtwood.variable} antialiased
+        px-2.5
+        `}
       >
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem={true}
-        >
-          {children}
-        </ThemeProvider>
+        <AuthProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem={true}
+          >
+            <NavBar className="fixed left-2.5 right-2.5"></NavBar>
+            <div className="h-14"></div>
+
+            {children}
+            <Toaster position="top-center" />
+          </ThemeProvider>
+        </AuthProvider>
       </body>
     </html>
   );

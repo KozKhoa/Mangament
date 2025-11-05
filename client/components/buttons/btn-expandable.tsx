@@ -31,7 +31,6 @@ function ButtonExpandable({
 
   function handleClick() {
     onClick && onClick();
-    console.log("Click main label", typeof label);
   }
 
   return (

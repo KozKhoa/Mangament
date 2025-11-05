@@ -7,7 +7,7 @@ import CloseEyeIcon from "@/public/eye/close.svg";
 interface InputProps {
   onChange?: (text: string) => void;
   label?: string;
-  error?: string;
+  error?: string | null;
   name?: string;
   placeHolder?: string;
   type?: string;
@@ -31,7 +31,6 @@ export default function Input({
 }: InputProps) {
   const [isShowPassword, setIsShowPassword] = useState<boolean>(showPassword);
   const handleChange = (text: string) => {
-    console.log(text);
     onChange?.(text);
   };
   return (
@@ -53,7 +52,7 @@ export default function Input({
         } rounded-[5] `}
       >
         <input
-          className="w-full outline-none "
+          className="w-full outline-none bg-none"
           type={isShowPassword ? "text" : type}
           placeholder={placeHolder}
           name={name}
@@ -62,7 +61,7 @@ export default function Input({
           required={require}
         ></input>
         {type === "password" && (
-          <button
+          <div
             className="cursor-pointer"
             onClick={() => setIsShowPassword(!isShowPassword)}
           >
@@ -71,7 +70,7 @@ export default function Input({
             ) : (
               <CloseEyeIcon className="w-[1.5em] h-[1.5em] stroke-foreground"></CloseEyeIcon>
             )}
-          </button>
+          </div>
         )}
       </div>
     </label>

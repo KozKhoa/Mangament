@@ -31,14 +31,11 @@ export default function Home() {
 
   function handlePress(text: string) {}
   return (
-    <div className="flex flex-col gap-2.5 p-5">
-      <NavBar></NavBar>
+    <div className="flex flex-col gap-2.5">
       <SearchBar onSearch={handlePress} />
 
-      <Switch
-        roundImageBgOnUrl="/theme/sun.svg"
-        roundImageBgOffUrl="/theme/moon.svg"
-      />
+      <Link href={"/login"}>Login page</Link>
+      <Link href={"/register"}>Register page</Link>
 
       <Checkbox>Check box</Checkbox>
       <div className="flex gap-2.5">
@@ -84,13 +81,16 @@ export default function Home() {
       ></Input>
 
       <div className="w-full flex flex-col gap-5 justify-center">
-        <LoginRegister type="register"></LoginRegister>
+        {/* <LoginRegister type="register"></LoginRegister> */}
         <LoginRegister type="login"></LoginRegister>
       </div>
 
       <Radio>hello</Radio>
 
-      <Switch roundImageBgOnUrl="/sun.svg" roundImageBgOffUrl="/moon.svg" />
+      <Switch
+        roundImageBgOnUrl="/theme/sun.svg"
+        roundImageBgOffUrl="/theme/moon.svg"
+      />
     </div>
   );
 }
