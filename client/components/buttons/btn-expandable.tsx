@@ -1,64 +1,62 @@
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import React from "react";
+
+import TriangleDownIcon from "@/public/triangle-down.svg";
 
 interface ButtonDropDownProps {
   onClick?: () => void;
-  onClickItem?: (item: string, itemIndex: number) => void;
-  items?: string[];
-  label?: string;
+  label?: string | React.ReactNode;
   duration?: number;
+  children?: React.ReactNode;
   styles?: React.CSSProperties;
+  className?: string;
 }
 
 function ButtonExpandable({
-  label = "Drop down button",
+  label,
   onClick,
-  onClickItem,
-  items = [],
   duration = 100,
+  children,
   styles = {},
+  className = "",
 }: ButtonDropDownProps) {
   const [open, setOpen] = useState<boolean>(false);
+  const childrenArray = useRef(React.Children.toArray(children));
 
   function toggleOpenList() {
     setOpen(!open);
   }
 
-  function handleClickMain() {
+  function handleClick() {
     onClick && onClick();
-    console.log("Click main label");
-  }
-
-  function handleClickItem(item: string, itemIndex: number) {
-    onClickItem && onClickItem(item, itemIndex);
-    console.log("Click item: ", item, itemIndex);
+    console.log("Click main label", typeof label);
   }
 
   return (
     <div
-      className={`flex flex-col gap-0 overflow-hidden w-full h-fit font-afacad text-2xl rounded-t-[5]`}
+      className={`flex flex-col gap-0 overflow-hidden w-full h-fit font-afacad text-size-default rounded-t-[5] ${className}`}
       style={styles}
     >
       {/* Main button*/}
       <div
         className={`flex flex-row justify-between items-center 
-        px-5 py-1.5 border-b w-full rounded-t-[5] hover:bg-[#d8d8d8]`}
+        px-5 py-1.5 border-b border-foreground w-full rounded-t-[5] hover:bg-hover-background`}
       >
-        <button className="cursor-pointer" onClick={handleClickMain}>
-          <p>{label}</p>
+        <button className="cursor-pointer" onClick={handleClick}>
+          {typeof label === "string" && label}
         </button>
-        {items.length > 0 && (
+        {children && (
           <button
             className="cursor-pointer h-full justify-center items-center"
             onClick={toggleOpenList}
           >
-            <Image
-              src={"/triangle-down.svg"}
-              alt="Dropdown button"
-              width={15}
-              height={15}
-            ></Image>
+            {typeof label === "string" ? (
+              <TriangleDownIcon className="text-foreground w-4 h-4" />
+            ) : (
+              label
+            )}
           </button>
         )}
       </div>
@@ -75,21 +73,18 @@ function ButtonExpandable({
           >
             <ul
               className="flex flex-col justify-center items-start 
-                border-b border-l rounded-bl w-full h-fit"
+                border-b border-l border-foreground rounded-bl w-full h-fit"
             >
-              {items?.map((item, index) => (
+              {childrenArray.current.map((child, index) => (
                 <li
                   key={index}
-                  className={`w-full h-fit px-5 py-2 hover:bg-[#d8d8d8] ${
-                    index === items.length - 1 ? "border-b-0" : "border-b"
+                  className={`flex justify-start items-center w-full h-fit px-5 py-2 hover:bg-hover-background ${
+                    index === childrenArray.current.length - 1
+                      ? "border-b-0"
+                      : "border-b"
                   }`}
                 >
-                  <button
-                    className="w-full cursor-pointer text-start"
-                    onClick={() => handleClickItem(item, index)}
-                  >
-                    {item}
-                  </button>
+                  {child}
                 </li>
               ))}
             </ul>

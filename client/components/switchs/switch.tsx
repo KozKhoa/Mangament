@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 
 interface SwithProps {
   onToggle?: (isOn: boolean) => void;
@@ -16,6 +16,8 @@ interface SwithProps {
   roundImageBgOffUrl?: string;
   borderWeight?: number;
   borderColor?: string;
+  defaultValue?: boolean;
+  className?: string;
 }
 
 function Switch({
@@ -32,17 +34,19 @@ function Switch({
   roundImageBgOffUrl = "",
   borderWeight = 1,
   borderColor = "black",
+  defaultValue = false,
+  className = "",
 }: SwithProps) {
-  const [stage, setStage] = useState(false);
+  const [stage, setStage] = useState(defaultValue);
 
   function handleToggle() {
-    setStage(!stage);
     onToggle(!stage);
+    setStage(!stage);
   }
 
   return (
     <button
-      className={`flex relative justify-center items-center w-fit cursor-pointer  `}
+      className={`flex relative justify-center items-center w-fit cursor-pointer  ${className}`}
       style={{
         height: roundHeight > height ? roundHeight : height,
       }}

@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
+  darkMode: "class",
   content: [
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
     "./pages/**/*.{js,ts,jsx,tsx,mdx}",
@@ -9,6 +10,7 @@ module.exports = {
     extend: {
       fontFamily: {
         afacad: ["var(--font-afacad)", "sans-serif"],
+        holtwood: ["var(--font-holtwood)", "sans-serif"],
       },
     },
   },

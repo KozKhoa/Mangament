@@ -3,14 +3,28 @@
 :root {
   --background: #faf9f6;
   --foreground: #171717;
+  --hover-background: #8383837e;
+  --text-size: 16px;
+}
+
+html.dark {
+  --background: #0a0a0a;
+  --foreground: #ededed;
+  /* --hover-background: #8383837e; */
+  /* --text-size: 16px; */
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-hover-background: var(--hover-background);
+  --color-error: var(--color-red-600);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
   --font-afacad: var(--font-afacad);
+  --font-holtwood: var(--font-holtwood);
+
+  --text-size-default: var(--text-size);
 }
 
 @media (prefers-color-scheme: dark) {
