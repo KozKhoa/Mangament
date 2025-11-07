@@ -4,6 +4,7 @@ import { createContext, useContext, useEffect, useState } from "react";
 import * as rememberMe from "@/lib/remember-me";
 import authService from "@/services/auth";
 import { toast } from "sonner";
+import * as token from "@/lib/token";
 
 export interface User {
   id: string;
@@ -36,7 +37,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     const rememer = rememberMe.getStatus();
-    if (rememer) {
+    if (rememer && token.getAccessToken()) {
       getUser();
     }
   }, []);

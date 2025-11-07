@@ -1,5 +1,6 @@
 import express from "express";
 import cookieParser from "cookie-parser";
+import cors from "cors";
 
 import authRouter from "./src/routes/Auth.Route.js";
 import userRoute from "./src/routes/User.Route.js";
@@ -16,6 +17,12 @@ const app = express();
 app.use(cookieParser());
 app.use(express.json());
 app.use(RequestLogger);
+app.use(
+  cors({
+    origin: "http://localhost:3000", // Cho phép frontend truy cập
+    credentials: true, // nếu bạn dùng cookie
+  })
+);
 
 // Main routes
 app.use("/auth", authRouter);

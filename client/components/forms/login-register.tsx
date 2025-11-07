@@ -60,14 +60,14 @@ function LoginRegisterForm({ type, className }: LoginRegisterProps) {
 
         if (login && login.success) {
           // save user info to auth context
-          auth?.setUser(login.data.user);
+          auth?.setUser(login?.data?.user);
 
           // save access token
-          token.setAccessToken(login.data.token);
+          token.setAccessToken(login?.data?.token);
 
-          toast.message(login.message);
+          toast.message(login?.message);
         } else {
-          return toast.error(login.message);
+          return toast.error(login?.message || "Error");
         }
         break;
 

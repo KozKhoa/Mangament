@@ -17,6 +17,7 @@ import Radio from "@/components/inputs/radio";
 import ButtonDropdownRadio from "@/components/buttons/dropdown/btn-drop-down-radio";
 import LoginRegister from "@/components/forms/login-register";
 import Input from "@/components/forms/input";
+import StoryHorizontalNavigation from "@/components/navigations/stories/story-horizontal";
 
 const OPTIONS = [
   { label: "op1", checked: false },
@@ -31,7 +32,7 @@ export default function Home() {
 
   function handlePress(text: string) {}
   return (
-    <div className="flex flex-col gap-2.5">
+    <div className="flex flex-col gap-2.5 text-size-default">
       <SearchBar onSearch={handlePress} />
 
       <Link href={"/login"}>Login page</Link>
@@ -79,6 +80,11 @@ export default function Home() {
         placeHolder="Placeholder"
         error="error"
       ></Input>
+
+      <StoryHorizontalNavigation
+        link=""
+        title="[Manga] Frieren - Pháp sư tiễn táng Giả sử tên dài nên bị tràn xuống"
+      ></StoryHorizontalNavigation>
 
       <div className="w-full flex flex-col gap-5 justify-center">
         {/* <LoginRegister type="register"></LoginRegister> */}
