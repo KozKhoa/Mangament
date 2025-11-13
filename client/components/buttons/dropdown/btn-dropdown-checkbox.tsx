@@ -7,6 +7,7 @@ import Checkbox from "@/components/inputs/checkbox";
 interface ButtonFilterOption {
   label: string;
   checked: boolean;
+  [key: string]: any;
 }
 
 interface ButtonFilterProps {

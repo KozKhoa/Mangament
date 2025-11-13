@@ -1,4 +1,5 @@
 import Image from "./image";
+import StoryNode from "./story-node";
 
 export default interface Story {
   id: string;
@@ -15,4 +16,7 @@ export default interface Story {
   coverArt?: Image;
   createAt?: Date;
   updateAt?: Date;
+  summary?: string;
+
+  newestChapter?: StoryNode[];
 }

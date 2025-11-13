@@ -106,7 +106,9 @@ function ButtonDropdown({
                 ${openOnLeft ? "left-0" : "right-0"}`}
             >
               {/* List */}
-              {children}
+              <div className="flex flex-col gap-2.5 max-h-90 w-full h-full overflow-scroll p-1">
+                {children}
+              </div>
               {/* Close button */}
               {showCloseButton && (
                 <button

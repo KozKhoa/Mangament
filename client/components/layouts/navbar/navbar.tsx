@@ -5,8 +5,8 @@ import Image from "next/image";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-import SearchBar from "@/components/search/search";
-import ButtonExpandable from "@/components/buttons/btn-expandable";
+import SearchBar from "@/components/inputs/search";
+import ButtonExpandable from "@/components/buttons/expandable/btn-expandable";
 import Switch from "@/components/switchs/switch";
 import SwitchTheme from "@/components/switchs/switch-theme";
 
@@ -35,9 +35,7 @@ function NavBar({ duration = 100, className }: NavBarProps) {
     >
       <div className="flex flex-row justify-center items-center gap-5">
         <Link href={"/"}>
-          <p className={`text-2xl sm:text-3xl md:text-4xl font-holtwood`}>
-            Mangament
-          </p>
+          <p className={`text-2xl sm:text-3xl  font-holtwood`}>Mangament</p>
         </Link>
 
         {/* Desktop */}
@@ -77,7 +75,7 @@ function NavBar({ duration = 100, className }: NavBarProps) {
       {/* Mobile */}
       <div className="xl:hidden">
         <button className="cursor-pointer" onClick={toggleSidebar}>
-          <BurgerMenuIcon className="w-8 h-8 md:w-10 md:h-10" />
+          <BurgerMenuIcon className="w-8 h-8" />
         </button>
       </div>
 
