@@ -11,9 +11,10 @@ import EyeIcon from "@/public/eye/open.svg";
 import SharpTriangleDownIcon from "@/public/sharp-triangle-down.svg";
 
 import ButtonDropdown from "../buttons/dropdown/btn-dropdown";
-import { convertJsonToParam } from "@/utils/convert";
+import { convertJsonToParam, convertSnakeToNormal } from "@/utils/convert";
 import authorService from "@/services/author";
-import { del, label } from "framer-motion/client";
+import { del, label, pre } from "framer-motion/client";
+import genreService from "@/services/genre";
 
 interface FilterSortProps {
   onChange?: (params: string) => void;
@@ -127,7 +128,7 @@ export default function FilterSort({ onChange }: FilterSortProps) {
 
   // This is use to get data like author name, genre from server
   useEffect(() => {
-    const getAuthors = async () => {
+    const updateAuthor = async () => {
       const res = await authorService.get();
       const authors = res.data.map((author: { id: string; name: string }) => {
         const { id, name, ...newAuthor } = {
@@ -141,21 +142,36 @@ export default function FilterSort({ onChange }: FilterSortProps) {
 
         return newAuthor;
       });
+      setOption((prev) => {
+        return {
+          ...prev,
+          ...{ author: authors },
+        };
+      });
       return authors;
     };
 
-    getAuthors()
-      .then((authors) =>
-        setOption((prev) => {
-          return {
-            ...prev,
-            ...{ author: authors },
-          };
-        })
-      )
-      .catch((error) => console.log(error));
+    const udpateGenre = async () => {
+      const res = await genreService.get();
+      const genres = res.data.map((genre: string) => {
+        return {
+          label: convertSnakeToNormal(genre),
+          code: genre,
+          checked: false,
+        };
+      });
 
-    console.log(options);
+      setOption((prev) => {
+        return {
+          ...prev,
+          ...{ genre: genres },
+        };
+      });
+      return genres;
+    };
+
+    updateAuthor();
+    udpateGenre();
   }, []);
 
   const handleFilter = (
@@ -195,6 +211,7 @@ export default function FilterSort({ onChange }: FilterSortProps) {
     });
   };
 
+  // Auto call onChange when filter or sort are updated
   useEffect(() => {
     const paramFilter = convertJsonToParam(filter);
     const paramSort = convertJsonToParam(sort);
@@ -234,17 +251,19 @@ export default function FilterSort({ onChange }: FilterSortProps) {
       ></ButtonDropdownRadio>
 
       {/* Genre */}
-      <ButtonDropdownCheckbox
-        label={
-          <div className="flex flex-row gap-1.5 justify-center items-center w-fit h-fit">
-            <LayerIcon className="w-5 h-5 text-foreground"></LayerIcon>
-            <p>Thể loại</p>
-          </div>
-        }
-        name="filter-sort-genre"
-        onFinishCheck={(checked) => handleFilter("genre", checked)}
-      ></ButtonDropdownCheckbox>
-
+      {options.genre.length > 0 && (
+        <ButtonDropdownCheckbox
+          label={
+            <div className="flex flex-row gap-1.5 justify-center items-center w-fit h-fit">
+              <LayerIcon className="w-5 h-5 text-foreground"></LayerIcon>
+              <p>Thể loại</p>
+            </div>
+          }
+          name="filter-sort-genre"
+          options={options.genre}
+          onFinishCheck={(checked) => handleFilter("genre", checked)}
+        ></ButtonDropdownCheckbox>
+      )}
       {/* Author */}
       {options.author.length > 0 && (
         <ButtonDropdownCheckbox

@@ -26,7 +26,7 @@ import StoryInfoCard from "@/components/cards/stories/story-info-card";
 import NewestChapter from "@/models/newest-chapter";
 import { convertNewestChapter } from "@/utils/convert";
 import SwitchPage from "@/components/buttons/switch-page/big";
-import FilterSort from "@/components/lists/filter-sort";
+import FilterSort from "@/components/filter-sorts/filter-sort";
 
 const OPTIONS = [
   { label: "op1", checked: false },

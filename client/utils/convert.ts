@@ -43,3 +43,10 @@ export function convertNewestChapter(newestChapter: StoryNode[]) {
 export function convertJsonToParam(json: {}) {
   return qs.stringify(json, { arrayFormat: "comma" });
 }
+
+export function convertSnakeToNormal(snake: string) {
+  return snake
+    .split("_")
+    .map((word) => capitalizeFirstChar(word))
+    .join(" ");
+}
