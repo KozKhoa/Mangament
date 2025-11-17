@@ -17,16 +17,15 @@ import Radio from "@/components/inputs/radio";
 import ButtonDropdownRadio from "@/components/buttons/dropdown/btn-drop-down-radio";
 import LoginRegister from "@/components/forms/login-register";
 import Input from "@/components/forms/input";
-import * as StoryCardVertical from "@/components/cards/stories/story-card-vertical";
-import * as StoryCarHorizontal from "@/components/cards/stories/story-card-horizontal";
 
 import Story from "@/models/story";
-import StoryCard from "@/components/cards/stories";
+// import StoryCard from "@/components/cards/stories/story-card";
 import StoryInfoCard from "@/components/cards/stories/story-info-card";
 import NewestChapter from "@/models/newest-chapter";
 import { convertNewestChapter } from "@/utils/convert";
-import SwitchPage from "@/components/buttons/switch-page/big";
+import SwitchPage from "@/components/switch-page/big";
 import FilterSort from "@/components/filter-sorts/filter-sort";
+import StoryGrid from "@/components/grids/story-grid";
 
 const OPTIONS = [
   { label: "op1", checked: false },
@@ -43,7 +42,7 @@ export default function Home() {
     star: 2.4,
     type: "manga",
     status: "ongoing",
-    numberOfChidren: 16,
+    number_of_chidren: 16,
     author: ["23424", "1fsdf"],
     genre: [
       "roman",
@@ -63,70 +62,70 @@ export default function Home() {
     hơn cả những người đồng đội cũ của cô, một cuộc phiêu lưu mới để cô trải qua nhiều cung bậc cảm xúc,
      cũng như là học hỏi thêm về con người
 `,
-    coverArt: {
+    cover_art: {
       url: "uploads/story/manga/Genshin Impact/cover_art.jpg",
       width: null,
       height: null,
     },
-    newestChapter: [
+    newest_chapter: [
       {
         id: "f07b3ef0-a697-49e6-b277-da512bbdc372",
         title: "",
-        orderIndex: 23,
-        storyId: "fdce2cd6-95cd-4535-a8f7-0625ff81fb5b",
+        order_index: 23,
+        story_id: "fdce2cd6-95cd-4535-a8f7-0625ff81fb5b",
         type: "volume",
-        createAt: new Date("2025-10-26T13:48:37.366Z"),
+        created_at: new Date("2025-10-26T13:48:37.366Z"),
         children: [
           {
             id: "8ae3301b-ff3d-464d-b6d4-4fd3800feeb0",
             title: "",
-            orderIndex: 8,
-            storyId: "fdce2cd6-95cd-4535-a8f7-0625ff81fb5b",
-            parentId: "f07b3ef0-a697-49e6-b277-da512bbdc372",
+            order_index: 8,
+            story_id: "fdce2cd6-95cd-4535-a8f7-0625ff81fb5b",
+            parent_id: "f07b3ef0-a697-49e6-b277-da512bbdc372",
             type: "chapter",
             children: [],
-            createAt: new Date("2025-10-26T13:48:37.366Z"),
+            created_at: new Date("2025-10-26T13:48:37.366Z"),
           },
           {
             id: "697d662c-ef80-4765-aa27-da3113da74c3",
             title: "",
-            orderIndex: 7,
-            storyId: "fdce2cd6-95cd-4535-a8f7-0625ff81fb5b",
-            parentId: "f07b3ef0-a697-49e6-b277-da512bbdc372",
+            order_index: 7,
+            story_id: "fdce2cd6-95cd-4535-a8f7-0625ff81fb5b",
+            parent_id: "f07b3ef0-a697-49e6-b277-da512bbdc372",
             type: "chapter",
             children: [],
-            createAt: new Date("2025-10-26T13:48:37.366Z"),
+            created_at: new Date("2025-10-26T13:48:37.366Z"),
           },
         ],
       },
       {
         id: "6ddca7af-5334-467f-9cda-bd743b402e54",
         title: "",
-        orderIndex: 6,
-        storyId: "fdce2cd6-95cd-4535-a8f7-0625ff81fb5b",
+        order_index: 6,
+        story_id: "fdce2cd6-95cd-4535-a8f7-0625ff81fb5b",
 
         type: "chapter",
         children: [],
-        createAt: new Date("2025-10-26T13:48:37.366Z"),
+        created_at: new Date("2025-10-26T13:48:37.366Z"),
       },
       {
         id: "3ae154a1-dc91-4119-888a-13258519a062",
         title: "",
-        orderIndex: 5,
-        storyId: "fdce2cd6-95cd-4535-a8f7-0625ff81fb5b",
+        order_index: 5,
+        story_id: "fdce2cd6-95cd-4535-a8f7-0625ff81fb5b",
 
         type: "chapter",
         children: [],
-        createAt: new Date("2025-10-26T13:48:37.366Z"),
+        created_at: new Date("2025-10-26T13:48:37.366Z"),
       },
       {
         id: "76c54721-b30c-4c24-a975-180c0c3d2ab7",
         title: "",
-        orderIndex: 4,
-        storyId: "fdce2cd6-95cd-4535-a8f7-0625ff81fb5b",
+        order_index: 4,
+        story_id: "fdce2cd6-95cd-4535-a8f7-0625ff81fb5b",
         type: "chapter",
         children: [],
-        createAt: new Date("2025-10-26T13:48:37.366Z"),
+        created_at: new Date("2025-10-26T13:48:37.366Z"),
       },
     ],
   };
@@ -135,7 +134,7 @@ export default function Home() {
   const options2 = useRef(OPTIONS);
 
   const newestChapter = useRef<NewestChapter[]>(
-    convertNewestChapter(story?.newestChapter || [])
+    convertNewestChapter(story?.newest_chapter || [])
   );
 
   function handlePress(text: string) {}
@@ -144,23 +143,15 @@ export default function Home() {
     <div className="flex flex-col gap-2.5 text-size-default">
       <SearchBar onSearch={handlePress} />
 
-      <Link href={"/login"}>Login page</Link>
-      <Link href={"/register"}>Register page</Link>
+      <Link className="w-fit" href={"/login"}>
+        Login page
+      </Link>
+      <Link className="w-fit" href={"/register"}>
+        Register page
+      </Link>
 
-      <FilterSort></FilterSort>
+      <StoryGrid label="Manga" type="manga" elemetsPerPage={18}></StoryGrid>
 
-      <SwitchPage
-        maxPage={34}
-        defaultPage={1}
-        onChange={(page) => console.log(page)}
-      ></SwitchPage>
-
-      <StoryInfoCard
-        story={story}
-        newestChapter={newestChapter.current}
-      ></StoryInfoCard>
-
-      <Checkbox>Check box</Checkbox>
       <div className="flex gap-2.5">
         <ButtonDropdownCheckbox
           options={options.current}
@@ -202,49 +193,6 @@ export default function Home() {
         placeHolder="Placeholder"
         error="error"
       ></Input>
-
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-3 gap-1.5 ">
-        <StoryCard
-          story={story}
-          newestChapter={{ id: "423", dir: "Volume 3/Chapter 12", dayPass: 12 }}
-        ></StoryCard>
-        <StoryCard
-          story={story}
-          newestChapter={{ id: "423", dir: "Volume 3/Chapter 12", dayPass: 12 }}
-        ></StoryCard>
-        <StoryCard
-          story={story}
-          newestChapter={{ id: "423", dir: "Volume 3/Chapter 12", dayPass: 12 }}
-        ></StoryCard>
-        <StoryCard
-          story={story}
-          newestChapter={{ id: "423", dir: "Volume 3/Chapter 12", dayPass: 12 }}
-        ></StoryCard>
-        <StoryCard
-          story={story}
-          newestChapter={{ id: "423", dir: "Volume 3/Chapter 12", dayPass: 12 }}
-        ></StoryCard>
-      </div>
-
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 ">
-        <StoryCarHorizontal.default story={story}></StoryCarHorizontal.default>
-        <StoryCarHorizontal.default story={story}></StoryCarHorizontal.default>
-        <StoryCarHorizontal.default story={story}></StoryCarHorizontal.default>
-        <StoryCarHorizontal.default story={story}></StoryCarHorizontal.default>
-        <StoryCarHorizontal.default story={story}></StoryCarHorizontal.default>
-        <StoryCarHorizontal.default story={story}></StoryCarHorizontal.default>
-      </div>
-
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-1.5 ">
-        <StoryCardVertical.default story={story}></StoryCardVertical.default>
-        <StoryCardVertical.default story={story}></StoryCardVertical.default>
-        <StoryCardVertical.default story={story}></StoryCardVertical.default>
-        <StoryCardVertical.default story={story}></StoryCardVertical.default>
-        <StoryCardVertical.default story={story}></StoryCardVertical.default>
-        <StoryCardVertical.default story={story}></StoryCardVertical.default>
-        <StoryCardVertical.default story={story}></StoryCardVertical.default>
-        <StoryCardVertical.default story={story}></StoryCardVertical.default>
-      </div>
 
       <div className="w-full flex flex-col gap-5 justify-center">
         {/* <LoginRegister type="register"></LoginRegister> */}

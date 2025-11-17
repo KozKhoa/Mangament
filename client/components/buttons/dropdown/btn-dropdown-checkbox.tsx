@@ -38,6 +38,13 @@ function ButtonDropdownCheckbox({
     }
   };
 
+  const resetAllField = () => {
+    items.current?.forEach((item) => {
+      item.checked = false;
+    });
+    handleFinish();
+  };
+
   const handleFinish = () => {
     setRerender(!rerender);
     items.current && onFinishCheck?.(items.current);
@@ -46,11 +53,12 @@ function ButtonDropdownCheckbox({
   return (
     <ButtonDropdown
       openOnLeft={true}
-      className={`border-foreground border rounded-[5] 
+      className={`border-foreground border rounded-[5] relative
         text-size-default text-foreground ${className}`}
-      showCloseButton={true}
-      closeButtonLabel="Finish"
-      onClickCloseButton={handleFinish}
+      acceptButtonLabel="Finish"
+      onClickAcceptButton={handleFinish}
+      closeButtonLabel="Reset"
+      onClickCloseButton={resetAllField}
       icon={
         <div
           className={`flex flex-row relative justify-start items-center gap-1.5 cursor-pointer w-fit

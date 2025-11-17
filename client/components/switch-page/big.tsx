@@ -5,41 +5,64 @@ import LeftArrowIcon from "@/public/arrows/left-v.svg";
 import RightArrowIcon from "@/public/arrows/right-v.svg";
 
 interface SwitchPageProps {
-  defaultPage?: number;
+  page: number;
   maxPage: number;
   onChange?: (pageIndex: number) => void;
+  className?: string;
 }
 
-export default function SwitchPage({
-  defaultPage,
+export default function SwitchPageBig({
+  page,
   maxPage,
   onChange,
+  className,
 }: SwitchPageProps) {
-  const arr = useRef(Array.from({ length: maxPage < 20 ? maxPage : 20 }));
+  const arr20 = useRef(Array.from({ length: maxPage }));
+  const arr5 = useRef(Array.from({ length: 5 }));
+
   const [pageNumber, setPageNumber] = useState<number>(0);
 
-  const [page, setPage] = useState<number>(defaultPage ?? 1);
-
-  const arrowClassName =
-    "p-1.5 border rounded-[5] border-transparent hover:border-black cursor-pointer";
+  const arrowClassName = "p-1.5 border rounded-[5] border-transparent";
 
   const handleChange = (pageIndex: number) => {
     if (pageIndex <= 0 || pageIndex > maxPage || pageIndex === page) return;
     setPageNumber(0);
     onChange?.(pageIndex);
-    setPage(pageIndex);
+  };
+
+  useEffect(() => {
+    arr20.current = Array.from({ length: maxPage });
+  }, [maxPage]);
+
+  const getPageNumber = (i: number) => {
+    if (page <= 7) return i + 6;
+    if (page >= maxPage - 6) return maxPage - 9 + i;
+    return page - 2 + i;
   };
 
   return (
-    <div className="flex flex-row gap-2.5 w-fit font-afacad text-[1.2em]">
-      <button className={arrowClassName} onClick={() => handleChange(page - 1)}>
-        <LeftArrowIcon className="w-6 h-6"></LeftArrowIcon>
+    <div
+      className={`flex flex-row gap-2.5 w-fit font-afacad text-[1.2em] ${className}`}
+    >
+      <button
+        className={`${arrowClassName} ${
+          page === 1
+            ? "text-gray-300"
+            : "text-foreground hover:border-black cursor-pointer"
+        }`}
+        onClick={() => handleChange(page - 1)}
+      >
+        <LeftArrowIcon
+          className={`w-6 h-6 ${
+            page === 1 ? "text-gray-300" : "text-foreground"
+          }`}
+        ></LeftArrowIcon>
       </button>
-      <div className="flex flex-row flex-wrap sm:grid grid-cols-5 sm:grid-cols-10 md:grid-cols-12 lg:grid-cols-20 gap-1">
+      <div className="flex flex-row flex-wrap  gap-1">
         {maxPage <= 20 ? (
-          arr.current.map((_, i) => (
+          arr20.current.map((_, i) => (
             <button
-              key={i}
+              key={i + 1}
               onClick={() => handleChange(i + 1)}
               className={`p-1.5 min-w-10 h-10 border rounded-[5] border-transparent hover:border-black cursor-pointer
                 
@@ -51,7 +74,7 @@ export default function SwitchPage({
           ))
         ) : (
           <>
-            {Array.from({ length: 5 }).map((_, i) => (
+            {arr5.current.map((_, i) => (
               <button
                 key={i}
                 onClick={() => handleChange(i + 1)}
@@ -71,42 +94,20 @@ export default function SwitchPage({
               ...
             </div>
 
-            {Array.from({ length: 5 }).map((_, i) => (
+            {arr5.current.map((_, i) => (
               <button
-                key={
-                  page <= 7
-                    ? i + 5 + 1
-                    : page >= maxPage - 6
-                    ? maxPage - 9 + i
-                    : page - 2 + i
-                }
-                onClick={() =>
-                  handleChange(
-                    page <= 7
-                      ? i + 5 + 1
-                      : page >= maxPage - 6
-                      ? maxPage - 9 + i
-                      : page - 2 + i
-                  )
-                }
+                key={i}
+                onClick={() => handleChange(getPageNumber(i))}
                 className={`p-1.5 min-w-10 h-10 border rounded-[5] border-transparent hover:border-black cursor-pointer
                     flex justify-center items-center
                     ${
-                      (page <= 7
-                        ? i + 5 + 1
-                        : page >= maxPage - 6
-                        ? maxPage - 9 + i
-                        : page - 2 + i) === page
+                      getPageNumber(i) === page
                         ? "bg-gray-200"
                         : "bg-background"
                     }
                 `}
               >
-                {page <= 7
-                  ? i + 5 + 1
-                  : page >= maxPage - 6
-                  ? maxPage - 9 + i
-                  : page - 2 + i}
+                {getPageNumber(i)}
               </button>
             ))}
 
@@ -120,7 +121,9 @@ export default function SwitchPage({
                 value={pageNumber || ""}
                 placeholder="Nhập số trang"
                 alt="Nhập số trang"
-                className="outline-none font-afacad w-full p-1 text-center"
+                className="text-center w-full outline-none
+                  [-moz-appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none 
+                  [&::-webkit-inner-spin-button]:appearance-none"
                 onChange={(e) => {
                   if (/^\d*$/.test(e.target.value))
                     // Only accept integer > 0
@@ -130,7 +133,11 @@ export default function SwitchPage({
               ></input>
 
               <button
-                className="cursor-pointer w-fit h-full"
+                className={`${arrowClassName} ${
+                  page === maxPage
+                    ? "text-gray-300"
+                    : "text-foreground hover:border-black"
+                }`}
                 onClick={() => handleChange(pageNumber)}
               >
                 <RightArrowUnderlineIcon className="w-5 h-5"></RightArrowUnderlineIcon>
@@ -143,7 +150,7 @@ export default function SwitchPage({
             >
               ...
             </div>
-            {Array.from({ length: 5 }).map((_, i) => (
+            {arr5.current.map((_, i) => (
               <button
                 key={maxPage - 4 + i}
                 onClick={() => handleChange(maxPage - 4 + i)}
@@ -161,7 +168,11 @@ export default function SwitchPage({
         )}
       </div>
       <button className={arrowClassName} onClick={() => handleChange(page + 1)}>
-        <RightArrowIcon className="w-6 h-6"></RightArrowIcon>
+        <RightArrowIcon
+          className={`w-6 h-6 ${
+            page === maxPage ? "text-gray-300" : "text-foreground"
+          }`}
+        ></RightArrowIcon>
       </button>
     </div>
   );

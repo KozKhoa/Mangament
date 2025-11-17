@@ -1,39 +1,43 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import React from "react";
+import { useFloating, offset, flip, shift } from "@floating-ui/react";
 
 import TriangleDownIcon from "@/public/triangle-down.svg";
-import SharpTriangleDownIcon from "@/public/sharp-triangle-down.svg";
 
 interface ButtonDropdownProps {
   onClick?: () => void;
+  onClickAcceptButton?: () => void;
   onClickCloseButton?: () => void;
   label?: string | React.ReactNode;
   icon?: string | React.ReactNode;
   children?: React.ReactNode;
-  styles?: React.CSSProperties;
   duration?: number;
   openOnLeft?: boolean;
   className?: string;
-  showCloseButton?: boolean;
+
+  acceptButtonLabel?: string | React.ReactNode;
   closeButtonLabel?: string | React.ReactNode;
 }
 
 function ButtonDropdown({
   onClick,
   onClickCloseButton,
+  onClickAcceptButton,
   label,
   icon,
   children,
-  styles = {},
   duration = 100,
-  openOnLeft = true,
   className = "",
-  showCloseButton = false,
+  acceptButtonLabel = "Accept",
   closeButtonLabel = "Close",
 }: ButtonDropdownProps) {
   const [open, setOpen] = useState<boolean>(false);
   const dropdown = useRef<HTMLDivElement>(null);
+
+  const { refs, floatingStyles } = useFloating({
+    middleware: [offset(10), flip(), shift()],
+  });
 
   // Use to catch event clicking outside
   useEffect(() => {
@@ -64,11 +68,13 @@ function ButtonDropdown({
       className={`flex flex-col relative justify-center items-start p-[1]
         font-afacad text-size-default text-foreground
         h-fit w-fit bg-background ${className}`}
-      style={styles}
       ref={dropdown}
     >
       {/* Main button */}
-      <div className="flex flex-row justify-center items-center gap-2.5 w-full h-fit ">
+      <div
+        ref={refs.setReference}
+        className="flex flex-row justify-center items-center gap-2.5 w-full h-fit "
+      >
         {label && (
           <button className="w-fit h-full cursor-pointer" onClick={handleClick}>
             {label}
@@ -101,26 +107,46 @@ function ButtonDropdown({
             className={`relative z-10`}
           >
             <div
-              className={`flex absolute top-3 flex-col justify-center items-start w-fit h-fit rounded-[5] min-w-64
+              ref={refs.setFloating}
+              style={floatingStyles}
+              className={`flex absolute flex-col justify-center items-start w-fit h-fit rounded-[5] min-w-64
                 border-2 border-foreground p-2.5 gap-2.5 bg-background shadow-[11px_13px_5px_rgba(0,0,0,0.3)]
-                ${openOnLeft ? "left-0" : "right-0"}`}
+              `}
             >
               {/* List */}
-              <div className="flex flex-col gap-2.5 max-h-90 w-full h-full overflow-scroll p-1">
+              <div className="flex flex-col gap-2.5 max-h-90 w-full h-full overflow-y-scroll no-scrollbar p-1">
                 {children}
               </div>
-              {/* Close button */}
-              {showCloseButton && (
-                <button
-                  className="px-5 w-full h-fit border-foreground border rounded-md cursor-pointer text-center"
-                  onClick={() => {
-                    toggleOpenDropdown?.();
-                    onClickCloseButton?.();
-                  }}
-                >
-                  {closeButtonLabel ?? closeButtonLabel}
-                </button>
-              )}
+
+              <div className="flex flex-row w-full gap-2 justify-around">
+                {/* Accept button */}
+                {onClickAcceptButton && (
+                  <button
+                    className="px-5 text-[1.2em] font-semibold w-full h-fit border-background border rounded-md 
+                  cursor-pointer text-center bg-foreground text-background"
+                    onClick={() => {
+                      toggleOpenDropdown?.();
+                      onClickAcceptButton?.();
+                    }}
+                  >
+                    {acceptButtonLabel ?? acceptButtonLabel}
+                  </button>
+                )}
+                {/* Close button */}
+                {onClickCloseButton && (
+                  <button
+                    className="px-5 text-[1.2em] font-semibold w-full h-fit 
+                    bg-background text-foreground
+                    border-foreground border rounded-md cursor-pointer text-center"
+                    onClick={() => {
+                      toggleOpenDropdown?.();
+                      onClickCloseButton?.();
+                    }}
+                  >
+                    {closeButtonLabel ?? closeButtonLabel}
+                  </button>
+                )}
+              </div>
             </div>
           </motion.div>
         )}

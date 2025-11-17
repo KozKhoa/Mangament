@@ -68,8 +68,6 @@ export async function PostComment(req, res, next) {
     if (!story || !story || !story.data)
       throw CreateError(ErrorCodes.STORY_NOT_FOUND);
 
-    console.log(storyId, storyNodeId);
-
     const comment = await AddComment({
       user_id: userId,
       story_id: storyId || story.data.id,
@@ -79,8 +77,6 @@ export async function PostComment(req, res, next) {
         : { story_node_id: null }),
     });
 
-    console.log(comment);
-
     if (!comment || !comment.success)
       throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
 
@@ -88,9 +84,17 @@ export async function PostComment(req, res, next) {
       success: true,
       message: "Add new comment successfully",
       data: {
-        user_id: userId,
-        story_id: story.data.id,
-        ...(storyNodeId && { story_node_id: storyNodeId }),
+        user: {
+          id: userId,
+        },
+        story: {
+          id: story.data.id,
+        },
+        ...(storyNodeId && {
+          storyNode: {
+            id: storyNodeId,
+          },
+        }),
         comment: {
           id: comment.data.id,
           message: comment.data.message,
@@ -129,7 +133,9 @@ export async function PutComment(req, res, next) {
       success: true,
       message: "Update comment successfully",
       data: {
-        comment_id: commentId,
+        comment: {
+          id: commentId,
+        },
         message: updateComment.data.message,
       },
     });

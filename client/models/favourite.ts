@@ -1,6 +1,6 @@
 export default interface Favourite {
   id: string;
-  userId: string;
-  storyId: string;
-  createAt?: string;
+  user_id: string;
+  story_id: string;
+  created_at?: string;
 }

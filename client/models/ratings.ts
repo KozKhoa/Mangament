@@ -1,8 +1,8 @@
 export default interface Rating {
-  userId: string;
-  storyId: string;
+  user_id: string;
+  story_id: string;
   message: string;
   star: number;
-  createAt?: Date;
-  updateAt?: Date;
+  created_at?: Date;
+  updated_at?: Date;
 }

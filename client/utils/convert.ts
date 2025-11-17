@@ -14,15 +14,12 @@ export function convertNewestChapter(newestChapter: StoryNode[]) {
   const getNewestChapter = (storyNode: StoryNode, parent: string) => {
     if (!storyNode) return "";
     const node =
-      capitalizeFirstChar(storyNode.type) + " " + storyNode.orderIndex;
+      capitalizeFirstChar(storyNode.type) + " " + storyNode.order_index;
     if (storyNode.type === "chapter") {
       result?.push({
         id: storyNode.id,
         dir: parent + " " + node,
-        dayPass: diffDate(
-          new Date(),
-          newestChapter.at(0)?.createAt || new Date()
-        ),
+        dayPass: diffDate(new Date(), new Date(storyNode?.created_at ?? "")),
       });
 
       return;
@@ -42,11 +39,4 @@ export function convertNewestChapter(newestChapter: StoryNode[]) {
 
 export function convertJsonToParam(json: {}) {
   return qs.stringify(json, { arrayFormat: "comma" });
-}
-
-export function convertSnakeToNormal(snake: string) {
-  return snake
-    .split("_")
-    .map((word) => capitalizeFirstChar(word))
-    .join(" ");
 }

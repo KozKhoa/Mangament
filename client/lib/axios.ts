@@ -1,12 +1,10 @@
 import axios, { AxiosError } from "axios";
 
 import * as token from "@/lib/token";
-import refresh from "@/services/auth/refresh";
 
 // Create instance
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
-  withCredentials: true,
   timeout: 1000,
 });
 

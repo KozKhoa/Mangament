@@ -45,7 +45,8 @@ function Checkbox({
       <CheckIcon
         className="absolute top-0 left-0 h-[1.5em] w-[1.5em]
           rotate-y-90 peer-checked:rotate-y-0
-           transition-all duration-100 ease-linear"
+          fill-foreground 
+          transition-all duration-100 ease-linear"
       ></CheckIcon>
 
       <UnCheckIcon

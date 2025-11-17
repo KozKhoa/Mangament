@@ -57,9 +57,8 @@ function ButtonDropdownRadio({
       openOnLeft={true}
       className={`border-foreground border rounded-[5] 
         text-size-default text-foreground ${className}`}
-      showCloseButton={true}
-      closeButtonLabel="Finish"
-      onClickCloseButton={handleFinish}
+      acceptButtonLabel="Finish"
+      onClickAcceptButton={handleFinish}
       icon={
         <div
           className={`flex flex-row relative justify-start items-center gap-1.5 cursor-pointer w-fit

@@ -6,6 +6,7 @@ import {
   AddOneViewForStory,
   DeleteStory,
   GetAllStories,
+  GetCountStories,
   GetRandomStory,
   GetStory,
   PostStory,
@@ -15,6 +16,7 @@ import {
 import {
   AuthenticationToken,
   AuthorizationRole,
+  OptionalAuth,
 } from "../middlewares/Auth.Middleware.js";
 import {
   DeleteComment,
@@ -43,9 +45,10 @@ const upload = multer({ storage: storage });
 const storyRoute = express.Router();
 
 // Story
-storyRoute.get("/random", GetRandomStory);
-storyRoute.get("/:id", GetStory);
-storyRoute.get("/", GetAllStories);
+storyRoute.get("/random", OptionalAuth, GetRandomStory);
+storyRoute.get("/count", GetCountStories);
+storyRoute.get("/:id", OptionalAuth, GetStory);
+storyRoute.get("/", OptionalAuth, GetAllStories);
 storyRoute.patch("/:id/view", AddOneViewForStory);
 storyRoute.post(
   "/",

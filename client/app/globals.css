@@ -8,7 +8,7 @@
 }
 
 html.dark {
-  --background: #0a0a0a;
+  --background: #0d1b1e;
   --foreground: #ededed;
   /* --hover-background: #8383837e; */
   /* --text-size: 16px; */
@@ -18,6 +18,9 @@ html.dark {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-hover-background: var(--hover-background);
+  --color-accept-button: #3a606e;
+  --color-reject-button: #fc814a;
+  --color-warning-button: #db9065;
   --color-error: var(--color-red-600);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
@@ -38,4 +41,20 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+button {
+  cursor: pointer;
+  /* background-color: #2d93ad; */
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+.no-scrollbar {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
 }

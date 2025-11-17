@@ -136,7 +136,7 @@ export const AddStoryNode = async (
         }),
         ...(data.content && { content: data.content }),
         title: data.title,
-        type: data.type || console.log(data.type),
+        type: data.type,
         order_index: data.order_index,
         number_of_children: data.number_of_children,
       },

@@ -1,4 +1,6 @@
 export function beautifulView(view: number) {
+  if (view < 1000) return view.toString();
+
   let strView = "";
   while (view > 0) {
     strView = +(view % 1000).toString() + strView;

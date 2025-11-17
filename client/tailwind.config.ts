@@ -13,6 +13,13 @@ module.exports = {
         holtwood: ["var(--font-holtwood)", "sans-serif"],
       },
     },
+    containers: {
+      sm: "300px",
+      md: "400px",
+      lg: "600px",
+      xl: "800px",
+      xxl: "1000px",
+    },
   },
-  plugins: [],
+  plugins: [require("@tailwindcss/container-queries")],
 };

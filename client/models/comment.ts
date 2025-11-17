@@ -1,9 +1,9 @@
 export default interface Comment {
   id: string;
-  storyId: string;
-  storyNodeId?: string;
-  userId: string;
+  story_id: string;
+  story_node_id?: string;
+  user_id: string;
   message: string;
-  createAt?: Date;
-  updateAt?: Date;
+  created_at?: Date;
+  updated_at?: Date;
 }

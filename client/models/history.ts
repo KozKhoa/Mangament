@@ -1,7 +1,7 @@
 export default interface History {
   id: string;
-  userId: string;
-  storyId: string;
-  storyNodeId: string;
-  createAt?: Date;
+  user_id: string;
+  story_id: string;
+  story_node_id: string;
+  created_at?: Date;
 }

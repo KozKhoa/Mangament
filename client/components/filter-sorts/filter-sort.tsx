@@ -11,20 +11,37 @@ import EyeIcon from "@/public/eye/open.svg";
 import SharpTriangleDownIcon from "@/public/sharp-triangle-down.svg";
 
 import ButtonDropdown from "../buttons/dropdown/btn-dropdown";
-import { convertJsonToParam, convertSnakeToNormal } from "@/utils/convert";
+import { convertJsonToParam } from "@/utils/convert";
+import { snakeCaseToCapitalizeWord } from "@/utils/string";
 import authorService from "@/services/author";
 import { del, label, pre } from "framer-motion/client";
 import genreService from "@/services/genre";
+import { toast } from "sonner";
 
-interface FilterSortProps {
-  onChange?: (params: string) => void;
+interface OptionItem {
+  label: string;
+  code: string;
+  checked: boolean;
 }
 
-export default function FilterSort({ onChange }: FilterSortProps) {
+interface OptionsState {
+  rating: OptionItem[];
+  sort: OptionItem[];
+  view: OptionItem[];
+  author: OptionItem[];
+  genre: OptionItem[];
+}
+
+interface FilterSortProps {
+  onChange?: (params: {}) => void;
+  className?: string;
+}
+
+export default function FilterSort({ onChange, className }: FilterSortProps) {
   const [render, setRender] = useState(false);
   const [filter, setFilter] = useState({});
-  const [sort, setSort] = useState({ sort: "create_at:desc" });
-  const [options, setOption] = useState({
+  const [sort, setSort] = useState({ sort: "created_at:desc" });
+  const [options, setOption] = useState<OptionsState>({
     rating: [
       {
         label: "Trên 4 sao",
@@ -55,12 +72,12 @@ export default function FilterSort({ onChange }: FilterSortProps) {
     sort: [
       {
         label: "Mới nhất",
-        code: "create_at:desc",
+        code: "created_at:desc",
         checked: true,
       },
       {
         label: "Cũ nhất",
-        code: "create_at:asc",
+        code: "created_at:asc",
         checked: false,
       },
       {
@@ -130,32 +147,36 @@ export default function FilterSort({ onChange }: FilterSortProps) {
   useEffect(() => {
     const updateAuthor = async () => {
       const res = await authorService.get();
-      const authors = res.data.map((author: { id: string; name: string }) => {
-        const { id, name, ...newAuthor } = {
-          ...author,
-          ...{
-            label: author.name,
-            checked: false,
-            code: author.id,
-          },
-        };
+      if (res.success) {
+        const authors = res.data.map((author: { id: string; name: string }) => {
+          const { id, name, ...newAuthor } = {
+            ...author,
+            ...{
+              label: author.name,
+              checked: false,
+              code: author.id,
+            },
+          };
 
-        return newAuthor;
-      });
-      setOption((prev) => {
-        return {
-          ...prev,
-          ...{ author: authors },
-        };
-      });
-      return authors;
+          return newAuthor;
+        });
+        setOption((prev) => {
+          return {
+            ...prev,
+            ...{ author: authors },
+          };
+        });
+        return authors;
+      } else {
+        toast.warning(res.message);
+      }
     };
 
     const udpateGenre = async () => {
       const res = await genreService.get();
       const genres = res.data.map((genre: string) => {
         return {
-          label: convertSnakeToNormal(genre),
+          label: snakeCaseToCapitalizeWord(genre),
           code: genre,
           checked: false,
         };
@@ -213,22 +234,54 @@ export default function FilterSort({ onChange }: FilterSortProps) {
 
   // Auto call onChange when filter or sort are updated
   useEffect(() => {
-    const paramFilter = convertJsonToParam(filter);
-    const paramSort = convertJsonToParam(sort);
-    const param = paramFilter + (paramFilter && paramSort && "&") + paramSort;
-    console.log(param);
-    onChange?.(param);
+    const params = {
+      ...filter,
+      ...sort,
+    };
+    onChange?.(params);
   }, [filter, sort]);
 
+  const displayOptionChecked = (options: OptionItem[]) => {
+    let result = "";
+    options.forEach((op, i) => {
+      if (op.checked) {
+        let temp = "";
+        if (result === "") result = result + ": ";
+        else temp = ", " + temp;
+
+        temp = temp + op.label;
+
+        result = result + temp;
+      }
+    });
+
+    return result;
+  };
+
   return (
-    <div className="flex flex-row flex-wrap gap-2">
+    <div className={`flex flex-row flex-wrap gap-2 ${className}`}>
+      {/* Sort */}
+      <ButtonDropdownRadio
+        label={
+          <div className="flex flex-row flex-wrap gap-1.5 justify-center items-center w-fit h-fit">
+            <SortIcon className="w-5 h-5 text-foreground "></SortIcon>
+            <p className=" font-bold">Sắp xếp</p>
+            <div>{displayOptionChecked(options.sort)}</div>
+          </div>
+        }
+        name="filter-sort-sort"
+        onFinishCheck={(checked) => handleSort(checked)}
+        options={options.sort}
+      ></ButtonDropdownRadio>
+
       {/* Rating */}
       <ButtonDropdownCheckbox
         label={
           <>
-            <div className="flex flex-row gap-1.5 justify-center items-center w-fit h-fit">
+            <div className="flex flex-row flex-wrap gap-1.5 justify-center items-center w-fit h-fit">
               <StarIcon className="w-5 h-5 stroke-foreground text-transparent"></StarIcon>
-              <p>Đánh giá</p>
+              <p className="font-bold">Đánh giá</p>
+              <div>{displayOptionChecked(options.rating)}</div>
             </div>
           </>
         }
@@ -237,26 +290,14 @@ export default function FilterSort({ onChange }: FilterSortProps) {
         onFinishCheck={(checked) => handleFilter("star", checked)}
       ></ButtonDropdownCheckbox>
 
-      {/* Sort */}
-      <ButtonDropdownRadio
-        label={
-          <div className="flex flex-row gap-1.5 justify-center items-center w-fit h-fit">
-            <SortIcon className="w-5 h-5 text-foreground"></SortIcon>
-            <p>Sắp xếp</p>
-          </div>
-        }
-        name="filter-sort-sort"
-        onFinishCheck={(checked) => handleSort(checked)}
-        options={options.sort}
-      ></ButtonDropdownRadio>
-
       {/* Genre */}
       {options.genre.length > 0 && (
         <ButtonDropdownCheckbox
           label={
-            <div className="flex flex-row gap-1.5 justify-center items-center w-fit h-fit">
+            <div className="flex flex-row flex-wrap gap-1.5 justify-center items-center w-fit h-fit">
               <LayerIcon className="w-5 h-5 text-foreground"></LayerIcon>
-              <p>Thể loại</p>
+              <p className="font-bold">Thể loại</p>
+              <div>{displayOptionChecked(options.genre)}</div>
             </div>
           }
           name="filter-sort-genre"
@@ -268,9 +309,10 @@ export default function FilterSort({ onChange }: FilterSortProps) {
       {options.author.length > 0 && (
         <ButtonDropdownCheckbox
           label={
-            <div className="flex flex-row gap-1.5 justify-center items-center w-fit h-fit">
+            <div className="flex flex-row flex-wrap gap-1.5 justify-center items-center w-fit h-fit">
               <PeopleIcon className="w-5 h-5 text-foreground stroke-0"></PeopleIcon>
-              <p>Tác giả</p>
+              <p className="font-bold">Tác giả</p>
+              <div>{displayOptionChecked(options.author)}</div>
             </div>
           }
           options={options.author}
@@ -282,9 +324,10 @@ export default function FilterSort({ onChange }: FilterSortProps) {
       {/* View */}
       <ButtonDropdownCheckbox
         label={
-          <div className="flex flex-row gap-1.5 justify-center items-center w-fit h-fit">
+          <div className="flex flex-row flex-wrap gap-1.5 justify-center items-center w-fit h-fit">
             <EyeIcon className="w-5 h-5 text-foreground"></EyeIcon>
-            <p>View</p>
+            <p className="font-bold">View</p>
+            <div>{displayOptionChecked(options.view)}</div>
           </div>
         }
         options={options.view}

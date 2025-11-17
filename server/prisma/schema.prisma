@@ -155,12 +155,12 @@ model StoryNode {
   parent_id          String?                  @db.Uuid
   title              String?
   type               StoryNodeType
-  order_index        Float?                   @db.Real
+  order_index        Decimal                  @db.Decimal(10, 4)
   view               Int                      @default(0)
   number_of_children Int                      @default(0)
   updated_at         DateTime                 @default(now())
   created_at         DateTime                 @default(now())
-  content            Json?
+  content            Json[]                   @default([])
   plain_text         String?
   search_vector      Unsupported("tsvector")? // Prisma chưa hỗ trợ tsvector
   is_deleted         Boolean                  @default(false)
@@ -224,6 +224,7 @@ model FavouriteStory {
   user_id    String   @db.Uuid
   story_id   String   @db.Uuid
   created_at DateTime @default(now())
+  updated_at DateTime @default(now())
   is_deleted Boolean  @default(false)
 
   user  User  @relation(fields: [user_id], references: [id], onDelete: Cascade)

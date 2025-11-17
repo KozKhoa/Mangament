@@ -9,14 +9,18 @@ export default interface Story {
   star?: number;
   type: string;
   status: string;
-  nextChapterIn?: Date;
-  numberOfChidren?: number;
+  next_chapter_in?: Date;
+  number_of_chidren?: number;
   author?: string[];
   genre?: string[];
-  coverArt?: Image;
-  createAt?: Date;
-  updateAt?: Date;
+  cover_art?: Image;
+  created_at?: Date;
+  updated_at?: Date;
   summary?: string;
+  favourite?: {
+    id: string;
+    user_id: string;
+  };
 
-  newestChapter?: StoryNode[];
+  newest_chapter?: StoryNode[];
 }

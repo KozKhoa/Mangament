@@ -5,7 +5,7 @@ export default interface User {
   name: string;
   email: string;
   gender: string;
-  joinDate: string;
+  join_date: string;
   role: "admin" | "user";
   avatar: Image;
   birthday?: string;

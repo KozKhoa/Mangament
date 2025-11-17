@@ -1,14 +1,14 @@
 export default interface StoryNode {
   id: string;
-  storyId: string;
-  parentId?: string;
+  story_id: string;
+  parent_id?: string;
   title?: string;
   type: string;
-  orderIndex: number;
+  order_index: number;
   view?: string;
-  numberOfChildren?: number;
-  createAt: Date;
-  updateAt?: Date;
+  number_of_children?: number;
+  created_at: Date;
+  updated_at?: Date;
   content?: JSON;
 
   children?: StoryNode[];
