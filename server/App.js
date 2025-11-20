@@ -1,5 +1,6 @@
 import express from "express";
 import cookieParser from "cookie-parser";
+import cors from "cors";
 
 import authRouter from "./src/routes/Auth.Route.js";
 import userRoute from "./src/routes/User.Route.js";
@@ -10,12 +11,19 @@ import { PORT } from "./src/configs/env.js";
 import storyRoute from "./src/routes/Story.Routes.js";
 import storyNodeRoute from "./src/routes/StoryNode.Route.js";
 import authorRoute from "./src/routes/Author.Route.js";
+import genreRoute from "./src/routes/Genre.Route.js";
 
 const app = express();
 
 app.use(cookieParser());
 app.use(express.json());
 app.use(RequestLogger);
+app.use(
+  cors({
+    origin: "*", // Cho phép frontend truy cập, ko được để * khi public
+    credentials: true, // nếu bạn dùng cookie
+  })
+);
 
 // Main routes
 app.use("/auth", authRouter);
@@ -23,6 +31,7 @@ app.use("/users", userRoute);
 app.use("/stories", storyRoute);
 app.use("/story-nodes", storyNodeRoute);
 app.use("/authors", authorRoute);
+app.use("/genres", genreRoute);
 
 //api for getting story image
 app.use("/uploads/story", express.static("uploads/story"));
@@ -31,6 +40,6 @@ app.use("/uploads/story", express.static("uploads/story"));
 app.use(ErrorMiddleware);
 
 // Listen
-app.listen(PORT, () => {
+app.listen(PORT, "0.0.0.0", () => {
   console.log(`🚀 Server chạy tại http://localhost:${PORT}`);
 });

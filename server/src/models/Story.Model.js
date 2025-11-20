@@ -32,14 +32,60 @@ export const GetStoryTree = async (
   return nodes;
 };
 
+export async function GetNewestChapter(storyId, number) {
+  let count = 0;
+  const dfs = async (parentId) => {
+    const nodes = await db.storyNode.findMany({
+      where: {
+        parent_id: parentId,
+        story_id: storyId,
+      },
+      orderBy: {
+        order_index: "desc",
+      },
+      select: {
+        id: true,
+        title: true,
+        order_index: true,
+        story_id: true,
+        parent_id: true,
+        type: true,
+        created_at: true,
+        updated_at: true,
+      },
+    });
+
+    const result = [];
+    for (const node of nodes) {
+      if (count >= number) break;
+      result.push(node);
+
+      if (node.type !== "chapter") {
+        node.children = await dfs(node.id);
+      } else if (node.type === "chapter") {
+        node.children = [];
+        count++;
+      }
+    }
+
+    return result;
+  };
+
+  const result = await dfs(null);
+
+  return result;
+}
+
 export const FindAllStories = async (
   where = {},
+  select = {},
   orderBy = {},
-  take,
-  skip,
+  take = 1,
+  skip = 0,
   isGettingChildren = false,
   isGettingContent = false,
-  isGettingSummary = false
+  isGettingSummary = false,
+  isGettingNewestChapter = false
 ) => {
   try {
     const stories = await db.story.findMany({
@@ -51,28 +97,31 @@ export const FindAllStories = async (
       ...(take && { take }),
       ...(skip && { skip }),
       select: {
-        id: true,
-        title: true,
-        nation: true,
-        view: true,
-        star: true,
-        type: true,
-        status: true,
-        next_chapter_in: true,
-        number_of_children: true,
-        ...(isGettingSummary && {
-          summary: true,
-        }),
-        author: {
-          select: {
-            author: {
-              select: { id: true, name: true },
+        ...select,
+        ...{
+          id: true,
+          title: true,
+          nation: true,
+          view: true,
+          star: true,
+          type: true,
+          status: true,
+          next_chapter_in: true,
+          number_of_children: true,
+          ...(isGettingSummary && {
+            summary: true,
+          }),
+          author: {
+            select: {
+              author: {
+                select: { id: true, name: true },
+              },
             },
           },
-        },
-        genre: true,
-        cover_art: {
-          select: { url: true, width: true, height: true },
+          genre: true,
+          cover_art: {
+            select: { url: true, width: true, height: true },
+          },
         },
       },
     });
@@ -82,6 +131,9 @@ export const FindAllStories = async (
       story.genre = story.genre.map((genre) => genre.genre);
       if (isGettingChildren)
         story.children = await GetStoryTree(story.id, null, isGettingContent);
+      if (isGettingNewestChapter) {
+        story.newest_chapter = await GetNewestChapter(story.id, 5);
+      }
     }
 
     const result = stories;
@@ -94,21 +146,25 @@ export const FindAllStories = async (
 
 export const FindStory = async (
   where = { id, title },
+  select,
   isGettingChildren = false,
   isGettingContent = false,
-  isGettingSummary = false
+  isGettingSummary = false,
+  isGettingNewestChapter = false
 ) => {
   try {
     if (!where.id && !where.title) return { success: false, data: null };
     const story = (
       await FindAllStories(
         where,
+        select,
         null,
         1,
         0,
         isGettingChildren,
         isGettingContent,
-        isGettingSummary
+        isGettingSummary,
+        isGettingNewestChapter
       )
     ).data[0];
 
@@ -216,6 +272,6 @@ export const UpdateStory = async (where = { id, title }, data) => {
   }
 };
 
-export async function CountStory() {
-  return await db.story.count();
+export async function CountStory(where = {}) {
+  return await db.story.count({ where: where });
 }

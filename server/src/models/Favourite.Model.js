@@ -1,7 +1,7 @@
 import db from "../configs/db.js";
 
 export async function FindAllFavouriteStories(
-  where = { id, user_id },
+  where = { id, user_id, story_id },
   orderBy,
   take = 1,
   skip = 0
@@ -43,20 +43,35 @@ export async function FindAllFavouriteStories(
 
 export async function AddFavouriteStory(data = { user_id, story_id }) {
   try {
-    const favouriteStory = await db.favouriteStory.create({
-      data: {
-        user: {
-          connect: {
-            id: data.user_id,
+    let favouriteStory;
+    const isExist = await db.favouriteStory.findFirst({ where: data });
+
+    if (isExist) {
+      favouriteStory = await db.favouriteStory.update({
+        where: {
+          user_id_story_id: data,
+        },
+        data: {
+          is_deleted: false,
+          updated_at: new Date(),
+        },
+      });
+    } else {
+      favouriteStory = await db.favouriteStory.create({
+        data: {
+          user: {
+            connect: {
+              id: data.user_id,
+            },
+          },
+          story: {
+            connect: {
+              id: data.story_id,
+            },
           },
         },
-        story: {
-          connect: {
-            id: data.story_id,
-          },
-        },
-      },
-    });
+      });
+    }
 
     if (!favouriteStory) return { success: false, data: null };
 

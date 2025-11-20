@@ -61,7 +61,7 @@ userRoute.patch(
 userRoute.post("/me/favourites", AuthenticationToken, PostFavouriteStory);
 userRoute.get("/me/favourites", AuthenticationToken, GetAllFavouriteStories);
 userRoute.delete(
-  "/me/favourites/:favouriteId",
+  "/me/favourites/:id",
   AuthenticationToken,
   DeleteFavouriteStory
 );

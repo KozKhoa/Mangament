@@ -62,12 +62,14 @@ export const Login = async (req, res, next) => {
     res.status(200).json({
       success: true,
       message: "Login success",
-      token: accessToken,
-      user: {
-        id: user.id,
-        name: user.name || "",
-        email: email || "",
-        role: user.role || "user",
+      data: {
+        token: accessToken,
+        user: {
+          id: user.id,
+          name: user.name || "",
+          email: email || "",
+          role: user.role || "user",
+        },
       },
     });
   } catch (error) {
@@ -131,12 +133,14 @@ export const Register = async (req, res, next) => {
     res.status(200).json({
       success: true,
       message: "Register success",
-      token: accessToken,
-      user: {
-        id: user.id,
-        email: user.email || "",
-        name: user.name || "",
-        role: user.role || "user",
+      data: {
+        accessToken: accessToken,
+        user: {
+          id: user.id,
+          email: user.email || "",
+          name: user.name || "",
+          role: user.role || "user",
+        },
       },
     });
   } catch (error) {
@@ -177,11 +181,12 @@ export const Logout = async (req, res, next) => {
 export const Refresh = async (req, res, next) => {
   try {
     const refreshToken = req.cookies[COOKIES_REFRESH_TOKEN_KEY]; // Get refreh token from cookies
-    if (!refreshToken) throw CreateError(ErrorCodes.FORBIDDEN);
+    if (!refreshToken) throw CreateError(ErrorCodes.TOKEN_NOT_FOUND);
 
-    const { decodedToken, isExpired } = VerifyRefreshToken(refreshToken);
+    const { decodedToken, isExpire } = VerifyRefreshToken(refreshToken);
+
     // Token is expired
-    if (isExpired) {
+    if (isExpire) {
       throw CreateError(ErrorCodes.TOKEN_EXPIRED);
     } else if (!decodedToken || !decodedToken.id) {
       throw CreateError(ErrorCodes.TOKEN_INVALID);
@@ -210,12 +215,14 @@ export const Refresh = async (req, res, next) => {
     res.status(200).json({
       success: true,
       message: "Get new access token success",
-      token: accessToken,
-      user: {
-        id: user.id,
-        name: user.name || "",
-        email: user.email || "",
-        role: user.role || "user",
+      data: {
+        token: accessToken,
+        user: {
+          id: user.id,
+          name: user.name || "",
+          email: user.email || "",
+          role: user.role || "user",
+        },
       },
     });
   } catch (error) {

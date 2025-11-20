@@ -38,21 +38,28 @@ const HandleAdding = async (filePath) => {
     let storyNodeType = storyNodeName[0].toLowerCase();
     let storyNodeIndex = storyNodeName[1];
 
-    let storyNode = await AddStoryNode({
-      title: "",
-      type: storyNodeType,
+    let isStoryNodeExist = await FindStoryNode({
       story_id: storyId,
       parent_id: parentId,
-      order_index: Number(storyNodeIndex) || 0,
+      order_index: Number(storyNodeIndex),
     });
 
-    if (storyNode.success === true) {
-      console.log(
-        `✅ [Upload.Model.js] StoryNode ${storyNodeType} ${storyNodeIndex} added`
-      );
-    }
+    if (!isStoryNodeExist.data) {
+      let storyNode = await AddStoryNode({
+        title: "",
+        type: storyNodeType,
+        story_id: storyId,
+        parent_id: parentId,
+        order_index: Number(storyNodeIndex) || 0,
+      });
 
-    parentId = storyNode.data.id;
+      if (storyNode.success === true) {
+        console.log(
+          `✅ [Upload.Model.js] StoryNode ${storyNodeType} ${storyNodeIndex} added`
+        );
+      }
+      parentId = storyNode.data.id;
+    }
   }
 
   let contentName = node[node.length - 1];
@@ -113,20 +120,6 @@ const ProccessAddingQueue = async () => {
     }
   }
   isProccessingAdding = false;
-};
-
-const HandleRemove = async (filePath) => {
-  const node = filePath.split(path.sep);
-
-  const type = node[0];
-  const storyName = node[1];
-};
-
-const removeQueue = [];
-let isProccessingRemoving = false;
-const ProccessRemovingQueue = async () => {
-  if (isProccessingRemoving) return;
-  isProccessingRemoving = true;
 };
 
 const TrackingFoler = (filePath) => {
