@@ -3,7 +3,7 @@ import path, { parse, sep } from "path";
 
 import db from "../../configs/db.js";
 
-const root = path.resolve("../../../uploads/story");
+const root = path.resolve("../../../../uploads/story");
 
 const watch = chokidar.watch(root, {
   ignored: /(^|[\/\\])\../, // ignore file và folder ẩn bắt đầu bằng .
