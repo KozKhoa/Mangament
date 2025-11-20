@@ -1,21 +1,8 @@
-import {
-  AddUser,
-  SoftDeleteUser,
-  UpdateUser,
-  FindUser,
-  HardDeleteRefreshToken,
-  AddRefreshToken,
-  FindRefreshToken,
-} from "../models/User.Model.js";
+import { AddUser, SoftDeleteUser, UpdateUser, FindUser, HardDeleteRefreshToken, AddRefreshToken, FindRefreshToken } from "../models/User.Model.js";
 import { CheckEmailAndPasswordFormat } from "../utils/Validators.js";
 import { CreateError } from "../utils/ErrorHandle.js";
 import { ComparePassword, HashPassword } from "../utils/PasswordHandle.js";
-import {
-  GenAccessToken,
-  GenRefreshToken,
-  SaveTokenOnCookies,
-  VerifyRefreshToken,
-} from "../utils/TokenHandle.js";
+import { GenAccessToken, GenRefreshToken, SaveTokenOnCookies, VerifyRefreshToken } from "../utils/TokenHandle.js";
 import ErrorCodes from "../constants/Error.js";
 
 import { COOKIES_REFRESH_TOKEN_KEY } from "../configs/env.js";
@@ -62,12 +49,14 @@ export const Login = async (req, res, next) => {
     res.status(200).json({
       success: true,
       message: "Login success",
-      token: accessToken,
-      user: {
-        id: user.id,
-        name: user.name || "",
-        email: email || "",
-        role: user.role || "user",
+      data: {
+        token: accessToken,
+        user: {
+          id: user.id,
+          name: user.name || "",
+          email: email || "",
+          role: user.role || "user",
+        },
       },
     });
   } catch (error) {
@@ -82,8 +71,7 @@ export const Register = async (req, res, next) => {
   try {
     // Get user name, email, password from require
     const { name, email, password } = req?.body;
-    if (!name || !email || !password)
-      throw CreateError(ErrorCodes.MISSING_FIELD);
+    if (!name || !email || !password) throw CreateError(ErrorCodes.MISSING_FIELD);
 
     CheckEmailAndPasswordFormat(email, password); // Check email and password format
 
@@ -131,17 +119,18 @@ export const Register = async (req, res, next) => {
     res.status(200).json({
       success: true,
       message: "Register success",
-      token: accessToken,
-      user: {
-        id: user.id,
-        email: user.email || "",
-        name: user.name || "",
-        role: user.role || "user",
+      data: {
+        accessToken: accessToken,
+        user: {
+          id: user.id,
+          email: user.email || "",
+          name: user.name || "",
+          role: user.role || "user",
+        },
       },
     });
   } catch (error) {
-    if (!error.status)
-      console.error("❌ [Auth.Controller.js] Error register:", error);
+    if (!error.status) console.error("❌ [Auth.Controller.js] Error register:", error);
     next(error);
   }
 };
@@ -168,8 +157,7 @@ export const Logout = async (req, res, next) => {
       message: "Logout success",
     });
   } catch (error) {
-    if (!error.status)
-      console.error("❌ [Auth.Controller.js] Error logout:", error);
+    if (!error.status) console.error("❌ [Auth.Controller.js] Error logout:", error);
     next(error);
   }
 };
@@ -177,11 +165,12 @@ export const Logout = async (req, res, next) => {
 export const Refresh = async (req, res, next) => {
   try {
     const refreshToken = req.cookies[COOKIES_REFRESH_TOKEN_KEY]; // Get refreh token from cookies
-    if (!refreshToken) throw CreateError(ErrorCodes.FORBIDDEN);
+    if (!refreshToken) throw CreateError(ErrorCodes.TOKEN_NOT_FOUND);
 
-    const { decodedToken, isExpired } = VerifyRefreshToken(refreshToken);
+    const { decodedToken, isExpire } = VerifyRefreshToken(refreshToken);
+
     // Token is expired
-    if (isExpired) {
+    if (isExpire) {
       throw CreateError(ErrorCodes.TOKEN_EXPIRED);
     } else if (!decodedToken || !decodedToken.id) {
       throw CreateError(ErrorCodes.TOKEN_INVALID);
@@ -210,17 +199,18 @@ export const Refresh = async (req, res, next) => {
     res.status(200).json({
       success: true,
       message: "Get new access token success",
-      token: accessToken,
-      user: {
-        id: user.id,
-        name: user.name || "",
-        email: user.email || "",
-        role: user.role || "user",
+      data: {
+        token: accessToken,
+        user: {
+          id: user.id,
+          name: user.name || "",
+          email: user.email || "",
+          role: user.role || "user",
+        },
       },
     });
   } catch (error) {
-    if (!error.status)
-      console.error("❌ [Auth.Controller.js] Error refresh:", error);
+    if (!error.status) console.error("❌ [Auth.Controller.js] Error refresh:", error);
     next(error);
   }
 };

@@ -56,6 +56,8 @@ export default function StoryDetail() {
     setStory(res.data);
   }
 
+  console.log(story);
+
   function toggleFavourite() {
     if (isInFavourite) {
       setIsInFavourite(false);

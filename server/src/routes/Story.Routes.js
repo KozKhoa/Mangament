@@ -6,28 +6,16 @@ import {
   AddOneViewForStory,
   DeleteStory,
   GetAllStories,
+  GetCountStories,
   GetRandomStory,
   GetStory,
   PostStory,
   PutStory,
 } from "../controllers/Story.Controller.js";
 
-import {
-  AuthenticationToken,
-  AuthorizationRole,
-} from "../middlewares/Auth.Middleware.js";
-import {
-  DeleteComment,
-  GetAllComments,
-  PostComment,
-  PutComment,
-} from "../controllers/Comment.Controller.js";
-import {
-  DeleteRating,
-  GetAllRatings,
-  PostRating,
-  PutRating,
-} from "../controllers/Rating.Controller.js";
+import { AuthenticationToken, AuthorizationRole, OptionalAuth } from "../middlewares/Auth.Middleware.js";
+import { DeleteComment, GetAllComments, PostComment, PutComment } from "../controllers/Comment.Controller.js";
+import { DeleteRating, GetAllRatings, PostRating, PutRating } from "../controllers/Rating.Controller.js";
 
 const saveLocation = "uploads/image";
 
@@ -43,24 +31,13 @@ const upload = multer({ storage: storage });
 const storyRoute = express.Router();
 
 // Story
-storyRoute.get("/random", GetRandomStory);
-storyRoute.get("/:id", GetStory);
-storyRoute.get("/", GetAllStories);
+storyRoute.get("/random", OptionalAuth, GetRandomStory);
+storyRoute.get("/count", GetCountStories);
+storyRoute.get("/:id", OptionalAuth, GetStory);
+storyRoute.get("/", OptionalAuth, GetAllStories);
 storyRoute.patch("/:id/view", AddOneViewForStory);
-storyRoute.post(
-  "/",
-  AuthenticationToken,
-  AuthorizationRole,
-  upload.single("coverArt"),
-  PostStory
-); // coverArt is the image for the cover art of the story
-storyRoute.put(
-  "/:id",
-  AuthenticationToken,
-  AuthorizationRole,
-  upload.single("coverArt"),
-  PutStory
-);
+storyRoute.post("/", AuthenticationToken, AuthorizationRole, upload.single("coverArt"), PostStory); // coverArt is the image for the cover art of the story
+storyRoute.put("/:id", AuthenticationToken, AuthorizationRole, upload.single("coverArt"), PutStory);
 storyRoute.delete("/:id", AuthenticationToken, AuthorizationRole, DeleteStory);
 
 // Comment

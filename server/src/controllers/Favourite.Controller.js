@@ -106,7 +106,8 @@ export async function DeleteFavouriteStory(req, res, next) {
     // It is not neccessary to check user exist because authentication already did it
     const userId = req.user?.id;
 
-    const favouriteId = req.params?.favouriteId;
+    const favouriteId = req.params?.id;
+
     if (!favouriteId) throw CreateError(ErrorCodes.BAD_REQUEST);
 
     // Check if the favourite story exist
