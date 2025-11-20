@@ -149,6 +149,7 @@ export const PutUser = async (req, res, next) => {
       }
     );
     if (!updateUser || !updateUser.success) {
+      console.log(updateUser);
       throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
     }
 

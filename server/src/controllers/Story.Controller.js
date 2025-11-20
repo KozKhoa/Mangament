@@ -19,7 +19,6 @@ import {
   AddStory,
   SoftDeleteStory,
   CountStory,
-  GetNewestChapter,
 } from "../models/Story.Model.js";
 
 import {
@@ -39,8 +38,6 @@ export async function GetStory(req, res, next) {
       req.query?.isGettingContent == "true" ? true : false;
     const isGettingSummary =
       req.query?.isGettingSummary == "true" ? true : false;
-    const isGettingNewestChapter =
-      req.query?.isGettingNewestChapter == "true" ? true : false;
 
     // Check user request
     if (!storyId) throw CreateError(ErrorCodes.BAD_REQUEST);
@@ -49,8 +46,7 @@ export async function GetStory(req, res, next) {
       { id: storyId },
       isGettingChildren,
       isGettingContent,
-      isGettingSummary,
-      isGettingNewestChapter
+      isGettingSummary
     );
 
     // If server not return anything or return success = false => fail to find story
@@ -59,72 +55,10 @@ export async function GetStory(req, res, next) {
 
     if (!story.data) throw CreateError(ErrorCodes.STORY_NOT_FOUND);
 
-    await GetNewestChapter(story.data.id, 6);
-
     res.status(200).json({
       success: true,
       message: "Getting story successfully",
       data: story.data,
-    });
-  } catch (error) {
-    next(error);
-  }
-}
-
-export async function GetCountStories(req, res, next) {
-  try {
-    const query = req.query;
-
-    const type = query.type;
-    if (!ValidateStoryType(type)) throw CreateError(ErrorCodes.BAD_REQUEST);
-
-    const authors = query.author ? query.author.split(",") : null;
-
-    const genres = query.genre ? query.genre.split(",") : null;
-    if (!ValidateGenre(genres)) throw CreateError(ErrorCodes.BAD_REQUEST);
-
-    // rating = [[1,2], [4,5]]
-    const rating = query.star
-      ? query.star
-          .split(",")
-          .map((range) => range.split("-").map((number) => parseFloat(number)))
-      : [[0, 5]];
-    // view = [[0, 100], [1000, 100000]]
-    const view = query.view
-      ? query.view
-          .split(",")
-          .map((range) => range.split("-").map((number) => Number(number)))
-      : [[0, 2147483647]];
-
-    // Create where
-    const where = {
-      ...(type && { type: type }),
-      ...(authors && {
-        author: { some: { author_id: { in: authors } } },
-      }),
-      ...(genres && {
-        genre: { some: { genre: { in: genres } } },
-      }),
-      AND: [
-        {
-          OR: [
-            ...rating.map(([min, max]) => ({ star: { gte: min, lte: max } })),
-          ],
-        },
-        {
-          OR: [...view.map(([min, max]) => ({ view: { gte: min, lte: max } }))],
-        },
-      ],
-    };
-
-    const count = await CountStory(where);
-
-    return res.status(200).json({
-      success: true,
-      message: "Get count stories successfully",
-      data: {
-        count: count,
-      },
     });
   } catch (error) {
     next(error);
@@ -146,6 +80,7 @@ export async function GetRandomStory(req, res, next) {
 
     const count = await CountStory();
     const random = parseInt(((Math.random() * count * 100) % count) + 1);
+    console.log(random);
 
     const story = await FindAllStories(
       { ...(storyType && { type: storyType }) },
@@ -171,22 +106,18 @@ export async function GetRandomStory(req, res, next) {
 
 export async function GetAllStories(req, res, next) {
   try {
-    const userId = req?.user?.id;
-
     const query = req.query;
+    // split query
 
     const isGettingChildren = query.isGettingChildren == "true" ? true : false;
     const isGettingContent = query.isGettingContent == "true" ? true : false;
-    const isGettingNewestChapter =
-      query.isGettingNewestChapter == "true" ? true : false;
-    const isGettingSummary = query.isGettingSummary == "true" ? true : false;
 
     const limit = query.limit ? Number(query.limit) : 1;
 
     const page = query.page ? Number(query.page) : 1;
 
-    const type = query.type;
-    if (!ValidateStoryType(type)) throw CreateError(ErrorCodes.BAD_REQUEST);
+    const types = query.type ? query.type.split(",") : null;
+    if (!ValidateStoryType(types)) throw CreateError(ErrorCodes.BAD_REQUEST);
 
     const authors = query.author ? query.author.split(",") : null;
 
@@ -208,7 +139,7 @@ export async function GetAllStories(req, res, next) {
 
     // Create where
     const where = {
-      ...(type && { type: type }),
+      ...(types && { type: { in: types } }),
       ...(authors && {
         author: { some: { author_id: { in: authors } } },
       }),
@@ -227,18 +158,6 @@ export async function GetAllStories(req, res, next) {
       ],
     };
 
-    let select = {};
-    if (userId) {
-      select = {
-        user_favourite: {
-          where: {
-            is_deleted: false,
-            user_id: userId,
-          },
-        },
-      };
-    }
-
     const order = {};
     if (query?.sort) {
       const [field, direction] = query.sort.split(":");
@@ -249,34 +168,15 @@ export async function GetAllStories(req, res, next) {
 
     const stories = await FindAllStories(
       where,
-      select,
       order,
       limit,
       (page - 1) * limit,
       isGettingChildren,
-      isGettingContent,
-      isGettingSummary,
-      isGettingNewestChapter
+      isGettingContent
     );
 
     if (!stories || !stories.success) {
       throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
-    }
-
-    // use to update favourite story
-    if (userId) {
-      stories.data.forEach((story) => {
-        if (
-          story.user_favourite[0] &&
-          story.user_favourite[0].user_id === userId
-        ) {
-          story.favourite = {
-            id: story.user_favourite[0].id,
-            user_id: story.user_favourite[0].id,
-          };
-        }
-        delete story.user_favourite;
-      });
     }
 
     return res.status(200).json({
