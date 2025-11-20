@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useRef, useState } from "react";
 
 import ButtonDropdown from "./btn-dropdown";
@@ -8,7 +10,7 @@ import Radio from "@/components/inputs/radio";
 
 interface ButtonFilterOption {
   label: string;
-  checked: boolean;
+  isChecked: boolean;
 }
 
 interface ButtonFilterProps {
@@ -19,34 +21,24 @@ interface ButtonFilterProps {
   name: string;
 }
 
-function ButtonDropdownRadio({
-  onFinishCheck,
-  name,
-  label,
-  options,
-  className,
-}: ButtonFilterProps) {
+function ButtonDropdownRadio({ onFinishCheck, name, label, options, className }: ButtonFilterProps) {
   const items = useRef(options);
   const [rerender, setRerender] = useState(false); // This only use to force this component re render to update items
   const [selected, setSelected] = useState<number>(0);
 
-  const handleUpdateSelected = (
-    item: ButtonFilterOption,
-    index: number,
-    checked: boolean
-  ) => {
+  const handleUpdateSelected = (item: ButtonFilterOption, index: number, isChecked: boolean) => {
     setSelected(index);
   };
 
   const handleFinish = () => {
     // Reset all value for items.current
     if (items.current) {
-      items?.current.forEach((item) => (item.checked = false));
+      items?.current.forEach((item) => (item.isChecked = false));
     }
 
     // Update new selection for items
     if (items.current && items.current[selected]) {
-      items.current[selected].checked = true;
+      items.current[selected].isChecked = true;
     }
     items.current && onFinishCheck?.(items.current);
     setRerender(!rerender); // only use to rerender this component
@@ -75,18 +67,13 @@ function ButtonDropdownRadio({
       <ul className="flex flex-col justify-start items-center gap-2.5 w-full h-fit">
         {items.current?.map((item, index) => {
           return (
-            <li
-              key={index}
-              className="flex w-full h-fit justify-start items-center"
-            >
+            <li key={index} className="flex w-full h-fit justify-start items-center">
               <Radio
                 key={index}
-                defaultChecked={item.checked}
+                defaultChecked={item.isChecked}
                 name={name}
                 value={item.label}
-                onChange={(checked) =>
-                  handleUpdateSelected(item, index, checked)
-                }
+                onChange={(isChecked) => handleUpdateSelected(item, index, isChecked)}
               >
                 {item.label}
               </Radio>

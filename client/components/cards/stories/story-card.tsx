@@ -1,20 +1,21 @@
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
+import { toast } from "sonner";
 
-import Story from "@/models/story";
+import Story from "@/types/story";
+import NewestChapter from "@/types/newest-chapter";
 
 import EyeIcon from "@/public/eye/open.svg";
 import HeartIcon from "@/public/heart.svg";
 
 import { beautifulView } from "@/utils/beautiful";
+import { capitalizeFirstChar } from "@/utils/string";
+
 import StarForRating from "@/components/ratings/start-rating";
 
-import { capitalizeFirstChar } from "@/utils/string";
 import useAuth from "@/contexts/AuthContext";
-import { toast } from "sonner";
-import favouriteService from "@/services/user/favourite";
 
-import NewestChapter from "@/models/newest-chapter";
+import favouriteService from "@/services/user/favourite";
 
 interface StoryCardProps {
   story: Story;
@@ -27,9 +28,7 @@ function StoryCard({ story, newestChapter, className }: StoryCardProps) {
   const user = auth?.user;
   const router = useRouter();
 
-  const [isInFavourite, setIsInFavourite] = useState<boolean>(
-    !story.favourite ? false : true
-  );
+  const [isInFavourite, setIsInFavourite] = useState<boolean>(!story.favourite ? false : true);
 
   const handleClickFavourite = () => {
     const saveFavourite = async () => {
@@ -38,7 +37,7 @@ function StoryCard({ story, newestChapter, className }: StoryCardProps) {
         setIsInFavourite(true);
         story.favourite = res.data.favourite;
 
-        toast.message(`Add ${story.title} to your favourite list successfully`);
+        toast.message(`Added successfully`);
       } else {
         toast.warning(res.message);
       }
@@ -50,9 +49,7 @@ function StoryCard({ story, newestChapter, className }: StoryCardProps) {
       if (res.success) {
         setIsInFavourite(false);
         story.favourite = undefined;
-        toast.message(
-          `Remove ${story.title} from your favourite list successfully`
-        );
+        toast.message(`Removed successfully`);
       } else {
         toast.warning(res.message);
       }
@@ -68,11 +65,12 @@ function StoryCard({ story, newestChapter, className }: StoryCardProps) {
   };
 
   const handleClickStory = () => {
-    router.push(`/story/${story.id}`);
+    router.push(`/story/${story.type}/${story.id}`);
   };
 
   const handleClickNewestChapter = () => {
     // router.push(`/story-node/${newestChapter.current.at(0)}`);
+    // Todo: thêm điều hướng tới trang đọc chapter
   };
 
   return (
@@ -91,11 +89,7 @@ function StoryCard({ story, newestChapter, className }: StoryCardProps) {
         <img
           onClick={() => handleClickStory()}
           className="object-cover rounded-[5]"
-          src={
-            process.env.NEXT_PUBLIC_API_URL +
-            "uploads/story/" +
-            story.cover_art?.url
-          }
+          src={process.env.NEXT_PUBLIC_API_URL + "uploads/story/" + story.cover_art?.url}
           alt="Cover Art"
         ></img>
 
@@ -109,26 +103,14 @@ function StoryCard({ story, newestChapter, className }: StoryCardProps) {
         </div>
 
         {/* Save favourite */}
-        <button
-          className=" absolute top-0 right-0 bg-background rounded-b-4xl"
-          onClick={() => handleClickFavourite()}
-        >
-          <HeartIcon
-            className={`w-8 h-8  stroke-1 ${
-              isInFavourite
-                ? " fill-red-400 text-red-400"
-                : " fill-background text-foreground"
-            }`}
-          ></HeartIcon>
+        <button className=" absolute top-0 right-0 bg-background rounded-b-4xl" onClick={() => handleClickFavourite()}>
+          <HeartIcon className={`w-8 h-8  stroke-1 ${isInFavourite ? " fill-red-400 text-red-400" : " fill-background text-foreground"}`}></HeartIcon>
         </button>
       </div>
 
       <div className="flex flex-col justify-between gap-1 w-full">
         {/* Tittle */}
-        <div
-          onClick={() => handleClickStory()}
-          className="text-[1.5em] font-bold leading-tight cursor-pointer"
-        >
+        <div onClick={() => handleClickStory()} className="text-[1.5em] font-bold leading-tight cursor-pointer">
           {"[" + capitalizeFirstChar(story?.type) + "] " + story?.title}
         </div>
 
@@ -147,14 +129,9 @@ function StoryCard({ story, newestChapter, className }: StoryCardProps) {
           <div className="flex flex-col justify-center items-start gap-x-2.5-2.5">
             <p className="text-[0.8em] italic font-bold">Chap mới nhất:</p>
 
-            <div
-              onClick={() => handleClickNewestChapter()}
-              className="flex flex-wrap items-center justify-between cursor-pointer gap-x-2"
-            >
+            <div onClick={() => handleClickNewestChapter()} className="flex flex-wrap items-center justify-between cursor-pointer gap-x-2">
               <p>{newestChapter?.[0].dir}</p>
-              <p className="text-[0.8em] italic">
-                {newestChapter?.[0].dayPass} ngày trước
-              </p>
+              <p className="text-[0.8em] italic">{newestChapter?.[0].dayPass} ngày trước</p>
             </div>
           </div>
         )}

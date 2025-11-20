@@ -1,11 +1,11 @@
 import qs from "qs";
 
-import StoryNode from "@/models/story-node";
+import StoryNode from "@/types/story-node";
 
 import { capitalizeFirstChar } from "./string";
 import { diffDate } from "./date";
 
-import NewestChapter from "@/models/newest-chapter";
+import NewestChapter from "@/types/newest-chapter";
 
 // This func is used to convert newest chpater in StoryNode[] type to NewsetChapter[]
 export function convertNewestChapter(newestChapter: StoryNode[]) {
@@ -13,8 +13,7 @@ export function convertNewestChapter(newestChapter: StoryNode[]) {
 
   const getNewestChapter = (storyNode: StoryNode, parent: string) => {
     if (!storyNode) return "";
-    const node =
-      capitalizeFirstChar(storyNode.type) + " " + storyNode.order_index;
+    const node = capitalizeFirstChar(storyNode.type) + " " + storyNode.order_index;
     if (storyNode.type === "chapter") {
       result?.push({
         id: storyNode.id,

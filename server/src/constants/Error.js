@@ -2,11 +2,11 @@
 const ErrorCodes = {
   // 🔑 Auth & User
   INVALID_LOGIN: {
-    status: 400,
+    status: 401,
     message: "Email or password is not correct",
   },
   INVALID_PASSWORD: {
-    status: 400,
+    status: 401,
     message: "Password is not correct",
   },
   REQUIRED_EMAIL: {
@@ -32,10 +32,6 @@ const ErrorCodes = {
   TOKEN_INVALID: {
     status: 401,
     message: "Token is invalid",
-  },
-  TOKEN_NOT_FOUND: {
-    status: 401,
-    message: "Token is not founded",
   },
 
   // 📦 Database / Prisma

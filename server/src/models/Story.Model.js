@@ -1,10 +1,6 @@
 import db from "../configs/db.js";
 
-export const GetStoryTree = async (
-  story_id,
-  parent_id,
-  isGettingContent = false
-) => {
+export const GetStoryTree = async (story_id, parent_id, isGettingContent = false) => {
   const nodes = await db.storyNode.findMany({
     where: {
       is_deleted: false,
@@ -129,8 +125,7 @@ export const FindAllStories = async (
     for (const story of stories) {
       story.author = story.author.map((author) => author.author);
       story.genre = story.genre.map((genre) => genre.genre);
-      if (isGettingChildren)
-        story.children = await GetStoryTree(story.id, null, isGettingContent);
+      if (isGettingChildren) story.children = await GetStoryTree(story.id, null, isGettingContent);
       if (isGettingNewestChapter) {
         story.newest_chapter = await GetNewestChapter(story.id, 5);
       }
@@ -154,19 +149,7 @@ export const FindStory = async (
 ) => {
   try {
     if (!where.id && !where.title) return { success: false, data: null };
-    const story = (
-      await FindAllStories(
-        where,
-        select,
-        null,
-        1,
-        0,
-        isGettingChildren,
-        isGettingContent,
-        isGettingSummary,
-        isGettingNewestChapter
-      )
-    ).data[0];
+    const story = (await FindAllStories(where, select, null, 1, 0, isGettingChildren, isGettingContent, isGettingSummary, isGettingNewestChapter)).data[0];
 
     return { success: true, data: story };
   } catch (error) {

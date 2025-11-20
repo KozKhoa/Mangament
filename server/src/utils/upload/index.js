@@ -85,11 +85,7 @@ watch.on("add", async (filePath) => {
   await ProccessAddingQueue();
 });
 
-const handleAddStory = async ({
-  storyName = "",
-  storyType = "",
-  covertArtId = "",
-}) => {
+const handleAddStory = async ({ storyName = "", storyType = "", covertArtId = "" }) => {
   // Skip qua đoạn check story type
   //
   // Kiểm tra sự tồn tại của story
@@ -118,11 +114,7 @@ const handleAddStory = async ({
   return story;
 };
 
-const handleAddStoryNode = async ({
-  storyNodeName = "",
-  storyId,
-  parentId,
-}) => {
+const handleAddStoryNode = async ({ storyNodeName = "", storyId, parentId }) => {
   const seperateStoryNodeName = storyNodeName.split(" ");
   const storyNodeType = seperateStoryNodeName[0].toLowerCase();
   const storyNodeIndex = Number(seperateStoryNodeName[1]);
@@ -196,10 +188,7 @@ const handleAddImage = async ({ imageUrl = "" }) => {
   return image;
 };
 
-const handleAddContentForStoryNode = async ({
-  storyNodeId = "",
-  content = {},
-}) => {
+const handleAddContentForStoryNode = async ({ storyNodeId = "", content = {} }) => {
   // Không cần kiểm tra sự tồn tại của storyNodeId vi chắc chắn nó tồn tại
 
   const storyNode = await db.storyNode.findFirst({
@@ -208,11 +197,7 @@ const handleAddContentForStoryNode = async ({
   if (!storyNode) {
     setTimeout(() => {
       // Sleep
-      console.log(
-        "Can not find story node id = ",
-        storyNodeId,
-        ". Retry in 5s"
-      );
+      console.log("Can not find story node id = ", storyNodeId, ". Retry in 5s");
     }, 5000);
     return handleAddContentForStoryNode({
       storyNodeId: storyNodeId,

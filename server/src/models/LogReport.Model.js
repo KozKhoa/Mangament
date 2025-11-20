@@ -10,16 +10,10 @@ const logger = winston.createLogger({
   format: combine(errors({ stack: true }), timestamp(), json()),
   transports: [
     new winston.transports.File({ filename: LOG_FILE_STANDARD }),
-    new winston.transports.Console({ format: combine(prettyPrint()) }),
+    // new winston.transports.Console({ format: combine(prettyPrint()) }),
   ],
-  rejectionHandlers: [
-    new winston.transports.File({ filename: LOG_FILE_REJECTION }),
-    new winston.transports.Console({ format: prettyPrint() }),
-  ],
-  exceptionHandlers: [
-    new winston.transports.File({ filename: LOG_FILE_EXCEPTION }),
-    new winston.transports.Console({ format: prettyPrint() }),
-  ],
+  rejectionHandlers: [new winston.transports.File({ filename: LOG_FILE_REJECTION }), new winston.transports.Console({ format: prettyPrint() })],
+  exceptionHandlers: [new winston.transports.File({ filename: LOG_FILE_EXCEPTION }), new winston.transports.Console({ format: prettyPrint() })],
 });
 
 export default logger;

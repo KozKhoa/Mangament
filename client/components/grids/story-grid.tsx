@@ -1,136 +1,166 @@
+"use client";
+
 import { useEffect, useRef, useState } from "react";
+
+import { useRouter } from "next/navigation";
+
 import SwitchPageBig from "../switch-page/big";
 import SwitchPageSmall from "../switch-page/small";
-import FilterSort from "../filter-sorts/filter-sort";
+import FilterSort from "../list/filter-sort";
 import storyService from "@/services/story";
-import Story from "@/models/story";
+import Story from "@/types/story";
 import StoryCard from "../cards/stories/story-card";
 import StoryInfoCard from "../cards/stories/story-info-card";
 import { convertNewestChapter } from "@/utils/convert";
-import NewestChapter from "@/models/newest-chapter";
-import favouriteService from "@/services/user/favourite";
+import NewestChapter from "@/types/newest-chapter";
+import { StoryParams } from "@/types/params";
+import { li } from "framer-motion/client";
+import { toast } from "sonner";
+import Loading from "../loadings/loading";
 
 interface StoryGridProps {
   label: string;
-  type: "manga" | "light_novel";
-  elemetsPerPage?: number;
+  storyType: string;
+  elementsPerPage?: number;
   className?: string;
 }
 
-export default function StoryGrid({
-  label,
-  type,
-  elemetsPerPage,
-  className,
-}: StoryGridProps) {
+export default function StoryGrid({ label, storyType, elementsPerPage, className }: StoryGridProps) {
+  const router = useRouter();
+
   const topRef = useRef<HTMLDivElement>(null); // This is use to scroll to top when switch page
+
+  const [params, setParams] = useState({});
   const [page, setPage] = useState<number>(1);
   const [maxPage, setMaxPage] = useState<number>(1);
-  const [param, setParam] = useState({});
-  const [limit, setLimit] = useState(elemetsPerPage ?? 18);
-
   const [stories, setStories] = useState<Story[]>();
-  const [newestChapter, setNewestChapter] = useState<NewestChapter[][]>();
-
   const [storyIndex, setStoryIndex] = useState<number>(0);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [limit, setLimit] = useState(elementsPerPage ?? 18);
+  const [newestChapter, setNewestChapter] = useState<NewestChapter[][]>();
+  const [isResetFilterSort, setIsResetFilterSort] = useState<boolean>(false);
+
+  async function fetchStories() {
+    const storyParams: StoryParams = {
+      type: storyType,
+      page: page,
+      limit: limit,
+      isGettingNewestChapter: true,
+      isGettingSummary: true,
+      ...params,
+    };
+
+    const res = await storyService.get(storyParams);
+    if (!res) return toast.warning("Server Error");
+    if (!res.success) return toast.warning(res.message);
+
+    const stories = res.data;
+    console.log(stories);
+
+    setNewestChapter(
+      stories.map((story: Story) => {
+        return convertNewestChapter(story.newest_chapter || []);
+      })
+    );
+    setStories(stories);
+    setIsLoading(false);
+  }
+
+  async function fetchCountStories() {
+    const storyParams: StoryParams = {
+      page: page,
+      limit: limit,
+      ...params,
+    };
+
+    const res = await storyService.count({
+      ...params,
+      ...{ type: storyType },
+    });
+    const count = res.data.count;
+
+    setMaxPage(Math.ceil(count / limit));
+  }
+
+  useEffect(() => {
+    setIsLoading(true);
+    fetchStories();
+    fetchCountStories();
+    setIsResetFilterSort(false);
+  }, [page, params]);
 
   useEffect(() => {
     topRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [page]);
 
-  useEffect(() => {
-    const getStories = async () => {
-      const res = await storyService.get({
-        ...param,
-        ...{ page: page, limit: limit },
-        ...{ isGettingNewestChapter: true, isGettingSummary: true },
-        ...{ type: type },
-      });
-      const stories = res.data;
-
-      console.log(stories);
-
-      setNewestChapter(
-        stories.map((story: Story) => {
-          return convertNewestChapter(story.newest_chapter || []);
-        })
-      );
-      setStories(stories);
-    };
-
-    const getCountStories = async () => {
-      const res = await storyService.count({
-        ...param,
-      });
-      const count = res.data.count;
-
-      setMaxPage(Math.ceil(count / limit));
-    };
-
-    getStories();
-    getCountStories();
-  }, [page, param]);
-
   return (
-    <div
-      ref={topRef}
-      className={`font-afacad flex flex-row gap-5 ${className}`}
-    >
+    <div ref={topRef} className={`font-afacad flex flex-row justify-center items-start gap-5 ${className}`}>
       <div>
+        {/* Header use to display story type and page index */}
         <header
-          className=" sticky top-12 flex flex-row flex-wrap bg-background z-10
-          justify-between items-center border-b-2 py-2 px-5 gap-2"
+          className=" sticky top-12 py-2 px-5 z-10
+              flex flex-row flex-wrap justify-between items-center gap-2
+              bg-background border-b-2 "
         >
-          <h2 className="text-[2em] font-bold">{label}</h2>
-          <div
-            className="flex flex-row flex-wrap justify-start items-center gap-2
-            text-[1.2em] font-bold"
-          >
-            <SwitchPageSmall
-              maxPage={maxPage}
-              page={page}
-              onChange={(pageNumber) => setPage(pageNumber)}
-            ></SwitchPageSmall>
+          {/* Story type */}
+          <h2 className="text-[2em] font-bold cursor-pointer" onClick={() => router.push(`/stories/${storyType}`)}>
+            {label}
+          </h2>
+          <div className="flex flex-row flex-wrap justify-start items-center gap-2 text-[1.2em] font-bold">
+            {/* Switch page */}
+            <SwitchPageSmall maxPage={maxPage} page={page} onChange={(pageNumber) => setPage(pageNumber)}></SwitchPageSmall>
           </div>
         </header>
-        <div className="flex flex-col gap-2 py-2  justify-start items-center">
-          <FilterSort
-            className="w-full"
-            onChange={(param) => setParam(param)}
-          ></FilterSort>
-          <main
-            className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-2
+
+        {/* Main grid with sort */}
+        <div className="flex flex-col gap-2 justify-start items-center  py-2">
+          {/* Sort and fiter */}
+          <FilterSort className="w-full" isResetAll={isResetFilterSort} onChange={(params) => setParams(params)}></FilterSort>
+
+          {isLoading ? (
+            <Loading></Loading>
+          ) : stories?.length !== undefined && stories?.length > 0 ? (
+            // Grid
+
+            <main
+              className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-2
             border-b-2 border-foreground pb-2
           "
-          >
-            {stories?.length !== undefined &&
-              stories?.length > 0 &&
-              stories.map((story, i) => (
+            >
+              {stories.map((story, i) => (
                 <div key={story.id} onMouseEnter={() => setStoryIndex(i)}>
-                  <StoryCard
-                    story={story}
-                    newestChapter={newestChapter?.[i]}
-                  ></StoryCard>
+                  <StoryCard story={story} newestChapter={newestChapter?.[i]}></StoryCard>
                 </div>
               ))}
-          </main>
-          {page === maxPage && (
-            <p className="text-[1.2em] italic">... Bạn đã ở cuối trang ...</p>
+            </main>
+          ) : (
+            <div className="w-full flex flex-col gap-5 py-20 justify-center items-center">
+              <img className="w-20 h-20" src={"/filter-color.png"}></img>
+              <h2>Không có kết quả</h2>
+              <p>Vui lòng điều chỉnh bộ lọc</p>
+              <button
+                className="px-5 py-2 bg-foreground text-background rounded-sm"
+                onClick={() => {
+                  setParams({});
+                  setIsResetFilterSort(true);
+                }}
+              >
+                Xóa bộ lọc
+              </button>
+            </div>
           )}
 
-          <SwitchPageBig
-            page={page}
-            maxPage={maxPage}
-            onChange={(pageNumber) => setPage(pageNumber)}
-          ></SwitchPageBig>
+          <SwitchPageBig page={page} maxPage={maxPage} onChange={(pageNumber) => setPage(pageNumber)}></SwitchPageBig>
         </div>
       </div>
 
-      <StoryInfoCard
-        className="hidden md:flex sticky top-30 mt-30"
-        story={stories?.at(storyIndex)}
-        newestChapter={newestChapter?.[storyIndex]}
-      ></StoryInfoCard>
+      {!isLoading && stories?.length !== undefined && stories?.length > 0 && (
+        <StoryInfoCard
+          className="hidden md:flex sticky top-30 mt-30"
+          story={stories?.at(storyIndex)}
+          newestChapter={newestChapter?.[storyIndex]}
+        ></StoryInfoCard>
+      )}
     </div>
   );
 }

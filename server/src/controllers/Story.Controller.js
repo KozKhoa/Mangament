@@ -1,61 +1,32 @@
 import path from "path";
 import { CreateError } from "../utils/ErrorHandle.js";
 import ErrorCodes from "../constants/Error.js";
-import {
-  ValidateStoryType,
-  ValidateStoryStatus,
-} from "../models/Enum.Model.js";
+import { ValidateStoryType, ValidateStoryStatus } from "../models/Enum.Model.js";
 
-import {
-  AddManyStoryGenres,
-  HardDeleteStoryGenre,
-  ValidateGenre,
-} from "../models/Genre.Model.js";
+import { AddManyStoryGenres, HardDeleteStoryGenre, ValidateGenre } from "../models/Genre.Model.js";
 import { AddImage, UpdateImage } from "../models/Image.Model.js";
-import {
-  FindAllStories,
-  FindStory,
-  UpdateStory,
-  AddStory,
-  SoftDeleteStory,
-  CountStory,
-  GetNewestChapter,
-} from "../models/Story.Model.js";
+import { FindAllStories, FindStory, UpdateStory, AddStory, SoftDeleteStory, CountStory, GetNewestChapter } from "../models/Story.Model.js";
 
-import {
-  CreateNewFolder,
-  IsFileExist,
-  MoveFile,
-  SoftRemoveFile,
-} from "../utils/FileHandle.js";
+import { CreateNewFolder, IsFileExist, MoveFile, SoftRemoveFile } from "../utils/FileHandle.js";
 import DIRECTORY from "../constants/Directory.js";
 
 export async function GetStory(req, res, next) {
   try {
     const storyId = req?.params?.id;
-    const isGettingChildren =
-      req.query?.isGettingChildren == "true" ? true : false;
-    const isGettingContent =
-      req.query?.isGettingContent == "true" ? true : false;
-    const isGettingSummary =
-      req.query?.isGettingSummary == "true" ? true : false;
-    const isGettingNewestChapter =
-      req.query?.isGettingNewestChapter == "true" ? true : false;
+    const isGettingChildren = req.query?.isGettingChildren == "true" ? true : false;
+    const isGettingContent = req.query?.isGettingContent == "true" ? true : false;
+    const isGettingSummary = req.query?.isGettingSummary == "true" ? true : false;
+    const isGettingNewestChapter = req.query?.isGettingNewestChapter == "true" ? true : false;
+
+    console.log(isGettingChildren);
 
     // Check user request
     if (!storyId) throw CreateError(ErrorCodes.BAD_REQUEST);
 
-    const story = await FindStory(
-      { id: storyId },
-      isGettingChildren,
-      isGettingContent,
-      isGettingSummary,
-      isGettingNewestChapter
-    );
+    const story = await FindStory({ id: storyId }, {}, isGettingChildren, isGettingContent, isGettingSummary, isGettingNewestChapter);
 
     // If server not return anything or return success = false => fail to find story
-    if (!story || !story.success)
-      throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
+    if (!story || !story.success) throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
 
     if (!story.data) throw CreateError(ErrorCodes.STORY_NOT_FOUND);
 
@@ -84,17 +55,9 @@ export async function GetCountStories(req, res, next) {
     if (!ValidateGenre(genres)) throw CreateError(ErrorCodes.BAD_REQUEST);
 
     // rating = [[1,2], [4,5]]
-    const rating = query.star
-      ? query.star
-          .split(",")
-          .map((range) => range.split("-").map((number) => parseFloat(number)))
-      : [[0, 5]];
+    const rating = query.star ? query.star.split(",").map((range) => range.split("-").map((number) => parseFloat(number))) : [[0, 5]];
     // view = [[0, 100], [1000, 100000]]
-    const view = query.view
-      ? query.view
-          .split(",")
-          .map((range) => range.split("-").map((number) => Number(number)))
-      : [[0, 2147483647]];
+    const view = query.view ? query.view.split(",").map((range) => range.split("-").map((number) => Number(number))) : [[0, 2147483647]];
 
     // Create where
     const where = {
@@ -107,9 +70,7 @@ export async function GetCountStories(req, res, next) {
       }),
       AND: [
         {
-          OR: [
-            ...rating.map(([min, max]) => ({ star: { gte: min, lte: max } })),
-          ],
+          OR: [...rating.map(([min, max]) => ({ star: { gte: min, lte: max } }))],
         },
         {
           OR: [...view.map(([min, max]) => ({ view: { gte: min, lte: max } }))],
@@ -134,30 +95,17 @@ export async function GetCountStories(req, res, next) {
 export async function GetRandomStory(req, res, next) {
   try {
     const storyType = req.query?.type;
-    if (storyType && !ValidateStoryType(storyType))
-      throw CreateError(ErrorCodes.BAD_REQUEST);
+    if (storyType && !ValidateStoryType(storyType)) throw CreateError(ErrorCodes.BAD_REQUEST);
 
-    const isGettingChildren =
-      req.query?.isGettingChildren == "true" ? true : false;
-    const isGettingContent =
-      req.query?.isGettingContent == "true" ? true : false;
-    const isGettingSummary =
-      req.query?.isGettingSummary == "true" ? true : false;
+    const isGettingChildren = req.query?.isGettingChildren == "true" ? true : false;
+    const isGettingContent = req.query?.isGettingContent == "true" ? true : false;
+    const isGettingSummary = req.query?.isGettingSummary == "true" ? true : false;
 
     const count = await CountStory();
     const random = parseInt(((Math.random() * count * 100) % count) + 1);
 
-    const story = await FindAllStories(
-      { ...(storyType && { type: storyType }) },
-      {},
-      1,
-      random - 1,
-      isGettingChildren,
-      isGettingContent,
-      isGettingSummary
-    );
-    if (!story || !story.success)
-      throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
+    const story = await FindAllStories({ ...(storyType && { type: storyType }) }, {}, 1, random - 1, isGettingChildren, isGettingContent, isGettingSummary);
+    if (!story || !story.success) throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
 
     return res.status(200).json({
       success: true,
@@ -177,8 +125,7 @@ export async function GetAllStories(req, res, next) {
 
     const isGettingChildren = query.isGettingChildren == "true" ? true : false;
     const isGettingContent = query.isGettingContent == "true" ? true : false;
-    const isGettingNewestChapter =
-      query.isGettingNewestChapter == "true" ? true : false;
+    const isGettingNewestChapter = query.isGettingNewestChapter == "true" ? true : false;
     const isGettingSummary = query.isGettingSummary == "true" ? true : false;
 
     const limit = query.limit ? Number(query.limit) : 1;
@@ -194,17 +141,9 @@ export async function GetAllStories(req, res, next) {
     if (!ValidateGenre(genres)) throw CreateError(ErrorCodes.BAD_REQUEST);
 
     // rating = [[1,2], [4,5]]
-    const rating = query.star
-      ? query.star
-          .split(",")
-          .map((range) => range.split("-").map((number) => parseFloat(number)))
-      : [[0, 5]];
+    const rating = query.star ? query.star.split(",").map((range) => range.split("-").map((number) => parseFloat(number))) : [[0, 5]];
     // view = [[0, 100], [1000, 100000]]
-    const view = query.view
-      ? query.view
-          .split(",")
-          .map((range) => range.split("-").map((number) => Number(number)))
-      : [[0, 2147483647]];
+    const view = query.view ? query.view.split(",").map((range) => range.split("-").map((number) => Number(number))) : [[0, 2147483647]];
 
     // Create where
     const where = {
@@ -217,9 +156,7 @@ export async function GetAllStories(req, res, next) {
       }),
       AND: [
         {
-          OR: [
-            ...rating.map(([min, max]) => ({ star: { gte: min, lte: max } })),
-          ],
+          OR: [...rating.map(([min, max]) => ({ star: { gte: min, lte: max } }))],
         },
         {
           OR: [...view.map(([min, max]) => ({ view: { gte: min, lte: max } }))],
@@ -266,10 +203,7 @@ export async function GetAllStories(req, res, next) {
     // use to update favourite story
     if (userId) {
       stories.data.forEach((story) => {
-        if (
-          story.user_favourite[0] &&
-          story.user_favourite[0].user_id === userId
-        ) {
+        if (story.user_favourite[0] && story.user_favourite[0].user_id === userId) {
           story.favourite = {
             id: story.user_favourite[0].id,
             user_id: story.user_favourite[0].id,
@@ -296,15 +230,10 @@ export async function AddOneViewForStory(req, res, next) {
 
     // Make sure story exist
     const story = await FindStory({ id: storyId });
-    if (!story || !story.success || !story.data)
-      throw CreateError(ErrorCodes.STORY_NOT_FOUND);
+    if (!story || !story.success || !story.data) throw CreateError(ErrorCodes.STORY_NOT_FOUND);
 
-    const update = await UpdateStory(
-      { id: storyId },
-      { view: { increment: 1 } }
-    );
-    if (!update || !update.success)
-      throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
+    const update = await UpdateStory({ id: storyId }, { view: { increment: 1 } });
+    if (!update || !update.success) throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
 
     return res.status(200).json({
       success: true,
@@ -333,8 +262,7 @@ export async function PostStory(req, res, next) {
 
     const { nation, status } = req.body;
     const genre = req?.body?.genre ? req.body.genre.split(",") : null;
-    if (!ValidateStoryStatus(status) || !ValidateGenre(genre))
-      throw CreateError(ErrorCodes.BAD_REQUEST);
+    if (!ValidateStoryStatus(status) || !ValidateGenre(genre)) throw CreateError(ErrorCodes.BAD_REQUEST);
 
     const isStoryExist = await FindStory({ title: title });
     if (isStoryExist.data) throw CreateError(ErrorCodes.ASSET_ALREADY_EXIST);
@@ -379,8 +307,7 @@ export async function PostStory(req, res, next) {
       }),
     });
 
-    if (!story || !story.success || !story.data)
-      throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
+    if (!story || !story.success || !story.data) throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
 
     return res.status(200).json({
       success: true,
@@ -401,20 +328,16 @@ export async function PutStory(req, res, next) {
 
     // Make sure story exist
     const story = await FindStory({ id: storyId });
-    if (!story || !story.success || !story.data)
-      throw CreateError(ErrorCodes.STORY_NOT_FOUND);
+    if (!story || !story.success || !story.data) throw CreateError(ErrorCodes.STORY_NOT_FOUND);
 
-    const { title, nation, status, view, star, nextChapterIn, summary } =
-      req.body;
+    const { title, nation, status, view, star, nextChapterIn, summary } = req.body;
     const genre = req?.body?.genre ? req.body.genre.split(",") : null;
 
     // Make sure all values are valid
-    if (!ValidateStoryStatus(status) || !ValidateGenre(genre))
-      throw CreateError(ErrorCodes.INVALID_INPUT);
+    if (!ValidateStoryStatus(status) || !ValidateGenre(genre)) throw CreateError(ErrorCodes.INVALID_INPUT);
     const isTitleExist = await FindStory({ title: title });
     if (isTitleExist.data) throw CreateError(ErrorCodes.TITLE_ALDREADY_EXIST);
-    if (nextChapterIn && !new Date(nextChapterIn))
-      throw CreateError(ErrorCodes.INVALID_INPUT);
+    if (nextChapterIn && !new Date(nextChapterIn)) throw CreateError(ErrorCodes.INVALID_INPUT);
 
     if (req.file) {
       // Create and add cover art for story
@@ -426,10 +349,7 @@ export async function PutStory(req, res, next) {
         const delteFilePath = SoftRemoveFile(filePath); // remove the previous image
         await MoveFile(req.file.path, filePath); // move new file to its path
         // soft delete old image in db
-        await UpdateImage(
-          { url: filePath },
-          { url: delteFilePath, is_deleted: true }
-        );
+        await UpdateImage({ url: filePath }, { url: delteFilePath, is_deleted: true });
       }
 
       var image = await AddImage({ url: filePath }); // Update image to db
@@ -461,13 +381,10 @@ export async function PutStory(req, res, next) {
     // Due to its complex, genre will be updated later
     if (genre) {
       const deleteGenre = await HardDeleteStoryGenre({ story_id: storyId });
-      const addGenre = await AddManyStoryGenres(
-        genre.map((element) => ({ story_id: storyId, genre: element }))
-      );
+      const addGenre = await AddManyStoryGenres(genre.map((element) => ({ story_id: storyId, genre: element })));
     }
 
-    if (!update || !update.success)
-      throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
+    if (!update || !update.success) throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
 
     return res.status(200).json({
       success: true,

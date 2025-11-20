@@ -56,10 +56,7 @@ export async function HardDeleteStoryGenre(where = { story_id }) {
     const deleting = await db.story_Genre.deleteMany({ where: where });
     return { success: true };
   } catch (error) {
-    console.error(
-      "❌ [Genre.Model.js] Error hadrd deleting story genre:",
-      error
-    );
+    console.error("❌ [Genre.Model.js] Error hadrd deleting story genre:", error);
     return { success: false, error: error.code };
   }
 }

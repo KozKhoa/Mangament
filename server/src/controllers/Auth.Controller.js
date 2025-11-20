@@ -1,21 +1,8 @@
-import {
-  AddUser,
-  SoftDeleteUser,
-  UpdateUser,
-  FindUser,
-  HardDeleteRefreshToken,
-  AddRefreshToken,
-  FindRefreshToken,
-} from "../models/User.Model.js";
+import { AddUser, SoftDeleteUser, UpdateUser, FindUser, HardDeleteRefreshToken, AddRefreshToken, FindRefreshToken } from "../models/User.Model.js";
 import { CheckEmailAndPasswordFormat } from "../utils/Validators.js";
 import { CreateError } from "../utils/ErrorHandle.js";
 import { ComparePassword, HashPassword } from "../utils/PasswordHandle.js";
-import {
-  GenAccessToken,
-  GenRefreshToken,
-  SaveTokenOnCookies,
-  VerifyRefreshToken,
-} from "../utils/TokenHandle.js";
+import { GenAccessToken, GenRefreshToken, SaveTokenOnCookies, VerifyRefreshToken } from "../utils/TokenHandle.js";
 import ErrorCodes from "../constants/Error.js";
 
 import { COOKIES_REFRESH_TOKEN_KEY } from "../configs/env.js";
@@ -84,8 +71,7 @@ export const Register = async (req, res, next) => {
   try {
     // Get user name, email, password from require
     const { name, email, password } = req?.body;
-    if (!name || !email || !password)
-      throw CreateError(ErrorCodes.MISSING_FIELD);
+    if (!name || !email || !password) throw CreateError(ErrorCodes.MISSING_FIELD);
 
     CheckEmailAndPasswordFormat(email, password); // Check email and password format
 
@@ -144,8 +130,7 @@ export const Register = async (req, res, next) => {
       },
     });
   } catch (error) {
-    if (!error.status)
-      console.error("❌ [Auth.Controller.js] Error register:", error);
+    if (!error.status) console.error("❌ [Auth.Controller.js] Error register:", error);
     next(error);
   }
 };
@@ -172,8 +157,7 @@ export const Logout = async (req, res, next) => {
       message: "Logout success",
     });
   } catch (error) {
-    if (!error.status)
-      console.error("❌ [Auth.Controller.js] Error logout:", error);
+    if (!error.status) console.error("❌ [Auth.Controller.js] Error logout:", error);
     next(error);
   }
 };
@@ -226,8 +210,7 @@ export const Refresh = async (req, res, next) => {
       },
     });
   } catch (error) {
-    if (!error.status)
-      console.error("❌ [Auth.Controller.js] Error refresh:", error);
+    if (!error.status) console.error("❌ [Auth.Controller.js] Error refresh:", error);
     next(error);
   }
 };
