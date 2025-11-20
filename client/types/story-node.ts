@@ -5,7 +5,7 @@ export default interface StoryNode {
   title?: string;
   type: string;
   order_index: number;
-  view?: string;
+  view?: number;
   number_of_children?: number;
   created_at: Date;
   updated_at?: Date;

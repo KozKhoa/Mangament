@@ -1,4 +1,4 @@
-export default interface Params {
+export interface StoryParams {
   id?: string;
   page?: number;
   limit?: number;
@@ -11,4 +11,5 @@ export default interface Params {
   isGettingChildren?: boolean;
   isGettingContent?: boolean;
   isGettingNewestChapter?: boolean;
+  isGettingSummary?: boolean;
 }

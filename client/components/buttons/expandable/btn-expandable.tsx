@@ -10,7 +10,7 @@ interface ButtonDropDownProps {
   label?: string | React.ReactNode;
   duration?: number;
   children?: React.ReactNode;
-  styles?: React.CSSProperties;
+
   className?: string;
 }
 
@@ -19,7 +19,7 @@ function ButtonExpandable({
   onClick,
   duration = 100,
   children,
-  styles = {},
+
   className = "",
 }: ButtonDropDownProps) {
   const [open, setOpen] = useState<boolean>(false);
@@ -34,10 +34,7 @@ function ButtonExpandable({
   }
 
   return (
-    <div
-      className={`flex flex-col gap-0 overflow-hidden w-full h-fit font-afacad text-size-default rounded-t-[5] ${className}`}
-      style={styles}
-    >
+    <div className={`flex flex-col gap-0 overflow-hidden w-full h-fit font-afacad text-size-default rounded-t-[5] ${className}`}>
       {/* Main button*/}
       <div
         className={`flex flex-row justify-between items-center 
@@ -47,15 +44,8 @@ function ButtonExpandable({
           {typeof label === "string" && label}
         </button>
         {children && (
-          <button
-            className="cursor-pointer h-full justify-center items-center"
-            onClick={toggleOpenList}
-          >
-            {typeof label === "string" ? (
-              <TriangleDownIcon className="text-foreground w-4 h-4" />
-            ) : (
-              label
-            )}
+          <button className="cursor-pointer h-full justify-center items-center" onClick={toggleOpenList}>
+            {typeof label === "string" ? <TriangleDownIcon className="text-foreground w-4 h-4" /> : label}
           </button>
         )}
       </div>
@@ -78,9 +68,7 @@ function ButtonExpandable({
                 <li
                   key={index}
                   className={`flex justify-start items-center w-full h-fit px-5 py-2 hover:bg-hover-background ${
-                    index === childrenArray.current.length - 1
-                      ? "border-b-0"
-                      : "border-b"
+                    index === childrenArray.current.length - 1 ? "border-b-0" : "border-b"
                   }`}
                 >
                   {child}

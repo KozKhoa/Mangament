@@ -6,48 +6,37 @@ import Checkbox from "@/components/inputs/checkbox";
 
 interface ButtonFilterOption {
   label: string;
-  checked: boolean;
+  isChecked: boolean;
   [key: string]: any;
 }
 
 interface ButtonFilterProps {
   onFinishCheck?: (selectedOption: ButtonFilterOption[]) => void;
   label?: string | React.ReactNode;
-  options?: ButtonFilterOption[];
+  options: ButtonFilterOption[];
   className?: string;
   name?: string;
 }
 
-function ButtonDropdownCheckbox({
-  onFinishCheck,
-  label,
-  options,
-  className,
-  name,
-}: ButtonFilterProps) {
-  const items = useRef(options);
+function ButtonDropdownCheckbox({ onFinishCheck, label, options, className, name }: ButtonFilterProps) {
   const [rerender, setRerender] = useState(false); // This only use to force this component re render to update items
 
-  const handleUpdateSelected = (
-    item: ButtonFilterOption,
-    index: number,
-    checked: boolean
-  ) => {
-    if (items.current && items.current[index]) {
-      items.current[index].checked = checked;
+  const handleUpdateSelected = (item: ButtonFilterOption, index: number, isChecked: boolean) => {
+    if (options && options[index]) {
+      options[index].isChecked = isChecked;
     }
   };
 
   const resetAllField = () => {
-    items.current?.forEach((item) => {
-      item.checked = false;
+    options?.forEach((item) => {
+      item.isChecked = false;
     });
     handleFinish();
   };
 
   const handleFinish = () => {
     setRerender(!rerender);
-    items.current && onFinishCheck?.(items.current);
+    options && onFinishCheck?.(options);
   };
 
   return (
@@ -73,21 +62,16 @@ function ButtonDropdownCheckbox({
       }
     >
       <ul className="flex flex-col justify-start items-center gap-2.5 w-full h-fit">
-        {items.current?.map((item, index) => {
+        {options?.map((option, index) => {
           return (
-            <li
-              key={index}
-              className="flex w-full h-fit justify-start items-center"
-            >
+            <li key={index} className="flex w-full h-fit justify-start items-center">
               <Checkbox
-                defaultChecked={item.checked}
+                defaultChecked={option.isChecked}
                 name={name}
-                value={item.label}
-                onChange={(checked) =>
-                  handleUpdateSelected(item, index, checked)
-                }
+                value={option.label}
+                onChange={(isChecked) => handleUpdateSelected(option, index, isChecked)}
               >
-                {item.label}
+                {option.label}
               </Checkbox>
             </li>
           );

@@ -3,10 +3,11 @@ import { useRef } from "react";
 import { convertNewestChapter } from "@/utils/convert";
 import ButtonGenre from "@/components/buttons/genre/genre";
 
-import NewestChapter from "@/models/newest-chapter";
-import Story from "@/models/story";
+import NewestChapter from "@/types/newest-chapter";
+import Story from "@/types/story";
 
 import { capitalizeFirstChar } from "@/utils/string";
+import StatusTag from "@/components/tags/status-tag";
 
 interface StoryInfoCardProps {
   story?: Story;
@@ -14,14 +15,9 @@ interface StoryInfoCardProps {
   className?: string;
 }
 
-export default function StoryInfoCard({
-  story,
-  newestChapter,
-  className,
-}: StoryInfoCardProps) {
+export default function StoryInfoCard({ story, newestChapter, className }: StoryInfoCardProps) {
   const labelClassName = "text-[1em] font-bold italic";
-  const subContainerClassName =
-    "flex flex-row gap-1 justify-center items-center w-fit";
+  const subContainerClassName = "flex flex-row gap-1 justify-center items-center w-fit";
 
   return (
     <div
@@ -38,18 +34,15 @@ export default function StoryInfoCard({
         {/* Status */}
         <div className={subContainerClassName}>
           <p className={labelClassName}>Tình trạng: </p>
-          <p>{capitalizeFirstChar(story?.status || "")}</p>
+          <StatusTag status={story?.status}>{capitalizeFirstChar(story?.status || "")}</StatusTag>
         </div>
 
         {/* Author */}
         <div className={subContainerClassName}>
           <p className={labelClassName}>Tác giả:</p>
           <div className="flex flex-row flex-wrap gap-1">
-            {story?.author?.map((name, i) => (
-              <p key={i}>
-                {name}
-                {i < (story.author?.length ?? 0) - 1 ? ", " : ""}
-              </p>
+            {story?.author?.map((a, i) => (
+              <p key={i}>{a.name} fds</p>
             ))}
           </div>
         </div>
@@ -79,10 +72,7 @@ export default function StoryInfoCard({
           <p className={labelClassName}>Chap mới nhất</p>
           <div className="flex flex-col justify-center items-start w-full gap-1">
             {newestChapter?.map((chapter, i) => (
-              <div
-                key={chapter.id}
-                className="flex flex-row flex-wrap justify-between w-full cursor-pointer"
-              >
+              <div key={chapter.id} className="flex flex-row flex-wrap justify-between w-full cursor-pointer">
                 <p>{chapter.dir}</p>
                 <p className={labelClassName}>{chapter.dayPass} ngày trước</p>
               </div>

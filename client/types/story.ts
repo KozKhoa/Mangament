@@ -1,3 +1,4 @@
+import Author from "./author";
 import Image from "./image";
 import StoryNode from "./story-node";
 
@@ -11,16 +12,19 @@ export default interface Story {
   status: string;
   next_chapter_in?: Date;
   number_of_chidren?: number;
-  author?: string[];
+  author?: Author[];
   genre?: string[];
   cover_art?: Image;
   created_at?: Date;
   updated_at?: Date;
   summary?: string;
+  review?: string;
   favourite?: {
     id: string;
     user_id: string;
   };
 
   newest_chapter?: StoryNode[];
+
+  children: StoryNode[];
 }
