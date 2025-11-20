@@ -18,8 +18,6 @@ export async function GetStory(req, res, next) {
     const isGettingSummary = req.query?.isGettingSummary == "true" ? true : false;
     const isGettingNewestChapter = req.query?.isGettingNewestChapter == "true" ? true : false;
 
-    console.log(isGettingChildren);
-
     // Check user request
     if (!storyId) throw CreateError(ErrorCodes.BAD_REQUEST);
 

@@ -21,23 +21,6 @@ function getParams(params: Params) {
   return { type, id };
 }
 
-async function addStoryToFavourite(storyId: string) {
-  const res = await favouriteService.post({ storyId: storyId });
-  if (!res) return toast.warning("Server Error");
-  if (!res.success) return toast.warning(res.message);
-
-  toast.message("Add successfully");
-}
-
-async function removeStoryFromFavouite(favouriteId: string) {
-  const res = await favouriteService.remove(favouriteId);
-
-  if (!res) return toast.warning("Server Error");
-  if (!res.success) return toast.warning(res.message);
-
-  toast.message("Remove successfully");
-}
-
 export default function StoryDetail() {
   const params = useParams();
   const { type, id } = getParams(params);
@@ -51,19 +34,36 @@ export default function StoryDetail() {
     const res = await storyService.get(storyParams);
 
     if (!res) toast.warning("Server Error");
-    if (!res.success) toast.warning(res.message);
+    if (!res.success) return toast.warning("Please login to perform action");
 
     setStory(res.data);
+  }
+
+  async function addStoryToFavourite(storyId: string) {
+    const res = await favouriteService.post({ storyId: storyId });
+    if (!res) return toast.warning("Server Error");
+    if (!res.success) return toast.warning("Please login to perform action");
+
+    toast.message("Add successfully");
+    setIsInFavourite(true);
+  }
+
+  async function removeStoryFromFavouite(favouriteId: string) {
+    const res = await favouriteService.remove(favouriteId);
+
+    if (!res) return toast.warning("Server Error");
+    if (!res.success) return toast.warning(res.message);
+
+    toast.message("Remove successfully");
+    setIsInFavourite(false);
   }
 
   console.log(story);
 
   function toggleFavourite() {
     if (isInFavourite) {
-      setIsInFavourite(false);
       story?.favourite?.id && removeStoryFromFavouite(story?.favourite.id);
     } else {
-      setIsInFavourite(true);
       story && addStoryToFavourite(story?.id);
     }
   }
