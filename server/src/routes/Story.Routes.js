@@ -9,6 +9,7 @@ import {
   GetCountStories,
   GetRandomStory,
   GetStory,
+  GetStoryReview,
   PostStory,
   PutStory,
 } from "../controllers/Story.Controller.js";
@@ -33,6 +34,7 @@ const storyRoute = express.Router();
 // Story
 storyRoute.get("/random", OptionalAuth, GetRandomStory);
 storyRoute.get("/count", GetCountStories);
+storyRoute.get("/:id/review", GetStoryReview);
 storyRoute.get("/:id", OptionalAuth, GetStory);
 storyRoute.get("/", OptionalAuth, GetAllStories);
 storyRoute.patch("/:id/view", AddOneViewForStory);

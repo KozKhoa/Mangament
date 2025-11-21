@@ -72,6 +72,43 @@ export async function GetNewestChapter(storyId, number) {
   return result;
 }
 
+export async function GetReview(storyId, number = 1) {
+  const imageUrl = [];
+
+  const dfs = async (parentId) => {
+    const nodes = await db.storyNode.findMany({
+      where: {
+        parent_id: parentId,
+        story_id: storyId,
+      },
+      orderBy: {
+        order_index: "asc",
+      },
+      select: {
+        id: true,
+        type: true,
+        story_id: true,
+        parent_id: true,
+        content: true,
+      },
+    });
+
+    for (const node of nodes) {
+      if (node.type === "chapter") {
+        const contents = node.content;
+        for (const content of contents) {
+          imageUrl.push(content.image_url);
+          if (imageUrl.length >= number) return;
+        }
+      }
+    }
+  };
+
+  await dfs(null);
+
+  return imageUrl;
+}
+
 export const FindAllStories = async (
   where = {},
   select = {},

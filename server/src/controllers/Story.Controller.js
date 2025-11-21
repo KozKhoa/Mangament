@@ -5,7 +5,17 @@ import { ValidateStoryType, ValidateStoryStatus } from "../models/Enum.Model.js"
 
 import { AddManyStoryGenres, HardDeleteStoryGenre, ValidateGenre } from "../models/Genre.Model.js";
 import { AddImage, UpdateImage } from "../models/Image.Model.js";
-import { FindAllStories, FindStory, UpdateStory, AddStory, SoftDeleteStory, CountStory, GetNewestChapter } from "../models/Story.Model.js";
+import {
+  FindAllStories,
+  FindStory,
+  UpdateStory,
+  AddStory,
+  SoftDeleteStory,
+  CountStory,
+  GetNewestChapter,
+  GetStoryTree,
+  GetReview,
+} from "../models/Story.Model.js";
 
 import { CreateNewFolder, IsFileExist, MoveFile, SoftRemoveFile } from "../utils/FileHandle.js";
 import DIRECTORY from "../constants/Directory.js";
@@ -30,11 +40,21 @@ export async function GetStory(req, res, next) {
 
     await GetNewestChapter(story.data.id, 6);
 
-    res.status(200).json({
-      success: true,
-      message: "Getting story successfully",
-      data: story.data,
-    });
+    res.status(200).json({ success: true, message: "Getting story successfully", data: story.data });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function GetStoryReview(req, res, next) {
+  try {
+    const storyId = req.params?.id;
+
+    if (!storyId) throw CreateError(ErrorCodes.BAD_REQUEST);
+
+    const review = await GetReview(storyId, 5);
+
+    return res.status(200).json({ success: true, message: "Get story review successfully ", data: review });
   } catch (error) {
     next(error);
   }
