@@ -11,7 +11,6 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 enum Role {
@@ -127,6 +126,7 @@ model Story {
   view               Int         @default(0)
   star               Float       @default(0)
   type               StoryType
+  genres             Genre[]
   status             StoryStatus @default(ongoing)
   next_chapter_in    DateTime?
   number_of_children Int         @default(0)
@@ -140,13 +140,13 @@ model Story {
   cover_art Image? @relation(fields: [cover_art_id], references: [id], onDelete: SetNull)
   poster    User?  @relation(fields: [poster_id], references: [id], onDelete: SetNull) // admin who post this story on
 
-  story_node           StoryNode[]
-  user_reading_history ReadingHistory[]
-  genre                Story_Genre[]
-  rating               Rating[]
-  user_favourite       FavouriteStory[]
-  comment              Comment[]
-  author               Story_Author[]
+  children        StoryNode[]
+  reading_history ReadingHistory[]
+  rating          Rating[]
+  favourite       FavouriteStory[]
+  comment         Comment[]
+  authors         Story_Author[]
+  storyGenres     Story_Genre[]
 }
 
 model StoryNode {
@@ -166,11 +166,10 @@ model StoryNode {
   is_deleted         Boolean                  @default(false)
   poster_id          String?                  @db.Uuid // Which admin post it
 
-  story    Story?      @relation(fields: [story_id], references: [id], onDelete: Cascade)
-  parent   StoryNode?  @relation("StoryNodeToStoryNode", fields: [parent_id], references: [id], onDelete: Cascade)
-  children StoryNode[] @relation("StoryNodeToStoryNode")
-  poster   User?       @relation(fields: [poster_id], references: [id], onDelete: SetNull)
-
+  story           Story?           @relation(fields: [story_id], references: [id], onDelete: Cascade)
+  parent          StoryNode?       @relation("StoryNodeToStoryNode", fields: [parent_id], references: [id], onDelete: Cascade)
+  children        StoryNode[]      @relation("StoryNodeToStoryNode")
+  poster          User?            @relation(fields: [poster_id], references: [id], onDelete: SetNull)
   reading_history ReadingHistory[]
   comment         Comment[]
 

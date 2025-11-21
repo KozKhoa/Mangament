@@ -1,12 +1,4 @@
-import {
-  PrismaClient,
-  Role,
-  Gender,
-  Genre,
-  StoryStatus,
-  StoryType,
-  StoryNodeType,
-} from "../generated/prisma/client.js";
+import { PrismaClient, Role, Gender, Genre, StoryStatus, StoryType, StoryNodeType } from "../generated/prisma/client.js";
 
 const db = new PrismaClient();
 

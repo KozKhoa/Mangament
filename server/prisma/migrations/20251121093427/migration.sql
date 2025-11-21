@@ -40,6 +40,7 @@ CREATE TABLE "Story" (
     "view" INTEGER NOT NULL DEFAULT 0,
     "star" DOUBLE PRECISION NOT NULL DEFAULT 0,
     "type" "StoryType" NOT NULL,
+    "genres" "Genre"[],
     "status" "StoryStatus" NOT NULL DEFAULT 'ongoing',
     "next_chapter_in" TIMESTAMP(3),
     "number_of_children" INTEGER NOT NULL DEFAULT 0,
