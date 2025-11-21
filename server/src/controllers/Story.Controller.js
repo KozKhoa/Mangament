@@ -52,7 +52,7 @@ export async function GetStoryReview(req, res, next) {
 
     if (!storyId) throw CreateError(ErrorCodes.BAD_REQUEST);
 
-    const review = await GetReview(storyId, 5);
+    const review = await GetReview(storyId, 4);
 
     return res.status(200).json({ success: true, message: "Get story review successfully ", data: review });
   } catch (error) {

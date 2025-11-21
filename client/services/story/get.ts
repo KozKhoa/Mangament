@@ -17,3 +17,16 @@ export default async function get(params?: StoryParams) {
     return error;
   }
 }
+
+export async function getReview(storyId: string) {
+  try {
+    const res = await api.get(`/stories/${storyId}/review`);
+
+    return res.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      return error?.response?.data;
+    }
+    return error;
+  }
+}

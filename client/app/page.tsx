@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef } from "react";
 
-import NavBar from "@/components/layouts/navbar/navbar";
+import NavBar from "@/components/layouts/navbar";
 import Switch from "@/components/switchs/switch";
 import SearchBar from "@/components/inputs/search";
 import ButtonExpandable from "@/components/buttons/expandable/btn-expandable";

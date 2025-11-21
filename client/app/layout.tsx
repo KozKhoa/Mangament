@@ -5,8 +5,8 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { Toaster } from "sonner";
 import "./globals.css";
 
-import NavBar from "@/components/layouts/navbar/navbar";
-import Footer from "@/components/layouts/footer/footer";
+import NavBar from "@/components/layouts/navbar";
+import Footer from "@/components/layouts/footer";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

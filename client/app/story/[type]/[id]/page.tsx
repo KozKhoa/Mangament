@@ -26,6 +26,7 @@ export default function StoryDetail() {
   const { type, id } = getParams(params);
 
   const [story, setStory] = useState<Story>();
+  const [review, setReview] = useState<string[]>();
   const [isInFavourite, setIsInFavourite] = useState<boolean>(story?.favourite ? true : false);
 
   async function fetchStory() {
@@ -34,9 +35,21 @@ export default function StoryDetail() {
     const res = await storyService.get(storyParams);
 
     if (!res) toast.warning("Server Error");
-    if (!res.success) return toast.warning("Please login to perform action");
+    if (!res.success) return toast.warning(res.message);
 
     setStory(res.data);
+  }
+
+  async function fetchStoryReview() {
+    if (!story) return;
+    const res = await storyService.getReview(story?.id);
+
+    if (!res) toast.warning("Server Error");
+    if (!res.success) return toast.warning(res.message);
+
+    console.log(res.data);
+
+    setReview(res.data);
   }
 
   async function addStoryToFavourite(storyId: string) {
@@ -68,20 +81,9 @@ export default function StoryDetail() {
     }
   }
 
-  function genReview(numberOfReview: number = 4) {
-    let result: React.ReactNode | string;
-    story?.children.map((child, i) => {
-      if (child.type === "chapter") {
-        const content = child.content;
-        console.log(content);
-      }
-    });
-
-    return result;
-  }
-
   useEffect(() => {
     setIsInFavourite(story?.favourite ? true : false);
+    fetchStoryReview();
     console.log(story);
   }, [story]);
 
@@ -117,9 +119,18 @@ export default function StoryDetail() {
       </div>
 
       {/* Review */}
-      <div>
-        <h2>Xem trước</h2>
-        <div>{genReview(5)}</div>
+      <div className="flex flex-col border-2 border-foreground rounded-md px-5 py-2.5 gap-7">
+        <h2 className="w-full text-center border-b-2 border-foreground font-semibold">Xem trước</h2>
+        <div
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 
+            gap-5"
+        >
+          {review?.map((url, i) => (
+            <div key={i} className="border rounded-sm overflow-hidden">
+              <img src={process.env.NEXT_PUBLIC_API_URL + "uploads/story/" + url} alt={`review ${i}`}></img>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
