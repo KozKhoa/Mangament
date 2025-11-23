@@ -1,15 +1,19 @@
 "use client";
 
 import StoryCardAllInfo from "@/components/cards/stories/story-card-all-info";
+import RatingCommentBox from "@/components/inputs/rating-comment";
 import StoryNodeList from "@/components/list/story-node-list";
 import storyService from "@/services/story";
 import favouriteService from "@/services/user/favourite";
-import { StoryParams } from "@/types/params";
+import { RatingParams, StoryParams } from "@/types/params";
 import Story from "@/types/story";
 import { Params } from "next/dist/server/request/params";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import ratingService from "@/services/rating";
+import Rating from "@/types/ratings";
+import RatingCommentList from "@/components/list/rating-comment-list";
 
 function getParams(params: Params) {
   const rawType = params?.type;
@@ -27,6 +31,10 @@ export default function StoryDetail() {
 
   const [story, setStory] = useState<Story>();
   const [review, setReview] = useState<string[]>();
+
+  const [ratings, setRatings] = useState<Rating[]>();
+  const [ratingParams, setRatingParams] = useState<RatingParams>({ sort: "created_at:desc" });
+
   const [isInFavourite, setIsInFavourite] = useState<boolean>(story?.favourite ? true : false);
 
   async function fetchStory() {
@@ -38,6 +46,7 @@ export default function StoryDetail() {
     if (!res.success) return toast.warning(res.message);
 
     setStory(res.data);
+    console.log(res.data);
   }
 
   async function fetchStoryReview() {
@@ -47,15 +56,20 @@ export default function StoryDetail() {
     if (!res) toast.warning("Server Error");
     if (!res.success) return toast.warning(res.message);
 
-    console.log(res.data);
-
     setReview(res.data);
+  }
+
+  async function fetchRating() {
+    const res = await ratingService.get(id, ratingParams);
+
+    if (!res) return toast.error("Sever error");
+    if (!res.success) return toast.warning(res.message);
   }
 
   async function addStoryToFavourite(storyId: string) {
     const res = await favouriteService.post({ storyId: storyId });
     if (!res) return toast.warning("Server Error");
-    if (!res.success) return toast.warning("Please login to perform action");
+    if (!res.success) return toast.warning(res.message);
 
     toast.message("Add successfully");
     setIsInFavourite(true);
@@ -71,8 +85,6 @@ export default function StoryDetail() {
     setIsInFavourite(false);
   }
 
-  console.log(story);
-
   function toggleFavourite() {
     if (isInFavourite) {
       story?.favourite?.id && removeStoryFromFavouite(story?.favourite.id);
@@ -84,12 +96,15 @@ export default function StoryDetail() {
   useEffect(() => {
     setIsInFavourite(story?.favourite ? true : false);
     fetchStoryReview();
-    console.log(story);
   }, [story]);
 
   useEffect(() => {
     fetchStory();
   }, []);
+
+  useEffect(() => {
+    fetchRating();
+  }, [ratingParams]);
 
   return (
     <div className="w-full flex flex-col gap-10 font-afacad">
@@ -132,6 +147,12 @@ export default function StoryDetail() {
           ))}
         </div>
       </div>
+
+      <RatingCommentBox isEdited={false} type="rating" value={ratings?.[0]}></RatingCommentBox>
+      <RatingCommentBox isEdited={true} type="rating" value={ratings?.[0]}></RatingCommentBox>
+      <RatingCommentBox isEdited={false} type="comment"></RatingCommentBox>
+
+      <RatingCommentList type="rating" storyId="170b4fd6-9947-49dc-be94-0663174d5e42"></RatingCommentList>
     </div>
   );
 }

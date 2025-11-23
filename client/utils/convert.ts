@@ -39,3 +39,5 @@ export function convertNewestChapter(newestChapter: StoryNode[]) {
 export function convertJsonToParam(json: {}) {
   return qs.stringify(json, { arrayFormat: "comma" });
 }
+
+export function convertDateToStringdate(date: Date) {}

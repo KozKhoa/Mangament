@@ -113,7 +113,7 @@ model User {
   reading_history   ReadingHistory[]
   favourite_story   FavouriteStory[]
   story_rating      Rating[]
-  comment           Comment[]
+  comments          Comment[]
   refresh_token     RefreshToken[]
   posted_story      Story[] // List of story that admin posted
   poster_story_node StoryNode[]

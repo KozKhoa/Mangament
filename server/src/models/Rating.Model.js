@@ -1,11 +1,6 @@
 import db from "../configs/db.js";
 
-export async function FindAllRatings(
-  where = { id, story_id, user_id },
-  sort,
-  take = 1,
-  skip = 0
-) {
+export async function FindAllRatings(where = { id, story_id, user_id }, sort, take = 1, skip = 0) {
   try {
     const ratings = await db.rating.findMany({
       where: {
@@ -41,8 +36,7 @@ export async function FindAllRatings(
 
 export async function AddRatings(data = { user_id, story_id, star, message }) {
   try {
-    if (!data.user_id && !data.story_id && !data.message)
-      return { success: false, data: null };
+    if (!data.user_id && !data.story_id && !data.message) return { success: false, data: null };
 
     const newRating = await db.rating.create({
       data: data,
@@ -54,8 +48,7 @@ export async function AddRatings(data = { user_id, story_id, star, message }) {
     });
     return { success: true, data: newRating };
   } catch (error) {
-    if (error.code !== "P2002")
-      console.error("❌ [Rating.Model.js] Error adding new rating:", error);
+    if (error.code !== "P2002") console.error("❌ [Rating.Model.js] Error adding new rating:", error);
     return { success: false, error: error.code };
   }
 }
@@ -73,8 +66,7 @@ export async function SoftDeleteRating(where = { id }) {
     });
     return { success: true, data: removing };
   } catch (error) {
-    if (error.code !== "P2025")
-      console.error("❌ [Rating.Model.js] Error soft deleting rating:", error);
+    if (error.code !== "P2025") console.error("❌ [Rating.Model.js] Error soft deleting rating:", error);
     return { success: false, error: error.code };
   }
 }
@@ -118,8 +110,20 @@ export async function UpdateRating(where = { id }, data = {}) {
 
     return { success: true, data: updating };
   } catch (error) {
-    if (error.code !== "P2025")
-      console.error("❌ [Rating.Model.js] Error updating rating:", error);
+    if (error.code !== "P2025") console.error("❌ [Rating.Model.js] Error updating rating:", error);
+    return { success: false, error: error.code };
+  }
+}
+
+export async function CountRating(where = {}) {
+  try {
+    const count = await db.rating.count({
+      where: { is_deleted: false, ...where },
+    });
+
+    return { success: true, data: count };
+  } catch (error) {
+    if (error.code !== "P2025") console.error("❌ [Rating.Model.js] Error updating rating:", error);
     return { success: false, error: error.code };
   }
 }

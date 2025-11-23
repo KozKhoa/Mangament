@@ -74,7 +74,7 @@ export default function StoryGrid({ label, storyType, elementsPerPage, className
     };
 
     const res = await storyService.count({
-      ...params,
+      ...storyParams,
       ...{ type: storyType },
     });
     const count = res.data.count;

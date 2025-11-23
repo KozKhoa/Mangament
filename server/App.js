@@ -34,7 +34,7 @@ app.use("/authors", authorRoute);
 app.use("/genres", genreRoute);
 
 //api for getting story image
-app.use("/uploads/story", express.static("./../uploads/story"));
+app.use("/uploads", express.static("./../uploads"));
 
 // Middlewares
 app.use(ErrorMiddleware);

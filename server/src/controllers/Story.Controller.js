@@ -22,6 +22,8 @@ import DIRECTORY from "../constants/Directory.js";
 
 export async function GetStory(req, res, next) {
   try {
+    const userId = req.user?.id;
+
     const storyId = req?.params?.id;
     const isGettingChildren = req.query?.isGettingChildren == "true" ? true : false;
     const isGettingContent = req.query?.isGettingContent == "true" ? true : false;
@@ -31,7 +33,19 @@ export async function GetStory(req, res, next) {
     // Check user request
     if (!storyId) throw CreateError(ErrorCodes.BAD_REQUEST);
 
-    const story = await FindStory({ id: storyId }, {}, isGettingChildren, isGettingContent, isGettingSummary, isGettingNewestChapter);
+    let select = {};
+    if (userId) {
+      select = {
+        favourite: {
+          where: {
+            is_deleted: false,
+            user_id: userId,
+          },
+        },
+      };
+    }
+
+    const story = await FindStory({ id: storyId }, select, isGettingChildren, isGettingContent, isGettingSummary, isGettingNewestChapter);
 
     // If server not return anything or return success = false => fail to find story
     if (!story || !story.success) throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
@@ -96,7 +110,7 @@ export async function GetCountStories(req, res, next) {
       ],
     };
 
-    const count = await CountStory(where);
+    const count = (await CountStory(where)).data;
 
     return res.status(200).json({
       success: true,
@@ -119,7 +133,7 @@ export async function GetRandomStory(req, res, next) {
     const isGettingContent = req.query?.isGettingContent == "true" ? true : false;
     const isGettingSummary = req.query?.isGettingSummary == "true" ? true : false;
 
-    const count = await CountStory();
+    const count = (await CountStory()).data;
     const random = parseInt(((Math.random() * count * 100) % count) + 1);
 
     const story = await FindAllStories({ ...(storyType && { type: storyType }) }, {}, 1, random - 1, isGettingChildren, isGettingContent, isGettingSummary);

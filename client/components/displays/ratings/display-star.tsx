@@ -1,12 +1,12 @@
 import StarIcon from "@/public/star.svg";
 import { useRef } from "react";
 
-interface StarForRating {
+interface DisplayStar {
   rating: number;
   className?: string;
 }
 
-export default function StarForRating({ rating, className }: StarForRating) {
+export default function DisplayStar({ rating, className }: DisplayStar) {
   const arr = useRef(Array.from({ length: 5 }));
   const star = useRef<number>(Math.trunc(rating));
 
@@ -20,10 +20,7 @@ export default function StarForRating({ rating, className }: StarForRating) {
       {arr.current.map((_, i) =>
         i < star.current ? (
           // Yellow star
-          <StarIcon
-            key={i}
-            className="w-[1em] h-[1em] md:w-[1.1em] md:h-[1.1em] fill-amber-400"
-          ></StarIcon>
+          <StarIcon key={i} className="w-[1em] h-[1em] md:w-[1.1em] md:h-[1.1em] fill-amber-400"></StarIcon>
         ) : i === star.current ? (
           // Mix yellow and gray star
           <div key={i} className="relative w-fit h-fit">
@@ -39,10 +36,7 @@ export default function StarForRating({ rating, className }: StarForRating) {
           </div>
         ) : (
           // Gray star
-          <StarIcon
-            key={i}
-            className="w-[1em] h-[1em] md:w-[1.1em] md:h-[1.1em] fill-gray-400"
-          ></StarIcon>
+          <StarIcon key={i} className="w-[1em] h-[1em] md:w-[1.1em] md:h-[1.1em] fill-gray-400"></StarIcon>
         )
       )}
     </div>

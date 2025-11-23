@@ -16,7 +16,7 @@ import {
 
 import { AuthenticationToken, AuthorizationRole, OptionalAuth } from "../middlewares/Auth.Middleware.js";
 import { DeleteComment, GetAllComments, PostComment, PutComment } from "../controllers/Comment.Controller.js";
-import { DeleteRating, GetAllRatings, PostRating, PutRating } from "../controllers/Rating.Controller.js";
+import { DeleteRating, GetAllRatings, GetCountRating, PostRating, PutRating } from "../controllers/Rating.Controller.js";
 
 const saveLocation = "uploads/image";
 
@@ -50,6 +50,7 @@ storyRoute.delete("/comments/:id", AuthenticationToken, DeleteComment);
 
 // Rating
 storyRoute.post("/:id/ratings", AuthenticationToken, PostRating);
+storyRoute.get("/:id/ratings/count", GetCountRating);
 storyRoute.get("/:id/ratings", GetAllRatings);
 storyRoute.put("/ratings/:id", AuthenticationToken, PutRating);
 storyRoute.delete("/ratings/:id", AuthenticationToken, DeleteRating);

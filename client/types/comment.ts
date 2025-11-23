@@ -1,3 +1,5 @@
+import User from "./user";
+
 export default interface Comment {
   id: string;
   story_id: string;
@@ -6,4 +8,6 @@ export default interface Comment {
   message: string;
   created_at?: Date;
   updated_at?: Date;
+
+  user?: User;
 }

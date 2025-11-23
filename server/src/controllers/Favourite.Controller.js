@@ -1,8 +1,4 @@
-import {
-  FindAllFavouriteStories,
-  AddFavouriteStory,
-  SoftDeleteFavouriteStory,
-} from "../models/Favourite.Model.js";
+import { FindAllFavouriteStories, AddFavouriteStory, SoftDeleteFavouriteStory } from "../models/Favourite.Model.js";
 
 import { CreateError } from "../utils/ErrorHandle.js";
 import ErrorCodes from "../constants/Error.js";
@@ -24,14 +20,8 @@ export async function GetAllFavouriteStories(req, res, next) {
       order["created_at"] = "desc";
     }
 
-    const favouriteStories = await FindAllFavouriteStories(
-      { user_id: userId },
-      order,
-      limit,
-      (page - 1) * limit
-    );
-    if (!favouriteStories || !favouriteStories.success)
-      throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
+    const favouriteStories = await FindAllFavouriteStories({ user_id: userId }, order, limit, (page - 1) * limit);
+    if (!favouriteStories || !favouriteStories.success) throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
     if (!favouriteStories.data || favouriteStories.data.length <= 0) {
       return res.status(200).json({
         success: true,
@@ -46,11 +36,7 @@ export async function GetAllFavouriteStories(req, res, next) {
       data: favouriteStories.data,
     });
   } catch (error) {
-    if (!error.status)
-      console.error(
-        "❌ [User.Controller.js] Error getting user favourite story:",
-        error
-      );
+    if (!error.status) console.error("❌ [User.Controller.js] Error getting user favourite story:", error);
     next(error);
   }
 }
@@ -64,16 +50,14 @@ export async function PostFavouriteStory(req, res, next) {
 
     // Check if the story exist
     const story = await FindStory({ id: storyId });
-    if (!story || !story.success || !story.data)
-      throw CreateError(ErrorCodes.STORY_NOT_FOUND);
+    if (!story || !story.success || !story.data) throw CreateError(ErrorCodes.STORY_NOT_FOUND);
 
     const favouriteStory = await AddFavouriteStory({
       user_id: userId,
       story_id: storyId,
     });
     if (!favouriteStory || !favouriteStory.success)
-      if (favouriteStory.error == "P2002")
-        throw CreateError(ErrorCodes.ASSET_ALREADY_EXIST);
+      if (favouriteStory.error == "P2002") throw CreateError(ErrorCodes.ASSET_ALREADY_EXIST);
       else throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
 
     return res.status(200).json({
@@ -92,11 +76,7 @@ export async function PostFavouriteStory(req, res, next) {
       },
     });
   } catch (error) {
-    if (!error.status)
-      console.error(
-        "❌ [User.Controller.js] Error posting user favourite story:",
-        error
-      );
+    if (!error.status) console.error("❌ [User.Controller.js] Error posting user favourite story:", error);
     next(error);
   }
 }
@@ -112,31 +92,20 @@ export async function DeleteFavouriteStory(req, res, next) {
 
     // Check if the favourite story exist
     const favouriteStory = await FindAllFavouriteStories({ id: favouriteId });
-    if (
-      !favouriteStory ||
-      !favouriteStory.success ||
-      favouriteStory.data.length <= 0
-    )
-      throw CreateError(ErrorCodes.ASSET_NOT_FOUND);
+    if (!favouriteStory || !favouriteStory.success || favouriteStory.data.length <= 0) throw CreateError(ErrorCodes.ASSET_NOT_FOUND);
 
     // Check if this favourite story belong to the user
-    if (favouriteStory.data[0].user_id !== userId)
-      throw CreateError(ErrorCodes.FORBIDDEN);
+    if (favouriteStory.data[0].user_id !== userId) throw CreateError(ErrorCodes.FORBIDDEN);
 
     const removing = await SoftDeleteFavouriteStory({ id: favouriteId });
-    if (!removing || !removing.success)
-      throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
+    if (!removing || !removing.success) throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
 
     return res.status(200).json({
       success: true,
       message: "Delete user favourite story successfully",
     });
   } catch (error) {
-    if (!error.status)
-      console.error(
-        "❌ [User.Controller.js] Error deleting user favourite story:",
-        error
-      );
+    if (!error.status) console.error("❌ [User.Controller.js] Error deleting user favourite story:", error);
     next(error);
   }
 }

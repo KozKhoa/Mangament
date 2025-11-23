@@ -1,13 +1,9 @@
-import { useRef } from "react";
-
-import { convertNewestChapter } from "@/utils/convert";
-import ButtonGenre from "@/components/buttons/genre/genre";
-
 import NewestChapter from "@/types/newest-chapter";
 import Story from "@/types/story";
 
-import { capitalizeFirstChar } from "@/utils/string";
+import { capitalizeFirstChar, capitalizeWords } from "@/utils/string";
 import StatusTag from "@/components/tags/status-tag";
+import Tag from "@/components/tags/tag";
 
 interface StoryInfoCardProps {
   story?: Story;
@@ -52,7 +48,7 @@ export default function StoryInfoCard({ story, newestChapter, className }: Story
           <p className={`${labelClassName} `}>Thể loại:</p>
           <div className="flex flex-row flex-wrap gap-1">
             {story?.genre?.map((name, i) => (
-              <ButtonGenre key={i}>{name}</ButtonGenre>
+              <Tag key={i}>#{capitalizeWords(name)}</Tag>
             ))}
           </div>
         </div>
