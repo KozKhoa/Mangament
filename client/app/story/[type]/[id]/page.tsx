@@ -13,7 +13,8 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import ratingService from "@/services/rating";
 import Rating from "@/types/ratings";
-import RatingCommentList from "@/components/list/rating-comment-list";
+import RatingList from "@/components/list/rating-list";
+import CommentList from "@/components/list/comment-list";
 
 function getParams(params: Params) {
   const rawType = params?.type;
@@ -31,11 +32,9 @@ export default function StoryDetail() {
 
   const [story, setStory] = useState<Story>();
   const [review, setReview] = useState<string[]>();
-
   const [ratings, setRatings] = useState<Rating[]>();
   const [ratingParams, setRatingParams] = useState<RatingParams>({ sort: "created_at:desc" });
-
-  const [isInFavourite, setIsInFavourite] = useState<boolean>(story?.favourite ? true : false);
+  const [favouriteId, setFavouriteId] = useState<string>(story?.favourite ? story.favourite.id : "");
 
   async function fetchStory() {
     const storyParams: StoryParams = { id: id, isGettingChildren: true, isGettingSummary: true, type: type };
@@ -72,7 +71,10 @@ export default function StoryDetail() {
     if (!res.success) return toast.warning(res.message);
 
     toast.message("Add successfully");
-    setIsInFavourite(true);
+
+    setFavouriteId(res.data.favourite.id);
+
+    return res.data;
   }
 
   async function removeStoryFromFavouite(favouriteId: string) {
@@ -82,19 +84,20 @@ export default function StoryDetail() {
     if (!res.success) return toast.warning(res.message);
 
     toast.message("Remove successfully");
-    setIsInFavourite(false);
+    setFavouriteId("");
   }
 
   function toggleFavourite() {
-    if (isInFavourite) {
-      story?.favourite?.id && removeStoryFromFavouite(story?.favourite.id);
+    console.log(favouriteId);
+    if (favouriteId) {
+      removeStoryFromFavouite(favouriteId);
     } else {
       story && addStoryToFavourite(story?.id);
     }
   }
 
   useEffect(() => {
-    setIsInFavourite(story?.favourite ? true : false);
+    setFavouriteId(story?.favourite ? story.favourite.id : "");
     fetchStoryReview();
   }, [story]);
 
@@ -102,12 +105,8 @@ export default function StoryDetail() {
     fetchStory();
   }, []);
 
-  useEffect(() => {
-    fetchRating();
-  }, [ratingParams]);
-
   return (
-    <div className="w-full flex flex-col gap-10 font-afacad">
+    <div className="flex flex-col gap-10 font-afacad">
       <div className="flex flex-col lg:flex-row gap-5">
         {/* Story info */}
         <div className="lg:flex-1 flex flex-col gap-3">
@@ -122,9 +121,9 @@ export default function StoryDetail() {
             <button className="w-full py-1.5 font-semibold border-2 border-foreground text-center rounded-sm bg-foreground text-background ">Đọc tiếp</button>
             <button
               onClick={toggleFavourite}
-              className={`w-full py-1.5 font-semibold border-2 border-foreground text-center rounded-sm ${isInFavourite && "bg-red-400 text-white"}`}
+              className={`w-full py-1.5 font-semibold border-2 border-foreground text-center rounded-sm ${favouriteId && "bg-red-400 text-white"}`}
             >
-              {isInFavourite ? "Đã yêu thích" : "Yêu thích"}
+              {favouriteId ? "Đã yêu thích" : "Yêu thích"}
             </button>
           </div>
         </div>
@@ -148,11 +147,10 @@ export default function StoryDetail() {
         </div>
       </div>
 
-      <RatingCommentBox isEdited={false} type="rating" value={ratings?.[0]}></RatingCommentBox>
-      <RatingCommentBox isEdited={true} type="rating" value={ratings?.[0]}></RatingCommentBox>
-      <RatingCommentBox isEdited={false} type="comment"></RatingCommentBox>
-
-      <RatingCommentList type="rating" storyId="170b4fd6-9947-49dc-be94-0663174d5e42"></RatingCommentList>
+      <div className="flex flex-col gap-5 w-full h-full p-2.5 border-2 rounded-md">
+        <RatingList className="w-full" story={story}></RatingList>
+        <CommentList className="w-full" story={story}></CommentList>
+      </div>
     </div>
   );
 }

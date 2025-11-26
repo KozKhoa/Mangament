@@ -1,5 +1,6 @@
 import Author from "./author";
 import Image from "./image";
+import Rating from "./ratings";
 import StoryNode from "./story-node";
 
 export default interface Story {
@@ -19,10 +20,12 @@ export default interface Story {
   updated_at?: Date;
   summary?: string;
   review?: string;
+
   favourite?: {
     id: string;
     user_id: string;
   };
+  rating?: Rating;
 
   newest_chapter?: StoryNode[];
 

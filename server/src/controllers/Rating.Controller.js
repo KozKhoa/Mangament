@@ -58,6 +58,7 @@ export async function GetAllRatings(req, res, next) {
 
     const limit = req.query?.limit ? Number(req.query.limit) : 1;
     const page = req.query?.page ? Number(req.query.page) : 1;
+    const star = req.query.star ? req.query.star.split(",").map((range) => range.split("-").map((number) => parseFloat(number))) : [[0, 6]];
     const sort = {};
 
     if (req.query?.sort) {
@@ -65,7 +66,12 @@ export async function GetAllRatings(req, res, next) {
       sort[field.toLowerCase()] = direction.toLowerCase();
     } else sort["created_at"] = "desc";
 
-    const ratings = await FindAllRatings({ story_id: storyId }, sort, limit, (page - 1) * limit);
+    const where = {
+      story_id: storyId,
+      OR: [...star.map(([min, max]) => ({ star: { gte: min, lte: max } }))],
+    };
+
+    const ratings = await FindAllRatings(where, sort, limit, (page - 1) * limit);
 
     if (!ratings || !ratings.success) throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
 

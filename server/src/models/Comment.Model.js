@@ -1,11 +1,6 @@
 import db from "../configs/db.js";
 
-export async function FindAllComments(
-  where = { id, user_id, story_id, story_node_id },
-  orderBy,
-  take = 1,
-  skip = 0
-) {
+export async function FindAllComments(where = { id, user_id, story_id, story_node_id }, orderBy, take = 1, skip = 0) {
   try {
     const comments = await db.comment.findMany({
       where: { is_deleted: false, ...where },
@@ -36,17 +31,9 @@ export async function FindAllComments(
   }
 }
 
-export async function AddComment(
-  data = { user_id, story_id, story_node_id, message }
-) {
+export async function AddComment(data = { user_id, story_id, story_node_id, message }) {
   try {
-    if (
-      !data.story_id ||
-      !data.user_id ||
-      !data.message ||
-      !data.message.length === 0
-    )
-      return { success: false, data: null };
+    if (!data.story_id || !data.user_id || !data.message || !data.message.length === 0) return { success: false, data: null };
 
     const newComment = await db.comment.create({
       data: {
@@ -82,8 +69,7 @@ export async function UpdateComment(where = { id }, data = { message }) {
     const updateComment = await db.comment.update({ where: where, data: data });
     return { success: true, data: updateComment };
   } catch (error) {
-    if (error.code !== "P2025")
-      console.error("❌ [User.Model.js] Error updating comment: ", error);
+    if (error.code !== "P2025") console.error("❌ [User.Model.js] Error updating comment: ", error);
     return { success: false, error: error.code };
   }
 }
@@ -98,8 +84,7 @@ export async function SoftDeleteComment(where = { id }) {
     });
     return { success: true, data: softRemove };
   } catch (error) {
-    if (error.code !== "P2025")
-      console.error("❌ [User.Model.js] Error soft deleting comment: ", error);
+    if (error.code !== "P2025") console.error("❌ [User.Model.js] Error soft deleting comment: ", error);
     return { success: false, error: error.code };
   }
 }
@@ -109,8 +94,23 @@ export async function HardDeleteComment(where = { id }) {
     const hardRemove = await db.comment.delete({ where: where });
     return { success: true, data: hardRemove };
   } catch (error) {
-    if (error.code !== "P2025")
-      console.error("❌ [User.Model.js] Error hard deleting comment: ", error);
+    if (error.code !== "P2025") console.error("❌ [User.Model.js] Error hard deleting comment: ", error);
+    return { success: false, error: error.code };
+  }
+}
+
+export async function Count(where = { storyNodeId, storyId }) {
+  try {
+    const res = await db.comment.count({
+      where: {
+        ...(where.storyNodeId && { story_node_id: where.storyNodeId }),
+        ...(where.storyId && { story_id: where.storyId }),
+      },
+    });
+
+    return { success: true, data: res };
+  } catch (error) {
+    console.error("❌ [User.Model.js] Error counting comment", error);
     return { success: false, error: error.code };
   }
 }

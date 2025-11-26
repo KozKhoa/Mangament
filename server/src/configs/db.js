@@ -8,7 +8,7 @@ const adapter = new PrismaPg({
   connectionString: DATABASE_URL,
 });
 
-console.log(adapter);
+// console.log(adapter);
 
 const db = new PrismaClient({ adapter });
 

@@ -5,9 +5,12 @@ interface StarPickerProps {
   onChange?: (star: number) => void;
   defaultValue?: number;
   maxStar?: number;
+
+  width?: string;
+  height?: string;
 }
 
-export default function StarPicker({ onChange, defaultValue, maxStar }: StarPickerProps) {
+export default function StarPicker({ onChange, defaultValue, maxStar, width = "1.5em", height = "1.5em" }: StarPickerProps) {
   const [rating, setRating] = useState<number>(defaultValue ?? 0);
 
   function handleChosen(index: number) {
@@ -21,9 +24,9 @@ export default function StarPicker({ onChange, defaultValue, maxStar }: StarPick
       {arr.current.map((_, i) => (
         <button key={i} onClick={() => handleChosen(i)}>
           {i <= rating ? (
-            <StarIcon className="w-[1.8em] h-[1.8em] fill-amber-400"></StarIcon>
+            <StarIcon className={`w-[${width}] h-[${height}] fill-amber-400`}></StarIcon>
           ) : (
-            <StarIcon className="w-[1.8em] h-[1.8em] fill-gray-400"></StarIcon>
+            <StarIcon className={`w-[${width}] h-[${height}] fill-gray-400`}></StarIcon>
           )}
         </button>
       ))}

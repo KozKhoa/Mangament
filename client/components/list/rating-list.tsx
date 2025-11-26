@@ -1,0 +1,126 @@
+import { toast } from "sonner";
+import { useEffect, useState } from "react";
+
+import Rating from "@/types/ratings";
+import { RatingParams } from "@/types/params";
+import { CommentParams } from "@/types/params";
+
+import ratingService from "@/services/rating";
+
+import SwitchPageBig from "../switch-page/big";
+import FilterRatings from "../filters/filter-ratings";
+import RatingBox from "../boxs/rating-box";
+import Loading from "../loadings/loading";
+import useAuth from "@/contexts/AuthContext";
+import RatingInput from "../inputs/rating-input";
+import Story from "@/types/story";
+
+interface RatingList {
+  story?: Story;
+  userId?: string;
+  elementPerPage?: number;
+
+  className?: string;
+}
+
+export default function RatingList({ story, elementPerPage = 5, className }: RatingList) {
+  const auth = useAuth();
+  const user = auth?.user;
+
+  const [page, setPage] = useState<number>(1);
+  const [rating, setRating] = useState<Rating[]>();
+  const [count, setCount] = useState<number>(0);
+  const [params, setParams] = useState<RatingParams | CommentParams>({ sort: "created_at:desc", limit: elementPerPage, page: page });
+
+  async function fetchRating() {
+    if (!story?.id) return;
+
+    const resRating = await ratingService.get(story?.id, params);
+    const resCount = await ratingService.count(story?.id, params);
+
+    if (!resRating || !resCount) return toast.error("Sever error");
+    if (!resRating.success) return toast.warning(resRating.message);
+
+    setRating(resRating.data);
+    setCount(resCount.data);
+
+    console.log(resRating.data);
+  }
+
+  function updateParams(options: { label: string; code?: string; isChecked: boolean }[], field: string) {
+    let result: string[] = [];
+    options.forEach((op, i) => {
+      if (op.isChecked && op.code) result.push(op.code);
+    });
+
+    setParams((prev) => {
+      return {
+        ...prev,
+        ...{ [field]: result, page: page },
+      };
+    });
+  }
+
+  async function postRating(message: string, star: number) {
+    const res = await ratingService.post(story?.id || "", user?.id || "", star, message);
+
+    if (!res) return toast.warning("Server Error");
+    if (!res.success) return toast.warning(res.message);
+
+    return toast.message(res.message);
+  }
+
+  useEffect(() => {
+    fetchRating();
+  }, [params]);
+
+  useEffect(() => {
+    setParams((prev) => {
+      return {
+        ...prev,
+        page: page,
+      };
+    });
+  }, [page]);
+
+  useEffect(() => {
+    fetchRating();
+  }, [story]);
+
+  return (
+    <div className={`flex flex-col gap-2 ${className}`}>
+      <h2 className="font-bold">Đánh giá</h2>
+      {story?.rating ? (
+        <div>
+          <h3>Đánh giá của bạn</h3>
+          <RatingBox rating={story.rating}></RatingBox>
+        </div>
+      ) : (
+        <RatingInput onFinish={postRating}></RatingInput>
+      )}
+
+      <div className="flex flex-col gap-2.5 justify-center ml-2 md:ml-10">
+        {count ? (
+          <>
+            <div className="flex flex-row flex-wrap justify-between items-center">
+              <h3>{count} đánh giá khác</h3>
+
+              <FilterRatings onFilter={(e) => updateParams(e, "star")}></FilterRatings>
+            </div>
+            <div className="flex flex-col gap-2.5">
+              {rating?.map((v, i) => (
+                <RatingBox key={i} rating={v}></RatingBox>
+              ))}
+            </div>
+            <SwitchPageBig className="m-auto" page={page} maxPage={Math.ceil(count / elementPerPage)} onChange={setPage}></SwitchPageBig>
+          </>
+        ) : (
+          <div className="flex flex-col justify-center items-center p-2">
+            <h3 className="font-bold">Không có đánh giá nào khác</h3>
+            <p>Hãy trở thành người đánh giá đầu tiên</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

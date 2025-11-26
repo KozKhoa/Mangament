@@ -53,7 +53,7 @@ export default function Home() {
         Register page
       </Link>
 
-      <StoryGrid label="Manga" storyType="manga" elementsPerPage={18}></StoryGrid>
+      <StoryGrid label="Manga" storyType="manga" elementsPerPage={4}></StoryGrid>
 
       <Input type="password" label={"Email"} placeHolder="Placeholder" error="error"></Input>
 

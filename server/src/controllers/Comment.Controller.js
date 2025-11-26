@@ -1,10 +1,5 @@
 import ErrorCodes from "../constants/Error.js";
-import {
-  AddComment,
-  FindAllComments,
-  SoftDeleteComment,
-  UpdateComment,
-} from "../models/Comment.Model.js";
+import { AddComment, Count, FindAllComments, SoftDeleteComment, UpdateComment } from "../models/Comment.Model.js";
 import { FindStory } from "../models/Story.Model.js";
 import { FindStoryNode } from "../models/StoryNode.Model.js";
 import { CreateError } from "../utils/ErrorHandle.js";
@@ -26,17 +21,14 @@ export async function GetAllComments(req, res, next) {
     const comments = await FindAllComments(
       {
         ...(storyId && { story_id: storyId }),
-        ...(storyNodeId
-          ? { story_node_id: storyNodeId }
-          : { story_node_id: null }),
+        ...(storyNodeId ? { story_node_id: storyNodeId } : { story_node_id: null }),
       },
       sort,
       limit,
       (page - 1) * limit
     );
 
-    if (!comments || !comments.success)
-      throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
+    if (!comments || !comments.success) throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
 
     return res.status(200).json({
       success: true,
@@ -61,24 +53,19 @@ export async function PostComment(req, res, next) {
     let storyNode;
     if (storyNodeId) {
       storyNode = await FindStoryNode({ id: storyNodeId });
-      if (!storyNode || !storyNode.success || !storyNode.data)
-        throw CreateError(ErrorCodes.STORY_NODE_NOT_FOUND);
+      if (!storyNode || !storyNode.success || !storyNode.data) throw CreateError(ErrorCodes.STORY_NODE_NOT_FOUND);
     }
     const story = await FindStory({ id: storyId || storyNode.data.story_id });
-    if (!story || !story || !story.data)
-      throw CreateError(ErrorCodes.STORY_NOT_FOUND);
+    if (!story || !story || !story.data) throw CreateError(ErrorCodes.STORY_NOT_FOUND);
 
     const comment = await AddComment({
       user_id: userId,
       story_id: storyId || story.data.id,
       message: message,
-      ...(storyNodeId
-        ? { story_node_id: storyNodeId }
-        : { story_node_id: null }),
+      ...(storyNodeId ? { story_node_id: storyNodeId } : { story_node_id: null }),
     });
 
-    if (!comment || !comment.success)
-      throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
+    if (!comment || !comment.success) throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
 
     return res.status(200).json({
       success: true,
@@ -116,18 +103,12 @@ export async function PutComment(req, res, next) {
 
     // Make sure this comment exist and belong to user;
     const comment = await FindAllComments({ id: commentId });
-    if (!comment || !comment.success || comment.data.length <= 0)
-      throw CreateError(ErrorCodes.ASSET_NOT_FOUND);
-    if (userId !== comment.data[0].user.id)
-      throw CreateError(ErrorCodes.FORBIDDEN);
+    if (!comment || !comment.success || comment.data.length <= 0) throw CreateError(ErrorCodes.ASSET_NOT_FOUND);
+    if (userId !== comment.data[0].user.id) throw CreateError(ErrorCodes.FORBIDDEN);
 
-    const updateComment = await UpdateComment(
-      { id: commentId },
-      { message: message, updated_at: new Date() }
-    );
+    const updateComment = await UpdateComment({ id: commentId }, { message: message, updated_at: new Date() });
 
-    if (!updateComment || !updateComment.success)
-      throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
+    if (!updateComment || !updateComment.success) throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
 
     return res.status(200).json({
       success: true,
@@ -152,19 +133,36 @@ export async function DeleteComment(req, res, next) {
 
     // Make sure comment exist and belong to user
     const comment = await FindAllComments({ id: commentId });
-    if (!comment || !comment.success || comment.data.length <= 0)
-      throw CreateError(ErrorCodes.ASSET_NOT_FOUND);
-    if (userId !== comment.data[0].user.id)
-      throw CreateError(ErrorCodes.FORBIDDEN);
+    if (!comment || !comment.success || comment.data.length <= 0) throw CreateError(ErrorCodes.ASSET_NOT_FOUND);
+    if (userId !== comment.data[0].user.id) throw CreateError(ErrorCodes.FORBIDDEN);
 
     // Soft delete
     const removing = await SoftDeleteComment({ id: commentId });
-    if (!removing || !removing.success)
-      throw CreateError(INTERNAL_SERVER_ERROR);
+    if (!removing || !removing.success) throw CreateError(INTERNAL_SERVER_ERROR);
 
     return res.status(200).json({
       success: true,
       message: "Delete comment successfully",
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function GetCountComment(req, res, next) {
+  try {
+    const storyId = req.params?.storyId;
+    const storyNodeId = req.params?.storyNodeId;
+    if (!storyId && !storyNodeId) throw CreateError(ErrorCodes.BAD_REQUEST);
+
+    const count = await Count({ storyId: storyId, storyNodeId: storyNodeId });
+
+    if (!count || !count.success) throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
+
+    return res.status(200).json({
+      success: true,
+      message: "Get all comments successfully",
+      data: count.data,
     });
   } catch (error) {
     next(error);

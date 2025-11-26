@@ -42,6 +42,32 @@ export async function GetStory(req, res, next) {
             user_id: userId,
           },
         },
+        rating: {
+          where: {
+            is_deleted: false,
+            user_id: userId,
+          },
+          select: {
+            id: true,
+            star: true,
+            message: true,
+            created_at: true,
+            updated_at: true,
+            user: {
+              select: {
+                id: true,
+                name: true,
+                avatar: {
+                  select: {
+                    url: true,
+                    width: true,
+                    height: true,
+                  },
+                },
+              },
+            },
+          },
+        },
       };
     }
 
@@ -52,7 +78,11 @@ export async function GetStory(req, res, next) {
 
     if (!story.data) throw CreateError(ErrorCodes.STORY_NOT_FOUND);
 
-    await GetNewestChapter(story.data.id, 6);
+    // Format story.favourite
+    if (userId) {
+      story.data.favourite = story.data.favourite[0];
+      story.data.rating = story.data.rating[0];
+    }
 
     res.status(200).json({ success: true, message: "Getting story successfully", data: story.data });
   } catch (error) {
@@ -95,10 +125,10 @@ export async function GetCountStories(req, res, next) {
     const where = {
       ...(type && { type: type }),
       ...(authors && {
-        author: { some: { author_id: { in: authors } } },
+        authors: { some: { author_id: { in: authors } } },
       }),
       ...(genres && {
-        genre: { some: { genre: { in: genres } } },
+        genres: { hasEvery: genres },
       }),
       AND: [
         {
@@ -181,10 +211,10 @@ export async function GetAllStories(req, res, next) {
     const where = {
       ...(type && { type: type }),
       ...(authors && {
-        author: { some: { author_id: { in: authors } } },
+        authors: { some: { author_id: { in: authors } } },
       }),
       ...(genres && {
-        genre: { some: { genre: { in: genres } } },
+        genres: { hasEvery: genres },
       }),
       AND: [
         {
@@ -199,7 +229,7 @@ export async function GetAllStories(req, res, next) {
     let select = {};
     if (userId) {
       select = {
-        user_favourite: {
+        favourite: {
           where: {
             is_deleted: false,
             user_id: userId,
@@ -235,13 +265,12 @@ export async function GetAllStories(req, res, next) {
     // use to update favourite story
     if (userId) {
       stories.data.forEach((story) => {
-        if (story.user_favourite[0] && story.user_favourite[0].user_id === userId) {
+        if (story.favourite[0] && story.favourite[0].user_id === userId) {
           story.favourite = {
-            id: story.user_favourite[0].id,
-            user_id: story.user_favourite[0].id,
+            id: story.favourite[0].id,
+            user_id: story.favourite[0].id,
           };
-        }
-        delete story.user_favourite;
+        } else delete story.favourite;
       });
     }
 

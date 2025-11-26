@@ -188,7 +188,6 @@ export const FindStory = async (
     if (!where.id && !where.title) return { success: false, data: null };
     const stories = await FindAllStories(where, select, null, 1, 0, isGettingChildren, isGettingContent, isGettingSummary, isGettingNewestChapter);
 
-    console.log(stories);
     const story = stories.data.at(0);
     return { success: true, data: story };
   } catch (error) {
