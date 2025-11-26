@@ -33,12 +33,17 @@ export async function PostRating(req, res, next) {
       success: true,
       message: "Add new rating successfully",
       data: {
-        story_id: storyId,
-        user_id: userId,
+        story: {
+          id: storyId,
+        },
+        user: {
+          id: userId,
+        },
         rating: {
           id: rating.data.id,
           star: rating.data.star,
           message: rating.data.message,
+          created_at: rating.data.created_at,
         },
       },
     });

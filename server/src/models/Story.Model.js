@@ -98,15 +98,18 @@ export async function GetReview(storyId, number = 1) {
         const contents = node.content;
         for (const content of contents) {
           imageUrl.push(content.image_url);
+          console.log(content);
           if (imageUrl.length >= number) return;
         }
+      } else {
+        await dfs(node.id);
       }
     }
   };
 
   await dfs(null);
 
-  return imageUrl;
+  return imageUrl.slice(0, 4);
 }
 
 export const FindAllStories = async (

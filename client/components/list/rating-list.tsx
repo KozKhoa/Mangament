@@ -1,3 +1,5 @@
+"use client";
+
 import { toast } from "sonner";
 import { useEffect, useState } from "react";
 
@@ -28,9 +30,11 @@ export default function RatingList({ story, elementPerPage = 5, className }: Rat
   const user = auth?.user;
 
   const [page, setPage] = useState<number>(1);
-  const [rating, setRating] = useState<Rating[]>();
+  const [rating, setRating] = useState<Rating[]>([]);
   const [count, setCount] = useState<number>(0);
-  const [params, setParams] = useState<RatingParams | CommentParams>({ sort: "created_at:desc", limit: elementPerPage, page: page });
+  const [params, setParams] = useState<RatingParams>({ sort: "created_at:desc", limit: elementPerPage, page: page });
+  const [isRated, setIsRated] = useState<boolean>(story?.rating ? true : false);
+  const [yourRating, setYourRating] = useState<Rating>();
 
   async function fetchRating() {
     if (!story?.id) return;
@@ -67,6 +71,10 @@ export default function RatingList({ story, elementPerPage = 5, className }: Rat
     if (!res) return toast.warning("Server Error");
     if (!res.success) return toast.warning(res.message);
 
+    fetchRating();
+    setIsRated(true);
+    setYourRating({ ...res.data.rating, user });
+
     return toast.message(res.message);
   }
 
@@ -85,28 +93,31 @@ export default function RatingList({ story, elementPerPage = 5, className }: Rat
 
   useEffect(() => {
     fetchRating();
+    setIsRated(!!story?.rating);
+    setYourRating(story?.rating);
   }, [story]);
 
   return (
-    <div className={`flex flex-col gap-2 ${className}`}>
-      <h2 className="font-bold">Đánh giá</h2>
-      {story?.rating ? (
+    <div className={`flex flex-col gap-1  ${className}`}>
+      <h2 className="font-bold m-auto border-b-2">Đánh giá</h2>
+      {isRated ? (
         <div>
           <h3>Đánh giá của bạn</h3>
-          <RatingBox rating={story.rating}></RatingBox>
+          <RatingBox rating={yourRating}></RatingBox>
         </div>
       ) : (
         <RatingInput onFinish={postRating}></RatingInput>
       )}
 
       <div className="flex flex-col gap-2.5 justify-center ml-2 md:ml-10">
+        <div className="flex flex-row flex-wrap justify-between items-center">
+          <h3>{count} đánh giá khác</h3>
+
+          <FilterRatings onFilter={(e) => updateParams(e, "star")}></FilterRatings>
+        </div>
+
         {count ? (
           <>
-            <div className="flex flex-row flex-wrap justify-between items-center">
-              <h3>{count} đánh giá khác</h3>
-
-              <FilterRatings onFilter={(e) => updateParams(e, "star")}></FilterRatings>
-            </div>
             <div className="flex flex-col gap-2.5">
               {rating?.map((v, i) => (
                 <RatingBox key={i} rating={v}></RatingBox>
@@ -117,7 +128,7 @@ export default function RatingList({ story, elementPerPage = 5, className }: Rat
         ) : (
           <div className="flex flex-col justify-center items-center p-2">
             <h3 className="font-bold">Không có đánh giá nào khác</h3>
-            <p>Hãy trở thành người đánh giá đầu tiên</p>
+            <p>Hãy trở thành người đánh giá đầu tiên hoặc điều chỉnh bộ lọc</p>
           </div>
         )}
       </div>

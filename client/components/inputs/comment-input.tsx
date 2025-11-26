@@ -3,6 +3,7 @@ import { toast } from "sonner";
 
 import StarPicker from "./star-picker";
 import ErrorExclamationIcon from "@/public/error-exclamation.svg";
+import { Stardos_Stencil } from "next/font/google";
 
 interface CommentInputProps {
   onFinish?: (message: string) => void;
@@ -22,6 +23,7 @@ export default function CommentInput({ onFinish, className }: CommentInputProps)
       return toast.message("Your can not leave it blank");
     }
     onFinish?.(text);
+    setText("");
   }
 
   return (

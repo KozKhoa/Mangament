@@ -1,7 +1,6 @@
 "use client";
 
 import StoryCardAllInfo from "@/components/cards/stories/story-card-all-info";
-import RatingCommentBox from "@/components/inputs/rating-comment";
 import StoryNodeList from "@/components/list/story-node-list";
 import storyService from "@/services/story";
 import favouriteService from "@/services/user/favourite";
@@ -15,6 +14,7 @@ import ratingService from "@/services/rating";
 import Rating from "@/types/ratings";
 import RatingList from "@/components/list/rating-list";
 import CommentList from "@/components/list/comment-list";
+import StoryList from "@/components/list/stories-list";
 
 function getParams(params: Params) {
   const rawType = params?.type;
@@ -35,6 +35,7 @@ export default function StoryDetail() {
   const [ratings, setRatings] = useState<Rating[]>();
   const [ratingParams, setRatingParams] = useState<RatingParams>({ sort: "created_at:desc" });
   const [favouriteId, setFavouriteId] = useState<string>(story?.favourite ? story.favourite.id : "");
+  const [recommendStory, setRecommendStory] = useState<Story[]>([]);
 
   async function fetchStory() {
     const storyParams: StoryParams = { id: id, isGettingChildren: true, isGettingSummary: true, type: type };
@@ -48,6 +49,8 @@ export default function StoryDetail() {
     console.log(res.data);
   }
 
+  console.log(review);
+
   async function fetchStoryReview() {
     if (!story) return;
     const res = await storyService.getReview(story?.id);
@@ -58,11 +61,16 @@ export default function StoryDetail() {
     setReview(res.data);
   }
 
-  async function fetchRating() {
-    const res = await ratingService.get(id, ratingParams);
+  async function fetchRecommendStory() {
+    const params: StoryParams = {
+      limit: 100,
+    };
+    const res = await storyService.get(params);
 
     if (!res) return toast.error("Sever error");
     if (!res.success) return toast.warning(res.message);
+
+    setRecommendStory(res.data);
   }
 
   async function addStoryToFavourite(storyId: string) {
@@ -103,6 +111,7 @@ export default function StoryDetail() {
 
   useEffect(() => {
     fetchStory();
+    fetchRecommendStory();
   }, []);
 
   return (
@@ -150,6 +159,11 @@ export default function StoryDetail() {
       <div className="flex flex-col gap-5 w-full h-full p-2.5 border-2 rounded-md">
         <RatingList className="w-full" story={story}></RatingList>
         <CommentList className="w-full" story={story}></CommentList>
+      </div>
+
+      <div className="flex flex-col justify-center items-center">
+        <h2 className="font-bold border-b-2">Gợi ý cho bạn</h2>
+        <StoryList stories={recommendStory}></StoryList>
       </div>
     </div>
   );

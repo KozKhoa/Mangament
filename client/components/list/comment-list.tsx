@@ -65,6 +65,8 @@ export default function CommentList({ story, storyNode, elementPerPage = 5, clas
     if (!res) return toast.warning("Server Error");
     if (!res.success) return toast.warning(res.message);
 
+    fetchComment();
+
     return toast.message(res.message);
   }
 
@@ -86,8 +88,8 @@ export default function CommentList({ story, storyNode, elementPerPage = 5, clas
   }, [story]);
 
   return (
-    <div className={`flex flex-col gap-2 ${className}`}>
-      <h2 className="font-bold">Bình luận</h2>
+    <div className={`flex flex-col gap-1 ${className}`}>
+      <h2 className="font-bold m-auto border-b-2">Bình luận</h2>
 
       <CommentInput onFinish={postComment}></CommentInput>
 

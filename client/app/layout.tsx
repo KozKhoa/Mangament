@@ -44,7 +44,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${afacad.variable}  ${holtwood.variable} antialiased
-        px-2.5 text-size-default font-afacad bg-background relative
+        px-2.5 text-size-default font-afacad bg-background relative max-w-[1700] m-auto
         `}
       >
         <AuthProvider>

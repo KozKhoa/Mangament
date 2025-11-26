@@ -40,11 +40,6 @@ export async function AddRatings(data = { user_id, story_id, star, message }) {
 
     const newRating = await db.rating.create({
       data: data,
-      select: {
-        id: true,
-        star: true,
-        message: true,
-      },
     });
     return { success: true, data: newRating };
   } catch (error) {
