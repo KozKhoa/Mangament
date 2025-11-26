@@ -12,6 +12,7 @@ interface SwitchPageProps {
 }
 
 export default function SwitchPageBig({ page, maxPage, onChange, className }: SwitchPageProps) {
+  if (!maxPage || isNaN(maxPage)) maxPage = 0;
   const arr20 = useRef(Array.from({ length: maxPage }));
   const arr5 = useRef(Array.from({ length: 5 }));
 
@@ -42,7 +43,7 @@ export default function SwitchPageBig({ page, maxPage, onChange, className }: Sw
         className={`${arrowClassName} ${page === 1 ? "text-gray-300" : "text-foreground hover:border-black cursor-pointer"}`}
         onClick={() => handleChange(page - 1)}
       >
-        <LeftArrowIcon className={`w-6 h-6 ${page === 1 ? "text-gray-300" : "text-foreground"}`}></LeftArrowIcon>
+        <LeftArrowIcon className={`w-6 h-6 ${page <= 1 ? "text-gray-300" : "text-foreground"}`}></LeftArrowIcon>
       </button>
 
       {/* Button choose page index */}
@@ -148,7 +149,7 @@ export default function SwitchPageBig({ page, maxPage, onChange, className }: Sw
 
       {/* Right arrow button */}
       <button className={arrowClassName} onClick={() => handleChange(page + 1)}>
-        <RightArrowIcon className={`w-6 h-6 ${page === maxPage ? "text-gray-300" : "text-foreground"}`}></RightArrowIcon>
+        <RightArrowIcon className={`w-6 h-6 ${page >= maxPage ? "text-gray-300" : "text-foreground"}`}></RightArrowIcon>
       </button>
     </div>
   );

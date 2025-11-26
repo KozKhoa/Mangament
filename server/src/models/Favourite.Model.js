@@ -1,11 +1,6 @@
 import db from "../configs/db.js";
 
-export async function FindAllFavouriteStories(
-  where = { id, user_id },
-  orderBy,
-  take = 1,
-  skip = 0
-) {
+export async function FindAllFavouriteStories(where = { id, user_id }, orderBy, take = 1, skip = 0) {
   try {
     const favouriteStories = await db.favouriteStory.findMany({
       where: { is_deleted: false, ...where },
@@ -33,16 +28,21 @@ export async function FindAllFavouriteStories(
     if (!favouriteStories) return { success: false, data: null };
     return { success: true, data: favouriteStories };
   } catch (error) {
-    console.error(
-      "❌ [User.Model.js] Error finding all favourite stories:",
-      error
-    );
+    console.error("❌ [User.Model.js] Error finding all favourite stories:", error);
     return { success: false, error: error.code };
   }
 }
 
 export async function AddFavouriteStory(data = { user_id, story_id }) {
   try {
+    const isExist = await db.favouriteStory.findFirst({ where: { user_id: data.user_id, story_id: data.story_id } });
+    if (isExist) {
+      return {
+        success: true,
+        data: await db.favouriteStory.update({ where: { id: isExist.id }, data: { is_deleted: false } }),
+      };
+    }
+
     const favouriteStory = await db.favouriteStory.create({
       data: {
         user: {
@@ -64,10 +64,7 @@ export async function AddFavouriteStory(data = { user_id, story_id }) {
   } catch (error) {
     if (error.code !== "P2002")
       // Unique error => already exist
-      console.error(
-        "❌ [User.Model.js] Error adding new favourite story:",
-        error
-      );
+      console.error("❌ [User.Model.js] Error adding new favourite story:", error);
     return { success: false, error: error.code };
   }
 }
@@ -77,10 +74,7 @@ export async function HardDeleteFavouriteStory(where = { id }) {
     const favouriteStory = await db.favouriteStory.delete({ where: where });
     return { success: true, data: favouriteStory };
   } catch (error) {
-    console.error(
-      "❌ [User.Model.js] Error hard delete favourite story:",
-      error
-    );
+    console.error("❌ [User.Model.js] Error hard delete favourite story:", error);
     return { success: false, error: error.code };
   }
 }
@@ -88,8 +82,7 @@ export async function HardDeleteFavouriteStory(where = { id }) {
 export async function SoftDeleteFavouriteStory(where = { id }) {
   try {
     const favouriteStory = await FindAllFavouriteStories({ id: where.id });
-    if (!favouriteStory || !favouriteStory.success || !favouriteStory.data)
-      return { success: false, data: null };
+    if (!favouriteStory || !favouriteStory.success || !favouriteStory.data) return { success: false, data: null };
 
     const result = await db.favouriteStory.update({
       where: where,
@@ -97,10 +90,7 @@ export async function SoftDeleteFavouriteStory(where = { id }) {
     });
     return { success: true, data: result };
   } catch (error) {
-    console.error(
-      "❌ [User.Model.js] Error soft delete favourite story:",
-      error
-    );
+    console.error("❌ [User.Model.js] Error soft delete favourite story:", error);
     return { success: false, error: error.code };
   }
 }
@@ -108,8 +98,7 @@ export async function SoftDeleteFavouriteStory(where = { id }) {
 export async function UpdateFavouriteStory(where = { id }, data) {
   try {
     const favouriteStory = await FindAllFavouriteStories({ id: where.id });
-    if (!favouriteStory || !favouriteStory.success || !favouriteStory.data)
-      return { success: false, data: null };
+    if (!favouriteStory || !favouriteStory.success || !favouriteStory.data) return { success: false, data: null };
 
     const updating = await db.favouriteStory.update({
       where: where,

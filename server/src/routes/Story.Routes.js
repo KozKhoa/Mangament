@@ -9,13 +9,14 @@ import {
   GetCountStories,
   GetRandomStory,
   GetStory,
+  GetStoryReview,
   PostStory,
   PutStory,
 } from "../controllers/Story.Controller.js";
 
 import { AuthenticationToken, AuthorizationRole, OptionalAuth } from "../middlewares/Auth.Middleware.js";
-import { DeleteComment, GetAllComments, PostComment, PutComment } from "../controllers/Comment.Controller.js";
-import { DeleteRating, GetAllRatings, PostRating, PutRating } from "../controllers/Rating.Controller.js";
+import { DeleteComment, GetAllComments, GetCountComment, PostComment, PutComment } from "../controllers/Comment.Controller.js";
+import { DeleteRating, GetAllRatings, GetCountRating, PostRating, PutRating } from "../controllers/Rating.Controller.js";
 
 const saveLocation = "uploads/image";
 
@@ -33,6 +34,7 @@ const storyRoute = express.Router();
 // Story
 storyRoute.get("/random", OptionalAuth, GetRandomStory);
 storyRoute.get("/count", GetCountStories);
+storyRoute.get("/:id/review", GetStoryReview);
 storyRoute.get("/:id", OptionalAuth, GetStory);
 storyRoute.get("/", OptionalAuth, GetAllStories);
 storyRoute.patch("/:id/view", AddOneViewForStory);
@@ -42,12 +44,14 @@ storyRoute.delete("/:id", AuthenticationToken, AuthorizationRole, DeleteStory);
 
 // Comment
 storyRoute.post("/:storyId/comments", AuthenticationToken, PostComment);
+storyRoute.get("/:storyId/comments/count", GetCountComment);
 storyRoute.get("/:storyId/comments", GetAllComments);
 storyRoute.put("/comments/:id", AuthenticationToken, PutComment);
 storyRoute.delete("/comments/:id", AuthenticationToken, DeleteComment);
 
 // Rating
 storyRoute.post("/:id/ratings", AuthenticationToken, PostRating);
+storyRoute.get("/:id/ratings/count", GetCountRating);
 storyRoute.get("/:id/ratings", GetAllRatings);
 storyRoute.put("/ratings/:id", AuthenticationToken, PutRating);
 storyRoute.delete("/ratings/:id", AuthenticationToken, DeleteRating);

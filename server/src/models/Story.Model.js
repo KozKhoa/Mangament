@@ -72,6 +72,45 @@ export async function GetNewestChapter(storyId, number) {
   return result;
 }
 
+export async function GetReview(storyId, number = 1) {
+  const imageUrl = [];
+
+  const dfs = async (parentId) => {
+    const nodes = await db.storyNode.findMany({
+      where: {
+        parent_id: parentId,
+        story_id: storyId,
+      },
+      orderBy: {
+        order_index: "asc",
+      },
+      select: {
+        id: true,
+        type: true,
+        story_id: true,
+        parent_id: true,
+        content: true,
+      },
+    });
+
+    for (const node of nodes) {
+      if (node.type === "chapter") {
+        const contents = node.content;
+        for (const content of contents) {
+          imageUrl.push(content.image_url);
+          if (imageUrl.length >= number) return;
+        }
+      } else {
+        await dfs(node.id);
+      }
+    }
+  };
+
+  await dfs(null);
+
+  return imageUrl.slice(0, 4);
+}
+
 export const FindAllStories = async (
   where = {},
   select = {},
@@ -107,14 +146,14 @@ export const FindAllStories = async (
           ...(isGettingSummary && {
             summary: true,
           }),
-          author: {
+          authors: {
             select: {
               author: {
                 select: { id: true, name: true },
               },
             },
           },
-          genre: true,
+          genres: true,
           cover_art: {
             select: { url: true, width: true, height: true },
           },
@@ -123,8 +162,8 @@ export const FindAllStories = async (
     });
 
     for (const story of stories) {
-      story.author = story.author.map((author) => author.author);
-      story.genre = story.genre.map((genre) => genre.genre);
+      story.authors = story.authors.map((author) => author.author);
+      // story.genre = story.genre.map((genre) => genre.genre);
       if (isGettingChildren) story.children = await GetStoryTree(story.id, null, isGettingContent);
       if (isGettingNewestChapter) {
         story.newest_chapter = await GetNewestChapter(story.id, 5);
@@ -149,8 +188,9 @@ export const FindStory = async (
 ) => {
   try {
     if (!where.id && !where.title) return { success: false, data: null };
-    const story = (await FindAllStories(where, select, null, 1, 0, isGettingChildren, isGettingContent, isGettingSummary, isGettingNewestChapter)).data[0];
+    const stories = await FindAllStories(where, select, null, 1, 0, isGettingChildren, isGettingContent, isGettingSummary, isGettingNewestChapter);
 
+    const story = stories.data.at(0);
     return { success: true, data: story };
   } catch (error) {
     console.error("❌ [Story.Model.js] Error finding story: ", error);
@@ -184,15 +224,11 @@ export const AddStory = async (data = { title, type }) => {
         cover_art: {
           select: { url: true, width: true, height: true },
         },
-        genre: {
-          select: {
-            genre: true,
-          },
-        },
+        genre: true,
       },
     });
 
-    newStory.genre = newStory.genre.map((genre) => genre.genre);
+    // newStory.genre = newStory.genre.map((genre) => genre.genre);
     return { success: true, data: newStory };
   } catch (error) {
     console.error("❌ [Story.Model.js] Error adding story: ", error);
@@ -256,5 +292,10 @@ export const UpdateStory = async (where = { id, title }, data) => {
 };
 
 export async function CountStory(where = {}) {
-  return await db.story.count({ where: where });
+  try {
+    return { success: true, data: await db.story.count({ where: { is_deleted: false, ...where } }) };
+  } catch (error) {
+    if (error.code !== "P2025") console.error("❌ [Rating.Model.js] Error updating rating:", error);
+    return { success: false, error: error.code };
+  }
 }

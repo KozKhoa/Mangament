@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef } from "react";
 
-import NavBar from "@/components/layouts/navbar/navbar";
+import NavBar from "@/components/layouts/navbar";
 import Switch from "@/components/switchs/switch";
 import SearchBar from "@/components/inputs/search";
 import ButtonExpandable from "@/components/buttons/expandable/btn-expandable";
@@ -53,7 +53,7 @@ export default function Home() {
         Register page
       </Link>
 
-      <StoryGrid label="Manga" storyType="manga" elementsPerPage={18}></StoryGrid>
+      <StoryGrid label="Manga" storyType="manga" elementsPerPage={4}></StoryGrid>
 
       <Input type="password" label={"Email"} placeHolder="Placeholder" error="error"></Input>
 

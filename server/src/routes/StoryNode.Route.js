@@ -2,10 +2,7 @@ import express from "express";
 import multer from "multer";
 import path from "path";
 
-import {
-  AuthenticationToken,
-  AuthorizationRole,
-} from "../middlewares/Auth.Middleware.js";
+import { AuthenticationToken, AuthorizationRole } from "../middlewares/Auth.Middleware.js";
 import {
   DeleteStoryNode,
   GetStoryNode,
@@ -14,12 +11,7 @@ import {
   PostStoryNode,
   PutStoryNode,
 } from "../controllers/StoryNode.Controller.js";
-import {
-  DeleteComment,
-  GetAllComments,
-  PostComment,
-  PutComment,
-} from "../controllers/Comment.Controller.js";
+import { DeleteComment, GetAllComments, GetCountComment, PostComment, PutComment } from "../controllers/Comment.Controller.js";
 
 const saveLocation = "uploads/image";
 
@@ -36,29 +28,14 @@ const storyNodeRoute = express.Router();
 
 storyNodeRoute.get("/:id", GetStoryNode);
 storyNodeRoute.post("/", AuthenticationToken, AuthorizationRole, PostStoryNode);
-storyNodeRoute.put(
-  "/:id",
-  AuthenticationToken,
-  AuthorizationRole,
-  PutStoryNode
-);
-storyNodeRoute.patch(
-  "/:id/content",
-  AuthenticationToken,
-  AuthorizationRole,
-  upload.array("images", 200),
-  PatchStoryNodeContent
-);
-storyNodeRoute.delete(
-  "/:id",
-  AuthenticationToken,
-  AuthorizationRole,
-  DeleteStoryNode
-);
+storyNodeRoute.put("/:id", AuthenticationToken, AuthorizationRole, PutStoryNode);
+storyNodeRoute.patch("/:id/content", AuthenticationToken, AuthorizationRole, upload.array("images", 200), PatchStoryNodeContent);
+storyNodeRoute.delete("/:id", AuthenticationToken, AuthorizationRole, DeleteStoryNode);
 storyNodeRoute.patch("/:id/view", IncreaseOneViewForStoryNode);
 
 // Comment
 storyNodeRoute.get("/:storyNodeId/comments", GetAllComments);
+storyNodeRoute.get("/:storyNodeId/comments/count", GetCountComment);
 storyNodeRoute.post("/:storyNodeId/comments", AuthenticationToken, PostComment);
 storyNodeRoute.put("/comments/:id", AuthenticationToken, PutComment);
 storyNodeRoute.delete("/comments/:id", AuthenticationToken, DeleteComment);

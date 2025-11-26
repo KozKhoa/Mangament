@@ -1,6 +1,6 @@
 import count from "./count";
-import get from "./get";
+import get, { getReview } from "./get";
 
-const storyService = { get, count };
+const storyService = { get, getReview, count };
 
 export default storyService;

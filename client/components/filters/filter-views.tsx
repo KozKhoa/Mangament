@@ -56,7 +56,6 @@ export default function FilterViews({ onFilter, isReset, className }: FilterView
     VIEWS.forEach((view) => {
       view.isChecked = false;
     });
-    onFilter?.(VIEWS);
   }, [isReset]);
 
   return (

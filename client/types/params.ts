@@ -13,3 +13,18 @@ export interface StoryParams {
   isGettingNewestChapter?: boolean;
   isGettingSummary?: boolean;
 }
+
+export interface RatingParams {
+  page?: number;
+  limit?: number;
+
+  sort?: string;
+  star?: string;
+}
+
+export interface CommentParams {
+  page?: number;
+  limit?: number;
+
+  sort?: string;
+}

@@ -11,7 +11,7 @@ import HeartIcon from "@/public/heart.svg";
 import { beautifulView } from "@/utils/beautiful";
 import { capitalizeFirstChar } from "@/utils/string";
 
-import StarForRating from "@/components/ratings/start-rating";
+import DisplayStar from "@/components/displays/ratings/display-star";
 
 import useAuth from "@/contexts/AuthContext";
 
@@ -23,7 +23,7 @@ interface StoryCardProps {
   className?: string;
 }
 
-function StoryCard({ story, newestChapter, className }: StoryCardProps) {
+export default function StoryCard({ story, newestChapter, className }: StoryCardProps) {
   const auth = useAuth();
   const user = auth?.user;
   const router = useRouter();
@@ -118,7 +118,7 @@ function StoryCard({ story, newestChapter, className }: StoryCardProps) {
         <div className="flex flex-wrap gap-x-2.5 justify-start items-center">
           <div className="flex  justify-center items-center gap-1">
             <div className="flex justify-center items-center">
-              <StarForRating rating={story.star || 0}></StarForRating>
+              <DisplayStar rating={story.star || 0}></DisplayStar>
             </div>
             <p className="">{story?.star}</p>
           </div>
@@ -139,5 +139,3 @@ function StoryCard({ story, newestChapter, className }: StoryCardProps) {
     </div>
   );
 }
-
-export default StoryCard;

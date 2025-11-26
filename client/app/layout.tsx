@@ -5,8 +5,8 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { Toaster } from "sonner";
 import "./globals.css";
 
-import NavBar from "@/components/layouts/navbar/navbar";
-import Footer from "@/components/layouts/footer/footer";
+import NavBar from "@/components/layouts/navbar";
+import Footer from "@/components/layouts/footer";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -44,7 +44,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${afacad.variable}  ${holtwood.variable} antialiased
-        px-2.5 text-size-default font-afacad bg-background relative
+        px-2.5 text-size-default font-afacad bg-background relative max-w-[1700] m-auto
         `}
       >
         <AuthProvider>

@@ -3,7 +3,7 @@ import Story from "@/types/story";
 import { beautifulView } from "@/utils/beautiful";
 import { capitalizeWords, capitalizeFirstChar, snakeCaseToCapitalizeWord } from "@/utils/string";
 
-import StarForRating from "@/components/ratings/start-rating";
+import DisplayStar from "@/components/displays/ratings/display-star";
 import StatusTag from "@/components/tags/status-tag";
 import Tag from "@/components/tags/tag";
 import Loading from "@/components/loadings/loading";
@@ -50,7 +50,7 @@ export default function StoryCardAllInfo({ story, className }: StoryCardAllInfoP
                 <div className={labelContainerStyle}>
                   <p className={subLabelStyle}>Đánh giá:</p>
                   <div className="flex justify-center items-center gap-2">
-                    <StarForRating rating={story?.star || 0}></StarForRating>
+                    <DisplayStar rating={story?.star || 0}></DisplayStar>
                     <p className="">{story?.star}</p>
                   </div>
                 </div>

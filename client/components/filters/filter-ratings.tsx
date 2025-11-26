@@ -43,7 +43,6 @@ export default function FilterRatings({ onFilter, isReset }: FilterRatingsProps)
     RATINGS.forEach((rating) => {
       rating.isChecked = false;
     });
-    onFilter?.(RATINGS);
   }, [isReset]);
 
   return (

@@ -85,20 +85,3 @@ export default function FilterSort({ onChange, isResetAll, className }: FilterSo
     </div>
   );
 }
-
-// const displayOptionChecked = (options: OptionItem[]) => {
-//   let result = "";
-//   options.forEach((op, i) => {
-//     if (op.isChecked) {
-//       let temp = "";
-//       if (result === "") result = result + ": ";
-//       else temp = ", " + temp;
-
-//       temp = temp + op.label;
-
-//       result = result + temp;
-//     }
-//   });
-
-//   return result;
-// };

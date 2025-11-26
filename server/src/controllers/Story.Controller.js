@@ -5,13 +5,25 @@ import { ValidateStoryType, ValidateStoryStatus } from "../models/Enum.Model.js"
 
 import { AddManyStoryGenres, HardDeleteStoryGenre, ValidateGenre } from "../models/Genre.Model.js";
 import { AddImage, UpdateImage } from "../models/Image.Model.js";
-import { FindAllStories, FindStory, UpdateStory, AddStory, SoftDeleteStory, CountStory, GetNewestChapter } from "../models/Story.Model.js";
+import {
+  FindAllStories,
+  FindStory,
+  UpdateStory,
+  AddStory,
+  SoftDeleteStory,
+  CountStory,
+  GetNewestChapter,
+  GetStoryTree,
+  GetReview,
+} from "../models/Story.Model.js";
 
 import { CreateNewFolder, IsFileExist, MoveFile, SoftRemoveFile } from "../utils/FileHandle.js";
 import DIRECTORY from "../constants/Directory.js";
 
 export async function GetStory(req, res, next) {
   try {
+    const userId = req.user?.id;
+
     const storyId = req?.params?.id;
     const isGettingChildren = req.query?.isGettingChildren == "true" ? true : false;
     const isGettingContent = req.query?.isGettingContent == "true" ? true : false;
@@ -21,20 +33,72 @@ export async function GetStory(req, res, next) {
     // Check user request
     if (!storyId) throw CreateError(ErrorCodes.BAD_REQUEST);
 
-    const story = await FindStory({ id: storyId }, {}, isGettingChildren, isGettingContent, isGettingSummary, isGettingNewestChapter);
+    let select = {};
+    if (userId) {
+      select = {
+        favourite: {
+          where: {
+            is_deleted: false,
+            user_id: userId,
+          },
+        },
+        rating: {
+          where: {
+            is_deleted: false,
+            user_id: userId,
+          },
+          select: {
+            id: true,
+            star: true,
+            message: true,
+            created_at: true,
+            updated_at: true,
+            user: {
+              select: {
+                id: true,
+                name: true,
+                avatar: {
+                  select: {
+                    url: true,
+                    width: true,
+                    height: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      };
+    }
+
+    const story = await FindStory({ id: storyId }, select, isGettingChildren, isGettingContent, isGettingSummary, isGettingNewestChapter);
 
     // If server not return anything or return success = false => fail to find story
     if (!story || !story.success) throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
 
     if (!story.data) throw CreateError(ErrorCodes.STORY_NOT_FOUND);
 
-    await GetNewestChapter(story.data.id, 6);
+    // Format story.favourite
+    if (userId) {
+      story.data.favourite = story.data.favourite[0];
+      story.data.rating = story.data.rating[0];
+    }
 
-    res.status(200).json({
-      success: true,
-      message: "Getting story successfully",
-      data: story.data,
-    });
+    res.status(200).json({ success: true, message: "Getting story successfully", data: story.data });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function GetStoryReview(req, res, next) {
+  try {
+    const storyId = req.params?.id;
+
+    if (!storyId) throw CreateError(ErrorCodes.BAD_REQUEST);
+
+    const review = await GetReview(storyId, 4);
+
+    return res.status(200).json({ success: true, message: "Get story review successfully ", data: review });
   } catch (error) {
     next(error);
   }
@@ -61,10 +125,10 @@ export async function GetCountStories(req, res, next) {
     const where = {
       ...(type && { type: type }),
       ...(authors && {
-        author: { some: { author_id: { in: authors } } },
+        authors: { some: { author_id: { in: authors } } },
       }),
       ...(genres && {
-        genre: { some: { genre: { in: genres } } },
+        genres: { hasEvery: genres },
       }),
       AND: [
         {
@@ -76,7 +140,7 @@ export async function GetCountStories(req, res, next) {
       ],
     };
 
-    const count = await CountStory(where);
+    const count = (await CountStory(where)).data;
 
     return res.status(200).json({
       success: true,
@@ -99,7 +163,7 @@ export async function GetRandomStory(req, res, next) {
     const isGettingContent = req.query?.isGettingContent == "true" ? true : false;
     const isGettingSummary = req.query?.isGettingSummary == "true" ? true : false;
 
-    const count = await CountStory();
+    const count = (await CountStory()).data;
     const random = parseInt(((Math.random() * count * 100) % count) + 1);
 
     const story = await FindAllStories({ ...(storyType && { type: storyType }) }, {}, 1, random - 1, isGettingChildren, isGettingContent, isGettingSummary);
@@ -147,10 +211,10 @@ export async function GetAllStories(req, res, next) {
     const where = {
       ...(type && { type: type }),
       ...(authors && {
-        author: { some: { author_id: { in: authors } } },
+        authors: { some: { author_id: { in: authors } } },
       }),
       ...(genres && {
-        genre: { some: { genre: { in: genres } } },
+        genres: { hasEvery: genres },
       }),
       AND: [
         {
@@ -165,7 +229,7 @@ export async function GetAllStories(req, res, next) {
     let select = {};
     if (userId) {
       select = {
-        user_favourite: {
+        favourite: {
           where: {
             is_deleted: false,
             user_id: userId,
@@ -201,13 +265,12 @@ export async function GetAllStories(req, res, next) {
     // use to update favourite story
     if (userId) {
       stories.data.forEach((story) => {
-        if (story.user_favourite[0] && story.user_favourite[0].user_id === userId) {
+        if (story.favourite[0] && story.favourite[0].user_id === userId) {
           story.favourite = {
-            id: story.user_favourite[0].id,
-            user_id: story.user_favourite[0].id,
+            id: story.favourite[0].id,
+            user_id: story.favourite[0].id,
           };
-        }
-        delete story.user_favourite;
+        } else delete story.favourite;
       });
     }
 

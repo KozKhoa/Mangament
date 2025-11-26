@@ -1,22 +1,22 @@
 "use client";
 
+import { toast } from "sonner";
 import { useEffect, useRef, useState } from "react";
-
 import { useRouter } from "next/navigation";
 
 import SwitchPageBig from "../switch-page/big";
 import SwitchPageSmall from "../switch-page/small";
 import FilterSort from "../list/filter-sort";
-import storyService from "@/services/story";
-import Story from "@/types/story";
 import StoryCard from "../cards/stories/story-card";
 import StoryInfoCard from "../cards/stories/story-info-card";
-import { convertNewestChapter } from "@/utils/convert";
-import NewestChapter from "@/types/newest-chapter";
-import { StoryParams } from "@/types/params";
-import { li } from "framer-motion/client";
-import { toast } from "sonner";
 import Loading from "../loadings/loading";
+
+import { convertNewestChapter } from "@/utils/convert";
+
+import storyService from "@/services/story";
+import { StoryParams } from "@/types/params";
+import NewestChapter from "@/types/newest-chapter";
+import Story from "@/types/story";
 
 interface StoryGridProps {
   label: string;
@@ -74,7 +74,7 @@ export default function StoryGrid({ label, storyType, elementsPerPage, className
     };
 
     const res = await storyService.count({
-      ...params,
+      ...storyParams,
       ...{ type: storyType },
     });
     const count = res.data.count;

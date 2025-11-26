@@ -152,7 +152,7 @@ function NavBar({ duration = 100, className }: NavBarProps) {
       </div>
 
       <button
-        className={` w-12 h-12 flex justify-center items-center border rounded-sm fixed bottom-3 right-3 p-3 z-50`}
+        className={` w-12 h-12 flex justify-center items-center border rounded-sm fixed bottom-4 right-4   p-3 z-50`}
         onClick={(e) => {
           window.scrollTo({ top: 0, behavior: "smooth" });
         }}
