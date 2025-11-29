@@ -1,27 +1,35 @@
 "use client";
 
-import { useParams } from "next/navigation";
-import { Params } from "next/dist/server/request/params";
-import useApp from "@/contexts/AppContext";
-import FontSelection from "@/components/selections/font-selection";
-import { useEffect, useState } from "react";
-import storyNodeService from "@/services/stroy-node";
-import { StoryNodeParams, StoryParams } from "@/types/params";
+import path from "path";
 import { toast } from "sonner";
-import StoryNode from "@/types/story-node";
-import { capitalizeWords } from "@/utils/string";
-import Story from "@/types/story";
-import storyService from "@/services/story";
-
-import ArrowRightIcon from "@/public/arrows/right-v.svg";
-import ArrowLeftIcon from "@/public/arrows/left-v.svg";
-import StoryNodeList from "@/components/list/story-node-list";
-import ButtonDropdown from "@/components/buttons/dropdown/btn-dropdown";
+import { useParams } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { Params } from "next/dist/server/request/params";
+
+import useApp from "@/contexts/AppContext";
+
+import storyService from "@/services/story";
+import storyNodeService from "@/services/story-node";
 import favouriteService from "@/services/user/favourite";
+
+import Story from "@/types/story";
+import StoryNode from "@/types/story-node";
+import { StoryNodeParams, StoryParams } from "@/types/params";
+
+import ArrowLeftIcon from "@/public/arrows/left-v.svg";
+import ArrowRightIcon from "@/public/arrows/right-v.svg";
+
 import Button from "@/components/buttons/button";
+import CommentList from "@/components/list/comment-list";
 import NumberInput from "@/components/inputs/number-input";
-import { s } from "framer-motion/client";
+import StoryNodeList from "@/components/list/story-node-list";
+import RecommendStories from "@/components/list/recommend-story";
+import FontSelection from "@/components/selections/font-selection";
+
+import { sleep } from "@/utils/others";
+import { capitalizeWords, snakeCaseToCapitalizeWord } from "@/utils/string";
 
 function getParams(params: Params) {
   const storyId = Array.isArray(params.id) ? params.id[0] : params.id ?? "";
@@ -49,8 +57,71 @@ function getParams(params: Params) {
   return { storyParams, storyNodeParams };
 }
 
+async function updateOneViewForStory(storyId: string) {
+  await sleep(10000); // one udpate view immediately due to auto reload prevent
+  const res = await storyService.addOneView(storyId);
+
+  if (!res) return toast.warning("Server Error");
+  if (!res.success) toast.warning(res.message);
+
+  return res.data;
+}
+
+async function updateOneViewForStoryNode(storyNode: StoryNode[]) {
+  await sleep(10000); // one udpate view immediately due to auto reload prevent
+  for (const node of storyNode) {
+    const res = await storyNodeService.addOneView(node.id);
+
+    if (!res) return toast.warning("Server Error");
+    if (!res.success) toast.warning(res.message);
+
+    return res.data;
+  }
+}
+
+function getNextChapter(storyNode?: StoryNode[], currentChapter?: StoryNode): StoryNode | null {
+  let isAtCurrentChapter = false;
+
+  function dfs(storyNode?: StoryNode[], currentChapter?: StoryNode): StoryNode | null {
+    if (!storyNode || !storyNode.length) return null;
+
+    for (const node of storyNode) {
+      if (isAtCurrentChapter && node.type === "chapter") return node;
+      if (node.id === currentChapter?.id) isAtCurrentChapter = true;
+
+      const nextChapter = dfs(node.children, currentChapter);
+      if (nextChapter) return nextChapter;
+    }
+
+    return null;
+  }
+
+  return dfs(storyNode, currentChapter);
+}
+
+function getPreviousChapter(storyNode?: StoryNode[], currentChapter?: StoryNode): StoryNode | null {
+  let previousChapter: StoryNode | null = null;
+
+  function dfs(storyNode?: StoryNode[], currentChapter?: StoryNode): StoryNode | null {
+    if (!storyNode || !storyNode.length) return null;
+
+    for (const node of storyNode) {
+      if (node.id === currentChapter?.id) return previousChapter;
+      if (node.type === "chapter") previousChapter = node;
+
+      const prevChapter = dfs(node.children, currentChapter);
+      if (prevChapter) return prevChapter;
+    }
+
+    return null;
+  }
+
+  return dfs(storyNode, currentChapter);
+}
+
 export default function StoryNodeReading() {
   const params = useParams();
+  const router = useRouter();
 
   const app = useApp();
 
@@ -58,14 +129,12 @@ export default function StoryNodeReading() {
 
   const { type, id, order_index } = storyNodeParams[storyNodeParams.length - 1];
 
-  const [openStoryNodeList, setOpenStoryNodeList] = useState<boolean>(false);
   const [story, setStory] = useState<Story>();
   const [storyNode, setStoryNode] = useState<StoryNode>();
-  const [chapterIndex, setChapterIndex] = useState<number>(Number(order_index));
+  const [openStoryNodeList, setOpenStoryNodeList] = useState<boolean>(false);
   const [favouriteId, setFavouriteId] = useState<string>(story?.favourite ? story.favourite.id : "");
 
   const content = storyNode?.content;
-  console.log(content);
 
   async function fetchStoryNode() {
     const params: StoryNodeParams = {
@@ -125,11 +194,27 @@ export default function StoryNodeReading() {
     }
   }
 
-  function handleNavigateStoryNode() {}
+  function handleNavigateStoryNode(storyNode?: StoryNode) {
+    if (!storyNode || storyNode.type !== "chapter") return;
+
+    let routeDir = "";
+
+    storyNodeParams.pop();
+    storyNodeParams.push(storyNode);
+
+    console.log(storyNodeParams);
+
+    storyNodeParams.forEach((node, i) => (routeDir = path.join(routeDir, node.type, node.order_index.toString(), node.id)));
+    router.push(path.join(`/story/${story?.type}/${story?.id}/`, routeDir));
+  }
 
   useEffect(() => {
     fetchStoryNode();
     fetchStory();
+    updateOneViewForStory(storyParams?.id);
+    updateOneViewForStoryNode(storyNodeParams);
+
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
 
   useEffect(() => {
@@ -142,7 +227,7 @@ export default function StoryNodeReading() {
       <div className="flex flex-row flex-wrap justify-around gap-2">
         <div>
           <h3 className="font-bold">
-            [{capitalizeWords(story?.type ?? "")}] {story?.title}
+            [{snakeCaseToCapitalizeWord(story?.type ?? "")}] {story?.title}
           </h3>
           <div className="flex flex-row flex-wrap gap-1">
             {storyNodeParams.map((node, i) => (
@@ -158,11 +243,15 @@ export default function StoryNodeReading() {
           </div>
         </div>
         <div className="flex flex-row gap-3 justify-center items-center">
-          <ArrowLeftIcon className="w-6 h-6 cursor-pointer"></ArrowLeftIcon>
+          <div onClick={() => handleNavigateStoryNode(getPreviousChapter(story?.children, storyNode) ?? undefined)}>
+            <ArrowLeftIcon className="w-6 h-6 cursor-pointer"></ArrowLeftIcon>
+          </div>
           <h3 className=" cursor-pointer" onClick={() => setOpenStoryNodeList(!openStoryNodeList)}>
             {capitalizeWords(storyNode?.type ?? "")} {storyNode?.order_index}
           </h3>
-          <ArrowRightIcon className="w-6 h-6 cursor-pointer"></ArrowRightIcon>
+          <div onClick={() => handleNavigateStoryNode(getNextChapter(story?.children, storyNode) ?? undefined)}>
+            <ArrowRightIcon className="w-6 h-6 cursor-pointer"></ArrowRightIcon>
+          </div>
         </div>
         <AnimatePresence>
           {openStoryNodeList && (
@@ -175,7 +264,7 @@ export default function StoryNodeReading() {
             >
               <StoryNodeList
                 className="bg-background shadow-2xs"
-                onClickItem={handleNavigateStoryNode}
+                onClickItem={(nodeList) => handleNavigateStoryNode(nodeList.at(nodeList.length - 1))}
                 storyNodes={story?.children}
                 size={story?.number_of_chidren}
               ></StoryNodeList>
@@ -196,7 +285,7 @@ export default function StoryNodeReading() {
       </div>
 
       {/* Main content */}
-      <div>
+      <div className="flex flex-col gap-3">
         {/* Main header */}
         <div className="flex flex-row flex-wrap gap-5  justify-center">
           <FontSelection onChange={(fontId) => app?.updateReadingFont(fontId)} defaultValue={app?.readingFont}></FontSelection>
@@ -215,20 +304,49 @@ export default function StoryNodeReading() {
           style={{
             fontSize: app?.readingTextSize + "px",
             fontFamily: capitalizeWords(app?.readingFont ?? ""),
+            lineHeight: app?.readingLineSpacing + "px",
           }}
-          className="w-full"
         >
           {content?.map((con, i) => (
-            <div key={i} className="w-full">
-              {con.type === "image" && (
-                <div className="w-full">
-                  <img className="w-full" src={con.image_url}></img>
-                  <img className="object-cover rounded-[5]" src={process.env.NEXT_PUBLIC_API_URL + "uploads/story/" + con.image_url} alt="Cover Art"></img>
-                </div>
+            <div key={i} className="flex flex-col justify-center items-center gap-1 w-full">
+              {con.type === "image" ? (
+                <img className="object-cover rounded-sm w-full" src={process.env.NEXT_PUBLIC_API_URL + "uploads/story/" + con.image_url} alt="Cover Art"></img>
+              ) : con.type === "title" ? (
+                <p className="w-full text-center font-bold text-[1.8em]">{con.content}</p>
+              ) : con.type === "header" ? (
+                con.level == 1 ? (
+                  <p className="w-full text-start font-semibold text-[1.5em]">{con.content}</p>
+                ) : con.level == 2 ? (
+                  <p className="w-full text-start font-semibold text-[1.2em]">{con.content}</p>
+                ) : (
+                  con.level == 3 && <p className="w-full text-start italic text-[1em]">{con.content}</p>
+                )
+              ) : (
+                con.type === "text" && <p className="w-full text-start">{con.content}</p>
               )}
             </div>
           ))}
         </div>
+
+        {/* Button switch page */}
+        <div className="flex flex-row gap-2">
+          <div className="flex-1" onClick={() => handleNavigateStoryNode(getPreviousChapter(story?.children, storyNode) ?? undefined)}>
+            <Button className="text-[1.1em] w-full">Chapter trước</Button>
+          </div>
+          <div className="flex-1" onClick={() => handleNavigateStoryNode(getNextChapter(story?.children, storyNode) ?? undefined)}>
+            <Button className="text-[1.1em] w-full">Chapter sau</Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Comment */}
+      <div>
+        <CommentList storyNode={storyNode} elementPerPage={5}></CommentList>
+      </div>
+
+      {/* Recommend */}
+      <div>
+        <RecommendStories></RecommendStories>
       </div>
     </div>
   );

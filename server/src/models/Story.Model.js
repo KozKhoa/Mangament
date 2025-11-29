@@ -96,6 +96,8 @@ export async function GetReview(storyId, number = 1) {
     for (const node of nodes) {
       if (node.type === "chapter") {
         const contents = node.content;
+        if (!contents || contents.length <= 0) return;
+
         for (const content of contents) {
           imageUrl.push(content.image_url);
           if (imageUrl.length >= number) return;
