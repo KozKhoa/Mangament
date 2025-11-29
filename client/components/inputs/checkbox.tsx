@@ -14,22 +14,14 @@ interface CheckBoxProps {
   tabIndex?: number;
 }
 
-function Checkbox({
-  defaultChecked = false,
-  children,
-  className,
-  name,
-  value,
-  onChange,
-  tabIndex,
-}: CheckBoxProps) {
+function Checkbox({ defaultChecked = false, children, className, name, value, onChange, tabIndex }: CheckBoxProps) {
   const handleChange = (checked: boolean) => {
     onChange?.(checked);
   };
   return (
     <label
       className={`flex flex-row relative justify-start items-center gap-2 cursor-pointer w-full h-fit 
-        font-afacad text-foreground bg-background
+          text-foreground bg-background
         ${className}`}
     >
       <input

@@ -32,9 +32,7 @@ function LoginRegisterForm({ type, className }: LoginRegisterProps) {
   const [errorEmail, setErrorEmail] = useState<string | null>("");
   const [errorPassword, setErrorPassword] = useState<string | null>("");
   const [errorUsername, setErrorUsername] = useState<string | null>("");
-  const [errorConfirmPassword, setErrorConfirmPassword] = useState<
-    string | null
-  >("");
+  const [errorConfirmPassword, setErrorConfirmPassword] = useState<string | null>("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault(); // Prevent page from reload after press submit
@@ -73,9 +71,7 @@ function LoginRegisterForm({ type, className }: LoginRegisterProps) {
 
       case "register":
         if (password !== confirmPassword) {
-          setErrorConfirmPassword(
-            "Confirm password must be the same with password"
-          );
+          setErrorConfirmPassword("Confirm password must be the same with password");
           return toast.error("Confirm password must be the same with password");
         } else {
           setErrorConfirmPassword(null);
@@ -107,16 +103,12 @@ function LoginRegisterForm({ type, className }: LoginRegisterProps) {
   return (
     <form
       onSubmit={handleSubmit}
-      className={`bg-background font-afacad text-foreground flex flex-col gap-5 justify-center 
+      className={`bg-background   text-foreground flex flex-col gap-5 justify-center 
         w-full max-w-3xl p-8 pt-5 border-2 rounded-[5] shadow-[11px_13px_5px_rgba(0,0,0,0.3)]
         ${className}
         `}
     >
-      {type === "login" ? (
-        <h2 className="text-[1.8em] text-center ">Đăng nhập</h2>
-      ) : (
-        <h2 className="text-[1.8em] text-center ">Đăng ký</h2>
-      )}
+      {type === "login" ? <h2 className="text-[1.8em] text-center ">Đăng nhập</h2> : <h2 className="text-[1.8em] text-center ">Đăng ký</h2>}
 
       {type === "register" && (
         <Input

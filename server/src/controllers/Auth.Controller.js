@@ -56,6 +56,7 @@ export const Login = async (req, res, next) => {
           name: user.name || "",
           email: email || "",
           role: user.role || "user",
+          avatar: user.avatar,
         },
       },
     });

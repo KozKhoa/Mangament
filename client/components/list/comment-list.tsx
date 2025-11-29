@@ -50,9 +50,6 @@ export default function CommentList({ story, storyNode, elementPerPage = 5, clas
 
     setComments(resComment.data);
     setCount(resCount.data);
-
-    console.log(resCount.data);
-    console.log(resComment.data);
   }
 
   async function postComment(message: string) {

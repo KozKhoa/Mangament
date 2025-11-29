@@ -1,20 +1,25 @@
 "use client";
 
-import StoryCardAllInfo from "@/components/cards/stories/story-card-all-info";
-import StoryNodeList from "@/components/list/story-node-list";
-import storyService from "@/services/story";
-import favouriteService from "@/services/user/favourite";
-import { RatingParams, StoryParams } from "@/types/params";
-import Story from "@/types/story";
 import { Params } from "next/dist/server/request/params";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import ratingService from "@/services/rating";
-import Rating from "@/types/ratings";
+import { useRouter } from "next/navigation";
+
+import storyService from "@/services/story";
+import favouriteService from "@/services/user/favourite";
+
+import StoryCardAllInfo from "@/components/cards/stories/story-card-all-info";
+import StoryNodeList from "@/components/list/story-node-list";
 import RatingList from "@/components/list/rating-list";
 import CommentList from "@/components/list/comment-list";
 import StoryList from "@/components/list/stories-list";
+
+import StoryNode from "@/types/story-node";
+import { StoryParams } from "@/types/params";
+import Story from "@/types/story";
+import useApp from "@/contexts/AppContext";
+import path from "path";
 
 function getParams(params: Params) {
   const rawType = params?.type;
@@ -27,13 +32,13 @@ function getParams(params: Params) {
 }
 
 export default function StoryDetail() {
+  const router = useRouter();
   const params = useParams();
-  const { type, id } = getParams(params);
+  const app = useApp();
 
+  const { type, id } = getParams(params);
   const [story, setStory] = useState<Story>();
   const [review, setReview] = useState<string[]>();
-  const [ratings, setRatings] = useState<Rating[]>();
-  const [ratingParams, setRatingParams] = useState<RatingParams>({ sort: "created_at:desc" });
   const [favouriteId, setFavouriteId] = useState<string>(story?.favourite ? story.favourite.id : "");
   const [recommendStory, setRecommendStory] = useState<Story[]>([]);
 
@@ -46,10 +51,8 @@ export default function StoryDetail() {
     if (!res.success) return toast.warning(res.message);
 
     setStory(res.data);
-    console.log(res.data);
+    app?.setStory(res.data);
   }
-
-  console.log(review);
 
   async function fetchStoryReview() {
     if (!story) return;
@@ -96,12 +99,20 @@ export default function StoryDetail() {
   }
 
   function toggleFavourite() {
-    console.log(favouriteId);
     if (favouriteId) {
       removeStoryFromFavouite(favouriteId);
     } else {
       story && addStoryToFavourite(story?.id);
     }
+  }
+
+  function handleNavigateStoryNode(storyNode: StoryNode[]) {
+    console.log(storyNode);
+    if (storyNode[storyNode.length - 1].type !== "chapter") return;
+
+    let routeDir = "";
+    storyNode.forEach((node, i) => (routeDir = path.join(routeDir, node.type, node.order_index.toString(), node.id)));
+    router.push(path.join(`/story/${type}/${id}/`, routeDir));
   }
 
   useEffect(() => {
@@ -115,7 +126,7 @@ export default function StoryDetail() {
   }, []);
 
   return (
-    <div className="flex flex-col gap-10 font-afacad">
+    <div className="flex flex-col gap-10">
       <div className="flex flex-col lg:flex-row gap-5">
         {/* Story info */}
         <div className="lg:flex-1 flex flex-col gap-3">
@@ -138,7 +149,7 @@ export default function StoryDetail() {
         </div>
 
         {/* Chapter list */}
-        <StoryNodeList className="lg:flex-1" storyNodes={story?.children} size={story?.number_of_chidren}></StoryNodeList>
+        <StoryNodeList onClickItem={handleNavigateStoryNode} className="lg:flex-1" storyNodes={story?.children} size={story?.number_of_chidren}></StoryNodeList>
       </div>
 
       {/* Review */}

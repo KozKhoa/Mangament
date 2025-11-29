@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
-import { Afacad, Geist, Geist_Mono, Holtwood_One_SC } from "next/font/google";
+import { Afacad, Geist, Geist_Mono, Holtwood_One_SC, Roboto } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { AppProvider } from "@/contexts/AppContext";
 import { Toaster } from "sonner";
 import "./globals.css";
 
@@ -19,15 +20,20 @@ const geistMono = Geist_Mono({
 });
 
 const afacad = Afacad({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"], // tùy chọn độ đậm
   variable: "--font-afacad", // để dùng trong Tailwind
+  weight: ["400", "500", "600", "700"], // tùy chọn độ đậm
+  subsets: ["latin", "vietnamese"],
 });
 
 const holtwood = Holtwood_One_SC({
   variable: "--font-holtwood",
   subsets: ["latin"],
   weight: "400",
+});
+
+const roboto = Roboto({
+  variable: "--font-roboto",
+  subsets: ["latin", "vietnamese"],
 });
 
 export const metadata: Metadata = {
@@ -43,22 +49,24 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${afacad.variable}  ${holtwood.variable} antialiased
+        className={`${geistSans.variable} ${geistMono.variable} ${afacad.variable}  ${holtwood.variable} ${roboto.variable} antialiased
         px-2.5 text-size-default font-afacad bg-background relative max-w-[1700] m-auto
         `}
       >
-        <AuthProvider>
-          <ThemeProvider attribute="class" defaultTheme="system" enableSystem={true}>
-            <NavBar className="fixed left-2.5 right-2.5"></NavBar>
-            <div className="h-16"></div>
+        <AppProvider>
+          <AuthProvider>
+            <ThemeProvider attribute="class" defaultTheme="system" enableSystem={true}>
+              <NavBar className="fixed left-2.5 right-2.5"></NavBar>
+              <div className="h-16"></div>
 
-            {children}
+              {children}
 
-            <Footer></Footer>
+              <Footer></Footer>
 
-            <Toaster position="top-center" />
-          </ThemeProvider>
-        </AuthProvider>
+              <Toaster position="top-center" />
+            </ThemeProvider>
+          </AuthProvider>
+        </AppProvider>
       </body>
     </html>
   );

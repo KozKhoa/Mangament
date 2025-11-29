@@ -18,14 +18,11 @@ import ButtonDropdownRadio from "@/components/buttons/dropdown/btn-drop-down-rad
 import LoginRegister from "@/components/forms/login-register";
 import Input from "@/components/forms/input";
 
-import Story from "@/types/story";
 // import StoryCard from "@/components/cards/stories/story-card";
-import StoryInfoCard from "@/components/cards/stories/story-info-card";
-import NewestChapter from "@/types/newest-chapter";
-import { convertNewestChapter } from "@/utils/convert";
-import SwitchPage from "@/components/switch-page/big";
-import FilterSort from "@/components/list/filter-sort";
 import StoryGrid from "@/components/grids/story-grid";
+import NumberInput from "@/components/inputs/number-input";
+import FontSelection from "@/components/selections/font-selection";
+import SortStories from "@/components/sorts/sort-stories";
 
 const OPTIONS = [
   { label: "op1", checked: false },
@@ -34,17 +31,16 @@ const OPTIONS = [
 ];
 
 export default function Home() {
-  const options = useRef(OPTIONS);
-
-  const options2 = useRef(OPTIONS);
-
   // const newestChapter = useRef<NewestChapter[]>(convertNewestChapter(story?.newest_chapter || []));
 
   function handlePress(text: string) {}
 
   return (
-    <div className="flex flex-col gap-2.5 text-size-default">
+    <div className="flex flex-col gap-2.5  ">
       <SearchBar onSearch={handlePress} />
+
+      <NumberInput></NumberInput>
+      <FontSelection></FontSelection>
 
       <Link className="w-fit" href={"/login"}>
         Login page
@@ -54,6 +50,14 @@ export default function Home() {
       </Link>
 
       <StoryGrid label="Manga" storyType="manga" elementsPerPage={4}></StoryGrid>
+
+      <FontSelection
+        onChange={(options) => {
+          console.log(options);
+        }}
+      ></FontSelection>
+
+      <SortStories></SortStories>
 
       <Input type="password" label={"Email"} placeHolder="Placeholder" error="error"></Input>
 

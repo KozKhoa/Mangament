@@ -7,9 +7,9 @@ export default interface StoryNode {
   order_index: number;
   view?: number;
   number_of_children?: number;
-  created_at: Date;
+  created_at?: Date;
   updated_at?: Date;
-  content?: JSON;
+  content?: { [key: string]: any }[];
 
   children?: StoryNode[];
 }

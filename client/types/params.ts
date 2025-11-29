@@ -14,6 +14,12 @@ export interface StoryParams {
   isGettingSummary?: boolean;
 }
 
+export interface StoryNodeParams {
+  type?: string;
+  isGettingChildren?: boolean;
+  isGettingContent?: boolean;
+}
+
 export interface RatingParams {
   page?: number;
   limit?: number;

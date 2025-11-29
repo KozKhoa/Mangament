@@ -75,7 +75,7 @@ export default function StoryCard({ story, newestChapter, className }: StoryCard
 
   return (
     <div
-      className={`flex flex-col justify-start items-center bg-background font-afacad text-foreground gap-2.5 p-1.5 rounded-[5]
+      className={`flex flex-col justify-start items-center bg-background   text-foreground gap-2.5 p-1.5 rounded-[5]
         border-transparent border-2 transition-all duration-50 ease-linear
         hover:shadow-[6px_8px_5px_0px_rgba(0,0,0,0.3)] hover:border-foreground
         max-w-sm w-full h-full
