@@ -8,7 +8,7 @@ import { diffDate } from "@/utils/date";
 import { beautifulView } from "@/utils/beautiful";
 
 interface ButtonStoryNodeExpandableProps {
-  onClick?: (storyNodeId: string) => void;
+  onClick?: (storyNode: StoryNode[]) => void;
   storyNode: StoryNode;
 
   className?: string;
@@ -17,14 +17,14 @@ interface ButtonStoryNodeExpandableProps {
 export default function ButtonStoryNodeExpandable({ onClick, storyNode, className }: ButtonStoryNodeExpandableProps) {
   const [open, setOpen] = useState<boolean>(false);
 
-  function handleClick(storyNodeId: string, storyNodeType: string) {
-    if (storyNodeType !== "chapter") return storyNode.children && storyNode.children.length > 0 && setOpen(!open);
-    onClick?.(storyNodeId);
+  function handleClick(node: StoryNode[]) {
+    if ((storyNode.type !== "chapter" && storyNode.children?.length) ?? 0 > 0) setOpen(!open);
+    onClick?.(node);
   }
 
   return (
     <div
-      className={`flex flex-col w-full h-fit font-afacad text-size-default rounded-t-[5] overflow-hidden 
+      className={`flex flex-col w-full h-fit     rounded-t-[5] overflow-hidden 
         transition-all duration-100   ${className}`}
     >
       {/* Label*/}
@@ -32,7 +32,7 @@ export default function ButtonStoryNodeExpandable({ onClick, storyNode, classNam
         className={`flex flex-row justify-between items-center
         px-2 py-1.5 border-b border-foreground w-full rounded-t-[5] 
         hover:bg-hover-background ${open ? "bg-hover-background" : "bg-background"} ${className}`}
-        onClick={() => handleClick(storyNode.id, storyNode.type)}
+        onClick={() => handleClick([storyNode])}
       >
         <div className="flex flex-row gap-1 overflow-hidden truncate">
           {storyNode.type !== "chapter" ? (
@@ -76,7 +76,7 @@ export default function ButtonStoryNodeExpandable({ onClick, storyNode, classNam
               <ul className="flex flex-col justify-center items-start w-full h-fit">
                 {storyNode.children.map((child, i) => (
                   <li key={i} className={`flex justify-start items-center w-full h-fit`}>
-                    <ButtonStoryNodeExpandable onClick={() => handleClick(child.id, child.type)} storyNode={child}></ButtonStoryNodeExpandable>
+                    <ButtonStoryNodeExpandable onClick={(node) => handleClick([storyNode].concat(node))} storyNode={child}></ButtonStoryNodeExpandable>
                   </li>
                 ))}
               </ul>

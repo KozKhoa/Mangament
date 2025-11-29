@@ -20,7 +20,7 @@ const labelContainerStyle = "flex flex-row flex-wrap justify-start items-start g
 export default function StoryCardAllInfo({ story, className }: StoryCardAllInfoProps) {
   return (
     <div
-      className={` flex bg-background font-afacad text-foreground p-1.5 rounded-[5]
+      className={` flex bg-background   text-foreground p-1.5 rounded-[5]
         border-foreground border-2 w-full h-fit text-[1.2em]
         ${className} `}
     >

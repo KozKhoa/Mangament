@@ -1,23 +1,23 @@
 import StoryNode from "@/types/story-node";
 import Loading from "../loadings/loading";
-import ButtonExpandable from "../buttons/expandable/btn-expandable";
-import { capitalizeWords } from "@/utils/string";
 import ButtonStoryNodeExpandable from "../buttons/expandable/btn-storynode-expandable";
 
 interface StoryNodeListProps {
   storyNodes?: StoryNode[];
   size?: number;
   className?: string;
+
+  onClickItem?: (storyNode: StoryNode[]) => void;
 }
 
-export default function StoryNodeList({ storyNodes, size, className }: StoryNodeListProps) {
-  function handleClick(storyNodeId: string) {
-    console.log(storyNodeId);
+export default function StoryNodeList({ storyNodes, size, onClickItem, className }: StoryNodeListProps) {
+  function handleClick(storyNode: StoryNode[]) {
+    onClickItem?.(storyNode);
   }
 
   return (
     <div
-      className={`flex flex-col border-2 border-foreground rounded-sm font-afacad px-2.5 
+      className={`flex flex-col border-2 border-foreground rounded-sm px-2.5 
        h-fit ${className}`}
     >
       {!storyNodes ? (

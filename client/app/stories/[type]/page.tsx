@@ -3,14 +3,14 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 
-import StoryGrid from "@/components/grids/story-grid";
-
 import { snakeCaseToCapitalizeWord } from "@/utils/string";
 
 import Story from "@/types/story";
 
 import storyService from "@/services/story";
-import StoryList from "@/components/list/stories-list";
+
+import StoryGrid from "@/components/grids/story-grid";
+import RecommendStories from "@/components/list/recommend-story";
 
 export default function StoriesPage() {
   const params = useParams();
@@ -35,7 +35,7 @@ export default function StoriesPage() {
     <div className="w-full h-full flex flex-col font-afacad gap-12">
       <StoryGrid className="max-w-[1800] mx-auto" label={typeParam ? snakeCaseToCapitalizeWord(typeParam) : "Story"} storyType={typeParam}></StoryGrid>
 
-      <StoryList className="max-w-[1800] mx-auto" label="Gợi ý cho bạn" stories={recommendedStories}></StoryList>
+      <RecommendStories className="max-w-[1800] mx-auto"></RecommendStories>
     </div>
   );
 }

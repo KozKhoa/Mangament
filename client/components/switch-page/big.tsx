@@ -37,7 +37,7 @@ export default function SwitchPageBig({ page, maxPage, onChange, className }: Sw
   };
 
   return (
-    <div className={`flex flex-row gap-2.5 w-fit font-afacad text-[1.2em] text-foreground  ${className}`}>
+    <div className={`flex flex-row gap-2.5 w-fit   text-[1.2em] text-foreground  ${className}`}>
       {/* Left arrow button */}
       <button
         className={`${arrowClassName} ${page === 1 ? "text-gray-300" : "text-foreground hover:border-black cursor-pointer"}`}

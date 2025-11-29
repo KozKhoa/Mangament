@@ -34,7 +34,7 @@ function ButtonExpandable({
   }
 
   return (
-    <div className={`flex flex-col gap-0 overflow-hidden w-full h-fit font-afacad text-size-default rounded-t-[5] ${className}`}>
+    <div className={`flex flex-col gap-0 overflow-hidden w-full h-fit     rounded-t-[5] ${className}`}>
       {/* Main button*/}
       <div
         className={`flex flex-row justify-between items-center 

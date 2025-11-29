@@ -47,6 +47,9 @@ export const FindUser = async (where = { id, email }) => {
         is_deleted: false,
         ...where,
       },
+      include: {
+        avatar: true,
+      },
     });
     return { success: true, data: result };
   } catch (error) {
@@ -185,10 +188,7 @@ export const HardDeleteRefreshToken = async (where = { user_id, token }) => {
     });
     return { success: true, data: result };
   } catch (error) {
-    console.error(
-      "❌ [User.Model.js] Error hard delete refresh token: ",
-      error
-    );
+    console.error("❌ [User.Model.js] Error hard delete refresh token: ", error);
     return { success: false, error: error.code };
   }
 };

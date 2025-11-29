@@ -9,12 +9,7 @@ interface SearchBarProps {
   className?: string;
 }
 
-function SearchBar({
-  onSearch = () => {},
-  placeHolder = "Tìm kiếm",
-  styles = {},
-  className,
-}: SearchBarProps) {
+function SearchBar({ onSearch = () => {}, placeHolder = "Tìm kiếm", styles = {}, className }: SearchBarProps) {
   const [text, setText] = useState<string>("");
 
   function handleSearch() {
@@ -23,13 +18,13 @@ function SearchBar({
 
   return (
     <div
-      className={`flex flex-row justify-center items-center font-afacad text-size-default text-black w-full max-w-lg
+      className={`flex flex-row justify-center items-center     text-black w-full max-w-lg
         h-10 px-2.5 border border-foreground rounded-[5] bg-white  ${className}`}
       style={styles}
     >
       {/* Input field */}
       <input
-        className={`w-full h-fit border-0 outline-none text-size-default text-black`}
+        className={`w-full h-fit border-0 outline-none   text-black`}
         type="text"
         placeholder={placeHolder}
         onChange={(e: ChangeEvent<HTMLInputElement>) => setText(e.target.value)}

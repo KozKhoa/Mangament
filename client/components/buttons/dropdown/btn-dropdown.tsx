@@ -42,10 +42,7 @@ function ButtonDropdown({
   // Use to catch event clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (
-        dropdown.current &&
-        !dropdown.current.contains(event.target as Node)
-      ) {
+      if (dropdown.current && !dropdown.current.contains(event.target as Node)) {
         setOpen(false);
       }
     };
@@ -66,25 +63,19 @@ function ButtonDropdown({
   return (
     <div
       className={`flex flex-col relative justify-center items-start p-[1]
-        font-afacad text-size-default text-foreground
+            text-foreground
         h-fit w-fit bg-background ${className}`}
       ref={dropdown}
     >
       {/* Main button */}
-      <div
-        ref={refs.setReference}
-        className="flex flex-row justify-center items-center gap-2.5 w-full h-fit "
-      >
+      <div ref={refs.setReference} className="flex flex-row justify-center items-center gap-2.5 w-full h-fit ">
         {label && (
           <button className="w-fit h-full cursor-pointer" onClick={handleClick}>
             {label}
           </button>
         )}
         {(children || icon) && (
-          <button
-            className="cursor-pointer w-fit h-fit"
-            onClick={toggleOpenDropdown}
-          >
+          <button className="cursor-pointer w-fit h-fit" onClick={toggleOpenDropdown}>
             {icon ? (
               icon
             ) : (
@@ -114,9 +105,7 @@ function ButtonDropdown({
               `}
             >
               {/* List */}
-              <div className="flex flex-col gap-2.5 max-h-90 w-full h-full overflow-y-scroll no-scrollbar p-1">
-                {children}
-              </div>
+              <div className="flex flex-col gap-2.5 max-h-90 w-full h-full overflow-y-scroll no-scrollbar p-1">{children}</div>
 
               <div className="flex flex-row w-full gap-2 justify-around">
                 {/* Accept button */}

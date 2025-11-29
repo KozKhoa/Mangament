@@ -7,14 +7,11 @@ interface SwitchPageProps {
   maxPage: number;
   page: number;
   onChange?: (pageIndex: number) => void;
+
+  className?: string;
 }
 
-export default function SwitchPageSmall({
-  defaultPage,
-  maxPage,
-  page,
-  onChange,
-}: SwitchPageProps) {
+export default function SwitchPageSmall({ defaultPage, maxPage, page, onChange, className }: SwitchPageProps) {
   const [pageNumber, setPageNumber] = useState<number>(1);
 
   const buttonClassName = `p-1.5 border rounded-[5] border-transparent`;
@@ -31,18 +28,14 @@ export default function SwitchPageSmall({
   }, [page]);
 
   return (
-    <div className="flex flex-row gap-3 font-afacad font-bold justify-center items-center w-fit ">
+    <div className={`flex flex-row gap-3   font-bold justify-center items-center w-fit  ${className}`}>
       <button
-        className={`${buttonClassName} ${
-          page === 1
-            ? "text-gray-300"
-            : "text-foreground hover:border-black cursor-pointer "
-        }`}
+        className={`${buttonClassName} ${page === 1 ? "text-gray-300" : "text-foreground hover:border-black cursor-pointer "}`}
         onClick={() => handleChange(page - 1)}
       >
         <LeftArrowIcon className={`w-5 h-5 `}></LeftArrowIcon>
       </button>
-      <label className="w-fitw">
+      <label className="w-fit">
         <input
           value={pageNumber}
           alt="Nhập số trang"
@@ -59,11 +52,7 @@ export default function SwitchPageSmall({
         ></input>
       </label>
       <button
-        className={` ${buttonClassName} ${
-          page === maxPage
-            ? "text-gray-300"
-            : "text-foreground hover:border-black cursor-pointer "
-        }`}
+        className={` ${buttonClassName} ${page === maxPage ? "text-gray-300" : "text-foreground hover:border-black cursor-pointer "}`}
         onClick={() => handleChange(page + 1)}
       >
         <RightArrowIcon className={`w-5 h-5 $`}></RightArrowIcon>

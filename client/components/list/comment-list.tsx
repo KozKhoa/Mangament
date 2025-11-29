@@ -50,9 +50,6 @@ export default function CommentList({ story, storyNode, elementPerPage = 5, clas
 
     setComments(resComment.data);
     setCount(resCount.data);
-
-    console.log(resCount.data);
-    console.log(resComment.data);
   }
 
   async function postComment(message: string) {
@@ -87,6 +84,9 @@ export default function CommentList({ story, storyNode, elementPerPage = 5, clas
     fetchComment();
   }, [story]);
 
+  useEffect(() => {
+    fetchComment();
+  }, [storyNode]);
   return (
     <div className={`flex flex-col gap-1 ${className}`}>
       <h2 className="font-bold m-auto border-b-2">Bình luận</h2>

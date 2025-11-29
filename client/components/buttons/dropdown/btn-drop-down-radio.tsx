@@ -11,6 +11,8 @@ import Radio from "@/components/inputs/radio";
 interface ButtonFilterOption {
   label: string;
   isChecked: boolean;
+  code?: string;
+  [key: string]: any;
 }
 
 interface ButtonFilterProps {
@@ -22,7 +24,6 @@ interface ButtonFilterProps {
 }
 
 function ButtonDropdownRadio({ onFinishCheck, name, label, options, className }: ButtonFilterProps) {
-  const items = useRef(options);
   const [rerender, setRerender] = useState(false); // This only use to force this component re render to update items
   const [selected, setSelected] = useState<number>(0);
 
@@ -31,16 +32,16 @@ function ButtonDropdownRadio({ onFinishCheck, name, label, options, className }:
   };
 
   const handleFinish = () => {
-    // Reset all value for items.current
-    if (items.current) {
-      items?.current.forEach((item) => (item.isChecked = false));
+    // Reset all value for options
+    if (options) {
+      options.forEach((item) => (item.isChecked = false));
     }
 
     // Update new selection for items
-    if (items.current && items.current[selected]) {
-      items.current[selected].isChecked = true;
+    if (options && options[selected]) {
+      options[selected].isChecked = true;
     }
-    items.current && onFinishCheck?.(items.current);
+    options && onFinishCheck?.(options);
     setRerender(!rerender); // only use to rerender this component
   };
 
@@ -48,13 +49,13 @@ function ButtonDropdownRadio({ onFinishCheck, name, label, options, className }:
     <ButtonDropdown
       openOnLeft={true}
       className={`border-foreground border rounded-[5] 
-        text-size-default text-foreground ${className}`}
+          text-foreground ${className}`}
       acceptButtonLabel="Finish"
       onClickAcceptButton={handleFinish}
       icon={
         <div
           className={`flex flex-row relative justify-start items-center gap-1.5 cursor-pointer w-fit
-        font-afacad text-foreground bg-background px-2 
+          text-foreground bg-background px-2 
         ${className}`}
         >
           {label && label}
@@ -65,7 +66,7 @@ function ButtonDropdownRadio({ onFinishCheck, name, label, options, className }:
       }
     >
       <ul className="flex flex-col justify-start items-center gap-2.5 w-full h-fit">
-        {items.current?.map((item, index) => {
+        {options?.map((item, index) => {
           return (
             <li key={index} className="flex w-full h-fit justify-start items-center">
               <Radio

@@ -43,7 +43,7 @@ function ButtonDropdownCheckbox({ onFinishCheck, label, options, className, name
     <ButtonDropdown
       openOnLeft={true}
       className={`border-foreground border rounded-[5] relative
-        text-size-default text-foreground ${className}`}
+          text-foreground ${className}`}
       acceptButtonLabel="Finish"
       onClickAcceptButton={handleFinish}
       closeButtonLabel="Reset"
@@ -51,7 +51,7 @@ function ButtonDropdownCheckbox({ onFinishCheck, label, options, className, name
       icon={
         <div
           className={`flex flex-row relative justify-start items-center gap-1.5 cursor-pointer w-fit
-        font-afacad text-foreground bg-background px-2 
+          text-foreground bg-background px-2 
         ${className}`}
         >
           {label && label}

@@ -34,9 +34,7 @@ export default function Input({
     onChange?.(text);
   };
   return (
-    <label
-      className={`flex flex-col gap-1 text-foreground font-afacad ${className}`}
-    >
+    <label className={`flex flex-col gap-1 text-foreground   ${className}`}>
       <p className="text-[1.2em] block">{label}</p>
 
       {error && (
@@ -46,11 +44,7 @@ export default function Input({
         </div>
       )}
 
-      <div
-        className={`flex gap-0.5 items-center px-3 py-2 border ${
-          error ? "border-error" : "border-foreground"
-        } rounded-[5] `}
-      >
+      <div className={`flex gap-0.5 items-center px-3 py-2 border ${error ? "border-error" : "border-foreground"} rounded-[5] `}>
         <input
           className="w-full outline-none bg-none"
           type={isShowPassword ? "text" : type}
@@ -61,10 +55,7 @@ export default function Input({
           required={require}
         ></input>
         {type === "password" && (
-          <div
-            className="cursor-pointer"
-            onClick={() => setIsShowPassword(!isShowPassword)}
-          >
+          <div className="cursor-pointer" onClick={() => setIsShowPassword(!isShowPassword)}>
             {isShowPassword ? (
               <OpenEyeIcon className="w-[1.5em] h-[1.5em] stroke-foreground"></OpenEyeIcon>
             ) : (

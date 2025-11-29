@@ -94,7 +94,7 @@ export default function StoryGrid({ label, storyType, elementsPerPage, className
   }, [page]);
 
   return (
-    <div ref={topRef} className={`font-afacad flex flex-row justify-center items-start gap-5 ${className}`}>
+    <div ref={topRef} className={`  flex flex-row justify-center items-start gap-5 ${className}`}>
       <div>
         {/* Header use to display story type and page index */}
         <header

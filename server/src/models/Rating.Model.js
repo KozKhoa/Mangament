@@ -41,6 +41,17 @@ export async function AddRatings(data = { user_id, story_id, star, message }) {
     const newRating = await db.rating.create({
       data: data,
     });
+
+    // Update star for story
+    const count = Number(await db.rating.count({ where: { story_id: data.story_id } }));
+    const currentRating = Number((await db.story.findUnique({ where: { id: data.story_id } })).star);
+    if (count <= 1) {
+      await db.story.update({ where: { id: data.story_id }, data: { star: data.star } });
+    } else {
+      const newStar = currentRating / (count - 1) - currentRating / ((count - 1) * count) + data.star / count;
+      await db.story.update({ where: { id: data.story_id }, data: { star: newStar } });
+    }
+
     return { success: true, data: newRating };
   } catch (error) {
     if (error.code !== "P2002") console.error("❌ [Rating.Model.js] Error adding new rating:", error);

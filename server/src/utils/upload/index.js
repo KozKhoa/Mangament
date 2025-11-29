@@ -3,6 +3,8 @@ import path, { parse, sep } from "path";
 
 import db from "../../configs/db.js";
 
+// const db = new PrismaClient();
+
 const root = path.resolve("../../../../uploads/story");
 
 const watch = chokidar.watch(root, {
@@ -54,7 +56,7 @@ async function handleAdd(filePath) {
 
   // Update content for storyNode
   const content = {
-    type: "iamge",
+    type: "image",
     image_url: image.url,
   };
   const updateStoryNodeContent = await handleAddContentForStoryNode({
@@ -176,14 +178,12 @@ const handleAddStoryNode = async ({ storyNodeName = "", storyId, parentId }) => 
 };
 
 const handleAddImage = async ({ imageUrl = "" }) => {
-  let image;
   // Kiểm tra sự tồn tại của url
-  image = await db.image.findFirst({ where: { url: imageUrl } });
+  const isExist = await db.image.findFirst({ where: { url: imageUrl } });
+  if (isExist) return isExist;
 
-  if (!image) {
-    image = await db.image.create({ data: { url: imageUrl } });
-    console.log("Added image ", imageUrl);
-  }
+  const image = await db.image.create({ data: { url: imageUrl } });
+  console.log("Added image ", imageUrl);
 
   return image;
 };
@@ -224,7 +224,7 @@ const handleAddContentForStoryNode = async ({ storyNodeId = "", content = {} }) 
 
 const handleAddCoverArtForStory = async ({
   storyId = "",
-  coverArtId = "", // This id is from iamge that has already all before
+  coverArtId = "", // This id is from image that has already all before
 }) => {
   const story = await db.story.update({
     where: { id: storyId },

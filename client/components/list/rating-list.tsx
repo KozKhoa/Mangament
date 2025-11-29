@@ -5,14 +5,13 @@ import { useEffect, useState } from "react";
 
 import Rating from "@/types/ratings";
 import { RatingParams } from "@/types/params";
-import { CommentParams } from "@/types/params";
 
 import ratingService from "@/services/rating";
 
 import SwitchPageBig from "../switch-page/big";
 import FilterRatings from "../filters/filter-ratings";
 import RatingBox from "../boxs/rating-box";
-import Loading from "../loadings/loading";
+
 import useAuth from "@/contexts/AuthContext";
 import RatingInput from "../inputs/rating-input";
 import Story from "@/types/story";
@@ -47,8 +46,6 @@ export default function RatingList({ story, elementPerPage = 5, className }: Rat
 
     setRating(resRating.data);
     setCount(resCount.data);
-
-    console.log(resRating.data);
   }
 
   function updateParams(options: { label: string; code?: string; isChecked: boolean }[], field: string) {
