@@ -39,3 +39,14 @@ export function convertNewestChapter(newestChapter: StoryNode[]) {
 export function convertJsonToParam(json: {}) {
   return qs.stringify(json, { arrayFormat: "comma" });
 }
+
+export function convertDateTo_yyyMMdd(date: Date | null) {
+  if (!date) date = new Date();
+  return date.toISOString().split("T")[0];
+}
+
+export function convertDateTo_yyyMMddHHmm(date: Date | null) {
+  if (!date) date = new Date();
+  const isoString = date.toISOString();
+  return isoString.substring(0, 16).replace("T", " ");
+}

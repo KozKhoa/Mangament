@@ -34,3 +34,12 @@ export interface CommentParams {
 
   sort?: string;
 }
+
+export interface HistoryParams {
+  page?: number;
+  limit?: number;
+
+  sort?: string;
+}
+
+export type Params = StoryParams | StoryNodeParams | RatingParams | CommentParams | HistoryParams;

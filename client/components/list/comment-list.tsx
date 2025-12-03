@@ -59,7 +59,7 @@ export default function CommentList({ story, storyNode, elementPerPage = 5, clas
     } else {
       res = await commentService.postStoryNodeComment(storyNode?.id || "", user?.id || "", message);
     }
-    if (!res) return toast.warning("Server Error");
+    if (!res) return toast.warning("Cannot connect with server");
     if (!res.success) return toast.warning(res.message);
 
     fetchComment();

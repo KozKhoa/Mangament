@@ -1,10 +1,4 @@
-import {
-  FindAllUser,
-  FindUser,
-  UpdateUser,
-  GetUserPassword,
-  SoftDeleteUser,
-} from "../models/User.Model.js";
+import { FindAllUser, FindUser, UpdateUser, GetUserPassword, SoftDeleteUser } from "../models/User.Model.js";
 
 import { AddImage, FindImage } from "../models/Image.Model.js";
 import { CreateError } from "../utils/ErrorHandle.js";
@@ -51,6 +45,7 @@ export const GetUser = async (req, res, next) => {
           gender: user.gender,
           join_date: user.join_date,
           role: user.role,
+          birthday: user.birthday,
           ...(avatar &&
             avatar.success &&
             avatar.data && {
@@ -64,8 +59,7 @@ export const GetUser = async (req, res, next) => {
       },
     });
   } catch (error) {
-    if (!error.status)
-      console.error("❌ [User.Controller.js] Error getting user info:", error);
+    if (!error.status) console.error("❌ [User.Controller.js] Error getting user info:", error);
     next(error);
   }
 };
@@ -90,8 +84,7 @@ export const GetAllUsers = async (req, res, next) => {
     }
 
     const users = await FindAllUser({}, order, limit, (page - 1) * limit);
-    if (!users || !users.success)
-      throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
+    if (!users || !users.success) throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
     if (!users.data) throw CreateError(ErrorCodes.USER_NOT_FOUND);
 
     return res.status(200).json({
@@ -100,8 +93,7 @@ export const GetAllUsers = async (req, res, next) => {
       data: users.data,
     });
   } catch (error) {
-    if (!error.status)
-      console.error("❌ [User.Controller.js] Error getting all users:", error);
+    if (!error.status) console.error("❌ [User.Controller.js] Error getting all users:", error);
     next(error);
   }
 };
@@ -128,7 +120,7 @@ export const PutUser = async (req, res, next) => {
 
     // Get information need to be updated and validate them
     const name = req?.body?.name;
-    const birthday = new Date(req?.body?.birthday);
+    const birthday = req?.body?.birthday ? new Date(req?.body?.birthday) : null;
     if (birthday == "Invalid Date") {
       throw CreateError(ErrorCodes.INVALID_INPUT);
     }
@@ -143,9 +135,9 @@ export const PutUser = async (req, res, next) => {
     const updateUser = await UpdateUser(
       { id: userId },
       {
-        ...(name && name),
-        ...(gender && gender),
-        ...(birthday && birthday),
+        ...(name && { name }),
+        ...(gender && { gender }),
+        ...(birthday && { birthday }),
       }
     );
     if (!updateUser || !updateUser.success) {
@@ -165,8 +157,7 @@ export const PutUser = async (req, res, next) => {
       },
     });
   } catch (error) {
-    if (!error.status)
-      console.error("❌ [User.Controller.js] Error put user:", error);
+    if (!error.status) console.error("❌ [User.Controller.js] Error put user:", error);
     next(error);
   }
 };
@@ -179,8 +170,7 @@ export async function PutUserPassword(req, res, next) {
     const newPassword = req?.body?.newPassword;
 
     // Check if missing password field
-    if (!oldPassword || !newPassword)
-      throw CreateError(ErrorCodes.MISSING_FIELD);
+    if (!oldPassword || !newPassword) throw CreateError(ErrorCodes.MISSING_FIELD);
     if (oldPassword === newPassword)
       // old and new password can not be the same
       throw CreateError(ErrorCodes.INVALID_INPUT);
@@ -196,20 +186,13 @@ export async function PutUserPassword(req, res, next) {
     if (!user.data) throw CreateError(ErrorCodes.USER_NOT_FOUND); // No user
 
     // Compare old password that user provide with password in database
-    const isOldPasswordMatch = await ComparePassword(
-      oldPassword,
-      user.data.password
-    );
+    const isOldPasswordMatch = await ComparePassword(oldPassword, user.data.password);
     if (!isOldPasswordMatch) throw CreateError(ErrorCodes.INVALID_PASSWORD);
 
     // Hashed new password and save it to database;
     const hashedPassword = await HashPassword(newPassword);
-    const afterUpdate = await UpdateUser(
-      { id: userId },
-      { password: hashedPassword }
-    );
-    if (!afterUpdate || !afterUpdate.success)
-      throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
+    const afterUpdate = await UpdateUser({ id: userId }, { password: hashedPassword });
+    if (!afterUpdate || !afterUpdate.success) throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
 
     return res.status(200).json({
       success: true,
@@ -221,11 +204,7 @@ export async function PutUserPassword(req, res, next) {
       },
     });
   } catch (error) {
-    if (!error.status)
-      console.error(
-        "❌ [User.Controller.js] Error change user password:",
-        error
-      );
+    if (!error.status) console.error("❌ [User.Controller.js] Error change user password:", error);
     next(error);
   }
 }
@@ -243,12 +222,8 @@ export async function PatchUserAvatar(req, res, next) {
     MoveFile(avatar.path, filePath);
     const image = await AddImage({ url: filePath });
 
-    const updating = await UpdateUser(
-      { id: userId },
-      { avatar: { connect: { id: image.data.id } } }
-    );
-    if (!updating || !updating.success)
-      throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
+    const updating = await UpdateUser({ id: userId }, { avatar: { connect: { id: image.data.id } } });
+    if (!updating || !updating.success) throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
 
     return res.status(200).json({
       success: true,
@@ -290,8 +265,7 @@ export async function DeleteUser(req, res, next) {
       },
     });
   } catch (error) {
-    if (!error.status)
-      console.error("❌ [User.Controller.js] Error delete user:", error);
+    if (!error.status) console.error("❌ [User.Controller.js] Error delete user:", error);
     next(error);
   }
 }

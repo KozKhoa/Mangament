@@ -65,7 +65,7 @@ export default function RatingList({ story, elementPerPage = 5, className }: Rat
   async function postRating(message: string, star: number) {
     const res = await ratingService.post(story?.id || "", user?.id || "", star, message);
 
-    if (!res) return toast.warning("Server Error");
+    if (!res) return toast.warning("Cannot connect with server");
     if (!res.success) return toast.warning(res.message);
 
     fetchRating();

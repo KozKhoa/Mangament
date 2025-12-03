@@ -22,7 +22,7 @@ export default function FilterAuthors({ onFilter, isReset }: FilterAuthorsProps)
   async function fetchAuthors() {
     const res = await authorService.get();
 
-    if (!res) return toast.warning("Server Error");
+    if (!res) return toast.warning("Cannot connect with server");
     if (!res.success) return toast.warning(res.message);
 
     const authors = res.data.map((author: { id: string; name: string }) => {

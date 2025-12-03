@@ -212,11 +212,14 @@ model ReadingHistory {
   story_node_id String   @db.Uuid
   last_position Json? // e.g., { "page": 5, "offset": 120 }
   created_at    DateTime @default(now())
+  updated_at    DateTime @default(now())
   is_deleted    Boolean  @default(false)
 
   user       User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
   story      Story     @relation(fields: [story_id], references: [id], onDelete: Cascade)
   story_node StoryNode @relation(fields: [story_node_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, story_id, story_node_id])
 }
 
 model FavouriteStory {

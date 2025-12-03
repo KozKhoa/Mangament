@@ -23,7 +23,7 @@ export default function FilterGenres({ onFilter, isReset }: FilterGenresProps) {
   async function fetchGenres() {
     const res = await genreService.get();
 
-    if (!res) return toast.warning("Server Error");
+    if (!res) return toast.warning("Cannot connect with server");
     if (!res.success) return toast.warning(res.message);
 
     const genres: FilterProps[] = res.data.map((genre: string) => {

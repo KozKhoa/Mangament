@@ -30,6 +30,10 @@ export async function GetAllFavouriteStories(req, res, next) {
       });
     }
 
+    favouriteStories.data.forEach((fav) => {
+      fav.story.favourite = fav.story.favourite[0];
+    });
+
     return res.status(200).json({
       success: true,
       message: "Getting favourite stories successfully",

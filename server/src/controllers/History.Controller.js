@@ -1,8 +1,4 @@
-import {
-  FindAllReadingHistories,
-  AddReadingHistory,
-  SoftDeleteReadingHistory,
-} from "../models/History.Model.js";
+import { FindAllReadingHistories, AddReadingHistory, SoftDeleteReadingHistory } from "../models/History.Model.js";
 
 import { CreateError } from "../utils/ErrorHandle.js";
 import ErrorCodes from "../constants/Error.js";
@@ -26,15 +22,9 @@ export async function GetAllReadingHistories(req, res, next) {
       order["created_at"] = "desc";
     }
 
-    const readingHistory = await FindAllReadingHistories(
-      { user_id: userId },
-      limit,
-      (page - 1) * limit,
-      order
-    );
+    const readingHistory = await FindAllReadingHistories({ user_id: userId }, limit, (page - 1) * limit, order);
 
-    if (!readingHistory || !readingHistory.success)
-      throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
+    if (!readingHistory || !readingHistory.success) throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
     if (!readingHistory.data || readingHistory.data.length <= 0) {
       return res.status(200).json({
         success: true,
@@ -49,11 +39,7 @@ export async function GetAllReadingHistories(req, res, next) {
       data: readingHistory.data,
     });
   } catch (error) {
-    if (!error.status)
-      console.error(
-        "❌ [ReadingHistory.Controller.js] Error getting reading histories:",
-        error
-      );
+    if (!error.status) console.error("❌ [ReadingHistory.Controller.js] Error getting reading histories:", error);
     next(error);
   }
 }
@@ -63,19 +49,15 @@ export async function PostReadingHistory(req, res, next) {
     const userId = req.user?.id;
     const storyId = req.body?.storyId;
     const storyNodeId = req.body?.storyNodeId;
-    const datetime = req.body?.dateTime
-      ? new Date(req.body.dateTime)
-      : new Date();
+    const datetime = req.body?.dateTime ? new Date(req.body.dateTime) : new Date();
 
     // Position will be added later
 
     // Make sure story and story node exist
     const story = await FindStory({ id: storyId });
-    if (!story || !story.success || !story.data)
-      throw CreateError(ErrorCodes.STORY_NOT_FOUND);
+    if (!story || !story.success || !story.data) throw CreateError(ErrorCodes.STORY_NOT_FOUND);
     const storyNode = await FindStoryNode({ id: storyNodeId });
-    if (!storyNode || !storyNode.success || !storyNode.data)
-      throw CreateError(ErrorCodes.STORY_NODE_NOT_FOUND);
+    if (!storyNode || !storyNode.success || !storyNode.data) throw CreateError(ErrorCodes.STORY_NODE_NOT_FOUND);
 
     const histories = await AddReadingHistory({
       user_id: userId,
@@ -84,8 +66,7 @@ export async function PostReadingHistory(req, res, next) {
       created_at: datetime,
     });
 
-    if (!histories || !histories.success)
-      throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
+    if (!histories || !histories.success) throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
 
     return res.status(200).json({
       success: true,
@@ -99,11 +80,7 @@ export async function PostReadingHistory(req, res, next) {
       },
     });
   } catch (error) {
-    if (!error.status)
-      console.error(
-        "❌ [ReadingHistory.Controller.js] Error posting reading history:",
-        error
-      );
+    if (!error.status) console.error("❌ [ReadingHistory.Controller.js] Error posting reading history:", error);
     next(error);
   }
 }
@@ -117,27 +94,21 @@ export async function DeleteReadingHistory(req, res, next) {
 
     // Make sure history exist
     const history = await FindAllReadingHistories({ id: historyId });
-    if (!history || !history.success || history.data.length <= 0)
-      throw CreateError(ErrorCodes.ASSET_NOT_FOUND);
+
+    if (!history || !history.success || history.data.length <= 0) throw CreateError(ErrorCodes.ASSET_NOT_FOUND);
 
     // Make sure reading history belong to user
-    if (history.data[0].user_id !== userId)
-      throw CreateError(ErrorCodes.FORBIDDEN);
+    if (history.data[0].user_id !== userId) throw CreateError(ErrorCodes.FORBIDDEN);
 
     const removing = await SoftDeleteReadingHistory({ id: historyId });
-    if (!removing || !removing.success)
-      throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
+    if (!removing || !removing.success) throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
 
     return res.status(200).json({
       success: true,
       message: "Delete reading history successfully",
     });
   } catch (error) {
-    if (!error.status)
-      console.error(
-        "❌ [ReadingHistory.Controller.js] Error deleting reading history:",
-        error
-      );
+    if (!error.status) console.error("❌ [ReadingHistory.Controller.js] Error deleting reading history:", error);
     next(error);
   }
 }
