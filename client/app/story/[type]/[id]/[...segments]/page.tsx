@@ -12,7 +12,7 @@ import useApp from "@/contexts/AppContext";
 
 import storyService from "@/services/story";
 import storyNodeService from "@/services/story-node";
-import favouriteService from "@/services/user/favourite";
+import favouriteService from "@/services/favourite";
 
 import Story from "@/types/story";
 import StoryNode from "@/types/story-node";
@@ -30,6 +30,7 @@ import FontSelection from "@/components/selections/font-selection";
 
 import { sleep } from "@/utils/others";
 import { capitalizeWords, snakeCaseToCapitalizeWord } from "@/utils/string";
+import historyService from "@/services/history";
 
 function getParams(params: Params) {
   const storyId = Array.isArray(params.id) ? params.id[0] : params.id ?? "";
@@ -61,7 +62,7 @@ async function updateOneViewForStory(storyId: string) {
   await sleep(10000); // one udpate view immediately due to auto reload prevent
   const res = await storyService.addOneView(storyId);
 
-  if (!res) return toast.warning("Server Error");
+  if (!res) return toast.warning("Cannot connect with server");
   if (!res.success) toast.warning(res.message);
 
   return res.data;
@@ -72,13 +73,23 @@ async function updateOneViewForStoryNode(storyNode: StoryNode[]) {
   for (const node of storyNode) {
     const res = await storyNodeService.addOneView(node.id);
 
-    if (!res) return toast.warning("Server Error");
+    if (!res) return toast.warning("Cannot connect with server");
     if (!res.success) toast.warning(res.message);
-
-    return res.data;
   }
 }
 
+async function updateReadingHistory(storyId: string, storyNodeId: string) {
+  await sleep(10000);
+
+  const res = await historyService.post(storyId, storyNodeId);
+
+  if (!res) return toast.warning("Cannot connect with server");
+  if (!res.success) return toast.warning(res.message);
+
+  return res.data;
+}
+
+// Use to get the next chapter in story node tree
 function getNextChapter(storyNode?: StoryNode[], currentChapter?: StoryNode): StoryNode | null {
   let isAtCurrentChapter = false;
 
@@ -99,6 +110,7 @@ function getNextChapter(storyNode?: StoryNode[], currentChapter?: StoryNode): St
   return dfs(storyNode, currentChapter);
 }
 
+// Use to get the prev chapter in story node tree
 function getPreviousChapter(storyNode?: StoryNode[], currentChapter?: StoryNode): StoryNode | null {
   let previousChapter: StoryNode | null = null;
 
@@ -143,10 +155,8 @@ export default function StoryNodeReading() {
     };
     const res = await storyNodeService.get(id, params);
 
-    if (!res) return toast.warning("Server Error");
+    if (!res) return toast.warning("Cannot connect with server");
     if (!res.success) toast.warning(res.message);
-
-    console.log(res.data);
 
     setStoryNode(res.data);
   }
@@ -158,7 +168,7 @@ export default function StoryNodeReading() {
     };
     const res = await storyService.get(params);
 
-    if (!res) return toast.warning("Server Error");
+    if (!res) return toast.warning("Cannot connect with server");
     if (!res.success) toast.warning(res.message);
 
     setStory(res.data);
@@ -166,7 +176,8 @@ export default function StoryNodeReading() {
 
   async function addStoryToFavourite(storyId: string) {
     const res = await favouriteService.post({ storyId: storyId });
-    if (!res) return toast.warning("Server Error");
+
+    if (!res) return toast.warning("Cannot connect with server");
     if (!res.success) return toast.warning(res.message);
 
     toast.message("Add successfully");
@@ -179,7 +190,7 @@ export default function StoryNodeReading() {
   async function removeStoryFromFavouite(favouriteId: string) {
     const res = await favouriteService.remove(favouriteId);
 
-    if (!res) return toast.warning("Server Error");
+    if (!res) return toast.warning("Cannot connect with server");
     if (!res.success) return toast.warning(res.message);
 
     toast.message("Remove successfully");
@@ -199,13 +210,10 @@ export default function StoryNodeReading() {
 
     let routeDir = "";
 
-    storyNodeParams.pop();
-    storyNodeParams.push(storyNode);
+    const newParams = [...storyNodeParams.slice(0, -1), storyNode];
 
-    console.log(storyNodeParams);
-
-    storyNodeParams.forEach((node, i) => (routeDir = path.join(routeDir, node.type, node.order_index.toString(), node.id)));
-    router.push(path.join(`/story/${story?.type}/${story?.id}/`, routeDir));
+    newParams.forEach((node, i) => (routeDir = path.join(routeDir, node.type, node.order_index.toString(), node.id)));
+    router.push(`/story/${story?.type}/${story?.id}/${routeDir.replace(/\\/g, "/")}`);
   }
 
   useEffect(() => {
@@ -213,6 +221,7 @@ export default function StoryNodeReading() {
     fetchStory();
     updateOneViewForStory(storyParams?.id);
     updateOneViewForStoryNode(storyNodeParams);
+    updateReadingHistory(storyParams.id, id);
 
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);

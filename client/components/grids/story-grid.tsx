@@ -36,7 +36,7 @@ export default function StoryGrid({ label, storyType, elementsPerPage, className
   const [stories, setStories] = useState<Story[]>();
   const [storyIndex, setStoryIndex] = useState<number>(0);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [limit, setLimit] = useState(elementsPerPage ?? 18);
+  const [limit, setLimit] = useState(elementsPerPage ?? 30);
   const [newestChapter, setNewestChapter] = useState<NewestChapter[][]>();
   const [isResetFilterSort, setIsResetFilterSort] = useState<boolean>(false);
 
@@ -51,11 +51,10 @@ export default function StoryGrid({ label, storyType, elementsPerPage, className
     };
 
     const res = await storyService.get(storyParams);
-    if (!res) return toast.warning("Server Error");
+    if (!res) return toast.warning("Cannot connect with server");
     if (!res.success) return toast.warning(res.message);
 
     const stories = res.data;
-    console.log(stories);
 
     setNewestChapter(
       stories.map((story: Story) => {
@@ -77,6 +76,10 @@ export default function StoryGrid({ label, storyType, elementsPerPage, className
       ...storyParams,
       ...{ type: storyType },
     });
+
+    if (!res) return toast.warning("Sever Error");
+    if (!res.success) return toast.warning(res.message);
+
     const count = res.data.count;
 
     setMaxPage(Math.ceil(count / limit));
@@ -123,7 +126,7 @@ export default function StoryGrid({ label, storyType, elementsPerPage, className
             // Grid
 
             <main
-              className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-2
+              className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 gap-2
             border-b-2 border-foreground pb-2
           "
             >

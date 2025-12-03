@@ -16,7 +16,7 @@ export default function RecommendStories({ user, story, className }: { user?: Us
     };
     const res = await storyService.get(params);
 
-    if (!res) return toast.warning("Server Error");
+    if (!res) return toast.warning("Cannot connect with server");
     if (!res.success) toast.warning(res.message);
 
     setRecommend(res.data);

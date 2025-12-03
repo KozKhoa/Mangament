@@ -11,7 +11,7 @@ import Checkbox from "../inputs/checkbox";
 import { validateEmailFormat, validatePasswordFormat } from "@/lib/validation";
 import * as rememberMe from "@/lib/remember-me";
 import authService from "@/services/auth";
-import useAuth, { User } from "@/contexts/AuthContext";
+import useAuth from "@/contexts/AuthContext";
 import * as token from "@/lib/token";
 
 interface LoginRegisterProps {
@@ -54,7 +54,9 @@ function LoginRegisterForm({ type, className }: LoginRegisterProps) {
     switch (type) {
       case "login":
         const login = await authService.login(email, password);
-        console.log(login);
+
+        if (!login) return toast.warning("Cannot connect with server");
+        if (!login.success) return toast.warning(login.message);
 
         if (login && login.success) {
           // save user info to auth context
@@ -65,7 +67,7 @@ function LoginRegisterForm({ type, className }: LoginRegisterProps) {
 
           toast.message(login?.message);
         } else {
-          return toast.error(login?.message || "Error");
+          return toast.error(login?.message);
         }
         break;
 

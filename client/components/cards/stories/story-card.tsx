@@ -1,5 +1,5 @@
 import { useRouter } from "next/navigation";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 
 import Story from "@/types/story";
@@ -9,13 +9,13 @@ import EyeIcon from "@/public/eye/open.svg";
 import HeartIcon from "@/public/heart.svg";
 
 import { beautifulView } from "@/utils/beautiful";
-import { capitalizeFirstChar, capitalizeWords, snakeCaseToCapitalizeWord } from "@/utils/string";
+import { snakeCaseToCapitalizeWord } from "@/utils/string";
 
 import DisplayStar from "@/components/displays/ratings/display-star";
 
 import useAuth from "@/contexts/AuthContext";
 
-import favouriteService from "@/services/user/favourite";
+import favouriteService from "@/services/favourite";
 
 interface StoryCardProps {
   story: Story;
@@ -75,8 +75,9 @@ export default function StoryCard({ story, newestChapter, className }: StoryCard
 
   return (
     <div
-      className={`flex flex-col justify-start items-center bg-background   text-foreground gap-2.5 p-1.5 rounded-[5]
+      className={`flex flex-col justify-start items-center bg-background text-foreground gap-2.5 p-1.5 rounded-[5]
         border-transparent border-2 transition-all duration-50 ease-linear
+        shadow-md
         hover:shadow-[6px_8px_5px_0px_rgba(0,0,0,0.3)] hover:border-foreground
         max-w-sm w-full h-full
         ${className} `}
@@ -98,8 +99,8 @@ export default function StoryCard({ story, newestChapter, className }: StoryCard
           className="flex flex-row justify-star items-center gap-x-1
           absolute right-0 bottom-0 px-1 bg-background rounded-tl-md"
         >
-          <EyeIcon className="w-4 h-4"></EyeIcon>
-          <p className="text-[1em] italic">{beautifulView(story?.view || 0)}</p>
+          <EyeIcon className="w-5 h-5"></EyeIcon>
+          <p className="text-[1.1em] italic font-bold">{beautifulView(story?.view || 0)}</p>
         </div>
 
         {/* Save favourite */}

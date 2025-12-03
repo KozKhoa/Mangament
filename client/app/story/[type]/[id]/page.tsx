@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
 import storyService from "@/services/story";
-import favouriteService from "@/services/user/favourite";
+import favouriteService from "@/services/favourite";
 
 import StoryCardAllInfo from "@/components/cards/stories/story-card-all-info";
 import StoryNodeList from "@/components/list/story-node-list";
@@ -47,7 +47,7 @@ export default function StoryDetail() {
 
     const res = await storyService.get(storyParams);
 
-    if (!res) toast.warning("Server Error");
+    if (!res) toast.warning("Cannot connect with server");
     if (!res.success) return toast.warning(res.message);
 
     setStory(res.data);
@@ -58,7 +58,7 @@ export default function StoryDetail() {
     if (!story) return;
     const res = await storyService.getReview(story?.id);
 
-    if (!res) toast.warning("Server Error");
+    if (!res) toast.warning("Cannot connect with server");
     if (!res.success) return toast.warning(res.message);
 
     setReview(res.data);
@@ -78,7 +78,7 @@ export default function StoryDetail() {
 
   async function addStoryToFavourite(storyId: string) {
     const res = await favouriteService.post({ storyId: storyId });
-    if (!res) return toast.warning("Server Error");
+    if (!res) return toast.warning("Cannot connect with server");
     if (!res.success) return toast.warning(res.message);
 
     toast.message("Add successfully");
@@ -91,7 +91,7 @@ export default function StoryDetail() {
   async function removeStoryFromFavouite(favouriteId: string) {
     const res = await favouriteService.remove(favouriteId);
 
-    if (!res) return toast.warning("Server Error");
+    if (!res) return toast.warning("Cannot connect with server");
     if (!res.success) return toast.warning(res.message);
 
     toast.message("Remove successfully");
@@ -107,7 +107,6 @@ export default function StoryDetail() {
   }
 
   function handleNavigateStoryNode(storyNode: StoryNode[]) {
-    console.log(storyNode);
     if (storyNode[storyNode.length - 1].type !== "chapter") return;
 
     let routeDir = "";

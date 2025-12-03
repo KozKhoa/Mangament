@@ -1,7 +1,7 @@
 export default interface StoryNode {
   id: string;
   story_id: string;
-  parent_id?: string;
+  parent?: StoryNode;
   title?: string;
   type: string;
   order_index: number;

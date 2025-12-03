@@ -15,10 +15,16 @@ export async function FindAllFavouriteStories(where = { id, user_id }, orderBy, 
           select: {
             id: true,
             title: true,
+            nation: true,
             star: true,
             view: true,
+            status: true,
+            type: true,
             cover_art: {
               select: { url: true, width: true, height: true },
+            },
+            favourite: {
+              select: { id: true, user_id: true },
             },
           },
         },

@@ -1,12 +1,7 @@
 import db from "../configs/db.js";
 import { GetParentStoryNodeTree } from "./StoryNode.Model.js";
 
-export const FindAllReadingHistories = async (
-  where = { id, user_id, story_id, story_node_id },
-  take = 1,
-  skip = 0,
-  orderBy
-) => {
+export const FindAllReadingHistories = async (where = { id, user_id, story_id, story_node_id }, take = 1, skip = 0, orderBy) => {
   try {
     const readingHistory = await db.readingHistory.findMany({
       where: { is_deleted: false, ...where },
@@ -37,10 +32,7 @@ export const FindAllReadingHistories = async (
 
     return { success: true, data: readingHistory };
   } catch (error) {
-    console.error(
-      "❌ [User.Model.js] Error finding all reading histories:",
-      error
-    );
+    console.error("❌ [User.Model.js] Error finding all reading histories:", error);
     return { success: false, error: error.code };
   }
 };
@@ -53,6 +45,11 @@ export const AddReadingHistory = async (
   }
 ) => {
   try {
+    const isExisting = await db.readingHistory.findFirst({ where: { user_id: data.user_id, story_id: data.story_id, story_node_id: data.story_node_id } });
+    if (isExisting) {
+      return { success: true, data: await db.readingHistory.update({ where: { id: isExisting.id }, data: { updated_at: new Date(), is_deleted: false } }) };
+    }
+
     const result = await db.readingHistory.create({
       data: {
         user: {
@@ -84,10 +81,7 @@ export const HardDeleteReadingHistory = async (where = { id }) => {
     const result = await db.readingHistory.delete({ where: where });
     return { success: true, data: result };
   } catch (error) {
-    console.error(
-      "❌ [User.Model.js] Error hard delete reading history: ",
-      error
-    );
+    console.error("❌ [User.Model.js] Error hard delete reading history: ", error);
     return { success: false, error: error.code };
   }
 };
@@ -105,10 +99,7 @@ export const SoftDeleteReadingHistory = async (where = { id }) => {
     });
     return { success: true, data: result };
   } catch (error) {
-    console.error(
-      "❌ [User.Model.js] Error soft delete reading history: ",
-      error
-    );
+    console.error("❌ [User.Model.js] Error soft delete reading history: ", error);
     return { success: false, error: error.code };
   }
 };
