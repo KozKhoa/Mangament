@@ -1,5 +1,5 @@
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import Story from "@/types/story";
@@ -16,19 +16,21 @@ import DisplayStar from "@/components/displays/ratings/display-star";
 import useAuth from "@/contexts/AuthContext";
 
 import favouriteService from "@/services/favourite";
+import { convertNewestChapter } from "@/utils/convert";
 
 interface StoryCardProps {
-  story: Story;
-  newestChapter?: NewestChapter[];
+  data: Story;
   className?: string;
 }
 
-export default function StoryCard({ story, newestChapter, className }: StoryCardProps) {
+export default function StoryCard({ data, className }: StoryCardProps) {
   const auth = useAuth();
   const user = auth?.user;
   const router = useRouter();
+  const story = data;
 
-  const [isInFavourite, setIsInFavourite] = useState<boolean>(!story.favourite ? false : true);
+  const [isInFavourite, setIsInFavourite] = useState<boolean>(!story?.favourite ? false : true);
+  const [newestChapter, setNewestChapter] = useState<NewestChapter[]>([]);
 
   const handleClickFavourite = () => {
     const saveFavourite = async () => {
@@ -73,6 +75,10 @@ export default function StoryCard({ story, newestChapter, className }: StoryCard
     // Todo: thêm điều hướng tới trang đọc chapter
   };
 
+  useEffect(() => {
+    setNewestChapter(convertNewestChapter(story?.newest_chapter || [], 1));
+  }, [story]);
+
   return (
     <div
       className={`flex flex-col justify-start items-center bg-background text-foreground gap-2.5 p-1.5 rounded-[5]
@@ -82,15 +88,12 @@ export default function StoryCard({ story, newestChapter, className }: StoryCard
         max-w-sm w-full h-full
         ${className} `}
     >
-      <div
-        className={`relative aspect-2/3 rounded-[5] w-full cursor-pointer
-          w-[${story?.cover_art?.width}] h-[${story?.cover_art?.height}]`}
-      >
+      <div className={`relative aspect-2/3 rounded-[5] w-full cursor-pointer`}>
         {/* Cover art */}
         <img
           onClick={() => handleClickStory()}
           className="object-cover rounded-[5]"
-          src={process.env.NEXT_PUBLIC_API_URL + "uploads/story/" + story.cover_art?.url}
+          src={process.env.NEXT_PUBLIC_API_URL + "uploads/story/" + story?.cover_art?.url}
           alt="Cover Art"
         ></img>
 
@@ -112,14 +115,14 @@ export default function StoryCard({ story, newestChapter, className }: StoryCard
       <div className="flex flex-col justify-between gap-1 w-full">
         {/* Tittle */}
         <div onClick={() => handleClickStory()} className="text-[1.5em] font-bold leading-tight cursor-pointer">
-          {"[" + snakeCaseToCapitalizeWord(story?.type) + "] " + story?.title}
+          {"[" + snakeCaseToCapitalizeWord(story?.type ?? "") + "] " + story?.title}
         </div>
 
         {/* Rating */}
         <div className="flex flex-wrap gap-x-2.5 justify-start items-center">
           <div className="flex  justify-center items-center gap-1">
             <div className="flex justify-center items-center">
-              <DisplayStar rating={story.star || 0}></DisplayStar>
+              <DisplayStar rating={story?.star || 0}></DisplayStar>
             </div>
             <p className="">{story?.star}</p>
           </div>

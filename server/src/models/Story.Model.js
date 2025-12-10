@@ -295,7 +295,8 @@ export const UpdateStory = async (where = { id, title }, data) => {
 
 export async function CountStory(where = {}) {
   try {
-    return { success: true, data: await db.story.count({ where: { is_deleted: false, ...where } }) };
+    const count = await db.story.count({ where: { is_deleted: false, ...where } });
+    return { success: true, data: count };
   } catch (error) {
     if (error.code !== "P2025") console.error("❌ [Rating.Model.js] Error updating rating:", error);
     return { success: false, error: error.code };

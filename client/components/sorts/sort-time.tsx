@@ -13,29 +13,9 @@ const SORTS = [
     code: "created_at:asc",
     isChecked: false,
   },
-  {
-    label: "View tăng dần",
-    code: "view:asc",
-    isChecked: false,
-  },
-  {
-    label: "View giảm dần",
-    code: "view:desc",
-    isChecked: false,
-  },
-  {
-    label: "Số sao tăng dần",
-    code: "star:asc",
-    isChecked: false,
-  },
-  {
-    label: "Số sao giảm dần",
-    code: "star:desc",
-    isChecked: false,
-  },
 ];
 
-export default function SortStories({ onSort }: { onSort?: ({}) => void }) {
+export default function SortTime({ onSort }: { onSort?: ({}) => void }) {
   function handleSort(
     value: {
       label: string;

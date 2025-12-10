@@ -86,6 +86,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         const user = res?.data.user;
         console.log(user);
         setUser(user);
+        toast.message("Login with " + user.name);
       } else {
         toast.message("Your session has been expired");
       }

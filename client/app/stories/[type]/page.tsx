@@ -9,7 +9,7 @@ import Story from "@/types/story";
 
 import storyService from "@/services/story";
 
-import StoryGrid from "@/components/grids/story-grid";
+import StoryGridWithInfoCard from "@/components/grids/story-grid";
 import RecommendStories from "@/components/list/recommend-story";
 import { toast } from "sonner";
 
@@ -37,12 +37,12 @@ export default function StoriesPage() {
 
   return (
     <div className="w-full h-full flex flex-col font-afacad gap-12">
-      <StoryGrid
+      <StoryGridWithInfoCard
         className="max-w-[1800] mx-auto"
         label={typeParam ? snakeCaseToCapitalizeWord(typeParam) : "Story"}
         storyType={typeParam}
         elementsPerPage={30}
-      ></StoryGrid>
+      ></StoryGridWithInfoCard>
 
       <RecommendStories className="max-w-[1800] mx-auto"></RecommendStories>
     </div>

@@ -8,10 +8,16 @@ import SortStories from "../sorts/sort-stories";
 import FilterProps from "@/types/filter";
 import { Params } from "@/types/params";
 import DEFAULT from "@/constants/default";
-import SortTime from "../sorts/sort-time";
-import FilterStoryType from "../filters/filter-story-type";
 
-export default function FilterSort({ onChange, isResetAll = false, className }: { onChange?: (params: {}) => void; isResetAll?: boolean; className?: string }) {
+export default function FilterSortStories({
+  onChange,
+  isResetAll = false,
+  className,
+}: {
+  onChange?: (params: {}) => void;
+  isResetAll?: boolean;
+  className?: string;
+}) {
   const isRunFirstTime = useRef(true);
 
   const [params, setParams] = useState<Params>(DEFAULT.params);
@@ -39,7 +45,7 @@ export default function FilterSort({ onChange, isResetAll = false, className }: 
   return (
     <div className={`flex flex-row flex-wrap gap-2 ${className}`}>
       {/* Sort */}
-      <SortTime onSort={updateParams}></SortTime>
+      <SortStories onSort={updateParams}></SortStories>
 
       {/* Rating */}
       <FilterRatings onFilter={updateParams} isReset={isResetAll}></FilterRatings>
@@ -52,9 +58,6 @@ export default function FilterSort({ onChange, isResetAll = false, className }: 
 
       {/* View */}
       <FilterViews onFilter={updateParams} isReset={isResetAll}></FilterViews>
-
-      {/* Story type */}
-      <FilterStoryType onFilter={updateParams} isReset={isResetAll}></FilterStoryType>
     </div>
   );
 }

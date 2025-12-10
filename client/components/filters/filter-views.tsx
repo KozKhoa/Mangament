@@ -51,7 +51,17 @@ const VIEWS = [
   },
 ];
 
-export default function FilterViews({ onFilter, isReset, className }: FilterViewsProps) {
+export default function FilterViews({ onFilter, isReset }: { onFilter?: ({}) => void; isReset: boolean }) {
+  const handleFilter = (value: FilterProps[]) => {
+    let filter: string[] = [];
+    value.forEach((v, i) => {
+      if (v.isChecked) {
+        filter.push(v.code || "");
+      }
+    });
+    onFilter?.({ view: filter });
+  };
+
   useEffect(() => {
     VIEWS.forEach((view) => {
       view.isChecked = false;
@@ -69,7 +79,7 @@ export default function FilterViews({ onFilter, isReset, className }: FilterView
       }
       options={VIEWS}
       name="filter-sort-author"
-      onFinishCheck={(checked) => onFilter?.(checked)}
+      onFinishCheck={(checked) => handleFilter?.(checked)}
     ></ButtonDropdownCheckbox>
   );
 }

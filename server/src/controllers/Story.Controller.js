@@ -108,8 +108,7 @@ export async function GetCountStories(req, res, next) {
   try {
     const query = req.query;
 
-    const type = query.type;
-    if (!ValidateStoryType(type)) throw CreateError(ErrorCodes.BAD_REQUEST);
+    const type = query.type ? query.type.split(",") : null;
 
     const authors = query.author ? query.author.split(",") : null;
 
@@ -123,7 +122,7 @@ export async function GetCountStories(req, res, next) {
 
     // Create where
     const where = {
-      ...(type && { type: type }),
+      ...(type && { type: { in: type } }),
       ...(authors && {
         authors: { some: { author_id: { in: authors } } },
       }),

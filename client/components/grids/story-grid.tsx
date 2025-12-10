@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 
 import SwitchPageBig from "../switch-page/big";
 import SwitchPageSmall from "../switch-page/small";
-import FilterSort from "../list/filter-sort";
+import FilterSort from "../list/filter-sort-stories";
 import StoryCard from "../cards/stories/story-card";
 import StoryInfoCard from "../cards/stories/story-info-card";
 import Loading from "../loadings/loading";
@@ -17,6 +17,14 @@ import storyService from "@/services/story";
 import { StoryParams } from "@/types/params";
 import NewestChapter from "@/types/newest-chapter";
 import Story from "@/types/story";
+
+import SortStories from "../sorts/sort-stories";
+
+import FilterAuthors from "../filters/filter-authors";
+import FilterGenres from "../filters/fiilter-genres";
+import FilterRatings from "../filters/filter-ratings";
+import FilterViews from "../filters/filter-views";
+import FilterSortStories from "../list/filter-sort-stories";
 
 interface StoryGridProps {
   label: string;
@@ -40,6 +48,10 @@ export default function StoryGrid({ label, storyType, elementsPerPage, className
   const [newestChapter, setNewestChapter] = useState<NewestChapter[][]>();
   const [isResetFilterSort, setIsResetFilterSort] = useState<boolean>(false);
 
+  function handleUpdateParams(params: {}) {
+    setParams((oldParams) => ({ ...oldParams, ...params }));
+  }
+
   async function fetchStories() {
     const storyParams: StoryParams = {
       type: storyType,
@@ -51,6 +63,7 @@ export default function StoryGrid({ label, storyType, elementsPerPage, className
     };
 
     const res = await storyService.get(storyParams);
+
     if (!res) return toast.warning("Cannot connect with server");
     if (!res.success) return toast.warning(res.message);
 
@@ -81,8 +94,9 @@ export default function StoryGrid({ label, storyType, elementsPerPage, className
     if (!res.success) return toast.warning(res.message);
 
     const count = res.data.count;
+    console.log(count);
 
-    setMaxPage(Math.ceil(count / limit));
+    setMaxPage(Math.ceil(count / limit) ?? 0);
   }
 
   useEffect(() => {
@@ -97,11 +111,11 @@ export default function StoryGrid({ label, storyType, elementsPerPage, className
   }, [page]);
 
   return (
-    <div ref={topRef} className={`  flex flex-row justify-center items-start gap-5 ${className}`}>
-      <div>
+    <div ref={topRef} className={`w-full flex flex-row justify-center items-start gap-5 ${className}`}>
+      <div className="w-full">
         {/* Header use to display story type and page index */}
-        <header
-          className=" sticky top-12 py-2 px-5 z-10
+        <div
+          className=" sticky top-12 py-2 px-5 z-10 w-full
               flex flex-row flex-wrap justify-between items-center gap-2
               bg-background border-b-2 "
         >
@@ -113,18 +127,23 @@ export default function StoryGrid({ label, storyType, elementsPerPage, className
             {/* Switch page */}
             <SwitchPageSmall maxPage={maxPage} page={page} onChange={(pageNumber) => setPage(pageNumber)}></SwitchPageSmall>
           </div>
-        </header>
+        </div>
 
         {/* Main grid with sort */}
-        <div className="flex flex-col gap-2 justify-start items-center  py-2">
+        <div className="flex flex-col gap-2 justify-start items-center py-2 w-full">
           {/* Sort and fiter */}
-          <FilterSort className="w-full" isResetAll={isResetFilterSort} onChange={(params) => setParams(params)}></FilterSort>
+          <FilterSortStories
+            onChange={(newParams) => {
+              setPage(1);
+              handleUpdateParams(newParams);
+            }}
+            isResetAll={isResetFilterSort}
+          ></FilterSortStories>
 
           {isLoading ? (
             <Loading></Loading>
           ) : stories?.length !== undefined && stories?.length > 0 ? (
             // Grid
-
             <main
               className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 gap-2
             border-b-2 border-foreground pb-2
@@ -132,12 +151,12 @@ export default function StoryGrid({ label, storyType, elementsPerPage, className
             >
               {stories.map((story, i) => (
                 <div key={story.id} onMouseEnter={() => setStoryIndex(i)}>
-                  <StoryCard story={story} newestChapter={newestChapter?.[i]}></StoryCard>
+                  <StoryCard data={story}></StoryCard>
                 </div>
               ))}
             </main>
           ) : (
-            <div className="w-full flex flex-col gap-5 py-20 justify-center items-center">
+            <div className="w-full flex flex-col gap-5 py-20 justify-center items-center ">
               <img className="w-20 h-20" src={"/filter-color.png"}></img>
               <h2>Không có kết quả</h2>
               <p>Vui lòng điều chỉnh bộ lọc</p>

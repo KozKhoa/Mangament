@@ -12,19 +12,19 @@ interface SwitchPageProps {
 }
 
 export default function SwitchPageSmall({ defaultPage, maxPage, page, onChange, className }: SwitchPageProps) {
-  const [pageNumber, setPageNumber] = useState<number>(1);
+  const [pageNumber, setPageNumber] = useState<string>("");
 
   const buttonClassName = `p-1.5 border rounded-[5] border-transparent`;
 
   const handleChange = (pageIndex: number) => {
-    if (pageIndex <= 0 || pageIndex > maxPage) return;
+    if (pageIndex < 1 || pageIndex > maxPage) return;
 
-    setPageNumber(pageIndex);
+    setPageNumber(pageIndex.toString());
     onChange?.(pageIndex);
   };
 
   useEffect(() => {
-    setPageNumber(page);
+    setPageNumber(page.toString());
   }, [page]);
 
   return (
@@ -41,18 +41,19 @@ export default function SwitchPageSmall({ defaultPage, maxPage, page, onChange, 
           alt="Nhập số trang"
           type="number"
           onChange={(e) => {
-            if (/^\d*$/.test(e.target.value))
+            if (/^\d*$/.test(e.target.value)) {
               // Only accept integer > 0
-              setPageNumber(Number(e.target.value));
+              setPageNumber(e.target.value);
+            }
           }}
           // Remove arrow increase or descrease number in input box
-          className="text-[1.5em] w-10 text-center outline-none
+          className="text-[1.5em] w-20 text-center outline-none
             [-moz-appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-          onKeyDown={(e) => e.key === "Enter" && handleChange(pageNumber)}
+          onKeyDown={(e) => e.key === "Enter" && handleChange(Number(pageNumber))}
         ></input>
       </label>
       <button
-        className={` ${buttonClassName} ${page === maxPage ? "text-gray-300" : "text-foreground hover:border-black cursor-pointer "}`}
+        className={` ${buttonClassName} ${page >= maxPage ? "text-gray-300" : "text-foreground hover:border-black cursor-pointer "}`}
         onClick={() => handleChange(page + 1)}
       >
         <RightArrowIcon className={`w-5 h-5 $`}></RightArrowIcon>

@@ -5,35 +5,20 @@ import StarIcon from "@/public/star.svg";
 import FilterProps from "@/types/filter";
 import Tag from "../tags/tag";
 
-const RATINGS = [
+const STORY_TYPES = [
   {
-    label: "Trên 4 sao",
-    code: "4-6",
+    label: "Manga",
+    code: "manga",
     isChecked: false,
   },
   {
-    label: "Từ 3 đến 4 sao",
-    code: "3-4",
-    isChecked: false,
-  },
-  {
-    label: "Từ 2 đến 3 sao",
-    code: "2-3",
-    isChecked: false,
-  },
-  {
-    label: "Từ 1 đến 2 sao",
-    code: "1-2",
-    isChecked: false,
-  },
-  {
-    label: "Dưới 1 sao",
-    code: "0-1",
+    label: "Light Novel",
+    code: "light_novel",
     isChecked: false,
   },
 ];
 
-export default function FilterRatings({ onFilter, isReset = false }: { onFilter: ({}) => void; isReset: boolean }) {
+export default function FilterStoryType({ onFilter, isReset = false }: { onFilter: ({}) => void; isReset: boolean }) {
   const handleFilter = (value: FilterProps[]) => {
     let filter: string[] = [];
     value.forEach((v, i) => {
@@ -41,12 +26,12 @@ export default function FilterRatings({ onFilter, isReset = false }: { onFilter:
         filter.push(v.code || "");
       }
     });
-    onFilter?.({ star: filter });
+    onFilter?.({ type: filter });
   };
 
   if (isReset) {
-    RATINGS.forEach((rating) => {
-      rating.isChecked = false;
+    STORY_TYPES.forEach((type) => {
+      type.isChecked = false;
     });
   }
 
@@ -55,11 +40,11 @@ export default function FilterRatings({ onFilter, isReset = false }: { onFilter:
       label={
         <div className="flex flex-row flex-wrap gap-1.5 justify-center items-center w-fit h-fit">
           <StarIcon className="w-5 h-5 fill-background stroke-foreground"></StarIcon>
-          <p className="font-bold">Đánh giá</p>
-          <div className="flex flex-row flex-wrap gap-1">{RATINGS?.map((rating, i) => rating.isChecked && <Tag key={rating.code}>{rating.label}</Tag>)}</div>
+          <p className="font-bold">Loại truyện</p>
+          <div className="flex flex-row flex-wrap gap-1">{STORY_TYPES?.map((type, i) => type.isChecked && <Tag key={type.code}>{type.label}</Tag>)}</div>
         </div>
       }
-      options={RATINGS}
+      options={STORY_TYPES}
       name="filter-sort-author"
       onFinishCheck={(checked) => handleFilter?.(checked)}
     ></ButtonDropdownCheckbox>

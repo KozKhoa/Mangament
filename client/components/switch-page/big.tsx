@@ -13,21 +13,25 @@ interface SwitchPageProps {
 
 export default function SwitchPageBig({ page, maxPage, onChange, className }: SwitchPageProps) {
   if (!maxPage || isNaN(maxPage)) maxPage = 0;
-  const arr20 = useRef(Array.from({ length: maxPage }));
+
+  console.log(maxPage);
+
+  const [arr20, setArr20] = useState(Array.from({ length: maxPage }));
+
   const arr5 = useRef(Array.from({ length: 5 }));
 
   const [pageNumber, setPageNumber] = useState<number>(0);
 
-  const arrowClassName = "p-1.5 border rounded-[5] border-transparent";
+  const arrowClassName = "p-1.5 border rounded-md border-transparent";
 
   const handleChange = (pageIndex: number) => {
-    if (pageIndex <= 0 || pageIndex > maxPage || pageIndex === page) return;
+    if (pageIndex < 1 || pageIndex > maxPage || pageIndex === page) return;
     setPageNumber(0);
     onChange?.(pageIndex);
   };
 
   useEffect(() => {
-    arr20.current = Array.from({ length: maxPage });
+    setArr20(Array.from({ length: maxPage }));
   }, [maxPage]);
 
   const getPageNumber = (i: number) => {
@@ -40,7 +44,7 @@ export default function SwitchPageBig({ page, maxPage, onChange, className }: Sw
     <div className={`flex flex-row gap-2.5 w-fit   text-[1.2em] text-foreground  ${className}`}>
       {/* Left arrow button */}
       <button
-        className={`${arrowClassName} ${page === 1 ? "text-gray-300" : "text-foreground hover:border-black cursor-pointer"}`}
+        className={`${arrowClassName} ${page <= 1 ? "text-gray-300" : "text-foreground hover:border-black cursor-pointer"}`}
         onClick={() => handleChange(page - 1)}
       >
         <LeftArrowIcon className={`w-6 h-6 ${page <= 1 ? "text-gray-300" : "text-foreground"}`}></LeftArrowIcon>
@@ -49,11 +53,11 @@ export default function SwitchPageBig({ page, maxPage, onChange, className }: Sw
       {/* Button choose page index */}
       <div className="flex flex-row flex-wrap  gap-1">
         {maxPage <= 20 ? (
-          arr20.current.map((_, i) => (
+          arr20.map((_, i) => (
             <button
               key={i + 1}
               onClick={() => handleChange(i + 1)}
-              className={`p-1.5 min-w-10 h-10 border rounded-[5] border-transparent hover:border-black cursor-pointer
+              className={`p-1.5 min-w-10 h-10 border rounded-md border-transparent hover:border-black cursor-pointer
                 text-black 
                 ${i + 1 === page ? "bg-gray-200" : "bg-background"}
                 `}
@@ -67,7 +71,7 @@ export default function SwitchPageBig({ page, maxPage, onChange, className }: Sw
               <button
                 key={i}
                 onClick={() => handleChange(i + 1)}
-                className={`p-1.5 min-w-10 h-10 border rounded-[5] border-transparent hover:border-black cursor-pointer
+                className={`p-1.5 min-w-10 h-10 border rounded-md border-transparent hover:border-black cursor-pointer
                     flex justify-center items-center text-black 
                     ${i + 1 === page ? "bg-gray-200" : "bg-background"}
                 `}
@@ -77,7 +81,7 @@ export default function SwitchPageBig({ page, maxPage, onChange, className }: Sw
             ))}
 
             <div
-              className={`p-1.5 min-w-10 h-10 border rounded-[5] border-transparent text-black 
+              className={`p-1.5 min-w-10 h-10 border rounded-md border-transparent text-black 
                 flex justify-center items-center font-bold`}
             >
               ...
@@ -87,7 +91,7 @@ export default function SwitchPageBig({ page, maxPage, onChange, className }: Sw
               <button
                 key={i}
                 onClick={() => handleChange(getPageNumber(i))}
-                className={`p-1.5 min-w-10 h-10 border rounded-[5] border-transparent hover:border-black cursor-pointer
+                className={`p-1.5 min-w-10 h-10 border rounded-md border-transparent hover:border-black cursor-pointer
                     flex justify-center items-center text-black 
                     ${getPageNumber(i) === page ? "bg-gray-200" : "bg-background"}
                 `}
@@ -98,7 +102,7 @@ export default function SwitchPageBig({ page, maxPage, onChange, className }: Sw
 
             <label
               className="col-span-3 flex justify-center items-center w-30 h-10 p-0.5
-                border border-black rounded-[5]"
+                border border-black rounded-md"
             >
               <input
                 type="number"
@@ -126,7 +130,7 @@ export default function SwitchPageBig({ page, maxPage, onChange, className }: Sw
             </label>
 
             <div
-              className={`p-1.5 min-w-10 h-10 border rounded-[5] border-transparent text-black 
+              className={`p-1.5 min-w-10 h-10 border rounded-md border-transparent text-black 
                 flex justify-center items-center font-bold`}
             >
               ...
@@ -135,7 +139,7 @@ export default function SwitchPageBig({ page, maxPage, onChange, className }: Sw
               <button
                 key={maxPage - 4 + i}
                 onClick={() => handleChange(maxPage - 4 + i)}
-                className={`p-1.5 min-w-10 h-10 border rounded-[5] border-transparent hover:border-black cursor-pointer
+                className={`p-1.5 min-w-10 h-10 border rounded-md border-transparent hover:border-black cursor-pointer
                     flex justify-center items-center text-black 
                     ${maxPage - 4 + i === page ? "bg-gray-200" : "bg-background"}
                 `}
@@ -148,7 +152,7 @@ export default function SwitchPageBig({ page, maxPage, onChange, className }: Sw
       </div>
 
       {/* Right arrow button */}
-      <button className={arrowClassName} onClick={() => handleChange(page + 1)}>
+      <button className={`${arrowClassName} ${page >= maxPage ? "text-gray-300" : "text-foreground"}`} onClick={() => handleChange(page + 1)}>
         <RightArrowIcon className={`w-6 h-6 ${page >= maxPage ? "text-gray-300" : "text-foreground"}`}></RightArrowIcon>
       </button>
     </div>
