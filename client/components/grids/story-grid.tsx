@@ -94,7 +94,6 @@ export default function StoryGrid({ label, storyType, elementsPerPage, className
     if (!res.success) return toast.warning(res.message);
 
     const count = res.data.count;
-    console.log(count);
 
     setMaxPage(Math.ceil(count / limit) ?? 0);
   }
@@ -133,6 +132,7 @@ export default function StoryGrid({ label, storyType, elementsPerPage, className
         <div className="flex flex-col gap-2 justify-start items-center py-2 w-full">
           {/* Sort and fiter */}
           <FilterSortStories
+            className="w-full"
             onChange={(newParams) => {
               setPage(1);
               handleUpdateParams(newParams);

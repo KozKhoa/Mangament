@@ -41,7 +41,7 @@ export default function CardGrid({
   const parentRef = useRef<HTMLDivElement>(null);
   const childRef = useRef<HTMLDivElement>(null);
 
-  const { ref, inView } = useInView();
+  const [ref, inView] = useInView();
 
   const [params, setParams] = useState<Params>(DEFAULT.params);
   const [isResetFilterSort, setIsResetFilterSort] = useState<boolean>(false);

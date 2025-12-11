@@ -113,129 +113,103 @@ export async function GetReview(storyId, number = 1) {
   return imageUrl.slice(0, 4);
 }
 
-export const FindAllStories = async (
-  where = {},
-  select = {},
-  orderBy = {},
-  take = 1,
-  skip = 0,
+export async function FindAllStories({
+  keyword,
+  type = [],
+  view = [],
+  star = [],
+  genres = [],
+  authorsId = [],
+  page = 1,
+  limit = 10,
+  sort = { created_at: "desc" },
   isGettingChildren = false,
-  isGettingContent = false,
-  isGettingSummary = false,
-  isGettingNewestChapter = false
-) => {
-  try {
-    const stories = await db.story.findMany({
-      where: {
-        is_deleted: false,
-        ...where,
-      },
-      ...(orderBy && { orderBy }),
-      ...(take && { take }),
-      ...(skip && { skip }),
-      select: {
-        ...select,
-        ...{
-          id: true,
-          title: true,
-          nation: true,
-          view: true,
-          star: true,
-          type: true,
-          status: true,
-          next_chapter_in: true,
-          number_of_children: true,
-          ...(isGettingSummary && {
-            summary: true,
-          }),
-          authors: {
-            select: {
-              author: {
-                select: { id: true, name: true },
-              },
-            },
-          },
-          genres: true,
-          cover_art: {
-            select: { url: true, width: true, height: true },
-          },
+  isGettingNewestChapter = false,
+}) {
+  const stories = await db.story.findMany({
+    where: {
+      is_deleted: false,
+      ...(keyword && { title: { contains: keyword, mode: "insensitive" } }),
+      ...(type && { type: { in: type } }),
+      ...(genres && { genres: { hasEvery: genres } }),
+      ...(authorsId && {
+        authors: { some: { author_id: { in: authorsId } } },
+      }),
+      AND: [
+        {
+          OR: [...star.map(([min, max]) => ({ star: { gte: min, lte: max } }))],
         },
-      },
-    });
-
-    for (const story of stories) {
-      story.authors = story.authors.map((author) => author.author);
-      // story.genre = story.genre.map((genre) => genre.genre);
-      if (isGettingChildren) story.children = await GetStoryTree(story.id, null, isGettingContent);
-      if (isGettingNewestChapter) {
-        story.newest_chapter = await GetNewestChapter(story.id, 5);
-      }
-    }
-
-    const result = stories;
-    return { success: true, data: result };
-  } catch (error) {
-    console.error("❌ [Story.Model.js] Error finding all stories: ", error);
-    return { success: false, error: error.code };
-  }
-};
-
-export const FindStory = async (
-  where = { id, title },
-  select,
-  isGettingChildren = false,
-  isGettingContent = false,
-  isGettingSummary = false,
-  isGettingNewestChapter = false
-) => {
-  try {
-    if (!where.id && !where.title) return { success: false, data: null };
-    const stories = await FindAllStories(where, select, null, 1, 0, isGettingChildren, isGettingContent, isGettingSummary, isGettingNewestChapter);
-
-    const story = stories.data.at(0);
-    return { success: true, data: story };
-  } catch (error) {
-    console.error("❌ [Story.Model.js] Error finding story: ", error);
-    return { success: false, error: error.code };
-  }
-};
-
-export const AddStory = async (data = { title, type }) => {
-  try {
-    // Check if story exist or not;
-    const story = await FindStory({ title: data.title });
-    if (story && story.success && story.data) {
-      return { success: false, data: story.data };
-    }
-    // If not exist
-    const newStory = await db.story.create({
-      data: data,
-      select: {
-        id: true,
-        title: true,
-        nation: true,
-        view: true,
-        star: true,
-        type: true,
-        status: true,
-        next_chapter_in: true,
-        number_of_children: true,
-        poster_id: true,
-        updated_at: true,
-        created_at: true,
-        cover_art: {
-          select: { url: true, width: true, height: true },
+        {
+          OR: [...view.map(([min, max]) => ({ view: { gte: min, lte: max } }))],
         },
-        genre: true,
+      ],
+    },
+    include: {
+      authors: {
+        select: { author: { select: { id: true, name: true } } },
       },
-    });
+      cover_art: true,
+    },
+    orderBy: sort,
+    take: limit,
+    skip: (page - 1) * limit,
+  });
 
-    // newStory.genre = newStory.genre.map((genre) => genre.genre);
-    return { success: true, data: newStory };
-  } catch (error) {
-    console.error("❌ [Story.Model.js] Error adding story: ", error);
-    return { success: false, error: error.code };
+  for (const story of stories) {
+    story.authors = story.authors.map((author) => author.author);
+    if (isGettingChildren) story.children = await GetStoryTree(story.id, null, isGettingContent);
+    if (isGettingNewestChapter) {
+      story.newest_chapter = await GetNewestChapter(story.id, 5);
+    }
   }
+
+  return { success: true, data: stories };
+}
+
+export async function FindStory({ id, title, isGettingChildren = false, isGettingContent = false, isGettingNewestChapter = false }) {
+  const story = await db.story.findUnique({
+    where: { ...(id && { id: id }), ...(title && { title: title }), is_deleted: false },
+    include: { authors: { select: { author: { select: { id: true, name: true } } } }, cover_art: true },
+  });
+
+  if (!story) {
+    return { success: false, data: null };
+  }
+
+  story.authors = story.authors.map((author) => author.author);
+
+  if (isGettingChildren) {
+    story.children = await GetStoryTree(story.id, null, isGettingContent);
+  }
+
+  if (isGettingNewestChapter) {
+    story.newest_chapter = await GetNewestChapter(story.id, 5);
+  }
+
+  return { success: true, data: story };
+}
+
+export const AddStory = async ({ title, type, nation, genres, authorsId, status, posterId, summary, coverArtId }) => {
+  // Check if story exist or not;
+  const story = await db.story.findUnique({ where: { title: title } });
+  if (story) return { success: false, data: story.data };
+
+  // If not exist
+  const newStory = await db.story.create({
+    data: {
+      title: title,
+      type: type,
+      nation: nation,
+      genres: genres,
+      status: status,
+      summary: summary,
+      ...(posterId && { poster: { connect: { id: posterId } } }),
+      ...(authorsId && { authors: { connectOrCreate: authorsId.map((authorId) => ({ author_id: authorId })) } }),
+      ...(coverArtId && { cover_art: { connect: { id: coverArtId } } }),
+    },
+  });
+
+  return { success: true, data: newStory };
 };
 
 export const SoftDeleteStory = async (where = { id, title }) => {

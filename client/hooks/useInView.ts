@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+import { RefObject, useEffect, useRef, useState } from "react";
 
-export default function useInView(options = { threshold: 0.1 }) {
-  const ref = useRef<HTMLElement>(null);
+export default function useInView(options = { threshold: 0.1 }): [RefObject<HTMLElement | null>, boolean] {
+  const ref = useRef<HTMLElement | null>(null);
   const [inView, setInView] = useState(false);
 
   useEffect(() => {
@@ -17,5 +17,5 @@ export default function useInView(options = { threshold: 0.1 }) {
     return () => observer.disconnect();
   }, [ref.current]);
 
-  return { ref, inView };
+  return [ref, inView];
 }

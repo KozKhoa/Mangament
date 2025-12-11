@@ -27,6 +27,7 @@ html.dark {
   --font-mono: var(--font-geist-mono);
   --font-afacad: var(--font-afacad);
   --font-holtwood: var(--font-holtwood);
+  --font-aclonica: var(--font-aclonica);
 
   --text-size-default: var(--text-size);
 }

@@ -19,19 +19,16 @@ import {
 
 import { CreateNewFolder, IsFileExist, MoveFile, SoftRemoveFile } from "../utils/FileHandle.js";
 import DIRECTORY from "../constants/Directory.js";
+import { ConvertStoryQuery } from "../utils/QueryConvert.js";
 
 export async function GetStory(req, res, next) {
   try {
     const userId = req.user?.id;
-
     const storyId = req?.params?.id;
-    const isGettingChildren = req.query?.isGettingChildren == "true" ? true : false;
-    const isGettingContent = req.query?.isGettingContent == "true" ? true : false;
-    const isGettingSummary = req.query?.isGettingSummary == "true" ? true : false;
-    const isGettingNewestChapter = req.query?.isGettingNewestChapter == "true" ? true : false;
-
     // Check user request
     if (!storyId) throw CreateError(ErrorCodes.BAD_REQUEST);
+
+    const { type, isGettingChildren, isGettingContent, isGettingSummary, isGettingNewestChapter } = ConvertStoryQuery(req.query);
 
     let select = {};
     if (userId) {
@@ -71,7 +68,12 @@ export async function GetStory(req, res, next) {
       };
     }
 
-    const story = await FindStory({ id: storyId }, select, isGettingChildren, isGettingContent, isGettingSummary, isGettingNewestChapter);
+    const story = await FindStory({
+      id: storyId,
+      isGettingChildren: isGettingChildren,
+      isGettingContent: isGettingContent,
+      isGettingNewestChapter: isGettingNewestChapter,
+    });
 
     // If server not return anything or return success = false => fail to find story
     if (!story || !story.success) throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
@@ -79,10 +81,12 @@ export async function GetStory(req, res, next) {
     if (!story.data) throw CreateError(ErrorCodes.STORY_NOT_FOUND);
 
     // Format story.favourite
-    if (userId) {
-      story.data.favourite = story.data.favourite[0];
-      story.data.rating = story.data.rating[0];
-    }
+    // if (userId) {
+    //   story.data.favourite = story.data.favourite[0];
+    //   story.data.rating = story.data.rating[0];
+    // }
+
+    if (!isGettingSummary) delete story.data.summary;
 
     res.status(200).json({ success: true, message: "Getting story successfully", data: story.data });
   } catch (error) {
@@ -182,48 +186,8 @@ export async function GetAllStories(req, res, next) {
   try {
     const userId = req?.user?.id;
 
-    const query = req.query;
-
-    const isGettingChildren = query.isGettingChildren == "true" ? true : false;
-    const isGettingContent = query.isGettingContent == "true" ? true : false;
-    const isGettingNewestChapter = query.isGettingNewestChapter == "true" ? true : false;
-    const isGettingSummary = query.isGettingSummary == "true" ? true : false;
-
-    const limit = query.limit ? Number(query.limit) : 1;
-
-    const page = query.page ? Number(query.page) : 1;
-
-    const type = query.type;
-    if (!ValidateStoryType(type)) throw CreateError(ErrorCodes.BAD_REQUEST);
-
-    const authors = query.author ? query.author.split(",") : null;
-
-    const genres = query.genre ? query.genre.split(",") : null;
-    if (!ValidateGenre(genres)) throw CreateError(ErrorCodes.BAD_REQUEST);
-
-    // rating = [[1,2], [4,5]]
-    const rating = query.star ? query.star.split(",").map((range) => range.split("-").map((number) => parseFloat(number))) : [[0, 5]];
-    // view = [[0, 100], [1000, 100000]]
-    const view = query.view ? query.view.split(",").map((range) => range.split("-").map((number) => Number(number))) : [[0, 2147483647]];
-
-    // Create where
-    const where = {
-      ...(type && { type: type }),
-      ...(authors && {
-        authors: { some: { author_id: { in: authors } } },
-      }),
-      ...(genres && {
-        genres: { hasEvery: genres },
-      }),
-      AND: [
-        {
-          OR: [...rating.map(([min, max]) => ({ star: { gte: min, lte: max } }))],
-        },
-        {
-          OR: [...view.map(([min, max]) => ({ view: { gte: min, lte: max } }))],
-        },
-      ],
-    };
+    const { isGettingChildren, authors, keyword, isGettingContent, isGettingNewestChapter, isGettingSummary, limit, page, type, genres, rating, view, sort } =
+      ConvertStoryQuery(req.query);
 
     let select = {};
     if (userId) {
@@ -237,41 +201,36 @@ export async function GetAllStories(req, res, next) {
       };
     }
 
-    const order = {};
-    if (query?.sort) {
-      const [field, direction] = query.sort.split(":");
-      order[field.toLowerCase()] = direction.toLowerCase();
-    } else {
-      order["created_at"] = "desc";
-    }
-
-    const stories = await FindAllStories(
-      where,
-      select,
-      order,
-      limit,
-      (page - 1) * limit,
-      isGettingChildren,
-      isGettingContent,
-      isGettingSummary,
-      isGettingNewestChapter
-    );
+    const stories = await FindAllStories({
+      keyword: keyword,
+      type: type,
+      view: view,
+      star: rating,
+      genres: genres,
+      genres: genres,
+      authorsId: authors,
+      sort: sort,
+      page: page,
+      limit: limit,
+      isGettingChildren: isGettingChildren,
+      isGettingNewestChapter: isGettingNewestChapter,
+    });
 
     if (!stories || !stories.success) {
       throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
     }
 
     // use to update favourite story
-    if (userId) {
-      stories.data.forEach((story) => {
-        if (story.favourite[0] && story.favourite[0].user_id === userId) {
-          story.favourite = {
-            id: story.favourite[0].id,
-            user_id: story.favourite[0].id,
-          };
-        } else delete story.favourite;
-      });
-    }
+    // if (userId) {
+    //   stories.data.forEach((story) => {
+    //     if (story.favourite[0] && story.favourite[0].user_id === userId) {
+    //       story.favourite = {
+    //         id: story.favourite[0].id,
+    //         user_id: story.favourite[0].id,
+    //       };
+    //     } else delete story.favourite;
+    //   });
+    // }
 
     return res.status(200).json({
       success: true,
@@ -339,33 +298,7 @@ export async function PostStory(req, res, next) {
     }
 
     // Add new story
-    const story = await AddStory({
-      title: title,
-      type: type,
-      nation: nation,
-      status: status,
-      poster: {
-        connect: {
-          id: userId,
-        },
-      },
-      ...(image &&
-        image.success &&
-        image.data && {
-          cover_art: {
-            connect: {
-              id: image.data.id,
-            },
-          },
-        }),
-      ...(genre && {
-        genre: {
-          create: genre.map((name) => ({
-            genre: name,
-          })),
-        },
-      }),
-    });
+    const story = await AddStory({ title: title, type: type, nation: nation, status: status, posterId: userId, genres: genre, coverArtId: image.data.id });
 
     if (!story || !story.success || !story.data) throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
 

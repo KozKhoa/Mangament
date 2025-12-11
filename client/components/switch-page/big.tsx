@@ -14,8 +14,6 @@ interface SwitchPageProps {
 export default function SwitchPageBig({ page, maxPage, onChange, className }: SwitchPageProps) {
   if (!maxPage || isNaN(maxPage)) maxPage = 0;
 
-  console.log(maxPage);
-
   const [arr20, setArr20] = useState(Array.from({ length: maxPage }));
 
   const arr5 = useRef(Array.from({ length: 5 }));

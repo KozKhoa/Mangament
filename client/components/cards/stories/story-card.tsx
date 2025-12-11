@@ -112,7 +112,7 @@ export default function StoryCard({ data, className }: StoryCardProps) {
         </button>
       </div>
 
-      <div className="flex flex-col justify-between gap-1 w-full">
+      <div className="flex flex-col gap-1 w-full h-full">
         {/* Tittle */}
         <div onClick={() => handleClickStory()} className="text-[1.5em] font-bold leading-tight cursor-pointer">
           {"[" + snakeCaseToCapitalizeWord(story?.type ?? "") + "] " + story?.title}
