@@ -15,6 +15,7 @@ import RatingBox from "../boxs/rating-box";
 import useAuth from "@/contexts/AuthContext";
 import RatingInput from "../inputs/rating-input";
 import Story from "@/types/story";
+import DEFAULT from "@/constants/default";
 
 interface RatingList {
   story?: Story;
@@ -31,7 +32,7 @@ export default function RatingList({ story, elementPerPage = 5, className }: Rat
   const [page, setPage] = useState<number>(1);
   const [rating, setRating] = useState<Rating[]>([]);
   const [count, setCount] = useState<number>(0);
-  const [params, setParams] = useState<RatingParams>({ sort: "created_at:desc", limit: elementPerPage, page: page });
+  const [params, setParams] = useState<RatingParams>(DEFAULT.params);
   const [isRated, setIsRated] = useState<boolean>(story?.rating ? true : false);
   const [yourRating, setYourRating] = useState<Rating>();
 
@@ -48,16 +49,11 @@ export default function RatingList({ story, elementPerPage = 5, className }: Rat
     setCount(resCount.data);
   }
 
-  function updateParams(options: { label: string; code?: string; isChecked: boolean }[], field: string) {
-    let result: string[] = [];
-    options.forEach((op, i) => {
-      if (op.isChecked && op.code) result.push(op.code);
-    });
-
+  function updateParams(params: {}) {
     setParams((prev) => {
       return {
         ...prev,
-        ...{ [field]: result, page: page },
+        ...params,
       };
     });
   }
@@ -110,7 +106,7 @@ export default function RatingList({ story, elementPerPage = 5, className }: Rat
         <div className="flex flex-row flex-wrap justify-between items-center">
           <h3>{count} đánh giá khác</h3>
 
-          <FilterRatings onFilter={(e) => updateParams(e, "star")}></FilterRatings>
+          <FilterRatings onFilter={updateParams}></FilterRatings>
         </div>
 
         {count ? (

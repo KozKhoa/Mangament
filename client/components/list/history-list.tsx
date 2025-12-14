@@ -58,9 +58,7 @@ export default function HistoryList({ label = "Lịch sử đọc", onClickLabel
         {histories && histories.length > 0 ? (
           <div ref={childRef} className="flex flex-row justify-center items-start gap-2">
             {histories?.map((history, i) => (
-              <div key={i} className="w-[150] md:w-[200] ">
-                <HistoryCard className="w-full" history={history} onClickRemove={() => onRemoveElement?.(history)}></HistoryCard>
-              </div>
+              <HistoryCard key={i} className="w-[150] md:w-[200] " history={history} onClickRemove={() => onRemoveElement?.(history)}></HistoryCard>
             ))}
           </div>
         ) : (

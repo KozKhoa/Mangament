@@ -3,6 +3,7 @@ export interface StoryParams {
   page?: number;
   limit?: number;
   type?: string;
+  keyword?: string;
   author?: string[];
   star?: string[];
   view?: string[];

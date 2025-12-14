@@ -41,6 +41,10 @@ export default function FavouritePage() {
     setLoading(false);
   }
 
+  function removeHistory(history: History) {
+    setHistories(histories.filter((x) => x !== history));
+  }
+
   useEffect(() => {
     setHistories((prevHis) => [...prevHis, ...newHistories]);
   }, [newHistories]);
@@ -66,7 +70,8 @@ export default function FavouritePage() {
             setParams(newParams as HistoryParams);
           }}
         >
-          {histories && histories.map((history, i) => <HistoryCard key={history.id} history={history}></HistoryCard>)}
+          {histories &&
+            histories.map((history, i) => <HistoryCard key={history.id} history={history} onClickRemove={() => removeHistory(history)}></HistoryCard>)}
         </CardGrid>
       ) : (
         <RequireLogin></RequireLogin>

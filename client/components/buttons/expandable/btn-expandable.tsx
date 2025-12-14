@@ -23,7 +23,6 @@ function ButtonExpandable({
   className = "",
 }: ButtonDropDownProps) {
   const [open, setOpen] = useState<boolean>(false);
-  const childrenArray = useRef(React.Children.toArray(children));
 
   function toggleOpenList() {
     setOpen(!open);
@@ -34,13 +33,13 @@ function ButtonExpandable({
   }
 
   return (
-    <div className={`flex flex-col gap-0 overflow-hidden w-full h-fit     rounded-t-[5] ${className}`}>
+    <div className={`flex flex-col gap-0 overflow-hidden w-full h-fit rounded-t-[5] ${className}`}>
       {/* Main button*/}
       <div
         className={`flex flex-row justify-between items-center 
         px-5 py-1.5 border-b border-foreground w-full rounded-t-[5] hover:bg-hover-background`}
       >
-        <button className="cursor-pointer" onClick={handleClick}>
+        <button className="cursor-pointer w-full text-start" onClick={handleClick}>
           {typeof label === "string" && label}
         </button>
         {children && (
@@ -60,21 +59,12 @@ function ButtonExpandable({
             transition={{ duration: duration / 1000, ease: "linear" }}
             className={`flex pl-5 md:pl-7 lg:pl-10 w-full h-fit `}
           >
-            <ul
+            <div
               className="flex flex-col justify-center items-start 
                 border-b border-l border-foreground rounded-bl w-full h-fit"
             >
-              {childrenArray.current.map((child, index) => (
-                <li
-                  key={index}
-                  className={`flex justify-start items-center w-full h-fit px-5 py-2 hover:bg-hover-background ${
-                    index === childrenArray.current.length - 1 ? "border-b-0" : "border-b"
-                  }`}
-                >
-                  {child}
-                </li>
-              ))}
-            </ul>
+              {children}
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

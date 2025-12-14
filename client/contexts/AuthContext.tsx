@@ -7,6 +7,8 @@ import { toast } from "sonner";
 import * as token from "@/lib/token";
 import User from "@/types/user";
 import userService from "@/services/user";
+import { validateEmailFormat, validatePasswordFormat } from "@/lib/validation";
+import { useRouter } from "next/navigation";
 
 interface AuthContextProps {
   user: User | null;
@@ -17,11 +19,16 @@ interface AuthContextProps {
   updateUsername: (name: string) => void;
   updateBirthday: (date: Date) => void;
   updateAvatar: (avatar: File) => void;
+
+  login: (email: string, password: string) => void;
+  register: (name: string, email: string, password: string) => void;
+  logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextProps | null>(null);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+  const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
 
   function getUser(): User | null {
@@ -78,6 +85,48 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   async function updateAvatar(avatar: File) {}
 
+  async function login(email: string, password: string) {
+    if (!validateEmailFormat(email)) return toast.error("Invalid Email");
+    if (!validatePasswordFormat(password)) return toast.error("Password must have at least six character");
+
+    const login = await authService.login(email, password);
+
+    if (!login) return toast.warning("Cannot connect with server");
+    if (!login.success) return toast.warning(login.message);
+
+    // save user info to auth context
+    setUser(login?.data?.user);
+
+    // save access token
+    token.setAccessToken(login?.data?.token);
+
+    toast.message(login?.message);
+  }
+
+  async function register(name: string, email: string, password: string) {
+    if (!validateEmailFormat(email)) return toast.error("Invalid Email");
+    if (!validatePasswordFormat(password)) return toast.error("Password must have at least six character");
+
+    const register = await authService.register(name, email, password);
+
+    if (register && register.success) {
+      // save user info to auth context
+      setUser(register.data.user);
+
+      // save access token
+      token.setAccessToken(register.data.token);
+
+      toast.message(register.message);
+    }
+  }
+
+  async function logout() {
+    authService.logout();
+    setUser(null);
+    token.removeAccessToken();
+    router.replace("/");
+  }
+
   useEffect(function () {
     const getUser = async () => {
       const res = await authService.me();
@@ -98,7 +147,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, []);
 
-  return <AuthContext.Provider value={{ user, setUser, getUser, updateGender, updateUsername, updateBirthday, updateAvatar }}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={{ user, setUser, getUser, updateGender, updateUsername, updateBirthday, updateAvatar, login, register, logout }}>
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
 export default function useAuth() {

@@ -33,7 +33,7 @@ const RATINGS = [
   },
 ];
 
-export default function FilterRatings({ onFilter, isReset = false }: { onFilter: ({}) => void; isReset: boolean }) {
+export default function FilterRatings({ onFilter, isReset = false }: { onFilter: ({}) => void; isReset?: boolean }) {
   const handleFilter = (value: FilterProps[]) => {
     let filter: string[] = [];
     value.forEach((v, i) => {
