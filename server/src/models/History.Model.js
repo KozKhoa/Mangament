@@ -7,7 +7,7 @@ export const FindAllReadingHistories = async (where = { id, user_id, story_id, s
       where: { is_deleted: false, ...where },
       take: take,
       skip: skip,
-      ...(orderBy ? { orderBy: orderBy } : { orderBy: { created_at: "desc" } }),
+      orderBy: [orderBy, { created_at: "desc" }, { id: "desc" }],
       select: {
         id: true,
         user_id: true,
@@ -37,15 +37,10 @@ export const FindAllReadingHistories = async (where = { id, user_id, story_id, s
   }
 };
 
-export const AddReadingHistory = async (
-  data = {
-    user_id,
-    story_id,
-    story_node_id,
-  }
-) => {
+export const AddReadingHistory = async ({ user_id, story_id, story_node_id }) => {
   try {
-    const isExisting = await db.readingHistory.findFirst({ where: { user_id: data.user_id, story_id: data.story_id, story_node_id: data.story_node_id } });
+    const isExisting = await db.readingHistory.findFirst({ where: { user_id: user_id, story_id: story_id, story_node_id: story_node_id } });
+    console.log(isExisting);
     if (isExisting) {
       return { success: true, data: await db.readingHistory.update({ where: { id: isExisting.id }, data: { updated_at: new Date(), is_deleted: false } }) };
     }
@@ -54,17 +49,17 @@ export const AddReadingHistory = async (
       data: {
         user: {
           connect: {
-            id: data.user_id,
+            id: user_id,
           },
         },
         story: {
           connect: {
-            id: data.story_id,
+            id: story_id,
           },
         },
         story_node: {
           connect: {
-            id: data.story_node_id,
+            id: story_node_id,
           },
         },
       },

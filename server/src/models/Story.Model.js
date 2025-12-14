@@ -122,7 +122,7 @@ export async function FindAllStories({
   authorsId = [],
   page = 1,
   limit = 10,
-  sort = { created_at: "desc" },
+  sort,
   isGettingChildren = false,
   isGettingNewestChapter = false,
 }) {
@@ -150,7 +150,7 @@ export async function FindAllStories({
       },
       cover_art: true,
     },
-    orderBy: sort,
+    orderBy: [sort, { created_at: "desc" }, { id: "desc" }],
     take: limit,
     skip: (page - 1) * limit,
   });

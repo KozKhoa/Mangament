@@ -22,7 +22,7 @@ export async function FindAllRatings(where = { id, story_id, user_id }, sort, ta
           },
         },
       },
-      ...(sort && { orderBy: sort }),
+      orderBy: [sort, { created_at: "desc" }, { id: "desc" }],
       ...(take && { take: take }),
       ...(skip && { skip: skip }),
     });
