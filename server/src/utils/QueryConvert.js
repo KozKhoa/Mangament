@@ -1,4 +1,4 @@
-export function ConvertStoryQuery(query) {
+export function ConvertQuery(query) {
   const isGettingChildren = query.isGettingChildren == "true" ? true : false;
   const isGettingContent = query.isGettingContent == "true" ? true : false;
   const isGettingNewestChapter = query.isGettingNewestChapter == "true" ? true : false;
@@ -31,6 +31,9 @@ export function ConvertStoryQuery(query) {
 
   const keyword = query.keyword ? query.keyword : null;
 
+  const fromDate = query.fromDate ? new Date(query.fromDate) : null;
+  const toDate = query.toDate ? new Date(query.toDate) : null;
+
   return {
     isGettingChildren,
     isGettingContent,
@@ -45,6 +48,8 @@ export function ConvertStoryQuery(query) {
     authors,
     nations,
     sort,
+    fromDate,
+    toDate,
     keyword,
   };
 }

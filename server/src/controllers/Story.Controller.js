@@ -19,7 +19,7 @@ import {
 
 import { CreateNewFolder, IsFileExist, MoveFile, SoftRemoveFile } from "../utils/FileHandle.js";
 import DIRECTORY from "../constants/Directory.js";
-import { ConvertStoryQuery } from "../utils/QueryConvert.js";
+import { ConvertQuery } from "../utils/QueryConvert.js";
 
 export async function GetStory(req, res, next) {
   try {
@@ -28,7 +28,7 @@ export async function GetStory(req, res, next) {
     // Check user request
     if (!storyId) throw CreateError(ErrorCodes.BAD_REQUEST);
 
-    const { type, isGettingChildren, isGettingContent, isGettingSummary, isGettingNewestChapter } = ConvertStoryQuery(req.query);
+    const { type, isGettingChildren, isGettingContent, isGettingSummary, isGettingNewestChapter } = ConvertQuery(req.query);
 
     let select = {};
     if (userId) {
@@ -187,7 +187,7 @@ export async function GetAllStories(req, res, next) {
     const userId = req?.user?.id;
 
     const { isGettingChildren, authors, keyword, isGettingContent, isGettingNewestChapter, isGettingSummary, limit, page, type, genres, rating, view, sort } =
-      ConvertStoryQuery(req.query);
+      ConvertQuery(req.query);
 
     let select = {};
     if (userId) {
