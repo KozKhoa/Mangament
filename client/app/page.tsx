@@ -6,7 +6,7 @@ import { useEffect, useRef } from "react";
 
 import NavBar from "@/components/layouts/navbar";
 import Switch from "@/components/switchs/switch";
-import SearchBar from "@/components/inputs/search";
+import SearchBar from "@/components/search/search";
 import ButtonExpandable from "@/components/buttons/expandable/btn-expandable";
 import ButtonDropdown from "@/components/buttons/dropdown/btn-dropdown";
 
@@ -23,6 +23,8 @@ import StoryGrid from "@/components/grids/story-grid";
 import NumberInput from "@/components/inputs/number-input";
 import FontSelection from "@/components/selections/font-selection";
 import SortStories from "@/components/sorts/sort-stories";
+import RankingCard from "@/components/cards/ranking-card";
+import StoriesRankingList from "@/components/list/stories-ranking-list";
 
 const OPTIONS = [
   { label: "op1", checked: false },
@@ -37,7 +39,7 @@ export default function Home() {
 
   return (
     <div className="flex flex-col gap-2.5  ">
-      <SearchBar onSearch={handlePress} />
+      <StoriesRankingList label="Xem nhiều nhất" className="m-auto max-w-[1200px]" rankBy="view"></StoriesRankingList>
 
       <NumberInput></NumberInput>
       <FontSelection></FontSelection>

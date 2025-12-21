@@ -8,7 +8,7 @@ import { diffDate } from "./date";
 import NewestChapter from "@/types/newest-chapter";
 
 // This func is used to convert newest chpater in StoryNode[] type to NewsetChapter[]
-export function convertNewestChapter(newestChapter: StoryNode[]) {
+export function convertNewestChapter(newestChapter: StoryNode[], number: number = 5) {
   const result: NewestChapter[] = [];
 
   const getNewestChapter = (storyNode: StoryNode, parent: string) => {
@@ -30,6 +30,7 @@ export function convertNewestChapter(newestChapter: StoryNode[]) {
     }
   };
   for (const node of newestChapter) {
+    if (result.length >= number) break;
     getNewestChapter(node, "");
   }
 

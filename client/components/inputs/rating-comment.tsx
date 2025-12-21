@@ -41,7 +41,7 @@ export default function RatingCommentInput({ type, value, onChange, className }:
 
         <div className="flex flex-row gap-5 w-fit">
           <div className="flex flex-row gap-2">
-            <img className="h-10 aspect-square rounded-full object-cover" src={process.env.NEXT_PUBLIC_API_URL + "uploads/" + value?.user?.avatar.url}></img>
+            <img className="h-10 aspect-square rounded-full object-cover" src={process.env.NEXT_PUBLIC_API_URL + "uploads/" + value?.user?.avatar?.url}></img>
             <div>
               <p className="font-semibold">{value?.user?.name}</p>
               <p className="text-[0.9em] italic">{new Date(value?.created_at ?? "").toLocaleDateString()}</p>

@@ -53,22 +53,7 @@ function LoginRegisterForm({ type, className }: LoginRegisterProps) {
 
     switch (type) {
       case "login":
-        const login = await authService.login(email, password);
-
-        if (!login) return toast.warning("Cannot connect with server");
-        if (!login.success) return toast.warning(login.message);
-
-        if (login && login.success) {
-          // save user info to auth context
-          auth?.setUser(login?.data?.user);
-
-          // save access token
-          token.setAccessToken(login?.data?.token);
-
-          toast.message(login?.message);
-        } else {
-          return toast.error(login?.message);
-        }
+        auth?.login(email, password);
         break;
 
       case "register":
@@ -79,19 +64,7 @@ function LoginRegisterForm({ type, className }: LoginRegisterProps) {
           setErrorConfirmPassword(null);
         }
 
-        const register = await authService.register(username, email, password);
-
-        if (register && register.success) {
-          // save user info to auth context
-          auth?.setUser(register.data.user);
-
-          // save access token
-          token.setAccessToken(register.data.token);
-
-          toast.message(register.message);
-        } else {
-          return toast.error(register.message);
-        }
+        auth?.register(username, email, password);
         break;
     }
 

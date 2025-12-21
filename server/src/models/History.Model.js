@@ -1,51 +1,72 @@
 import db from "../configs/db.js";
 import { GetParentStoryNodeTree } from "./StoryNode.Model.js";
 
-export const FindAllReadingHistories = async (where = { id, user_id, story_id, story_node_id }, take = 1, skip = 0, orderBy) => {
-  try {
-    const readingHistory = await db.readingHistory.findMany({
-      where: { is_deleted: false, ...where },
-      take: take,
-      skip: skip,
-      ...(orderBy ? { orderBy: orderBy } : { orderBy: { created_at: "desc" } }),
-      select: {
-        id: true,
-        user_id: true,
-        created_at: true,
-        story_node_id: true,
-        story: {
-          select: {
-            id: true,
-            title: true,
-            type: true,
-            cover_art: {
-              select: { url: true, width: true, height: true },
-            },
+export async function FindAllReadingHistories({
+  userId,
+  limit = 10,
+  page = 1,
+  sort = "created_at:desc",
+  type = [],
+  authorsId = [],
+  genres = [],
+  star = [],
+  view = [],
+  fromDate,
+  toDate,
+}) {
+  if (!userId) return { success: false, message: "Missing user id" };
+
+  const histories = await db.readingHistory.findMany({
+    where: {
+      is_deleted: false,
+
+      updated_at: {
+        ...(fromDate && { gte: fromDate }),
+        ...(toDate && { lt: toDate }),
+      },
+
+      story: {
+        ...(type && { type: { in: type } }),
+        ...(genres && { genres: { hasEvery: genres } }),
+        ...(authorsId && {
+          authors: { some: { author_id: { in: authorsId } } },
+        }),
+        AND: [
+          {
+            OR: [...star.map(([min, max]) => ({ star: { gte: min, lte: max } }))],
           },
+          {
+            OR: [...view.map(([min, max]) => ({ view: { gte: min, lte: max } }))],
+          },
+        ],
+      },
+    },
+    include: {
+      story: {
+        select: {
+          id: true,
+          title: true,
+          type: true,
+          cover_art: true,
         },
       },
-    });
+    },
+    orderBy: [sort, { created_at: "desc" }, { id: "desc" }],
+    take: limit,
+    skip: (page - 1) * limit,
+  });
 
-    for (const history of readingHistory) {
-      history.story_node = await GetParentStoryNodeTree(history.story_node_id);
-    }
-
-    return { success: true, data: readingHistory };
-  } catch (error) {
-    console.error("❌ [User.Model.js] Error finding all reading histories:", error);
-    return { success: false, error: error.code };
+  for (const history of histories) {
+    history.story_node = await GetParentStoryNodeTree(history.story_node_id);
   }
-};
 
-export const AddReadingHistory = async (
-  data = {
-    user_id,
-    story_id,
-    story_node_id,
-  }
-) => {
+  return { success: true, data: histories };
+}
+
+export const AddReadingHistory = async ({ user_id, story_id, story_node_id }) => {
   try {
-    const isExisting = await db.readingHistory.findFirst({ where: { user_id: data.user_id, story_id: data.story_id, story_node_id: data.story_node_id } });
+    const isExisting = await db.readingHistory.findFirst({ where: { user_id: user_id, story_id: story_id, story_node_id: story_node_id } });
+    console.log(isExisting);
     if (isExisting) {
       return { success: true, data: await db.readingHistory.update({ where: { id: isExisting.id }, data: { updated_at: new Date(), is_deleted: false } }) };
     }
@@ -54,17 +75,17 @@ export const AddReadingHistory = async (
       data: {
         user: {
           connect: {
-            id: data.user_id,
+            id: user_id,
           },
         },
         story: {
           connect: {
-            id: data.story_id,
+            id: story_id,
           },
         },
         story_node: {
           connect: {
-            id: data.story_node_id,
+            id: story_node_id,
           },
         },
       },

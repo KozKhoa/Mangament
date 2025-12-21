@@ -12,13 +12,8 @@ import FilterProps from "@/types/filter";
 import { snakeCaseToCapitalizeWord } from "@/utils/string";
 import Tag from "../tags/tag";
 
-interface FilterGenresProps {
-  onFilter?: (options: FilterProps[]) => void;
-  isReset?: boolean;
-}
-
-export default function FilterGenres({ onFilter, isReset }: FilterGenresProps) {
-  const [genres, setGenres] = useState<FilterProps[]>([{ label: "ss", isChecked: false }]);
+export default function FilterGenres({ onFilter, isReset }: { onFilter?: ({}) => void; isReset: boolean }) {
+  const [genres, setGenres] = useState<FilterProps[]>([{ label: "", isChecked: false }]);
 
   async function fetchGenres() {
     const res = await genreService.get();
@@ -36,6 +31,16 @@ export default function FilterGenres({ onFilter, isReset }: FilterGenresProps) {
 
     setGenres(genres);
   }
+
+  const handleFilter = (value: FilterProps[]) => {
+    let filter: string[] = [];
+    value.forEach((v, i) => {
+      if (v.isChecked) {
+        filter.push(v.code || "");
+      }
+    });
+    onFilter?.({ genre: filter });
+  };
 
   useEffect(() => {
     fetchGenres();
@@ -61,7 +66,7 @@ export default function FilterGenres({ onFilter, isReset }: FilterGenresProps) {
       }
       options={genres}
       name="filter-sort-author"
-      onFinishCheck={(checked) => onFilter?.(checked)}
+      onFinishCheck={(checked) => handleFilter?.(checked)}
     ></ButtonDropdownCheckbox>
   );
 }

@@ -3,6 +3,7 @@ export interface StoryParams {
   page?: number;
   limit?: number;
   type?: string;
+  keyword?: string;
   author?: string[];
   star?: string[];
   view?: string[];
@@ -39,7 +40,26 @@ export interface HistoryParams {
   page?: number;
   limit?: number;
 
+  type?: string;
+  author?: string[];
+  star?: string[];
+  view?: string[];
+  genre?: string[];
+
   sort?: string;
 }
 
-export type Params = StoryParams | StoryNodeParams | RatingParams | CommentParams | HistoryParams;
+export interface FavoureiteParams {
+  page?: number;
+  limit?: number;
+
+  type?: string;
+  author?: string[];
+  star?: string[];
+  view?: string[];
+  genre?: string[];
+
+  sort?: string;
+}
+
+export type Params = StoryParams | StoryNodeParams | RatingParams | CommentParams | HistoryParams | FavoureiteParams;

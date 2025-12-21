@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-import SearchBar from "@/components/inputs/search";
+import SearchBar from "@/components/search/search";
 import ButtonExpandable from "@/components/buttons/expandable/btn-expandable";
 import SwitchTheme from "@/components/switchs/switch-theme";
 
@@ -13,6 +13,19 @@ import BurgerMenuIcon from "@/public/burger-menu.svg";
 import XCloseIcon from "@/public/x-close.svg";
 import ButtonDropdown from "@/components/buttons/dropdown/btn-dropdown";
 import ArrowUpIcon from "@/public/arrows/up-v.svg";
+import genreService from "@/services/genre";
+import { toast } from "sonner";
+import { snakeCaseToCapitalizeWord, snakeCaseToNormal } from "@/utils/string";
+import { useRouter } from "next/navigation";
+import useAuth from "@/contexts/AuthContext";
+import authService from "@/services/auth";
+import storyService from "@/services/story";
+import Story from "@/types/story";
+import StoryCard from "../cards/stories/story-card";
+import NoContent from "../cards/no-content";
+import StorySearchCard from "../cards/story-search-card";
+import SearchStories from "../search/search-stories";
+import { usePathname } from "next/navigation";
 
 interface NavBarProps {
   duration?: number;
@@ -20,11 +33,33 @@ interface NavBarProps {
 }
 
 function NavBar({ duration = 100, className }: NavBarProps) {
+  const path = usePathname();
+  const router = useRouter();
+  const auth = useAuth();
+  const user = auth?.user;
   const [openSidebar, setOpenSidebar] = useState(false);
+  const [genres, setGenres] = useState<string[]>([]);
+
+  async function fetchGenres() {
+    const res = await genreService.get();
+
+    if (!res) return toast.warning("Server Error");
+    if (!res.success) return toast.warning(res.message);
+
+    setGenres(res.data);
+  }
 
   function toggleSidebar() {
     setOpenSidebar(!openSidebar);
   }
+
+  useEffect(() => {
+    fetchGenres();
+  }, []);
+
+  useEffect(() => {
+    setOpenSidebar(false);
+  }, [path]);
   return (
     <>
       <div
@@ -36,26 +71,24 @@ function NavBar({ duration = 100, className }: NavBarProps) {
       >
         <div className="flex flex-row justify-center items-center gap-5">
           <Link href={"/"}>
-            <p className={`text-2xl sm:text-3xl  font-holtwood`}>Mangament</p>
+            <p className={`text-2xl  font-holtwood`}>Mangament</p>
           </Link>
 
           {/* Desktop */}
-          <div className="hidden xl:flex flex-row justify-center items-center gap-5">
+          <div className="hidden lg:flex flex-row justify-center items-center gap-5">
             <ButtonDropdown className="h-full" label="Random" />
             <ButtonDropdown className="h-full" label="Lịch phát hành" />
             <ButtonDropdown className="h-full" label="Xếp hạng" />
-            <ButtonDropdown className="h-full" label="Thể loại">
-              <ButtonExpandable label="Hành động"></ButtonExpandable>
-              <ButtonExpandable label="Tình cảm"></ButtonExpandable>
-              <ButtonExpandable label="Học đường"></ButtonExpandable>
-            </ButtonDropdown>
           </div>
         </div>
 
         {/* Desktop */}
-        <div className=" hidden xl:flex justify-center items-center gap-2.5">
+        <div className=" hidden lg:flex justify-center items-center gap-2.5">
           {!openSidebar && <SwitchTheme />}
-          <SearchBar />
+
+          {/* Search */}
+          <SearchStories className="w-[320px]"></SearchStories>
+
           <ButtonDropdown
             openOnLeft={false}
             icon={
@@ -64,19 +97,25 @@ function NavBar({ duration = 100, className }: NavBarProps) {
               </div>
             }
           >
-            <ButtonExpandable label="Thông tin tài khoản"></ButtonExpandable>
+            <ButtonExpandable label="Thông tin tài khoản" onClick={() => router.push("/me")}></ButtonExpandable>
             <ButtonExpandable label="Cài đặt"></ButtonExpandable>
-            <ButtonExpandable label="Truyện yêu thích"></ButtonExpandable>
-            <ButtonExpandable label="Lịch sử đọc"></ButtonExpandable>
-            <ButtonExpandable label="Đăng nhập"></ButtonExpandable>
-            <ButtonExpandable label="Đăng ký"></ButtonExpandable>
+            <ButtonExpandable label="Truyện yêu thích" onClick={() => router.push("/favourites")}></ButtonExpandable>
+            <ButtonExpandable label="Lịch sử đọc" onClick={() => router.push("/histories")}></ButtonExpandable>
+            {user ? (
+              <ButtonExpandable label="Đăng xuất" onClick={() => auth?.logout()}></ButtonExpandable>
+            ) : (
+              <>
+                <ButtonExpandable label="Đăng nhập" onClick={() => router.push("/login")}></ButtonExpandable>
+                <ButtonExpandable label="Đăng ký" onClick={() => router.push("/register")}></ButtonExpandable>
+              </>
+            )}
           </ButtonDropdown>
         </div>
 
         {/* Mobile */}
-        <div className="xl:hidden">
+        <div className="lg:hidden">
           <button className="cursor-pointer" onClick={toggleSidebar}>
-            <BurgerMenuIcon className="w-8 h-8" />
+            <BurgerMenuIcon className="w-7 h-7" />
           </button>
         </div>
 
@@ -87,6 +126,8 @@ function NavBar({ duration = 100, className }: NavBarProps) {
               initial={{ x: "100%" }}
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
+              // onFocus={() => setOpenSidebar(true)}
+              // onBlur={() => setOpenSidebar(false)}
               transition={{ duration: duration / 1000, ease: "linear" }}
               className={`flex fixed top-0 left-0 h-screen w-screen z-50`}
             >
@@ -95,7 +136,7 @@ function NavBar({ duration = 100, className }: NavBarProps) {
 
               {/* The side bar */}
               <div
-                className="flex fixed top-5 bottom-5 right-0 flex-col gap-2.5 min-w-3/5  bg-background
+                className="flex fixed top-5 bottom-5 right-0 flex-col gap-2.5 min-w-3/5 w-full max-w-[500px] bg-background
                 px-2.5 py-4 rounded-l-lg shadow-[10px_13px_5px_rgba(0,0,0,0.3)
                 border-foreground border-l-2 border-t-2 border-b-2 "
               >
@@ -106,25 +147,20 @@ function NavBar({ duration = 100, className }: NavBarProps) {
                   </button>
                 </div>
 
-                <SearchBar placeHolder="Tìm kiếm" />
+                <SearchStories className="w-full"></SearchStories>
 
                 {/* Content in navbar */}
                 <ul className="flex flex-col gap-2.5 overflow-y-auto">
+                  {user && (
+                    <li>
+                      <ButtonExpandable onClick={() => router.push("/me")} label="Thông tin tài khoản" />
+                    </li>
+                  )}
                   <li>
-                    <ButtonExpandable label="Thông tin tài khoản" />
+                    <ButtonExpandable onClick={() => router.push("/random")} label="Random" />
                   </li>
                   <li>
-                    <ButtonExpandable label="Random" />
-                  </li>
-                  <li>
-                    <ButtonExpandable label="Thể loại">
-                      <button>Hành động</button>
-                      <button>Tình cảm</button>
-                      <button>Học đường</button>
-                    </ButtonExpandable>
-                  </li>
-                  <li>
-                    <ButtonExpandable label="Xếp hạng" />
+                    <ButtonExpandable onClick={() => router.push("/ranking")} label="Xếp hạng" />
                   </li>
                   <li>
                     <ButtonExpandable label="Lịch phát hành" />
@@ -133,17 +169,23 @@ function NavBar({ duration = 100, className }: NavBarProps) {
                     <ButtonExpandable label="Cài đặt" />
                   </li>
                   <li>
-                    <ButtonExpandable label="Truyện yêu thích" />
+                    <ButtonExpandable onClick={() => router.push("/favourites")} label="Truyện yêu thích" />
                   </li>
                   <li>
-                    <ButtonExpandable label="Lịch sử đọc" />
+                    <ButtonExpandable onClick={() => router.push("/histories")} label="Lịch sử đọc" />
                   </li>
-                  <li>
-                    <ButtonExpandable label="Đăng nhập" />
-                  </li>
-                  <li>
-                    <ButtonExpandable label="Đăng ký" />
-                  </li>
+                  {user ? (
+                    <ButtonExpandable onClick={() => auth.logout()} label="Đăng xuất"></ButtonExpandable>
+                  ) : (
+                    <>
+                      <li>
+                        <ButtonExpandable onClick={() => router.push("/login")} label="Đăng nhập" />
+                      </li>
+                      <li>
+                        <ButtonExpandable onClick={() => router.push("/register")} label="Đăng ký" />
+                      </li>
+                    </>
+                  )}
                 </ul>
               </div>
             </motion.div>

@@ -2,12 +2,6 @@ import ButtonDropdownRadio from "../buttons/dropdown/btn-drop-down-radio";
 
 import SortIcon from "@/public/sort.svg";
 
-import FilterProps from "@/types/filter";
-
-interface SortStoriesProps {
-  onSort?: (options: FilterProps[]) => void;
-}
-
 const SORTS = [
   {
     label: "Mới nhất",
@@ -41,7 +35,22 @@ const SORTS = [
   },
 ];
 
-export default function SortStories({ onSort }: SortStoriesProps) {
+export default function SortStories({ onSort }: { onSort?: ({}) => void }) {
+  function handleSort(
+    value: {
+      label: string;
+      code?: string;
+      isChecked: boolean;
+    }[]
+  ) {
+    value.forEach((v, i) => {
+      if (v.isChecked) {
+        onSort?.({ sort: v.code || "" });
+        return;
+      }
+    });
+  }
+
   return (
     <ButtonDropdownRadio
       label={
@@ -53,7 +62,7 @@ export default function SortStories({ onSort }: SortStoriesProps) {
       }
       options={SORTS}
       name="filter-sort-author"
-      onFinishCheck={(checked) => onSort?.(checked)}
+      onFinishCheck={handleSort}
     ></ButtonDropdownRadio>
   );
 }

@@ -3,35 +3,31 @@ import { FindAllReadingHistories, AddReadingHistory, SoftDeleteReadingHistory } 
 import { CreateError } from "../utils/ErrorHandle.js";
 import ErrorCodes from "../constants/Error.js";
 import { FindStory } from "../models/Story.Model.js";
-import { FindStoryNode } from "../models/StoryNode.Model.js";
+import { FindStoryNode, ValidateStoryNodeType } from "../models/StoryNode.Model.js";
+import { ConvertQuery } from "../utils/QueryConvert.js";
 
 export async function GetAllReadingHistories(req, res, next) {
   try {
     // It is not neccessary to check user exist because authentication already did it
     const userId = req.user?.id;
-    const query = req.query;
 
-    // Analys the query from the user
-    const limit = query?.limit ? Number(query.limit) : 1;
-    const page = query?.page ? Number(query.page) : 1;
-    const order = {};
-    if (query?.sort) {
-      const [field, direction] = query.sort.split(":");
-      order[field.toLowerCase()] = direction.toLowerCase();
-    } else {
-      order["created_at"] = "desc";
-    }
+    const { limit, page, sort, type, authors, genres, rating, view, fromDate, toDate } = ConvertQuery(req.query);
 
-    const readingHistory = await FindAllReadingHistories({ user_id: userId }, limit, (page - 1) * limit, order);
+    const readingHistory = await FindAllReadingHistories({
+      userId: userId,
+      limit: limit,
+      page: page,
+      sort: sort,
+      type: type,
+      authorsId: authors,
+      genres: genres,
+      star: rating,
+      view: view,
+      fromDate: fromDate,
+      toDate: toDate,
+    });
 
     if (!readingHistory || !readingHistory.success) throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
-    if (!readingHistory.data || readingHistory.data.length <= 0) {
-      return res.status(200).json({
-        success: true,
-        message: "User has no reading history",
-        data: null,
-      });
-    }
 
     return res.status(200).json({
       success: true,

@@ -15,12 +15,14 @@ import Story from "@/types/story";
 import historyService from "@/services/history";
 import History from "@/types/history";
 import HistoryList from "@/components/list/history-list";
+import { useRouter } from "next/navigation";
 
 const limit = 20;
 
 export default function ProfilePage() {
   const auth = useAuth();
   const user = auth?.user;
+  const router = useRouter();
 
   let currentFavPage: number = 1;
   let currentHisPage: number = 1;
@@ -68,14 +70,13 @@ export default function ProfilePage() {
           <StoryList
             label="Truyện yêu thích"
             stories={favourite}
-            onClickLabel={() => {
-              console.log("Navigate to story favourite");
-            }}
+            onClickLabel={() => router.push("/favourites")}
             onScrollToEnd={() => fetchFavourite(++currentFavPage, limit)}
           ></StoryList>
 
           <HistoryList
             histories={history}
+            onClickLabel={() => router.push("/histories")}
             onScrollToEnd={() => fetchHistory(++currentHisPage, limit)}
             onRemoveElement={(removeElement) => {
               setHistory((prevHis) => prevHis.filter((x) => x !== removeElement));

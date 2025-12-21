@@ -13,41 +13,25 @@ import {
   SoftDeleteStoryNode,
 } from "../models/StoryNode.Model.js";
 import { FindStory } from "../models/Story.Model.js";
-import {
-  AddImage,
-  FindImage,
-  HardDeleteImage,
-  SoftDeleteImage,
-  UpdateImage,
-} from "../models/Image.Model.js";
+import { AddImage, FindImage, HardDeleteImage, SoftDeleteImage, UpdateImage } from "../models/Image.Model.js";
 
 import DIRECTORY from "../constants/Directory.js";
-import {
-  CreateNewFolder,
-  IsFileExist,
-  MoveFile,
-  SoftRemoveFile,
-  SoftRemoveThingsInFolder,
-} from "../utils/FileHandle.js";
+import { CreateNewFolder, IsFileExist, MoveFile, SoftRemoveFile, SoftRemoveThingsInFolder } from "../utils/FileHandle.js";
 import { IsJsonString } from "../utils/Validators.js";
 
 export async function GetStoryNode(req, res, next) {
   try {
     const storyNodeId = req.params?.id;
-    const isGettingChildren =
-      req.query?.isGettingChildren == "true" ? true : false;
-    const isGettingContent =
-      req.query?.isGettingContent == "true" ? true : false;
+    const isGettingChildren = req.query?.isGettingChildren == "true" ? true : false;
+    const isGettingContent = req.query?.isGettingContent == "true" ? true : false;
 
     if (!storyNodeId) throw CreateError(ErrorCodes.BAD_REQUEST);
 
-    const storyNode = await FindStoryNode(
-      { id: storyNodeId },
-      isGettingChildren,
-      isGettingContent
-    );
-    if (!storyNode || !storyNode.success || !storyNode.data)
-      throw CreateError(ErrorCodes.STORY_NODE_NOT_FOUND);
+    const storyNode = await FindStoryNode({ id: storyNodeId, isGettingChildren: isGettingChildren });
+
+    if (!storyNode || !storyNode.success || !storyNode.data) throw CreateError(ErrorCodes.STORY_NODE_NOT_FOUND);
+
+    if (!isGettingContent) delete storyNode.data.content;
 
     return res.status(200).json({
       success: true,
@@ -62,20 +46,16 @@ export async function GetStoryNode(req, res, next) {
 export async function PostStoryNode(req, res, next) {
   try {
     const userId = req.user.id;
-    const { storyId, parentId, title, type, orderIndex, numberOfChildren } =
-      req.body;
+    const { storyId, parentId, title, type, orderIndex, numberOfChildren } = req.body;
 
-    if (!storyId || !type || !orderIndex)
-      throw CreateError(ErrorCodes.MISSING_FIELD);
+    if (!storyId || !type || !orderIndex) throw CreateError(ErrorCodes.MISSING_FIELD);
 
     // Validate type of story node
-    if (!ValidateStoryNodeType(type))
-      throw CreateError(ErrorCodes.INVALID_INPUT);
+    if (!ValidateStoryNodeType(type)) throw CreateError(ErrorCodes.INVALID_INPUT);
 
     // Make sure story exist
     const story = await FindStory({ id: storyId });
-    if (!story || !story.success || !story.data)
-      throw CreateError(ErrorCodes.STORY_NOT_FOUND);
+    if (!story || !story.success || !story.data) throw CreateError(ErrorCodes.STORY_NOT_FOUND);
 
     const storyNode = await AddStoryNode({
       title: title || "",
@@ -88,8 +68,7 @@ export async function PostStoryNode(req, res, next) {
     });
 
     if (!storyNode) throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
-    if (!storyNode.success && storyNode.data)
-      throw CreateError(ErrorCodes.ASSET_ALREADY_EXIST);
+    if (!storyNode.success && storyNode.data) throw CreateError(ErrorCodes.ASSET_ALREADY_EXIST);
 
     return res.status(200).json({
       success: true,
@@ -108,23 +87,19 @@ export async function PutStoryNode(req, res, next) {
     if (!storyNodeId) throw CreateError(ErrorCodes.BAD_REQUEST);
 
     const { storyId, parentId, title, type, orderIndex, view } = req?.body;
-    if (!ValidateStoryNodeType(type))
-      throw CreateError(ErrorCodes.INVALID_INPUT);
+    if (!ValidateStoryNodeType(type)) throw CreateError(ErrorCodes.INVALID_INPUT);
     if (!storyId) throw CreateError(ErrorCodes.MISSING_FIELD);
 
     // Make sure story node exist
     const storyNode = await FindStoryNode({ id: storyNodeId });
-    if (!storyNode || !storyNode.success || !storyNode.data)
-      throw CreateError(ErrorCodes.STORY_NODE_NOT_FOUND);
+    if (!storyNode || !storyNode.success || !storyNode.data) throw CreateError(ErrorCodes.STORY_NODE_NOT_FOUND);
 
     // Make sure story and parent exist
     const story = await FindStory({ id: storyId || storyNode.data.story_id });
-    if (!story || !story.success || !story.data)
-      throw CreateError(ErrorCodes.STORY_NOT_FOUND);
+    if (!story || !story.success || !story.data) throw CreateError(ErrorCodes.STORY_NOT_FOUND);
     if (parentId) {
       const parent = await FindStoryNode({ id: parentId });
-      if (!parent || !parent.success || !parent.data)
-        throw CreateError(ErrorCodes.STORY_NOT_FOUND);
+      if (!parent || !parent.success || !parent.data) throw CreateError(ErrorCodes.STORY_NOT_FOUND);
     }
 
     // Updating
@@ -164,21 +139,17 @@ export async function PatchStoryNodeContent(req, res, next) {
 
     // Make sure story node exist
     const storyNode = await FindStoryNode({ id: storyNodeId });
-    if (!storyNode || !storyNode.success || !storyNode.data)
-      throw CreateError(ErrorCodes.STORY_NODE_NOT_FOUND);
+    if (!storyNode || !storyNode.success || !storyNode.data) throw CreateError(ErrorCodes.STORY_NODE_NOT_FOUND);
 
     // Get image
     const images = [];
     if (req.files && req.body?.content) {
       // Get story
       const story = await FindStory({ id: storyNode.data.story_id });
-      if (!story || !story.success || !story.data)
-        throw CreateError(ErrorCodes.STORY_NOT_FOUND);
+      if (!story || !story.success || !story.data) throw CreateError(ErrorCodes.STORY_NOT_FOUND);
 
       // Get tree structure for the whole story node parents
-      const storyNodeTree = await GetParentStoryNodeTree(
-        storyNode.data.parent_id
-      );
+      const storyNodeTree = await GetParentStoryNodeTree(storyNode.data.parent_id);
 
       // Generate directory for image
       let newFolderPath = "";
@@ -200,8 +171,7 @@ export async function PatchStoryNodeContent(req, res, next) {
 
       let i = 0;
       for (const file of req.files) {
-        const newFileName =
-          `0${i++}_${new Date()}` + path.extname(file.filename);
+        const newFileName = `0${i++}_${new Date()}` + path.extname(file.filename);
         const newFilePath = `${newFolderPath}/${newFileName}`;
 
         // Move file to where its should be
@@ -224,10 +194,7 @@ export async function PatchStoryNodeContent(req, res, next) {
     });
 
     // Save content to story node
-    const updateContent = await UpdateStoryNode(
-      { id: storyNodeId },
-      { content: content }
-    );
+    const updateContent = await UpdateStoryNode({ id: storyNodeId }, { content: content });
 
     return res.status(200).json({
       success: true,
@@ -245,12 +212,10 @@ export async function DeleteStoryNode(req, res, next) {
     if (!storyNodeId) throw CreateError(ErrorCodes.BAD_REQUEST);
 
     const storyNode = await FindStoryNode({ id: storyNodeId });
-    if (!storyNode || !storyNode.success || !storyNode.data)
-      throw CreateError(ErrorCodes.STORY_NODE_NOT_FOUND);
+    if (!storyNode || !storyNode.success || !storyNode.data) throw CreateError(ErrorCodes.STORY_NODE_NOT_FOUND);
 
     const removing = await SoftDeleteStoryNode({ id: storyNodeId });
-    if (!removing || !removing.success)
-      throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
+    if (!removing || !removing.success) throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
 
     return res.status(200).json({
       success: true,
@@ -267,15 +232,10 @@ export async function IncreaseOneViewForStoryNode(req, res, next) {
     if (!storyNodeId) throw CreateError(ErrorCodes.BAD_REQUEST);
 
     const storyNode = await FindStoryNode({ id: storyNodeId });
-    if (!storyNode || !storyNode.success || !storyNode.data)
-      throw CreateError(ErrorCodes.STORY_NODE_NOT_FOUND);
+    if (!storyNode || !storyNode.success || !storyNode.data) throw CreateError(ErrorCodes.STORY_NODE_NOT_FOUND);
 
-    const updating = await UpdateStoryNode(
-      { id: storyNodeId },
-      { view: { increment: 1 } }
-    );
-    if (!updating || !updating.success)
-      throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
+    const updating = await UpdateStoryNode({ id: storyNodeId }, { view: { increment: 1 } });
+    if (!updating || !updating.success) throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
 
     return res.status(200).json({
       success: true,

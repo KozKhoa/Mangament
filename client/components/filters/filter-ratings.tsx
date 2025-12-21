@@ -3,13 +3,8 @@ import ButtonDropdownCheckbox from "../buttons/dropdown/btn-dropdown-checkbox";
 import StarIcon from "@/public/star.svg";
 
 import FilterProps from "@/types/filter";
-import { useEffect } from "react";
 import Tag from "../tags/tag";
 
-interface FilterRatingsProps {
-  onFilter?: (options: FilterProps[]) => void;
-  isReset?: boolean;
-}
 const RATINGS = [
   {
     label: "Trên 4 sao",
@@ -38,12 +33,22 @@ const RATINGS = [
   },
 ];
 
-export default function FilterRatings({ onFilter, isReset }: FilterRatingsProps) {
-  useEffect(() => {
+export default function FilterRatings({ onFilter, isReset = false }: { onFilter: ({}) => void; isReset?: boolean }) {
+  const handleFilter = (value: FilterProps[]) => {
+    let filter: string[] = [];
+    value.forEach((v, i) => {
+      if (v.isChecked) {
+        filter.push(v.code || "");
+      }
+    });
+    onFilter?.({ star: filter });
+  };
+
+  if (isReset) {
     RATINGS.forEach((rating) => {
       rating.isChecked = false;
     });
-  }, [isReset]);
+  }
 
   return (
     <ButtonDropdownCheckbox
@@ -56,7 +61,7 @@ export default function FilterRatings({ onFilter, isReset }: FilterRatingsProps)
       }
       options={RATINGS}
       name="filter-sort-author"
-      onFinishCheck={(checked) => onFilter?.(checked)}
+      onFinishCheck={(checked) => handleFilter?.(checked)}
     ></ButtonDropdownCheckbox>
   );
 }

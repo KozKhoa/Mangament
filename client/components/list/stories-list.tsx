@@ -55,8 +55,8 @@ export default function StoryList({ label, onClickLabel, onScrollToEnd, stories,
         {stories && stories.length > 0 ? (
           <div ref={childRef} className="flex flex-row justify-center gap-2">
             {stories?.map((story, i) => (
-              <div key={story?.id} className="w-[150] md:w-[200] ">
-                <StoryCard className="h-full" story={story}></StoryCard>
+              <div key={i} className="w-[150] md:w-[200] ">
+                <StoryCard className="h-full" data={story}></StoryCard>
               </div>
             ))}
           </div>

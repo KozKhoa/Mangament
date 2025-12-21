@@ -4,84 +4,55 @@ import FilterAuthors from "../filters/filter-authors";
 import FilterGenres from "../filters/fiilter-genres";
 import FilterRatings from "../filters/filter-ratings";
 import FilterViews from "../filters/filter-views";
-import SortStories from "../sorts/sort-stories";
-import FilterProps from "@/types/filter";
+import FilterStoryType from "../filters/filter-story-type";
+import SortTime from "../sorts/sort-time";
+import { Params } from "@/types/params";
+import DEFAULT from "@/constants/default";
 
-interface FilterSortProps {
-  onChange?: (params: {}) => void;
-  isResetAll?: boolean;
-  className?: string;
-}
+export default function FilterSort({ onChange, isResetAll = false, className }: { onChange?: (params: {}) => void; isResetAll?: boolean; className?: string }) {
+  const isRunFirstTime = useRef(true);
 
-export default function FilterSort({ onChange, isResetAll, className }: FilterSortProps) {
-  const [filter, setFilter] = useState({});
-  const [sort, setSort] = useState({ sort: "created_at:desc" });
-  // This is use to get data like author name, genre from server
+  const [params, setParams] = useState<Params>(DEFAULT.params);
 
-  const handleFilter = (field: string, value: FilterProps[]) => {
-    let temp: string[] = [];
-    value.forEach((v, i) => {
-      if (v.isChecked) {
-        // temp = temp + v.code + ",";
-        temp.push(v.code || "");
-      }
-    });
-
-    setFilter((prev) => {
-      return {
-        ...prev,
-        ...{
-          [field]: temp,
-        },
-      };
-    });
-  };
-
-  const handleSort = (
-    value: {
-      label: string;
-      code?: string;
-      isChecked: boolean;
-    }[]
-  ) => {
-    value.forEach((v, i) => {
-      if (v.isChecked) {
-        setSort({ sort: v.code || "" });
-        return;
-      }
-    });
-  };
+  function updateParams(params: {}) {
+    setParams((oldParams) => ({ ...oldParams, ...params }));
+  }
 
   // Auto call onChange when filter or sort are updated
   useEffect(() => {
-    const params = {
-      ...filter,
-      ...sort,
-    };
+    if (isRunFirstTime.current) {
+      isRunFirstTime.current = false;
+      return;
+    }
+
     onChange?.(params);
-  }, [filter, sort]);
+  }, [params]);
 
   useEffect(() => {
-    setFilter({});
-    onChange?.({ ...sort });
+    if (isResetAll) {
+      setParams(DEFAULT.params);
+    }
   }, [isResetAll]);
 
   return (
     <div className={`flex flex-row flex-wrap gap-2 ${className}`}>
       {/* Sort */}
-      <SortStories onSort={(options) => handleSort(options)}></SortStories>
+      <SortTime onSort={updateParams}></SortTime>
 
       {/* Rating */}
-      <FilterRatings onFilter={(options) => handleFilter("star", options)} isReset={isResetAll}></FilterRatings>
+      <FilterRatings onFilter={updateParams} isReset={isResetAll}></FilterRatings>
 
       {/* Genre */}
-      <FilterGenres onFilter={(options) => handleFilter("genre", options)} isReset={isResetAll}></FilterGenres>
+      <FilterGenres onFilter={updateParams} isReset={isResetAll}></FilterGenres>
 
       {/* Author */}
-      <FilterAuthors onFilter={(options) => handleFilter("author", options)} isReset={isResetAll}></FilterAuthors>
+      <FilterAuthors onFilter={updateParams} isReset={isResetAll}></FilterAuthors>
 
       {/* View */}
-      <FilterViews onFilter={(options) => handleFilter("view", options)} isReset={isResetAll}></FilterViews>
+      <FilterViews onFilter={updateParams} isReset={isResetAll}></FilterViews>
+
+      {/* Story type */}
+      <FilterStoryType onFilter={updateParams} isReset={isResetAll}></FilterStoryType>
     </div>
   );
 }

@@ -10,14 +10,18 @@ import authorService from "@/services/author";
 import FilterProps from "@/types/filter";
 import Tag from "../tags/tag";
 
-interface FilterAuthorsProps {
-  onFilter?: (options: FilterProps[]) => void;
-  isReset?: boolean;
-  className?: string;
-}
-
-export default function FilterAuthors({ onFilter, isReset }: FilterAuthorsProps) {
+export default function FilterAuthors({ onFilter, isReset }: { onFilter?: ({}) => void; isReset: boolean }) {
   const [authors, setAuthors] = useState<FilterProps[]>();
+
+  const handleFilter = (value: FilterProps[]) => {
+    let filter: string[] = [];
+    value.forEach((v, i) => {
+      if (v.isChecked) {
+        filter.push(v.code || "");
+      }
+    });
+    onFilter?.({ author: filter });
+  };
 
   async function fetchAuthors() {
     const res = await authorService.get();
@@ -64,7 +68,7 @@ export default function FilterAuthors({ onFilter, isReset }: FilterAuthorsProps)
       }
       options={authors || []}
       name="filter-sort-author"
-      onFinishCheck={(checked) => onFilter?.(checked)}
+      onFinishCheck={(checked) => handleFilter?.(checked)}
     ></ButtonDropdownCheckbox>
   );
 }

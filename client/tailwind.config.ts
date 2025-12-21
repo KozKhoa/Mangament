@@ -10,6 +10,7 @@ module.exports = {
         roboto: ["var(--font-roboto)", "sans-serif"],
         geist: ["var(--font-geist-sans)", "sans-serif"],
         geist_mono: ["var(--font-geist-mono)", "sans-serif"],
+        aclonica: ["var(--font-aclonica)", "sans-serif"],
       },
     },
     containers: {
@@ -20,5 +21,5 @@ module.exports = {
       xxl: "1000px",
     },
   },
-  plugins: [require("@tailwindcss/container-queries")],
+  plugins: [require("@tailwindcss/container-queries"), require("tailwind-scrollbar-hide")],
 };

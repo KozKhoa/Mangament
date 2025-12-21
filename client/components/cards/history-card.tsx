@@ -51,17 +51,17 @@ export default function HistoryCard({ history, onClickRemove, className }: { his
 
   return (
     <div
-      className={`flex flex-col justify-start items-center bg-background   text-foreground gap-2.5 p-1.5 rounded-[5]
-        border-transparent border-2 transition-all duration-50 ease-linear shadow-md
+      className={`flex flex-col justify-start items-center bg-background  text-foreground gap-2.5 p-1.5 rounded-[5]
+        border-transparent border-2 transition-all duration-100 ease-linear shadow-md
         hover:shadow-[6px_8px_5px_0px_rgba(0,0,0,0.3)] hover:border-foreground
         max-w-sm w-full h-full
         ${className} `}
     >
+      {/* Cover art */}
       <div
         className={`relative aspect-2/3 rounded-[5] w-full cursor-pointer
           w-[${story?.cover_art?.width}] h-[${story?.cover_art?.height}]`}
       >
-        {/* Cover art */}
         <img
           onClick={() => navigateToStoryNode()}
           className="object-cover rounded-[5]"
@@ -70,35 +70,38 @@ export default function HistoryCard({ history, onClickRemove, className }: { his
         ></img>
       </div>
 
-      <div className="flex flex-col justify-between gap-1 w-full">
+      <div className="flex flex-col justify-between gap-1 h-full w-full">
         {/* Tittle */}
         <div onClick={() => navigateToStory()} className="text-[1.5em] font-bold leading-tight cursor-pointer">
           {"[" + snakeCaseToCapitalizeWord(story?.type ?? "") + "] " + story?.title}
         </div>
 
-        {/* Story node tree */}
-        <div className="flex flex-row flex-wrap justify-between gap-2">
-          <div className="flex flex-row flex-wrap gap-1">
-            {storyNodeArray.map((node, i) => (
-              <p key={i} className="font-semibold ">
-                {snakeCaseToCapitalizeWord(node.type)} {node.order_index} {i < storyNodeArray.length - 1 && " ➤ "}
-              </p>
-            ))}
+        <div className="flex flex-col gap-2 w-full">
+          {/* Reading chapter */}
+          <div className="flex flex-row flex-wrap justify-between items-center gap-1">
+            <div className="flex flex-row flex-wrap gap-1">
+              {storyNodeArray.map((node, i) => (
+                <p key={i} className="font-semibold text-xl">
+                  {snakeCaseToCapitalizeWord(node.type)} {node.order_index} {i < storyNodeArray.length - 1 && " ➤ "}
+                </p>
+              ))}
+            </div>
+            <p className="italic">{convertDateTo_yyyMMddHHmm(history?.updated_at ? new Date(history?.updated_at) : null)}</p>
           </div>
-          <p className="italic">{convertDateTo_yyyMMddHHmm(history?.updated_at ? new Date(history?.updated_at) : null)}</p>
+
+          {/* Remove history card */}
+          <Button
+            type="delete"
+            onClick={() => {
+              removeHistory(history.id);
+              onClickRemove?.();
+            }}
+            className="w-full"
+          >
+            Xoá
+          </Button>
         </div>
       </div>
-
-      {/* Remove history card */}
-      <Button
-        onClick={() => {
-          removeHistory(history.id);
-          onClickRemove?.();
-        }}
-        className="w-full bg-red-500 text-white border-transparent"
-      >
-        Xoá
-      </Button>
     </div>
   );
 }

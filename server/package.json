@@ -11,13 +11,13 @@
     "dev": "nodemon App.js"
   },
   "dependencies": {
-    "@prisma/client": "^6.16.2",
     "@prisma/adapter-pg": "^6.16.2",
-    "prisma": "^6.16.2",
+    "@prisma/client": "^6.16.2",
     "bcrypt": "^6.0.0",
     "chokidar": "^4.0.3",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
+    "dayjs": "^1.11.19",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
     "fs": "^0.0.1-security",
@@ -26,6 +26,7 @@
     "nodemon": "^3.1.10",
     "path": "^0.12.7",
     "pg": "^8.16.3",
+    "prisma": "^6.16.2",
     "uuid": "^13.0.0",
     "winston": "^3.18.3"
   }
