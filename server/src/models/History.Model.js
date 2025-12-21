@@ -46,8 +46,16 @@ export async function FindAllReadingHistories({
         select: {
           id: true,
           title: true,
+          star: true,
+          view: true,
           type: true,
-          cover_art: true,
+          cover_art: {
+            select: {
+              url: true,
+              width: true,
+              height: true,
+            },
+          },
         },
       },
     },
