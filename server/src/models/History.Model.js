@@ -71,10 +71,24 @@ export async function FindAllReadingHistories({
   return { success: true, data: histories };
 }
 
+export async function FindReadingHistory({ id, userId, storyId, storyNodeId }) {
+  if (!id) return { success: false, message: "Missing history id" };
+  if (!id && !userId && !storyId && !storyNodeId) return { success: false, message: "Require all three user id, story id and story node id" };
+
+  const history = await db.readingHistory.findUnique({
+    where: {
+      is_deleted: false,
+      ...(id && { id: id }),
+      ...(userId && (storyId || storyNodeId) && { user_id: userId, story_id: storyId, story_node_id: storyNodeId }),
+    },
+  });
+
+  return { success: true, data: history };
+}
+
 export const AddReadingHistory = async ({ user_id, story_id, story_node_id }) => {
   try {
     const isExisting = await db.readingHistory.findFirst({ where: { user_id: user_id, story_id: story_id, story_node_id: story_node_id } });
-    console.log(isExisting);
     if (isExisting) {
       return { success: true, data: await db.readingHistory.update({ where: { id: isExisting.id }, data: { updated_at: new Date(), is_deleted: false } }) };
     }
@@ -115,15 +129,13 @@ export const HardDeleteReadingHistory = async (where = { id }) => {
   }
 };
 
-export const SoftDeleteReadingHistory = async (where = { id }) => {
+export async function SoftDeleteReadingHistory({ id }) {
   try {
-    const readingHistory = await FindAllReadingHistories({ id: where.id });
-    if (!readingHistory || !readingHistory.success || !readingHistory.data) {
-      return { success: false, data: null };
-    }
+    const readingHistory = await db.readingHistory.findUnique({ where: { id: id } });
+    if (!readingHistory) return { success: false, message: "Cannot find reading history" };
 
     const result = await db.readingHistory.update({
-      where: where,
+      where: { id: id },
       data: { is_deleted: true },
     });
     return { success: true, data: result };
@@ -131,7 +143,7 @@ export const SoftDeleteReadingHistory = async (where = { id }) => {
     console.error("❌ [User.Model.js] Error soft delete reading history: ", error);
     return { success: false, error: error.code };
   }
-};
+}
 
 export const UpdateReadingHistory = async (where = { id }, data = {}) => {
   try {

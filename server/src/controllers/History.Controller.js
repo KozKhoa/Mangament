@@ -1,4 +1,4 @@
-import { FindAllReadingHistories, AddReadingHistory, SoftDeleteReadingHistory } from "../models/History.Model.js";
+import { FindAllReadingHistories, AddReadingHistory, SoftDeleteReadingHistory, FindReadingHistory } from "../models/History.Model.js";
 
 import { CreateError } from "../utils/ErrorHandle.js";
 import ErrorCodes from "../constants/Error.js";
@@ -89,12 +89,12 @@ export async function DeleteReadingHistory(req, res, next) {
     if (!historyId) throw CreateError(ErrorCodes.BAD_REQUEST);
 
     // Make sure history exist
-    const history = await FindAllReadingHistories({ id: historyId });
+    const history = await FindReadingHistory({ id: historyId });
 
-    if (!history || !history.success || history.data.length <= 0) throw CreateError(ErrorCodes.ASSET_NOT_FOUND);
+    if (!history || !history.success) throw CreateError(ErrorCodes.ASSET_NOT_FOUND);
 
     // Make sure reading history belong to user
-    if (history.data[0].user_id !== userId) throw CreateError(ErrorCodes.FORBIDDEN);
+    if (history.data.user_id !== userId) throw CreateError(ErrorCodes.FORBIDDEN);
 
     const removing = await SoftDeleteReadingHistory({ id: historyId });
     if (!removing || !removing.success) throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
