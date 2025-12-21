@@ -17,6 +17,8 @@ import {
   GetReview,
 } from "../models/Story.Model.js";
 
+import { FindAllFavouriteStories } from "../models/Favourite.Model.js";
+
 import { CreateNewFolder, IsFileExist, MoveFile, SoftRemoveFile } from "../utils/FileHandle.js";
 import DIRECTORY from "../constants/Directory.js";
 import { ConvertQuery } from "../utils/QueryConvert.js";
@@ -186,20 +188,7 @@ export async function GetAllStories(req, res, next) {
   try {
     const userId = req?.user?.id;
 
-    const { isGettingChildren, authors, keyword, isGettingContent, isGettingNewestChapter, isGettingSummary, limit, page, type, genres, rating, view, sort } =
-      ConvertQuery(req.query);
-
-    let select = {};
-    if (userId) {
-      select = {
-        favourite: {
-          where: {
-            is_deleted: false,
-            user_id: userId,
-          },
-        },
-      };
-    }
+    const { isGettingChildren, authors, keyword, isGettingNewestChapter, limit, page, type, genres, rating, view, sort } = ConvertQuery(req.query);
 
     const stories = await FindAllStories({
       keyword: keyword,
@@ -220,17 +209,25 @@ export async function GetAllStories(req, res, next) {
       throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
     }
 
-    // use to update favourite story
-    // if (userId) {
-    //   stories.data.forEach((story) => {
-    //     if (story.favourite[0] && story.favourite[0].user_id === userId) {
-    //       story.favourite = {
-    //         id: story.favourite[0].id,
-    //         user_id: story.favourite[0].id,
-    //       };
-    //     } else delete story.favourite;
-    //   });
-    // }
+    if (userId) {
+      const favourites = await FindAllFavouriteStories({
+        userId: userId,
+        limit: 2147483647,
+        page: 1,
+        storyType: type,
+        star: rating,
+        view: view,
+        authorsId: authors,
+        genres: genres,
+      });
+
+      const favouriteStoryIds = new Map(favourites.data.map((fav) => [fav.story.id, fav.id]));
+
+      stories.data.map((story, i) => {
+        const favId = favouriteStoryIds.get(story.id);
+        if (favId) story.favourite = { id: favId };
+      });
+    }
 
     return res.status(200).json({
       success: true,

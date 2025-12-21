@@ -4,61 +4,31 @@ import { CreateError } from "../utils/ErrorHandle.js";
 import ErrorCodes from "../constants/Error.js";
 import { FindStory } from "../models/Story.Model.js";
 
-import { ValidateStoryType, ValidateStoryStatus } from "../models/Enum.Model.js";
-import { ValidateGenre } from "../models/Genre.Model.js";
+import { ConvertQuery } from "../utils/QueryConvert.js";
 
 export async function GetAllFavouriteStories(req, res, next) {
   try {
     // It is not neccessary to check user exist because authentication already did it
     const userId = req.user?.id;
-    const query = req?.query;
 
-    const limit = query?.limit ? Number(query.limit) : 1;
-    const page = query?.page ? Number(query.page) : 1;
-    const order = {};
-    if (query?.sort) {
-      const [field, direction] = query.sort.split(":");
-      order[field.toLowerCase()] = direction.toLowerCase();
-    } else {
-      order["created_at"] = "desc";
-    }
-    const type = query.type ? query.type.split(",") : null;
+    const { limit, page, sort, type, authors, genres, rating, view } = ConvertQuery(req.query);
 
-    const authors = query.author ? query.author.split(",") : null;
-
-    const genres = query.genre ? query.genre.split(",") : null;
-    if (!ValidateGenre(genres)) throw CreateError(ErrorCodes.BAD_REQUEST);
-
-    // rating = [[1,2], [4,5]]
-    const rating = query.star ? query.star.split(",").map((range) => range.split("-").map((number) => parseFloat(number))) : [[0, 5]];
-    // view = [[0, 100], [1000, 100000]]
-    const view = query.view ? query.view.split(",").map((range) => range.split("-").map((number) => Number(number))) : [[0, 2147483647]];
-
-    // Create where
-    const where = {
-      ...(type && { type: { in: type } }),
-      ...(authors && {
-        authors: { some: { author_id: { in: authors } } },
-      }),
-      ...(genres && {
-        genres: { hasEvery: genres },
-      }),
-      AND: [
-        {
-          OR: [...rating.map(([min, max]) => ({ star: { gte: min, lte: max } }))],
-        },
-        {
-          OR: [...view.map(([min, max]) => ({ view: { gte: min, lte: max } }))],
-        },
-      ],
-    };
-
-    const favouriteStories = await FindAllFavouriteStories({ user_id: userId, story: { ...where } }, order, limit, (page - 1) * limit);
+    const favouriteStories = await FindAllFavouriteStories({
+      userId: userId,
+      limit: limit,
+      page: page,
+      storyType: type,
+      sort: sort,
+      star: rating,
+      view: view,
+      authorsId: authors,
+      genres: genres,
+    });
 
     if (!favouriteStories || !favouriteStories.success) throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
 
     favouriteStories.data.forEach((fav) => {
-      fav.story.favourite = fav.story.favourite[0];
+      fav.story.favourite = { id: fav.id };
     });
 
     return res.status(200).json({

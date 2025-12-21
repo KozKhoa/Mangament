@@ -7,3 +7,4 @@ server/logs/
 .gitignore
 client/.gitignore
 server/.gitignore
+server/.gitignore
