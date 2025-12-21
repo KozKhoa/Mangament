@@ -19,13 +19,12 @@ export async function FindAllReadingHistories({
   const histories = await db.readingHistory.findMany({
     where: {
       is_deleted: false,
-      ...(fromDate ||
-        (toDate && {
-          created_at: {
-            ...(fromDate && { gte: fromDate }),
-            ...(toDate && { lt: toDate }),
-          },
-        })),
+
+      updated_at: {
+        ...(fromDate && { gte: fromDate }),
+        ...(toDate && { lt: toDate }),
+      },
+
       story: {
         ...(type && { type: { in: type } }),
         ...(genres && { genres: { hasEvery: genres } }),

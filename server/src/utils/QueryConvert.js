@@ -1,3 +1,5 @@
+import dayjs from "dayjs";
+
 export function ConvertQuery(query) {
   const isGettingChildren = query.isGettingChildren == "true" ? true : false;
   const isGettingContent = query.isGettingContent == "true" ? true : false;
@@ -31,8 +33,10 @@ export function ConvertQuery(query) {
 
   const keyword = query.keyword ? query.keyword : null;
 
-  const fromDate = query.fromDate ? new Date(query.fromDate) : null;
-  const toDate = query.toDate ? new Date(query.toDate) : null;
+  let fromDate = query.fromDate ? dayjs(query.fromDate).startOf("day").toDate() : null;
+  if (fromDate == "Invalid Date") fromDate = null;
+  let toDate = query.toDate ? dayjs(query.toDate).endOf("day").toDate() : null;
+  if (toDate == "Invalid Date") toDate = null;
 
   return {
     isGettingChildren,

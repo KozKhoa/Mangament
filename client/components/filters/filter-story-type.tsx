@@ -4,6 +4,7 @@ import StarIcon from "@/public/star.svg";
 
 import FilterProps from "@/types/filter";
 import Tag from "../tags/tag";
+import { useEffect } from "react";
 
 const STORY_TYPES = [
   {
@@ -29,11 +30,13 @@ export default function FilterStoryType({ onFilter, isReset = false }: { onFilte
     onFilter?.({ type: filter });
   };
 
-  if (isReset) {
-    STORY_TYPES.forEach((type) => {
-      type.isChecked = false;
-    });
-  }
+  useEffect(() => {
+    if (isReset) {
+      STORY_TYPES.forEach((type) => {
+        type.isChecked = false;
+      });
+    }
+  }, [isReset]);
 
   return (
     <ButtonDropdownCheckbox

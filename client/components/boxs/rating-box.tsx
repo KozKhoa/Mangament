@@ -13,7 +13,7 @@ export default function RatingBox({ rating, className }: RatingBoxProps) {
     <div className={`w-full h-full flex flex-col gap-2 ${className}`}>
       <div className="flex flex-row gap-5 w-fit">
         <div className="flex flex-row gap-2 justify-center items-end">
-          <img className="h-10 aspect-square rounded-full object-cover" src={process.env.NEXT_PUBLIC_API_URL + "uploads/" + rating?.user?.avatar.url}></img>
+          <img className="h-10 aspect-square rounded-full object-cover" src={process.env.NEXT_PUBLIC_API_URL + "uploads/" + rating?.user?.avatar?.url}></img>
           <div className="flex flex-col gap-1">
             <div className="flex flex-row gap-2">
               <p className="font-bold">{rating?.user?.name}</p>

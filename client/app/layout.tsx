@@ -65,7 +65,7 @@ export default function RootLayout({
               <NavBar className="fixed left-2.5 right-2.5"></NavBar>
               <div className="h-16"></div>
 
-              {children}
+              <div className="max-w-[1700px] m-auto">{children}</div>
 
               <Footer></Footer>
 

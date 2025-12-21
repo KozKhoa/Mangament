@@ -8,8 +8,17 @@ import FilterStoryType from "../filters/filter-story-type";
 import SortTime from "../sorts/sort-time";
 import { Params } from "@/types/params";
 import DEFAULT from "@/constants/default";
+import FilterDate from "../filters/filter-date";
 
-export default function FilterSort({ onChange, isResetAll = false, className }: { onChange?: (params: {}) => void; isResetAll?: boolean; className?: string }) {
+export default function FilterSortHistories({
+  onChange,
+  isResetAll = false,
+  className,
+}: {
+  onChange?: (params: {}) => void;
+  isResetAll?: boolean;
+  className?: string;
+}) {
   const isRunFirstTime = useRef(true);
 
   const [params, setParams] = useState<Params>(DEFAULT.params);
@@ -53,6 +62,9 @@ export default function FilterSort({ onChange, isResetAll = false, className }: 
 
       {/* Story type */}
       <FilterStoryType onFilter={updateParams} isReset={isResetAll}></FilterStoryType>
+
+      {/* Create date */}
+      <FilterDate onFilter={updateParams} isReset={isResetAll}></FilterDate>
     </div>
   );
 }

@@ -71,7 +71,7 @@ function NavBar({ duration = 100, className }: NavBarProps) {
       >
         <div className="flex flex-row justify-center items-center gap-5">
           <Link href={"/"}>
-            <p className={`text-2xl sm:text-3xl  font-holtwood`}>Mangament</p>
+            <p className={`text-2xl  font-holtwood`}>Mangament</p>
           </Link>
 
           {/* Desktop */}
@@ -115,7 +115,7 @@ function NavBar({ duration = 100, className }: NavBarProps) {
         {/* Mobile */}
         <div className="lg:hidden">
           <button className="cursor-pointer" onClick={toggleSidebar}>
-            <BurgerMenuIcon className="w-8 h-8" />
+            <BurgerMenuIcon className="w-7 h-7" />
           </button>
         </div>
 
