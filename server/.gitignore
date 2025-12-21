@@ -1,6 +1,9 @@
 .env*
+.gitignore*
+
 node_modules/
 
 /src/generated/
 uploads/
 
+logs/
