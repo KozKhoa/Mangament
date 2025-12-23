@@ -39,6 +39,7 @@ export default function FavouritePage() {
 
   const [params, setParams] = useState<HistoryParams>(DEFAULT.params);
   const [histories, setHistories] = useState<History[]>([]);
+  const [newHistories, setNewHistories] = useState<History[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
 
   async function fetchFavourite() {
@@ -48,7 +49,7 @@ export default function FavouritePage() {
     if (!res) return toast.warning("Can not connect with server");
     if (!res.success) return toast.warning(res.message);
 
-    setHistories((prevHis) => [...prevHis, ...res.data]);
+    setNewHistories(res.data);
 
     setLoading(false);
   }
@@ -56,6 +57,10 @@ export default function FavouritePage() {
   function removeHistory(history: History) {
     setHistories(histories.filter((x) => x !== history));
   }
+
+  useEffect(() => {
+    setHistories((prevHis) => [...prevHis, ...newHistories]);
+  }, [newHistories]);
 
   useEffect(() => {
     page.current = 1;

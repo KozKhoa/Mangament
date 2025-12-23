@@ -13,7 +13,7 @@ import useInView from "@/hooks/useInView";
 const limit = 5;
 const page = 1;
 
-const arrowClassName = "w-5 h-5 cursor-pointer";
+const arrowClassName = "w-5 h-5 cursor-pointer ";
 
 export default function StoriesRankingList({ rankBy = "view", label, className }: { rankBy?: string; label?: string; className?: string }) {
   const [stories, setStories] = useState<Story[]>([]);
@@ -49,11 +49,11 @@ export default function StoriesRankingList({ rankBy = "view", label, className }
   }, []);
 
   return (
-    <div className={`px-2 py-1 border-2 rounded-md w-full ${className}`}>
-      <div className="w-full flex flex-row justify-between items-center border-b-2">
+    <div className={`px-2 py-1 border-2 rounded-md w-full shadow-[5px_8px_4px_rgba(0,0,0,0.3)]   ${className}`}>
+      <div className="w-full flex flex-row justify-between items-center border-b-2 mb-2">
         {!topSliderInView ? <ArrowLeftIcon onClick={slideToPrevItem} className={arrowClassName}></ArrowLeftIcon> : <div className={arrowClassName}></div>}
 
-        <h2 className="font-bold text-2xl ">{label}</h2>
+        <h2 className="font-bold text-2xl">{label}</h2>
 
         {!endSliderInView ? <ArrowRightIcon onClick={slideToNextItem} className={arrowClassName}></ArrowRightIcon> : <div className={arrowClassName}></div>}
       </div>
@@ -61,7 +61,7 @@ export default function StoriesRankingList({ rankBy = "view", label, className }
         <div className="flex flex-row w-fit">
           <div ref={topSliderRef as any}></div>
           {stories.map((story, i) => (
-            <RankingCard ref={itemRef} className="snap-start w-[320px] lg:w-[400px]" top={i + 1} key={story.id} story={story}></RankingCard>
+            <RankingCard ref={itemRef} className="snap-start w-[320px] lg:w-[400px] " top={i + 1} key={story.id} story={story}></RankingCard>
           ))}
           <div ref={endSliderRef as any}></div>
         </div>

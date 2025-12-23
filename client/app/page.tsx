@@ -1,76 +1,78 @@
 "use client";
 
-import Image from "next/image";
-import Link from "next/link";
-import { useEffect, useRef } from "react";
-
-import NavBar from "@/components/layouts/navbar";
-import Switch from "@/components/switchs/switch";
-import SearchBar from "@/components/search/search";
-import ButtonExpandable from "@/components/buttons/expandable/btn-expandable";
-import ButtonDropdown from "@/components/buttons/dropdown/btn-dropdown";
-
-import ButtonDropdownCheckbox from "@/components/buttons/dropdown/btn-dropdown-checkbox";
-import Checkbox from "@/components/inputs/checkbox";
-import AuthorIcon from "@/public/people/people.svg";
-import Radio from "@/components/inputs/radio";
-import ButtonDropdownRadio from "@/components/buttons/dropdown/btn-drop-down-radio";
-import LoginRegister from "@/components/forms/login-register";
-import Input from "@/components/forms/input";
-
-// import StoryCard from "@/components/cards/stories/story-card";
-import StoryGrid from "@/components/grids/story-grid";
-import NumberInput from "@/components/inputs/number-input";
-import FontSelection from "@/components/selections/font-selection";
-import SortStories from "@/components/sorts/sort-stories";
-import RankingCard from "@/components/cards/ranking-card";
 import StoriesRankingList from "@/components/list/stories-ranking-list";
+import StoryList from "@/components/list/stories-list";
+import { useRouter } from "next/navigation";
+import RatingList from "@/components/list/rating-list";
+import InfinityScrollHorizontalList from "@/components/list/infinity-scroll-horizontal-list";
+import { useEffect, useRef, useState } from "react";
 
-const OPTIONS = [
-  { label: "op1", checked: false },
-  { label: "op2", checked: false },
-  { label: "op3", checked: false },
-];
+import historyService from "@/services/history";
+import DEFAULT from "@/constants/default";
+import { toast } from "sonner";
+import HistoryCard from "@/components/cards/history-card";
+import History from "@/types/history";
+import useAuth from "@/contexts/AuthContext";
+import CategoryCard from "@/components/cards/category-card";
 
 export default function Home() {
-  // const newestChapter = useRef<NewestChapter[]>(convertNewestChapter(story?.newest_chapter || []));
+  const router = useRouter();
+  const auth = useAuth();
 
-  function handlePress(text: string) {}
+  const page = useRef(1);
+
+  const [histories, setHistories] = useState<History[]>([]);
+
+  async function fetchHistories() {
+    const res = await historyService.get({ ...DEFAULT.params, ...{ page: 1, limit: 20 } });
+
+    if (!res) return toast.warning("Server error");
+    if (!res.success) return toast.warning(res.message);
+
+    setHistories(res.data);
+  }
+
+  async function fetchMoreHistories(page: number) {
+    const res = await historyService.get({ ...DEFAULT.params, ...{ page: page, limit: 20 } });
+
+    if (!res) return toast.warning("Server error");
+    if (!res.success) return toast.warning(res.message);
+
+    setHistories((prev) => [...prev, ...res.data]);
+  }
+
+  async function removeHistory(history: History) {
+    setHistories((prev) => prev.filter((x) => x !== history));
+  }
+
+  useEffect(() => {
+    fetchHistories();
+  }, []);
 
   return (
-    <div className="flex flex-col gap-2.5  ">
+    <div className="flex flex-col gap-10  ">
       <StoriesRankingList label="Xem nhiều nhất" className="m-auto max-w-[1200px]" rankBy="view"></StoriesRankingList>
 
-      <NumberInput></NumberInput>
-      <FontSelection></FontSelection>
+      <div className="flex flex-col gap-5">
+        <h2 className="text-[2em] font-bold cursor-pointer border-b-2 w-fit m-auto">Danh mục truyện</h2>
 
-      <Link className="w-fit" href={"/login"}>
-        Login page
-      </Link>
-      <Link className="w-fit" href={"/register"}>
-        Register page
-      </Link>
-
-      <StoryGrid label="Manga" storyType="manga" elementsPerPage={4}></StoryGrid>
-
-      <FontSelection
-        onChange={(options) => {
-          console.log(options);
-        }}
-      ></FontSelection>
-
-      <SortStories></SortStories>
-
-      <Input type="password" label={"Email"} placeHolder="Placeholder" error="error"></Input>
-
-      <div className="w-full flex flex-col gap-5 justify-center">
-        {/* <LoginRegister type="register"></LoginRegister> */}
-        <LoginRegister type="login"></LoginRegister>
+        <div className="flex flex-row flex-wrap justify-center items-center gap-x-20 gap-y-10  m-auto w-fit">
+          <CategoryCard imageSource="/manga.jpg" label="MANGA" onClick={() => router.push("/stories/manga")}></CategoryCard>
+          <CategoryCard imageSource="/light_novel.jpg" label="LIGHT NOVEL" onClick={() => router.push("/stories/light_novel")}></CategoryCard>
+        </div>
       </div>
 
-      <Radio>hello</Radio>
-
-      <Switch roundImageBgOnUrl="/theme/sun.svg" roundImageBgOffUrl="/theme/moon.svg" />
+      {auth?.user && (
+        <InfinityScrollHorizontalList
+          label="Tiếp tục đọc"
+          onClickLabel={() => router.push("/histories")}
+          onScrollToEnd={() => fetchMoreHistories(++page.current)}
+        >
+          {histories.map((history, i) => (
+            <HistoryCard className="min-w-[150px] md:w-[200px]" key={history.id} history={history} onClickRemove={() => removeHistory(history)}></HistoryCard>
+          ))}
+        </InfinityScrollHorizontalList>
+      )}
     </div>
   );
 }
