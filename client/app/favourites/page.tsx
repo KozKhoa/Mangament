@@ -23,31 +23,36 @@ export default function FavouritePage() {
   const page = useRef(1);
 
   const [params, setParams] = useState<FavoureiteParams>(DEFAULT.params);
-  const [newFavourites, setNewFavourites] = useState<Favourite[]>([]);
   const [favourites, setFavourites] = useState<Favourite[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
 
-  async function fetchFavourite() {
+  async function fetchFavourites() {
     setLoading(true);
-    const res = await favouriteService.get({ ...params, ...{ page: page.current } });
+    const res = await favouriteService.get({ ...params, ...{ page: 1 } });
 
     if (!res) return toast.warning("Can not connect with server");
     if (!res.success) return toast.warning(res.message);
 
-    setNewFavourites(res.data);
+    setFavourites(res.data);
+
+    setLoading(false);
+  }
+
+  async function fetchMoreFavourites(page: number) {
+    setLoading(true);
+    const res = await favouriteService.get({ ...params, ...{ page: page } });
+
+    if (!res) return toast.warning("Can not connect with server");
+    if (!res.success) return toast.warning(res.message);
+
+    setFavourites((prevFav) => [...prevFav, ...res.data]);
 
     setLoading(false);
   }
 
   useEffect(() => {
-    setFavourites((prevFav) => [...prevFav, ...newFavourites]);
-  }, [newFavourites]);
-
-  useEffect(() => {
     page.current = 1;
-    setFavourites([]);
-    fetchFavourite();
-    console.log(params);
+    fetchFavourites();
   }, [params]);
 
   return (
@@ -57,8 +62,7 @@ export default function FavouritePage() {
           label="Truyện Yêu Thích"
           isLoading={loading}
           onScrollToEnd={() => {
-            page.current++;
-            fetchFavourite();
+            fetchMoreFavourites(++page.current);
           }}
           onChangeParams={(newParams) => {
             setParams(newParams as HistoryParams);
