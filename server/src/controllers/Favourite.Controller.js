@@ -1,4 +1,4 @@
-import { FindAllFavouriteStories, AddFavouriteStory, SoftDeleteFavouriteStory } from "../models/Favourite.Model.js";
+import { FindAllFavouriteStories, AddFavouriteStory, SoftDeleteFavouriteStory, FindFavouriesStories } from "../models/Favourite.Model.js";
 
 import { CreateError } from "../utils/ErrorHandle.js";
 import ErrorCodes from "../constants/Error.js";
@@ -91,15 +91,8 @@ export async function DeleteFavouriteStory(req, res, next) {
 
     if (!favouriteId) throw CreateError(ErrorCodes.BAD_REQUEST);
 
-    // Check if the favourite story exist
-    const favouriteStory = await FindAllFavouriteStories({ id: favouriteId });
-    if (!favouriteStory || !favouriteStory.success || favouriteStory.data.length <= 0) throw CreateError(ErrorCodes.ASSET_NOT_FOUND);
-
-    // Check if this favourite story belong to the user
-    if (favouriteStory.data[0].user_id !== userId) throw CreateError(ErrorCodes.FORBIDDEN);
-
-    const removing = await SoftDeleteFavouriteStory({ id: favouriteId });
-    if (!removing || !removing.success) throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
+    const removing = await SoftDeleteFavouriteStory({ id: favouriteId, userId: userId });
+    if (!removing || !removing.success) throw CreateError(removing.message || ErrorCodes.INTERNAL_SERVER_ERROR);
 
     return res.status(200).json({
       success: true,
