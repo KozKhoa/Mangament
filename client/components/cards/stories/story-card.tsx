@@ -88,7 +88,7 @@ export default function StoryCard({ data, className }: StoryCardProps) {
         max-w-sm w-full h-full
         ${className} `}
     >
-      <div className={`relative aspect-2/3 rounded-[5] w-full cursor-pointer`}>
+      <div className={`relative rounded-[5] w-full cursor-pointer`}>
         {/* Cover art */}
         <img
           onClick={() => handleClickStory()}
@@ -103,7 +103,7 @@ export default function StoryCard({ data, className }: StoryCardProps) {
           absolute right-0 bottom-0 px-1 bg-background rounded-tl-md"
         >
           <EyeIcon className="w-5 h-5"></EyeIcon>
-          <p className="text-[1.1em] italic font-bold">{beautifulView(story?.view || 0)}</p>
+          <p className="italic font-semibold">{beautifulView(story?.view || 0)}</p>
         </div>
 
         {/* Save favourite */}
@@ -114,7 +114,7 @@ export default function StoryCard({ data, className }: StoryCardProps) {
 
       <div className="flex flex-col gap-1 w-full h-full">
         {/* Tittle */}
-        <div onClick={() => handleClickStory()} className="text-[1.5em] text-start font-bold leading-tight cursor-pointer">
+        <div onClick={() => handleClickStory()} className="text-[1.2em] text-start font-bold leading-tight cursor-pointer">
           {"[" + snakeCaseToCapitalizeWord(story?.type ?? "") + "] " + story?.title}
         </div>
 
@@ -131,7 +131,7 @@ export default function StoryCard({ data, className }: StoryCardProps) {
         {/* Newest chapter */}
         {newestChapter && newestChapter.length > 0 && (
           <div className="flex flex-col justify-center items-start gap-x-2.5-2.5">
-            <p className="text-[0.8em] italic font-bold">Chap mới nhất:</p>
+            <p className="text-[0.8em] italic">Chap mới nhất:</p>
 
             <div onClick={() => handleClickNewestChapter()} className="flex flex-wrap items-center justify-between cursor-pointer gap-x-2">
               <p>{newestChapter?.[0].dir}</p>

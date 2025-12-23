@@ -27,11 +27,16 @@ export default function InfinityScrollHorizontalList({
         {label}
       </h2>
 
-      <div className="flex flex-row overflow-x-auto no-scrollbar w-full p-2">
+      <div
+        className="grid grid-flow-col auto-cols-[50%] md:auto-cols-[25%] lg:auto-cols-[16.6666666667%] xl:auto-cols-[14.2857142857%] 
+        w-full overflow-x-auto scroll-smooth no-scrollbar snap-x snap-mandatory no-scrollbar"
+      >
         {children && children.length > 0 ? (
-          <>
-            <div className="flex flex-row justify-center items-start gap-2 w-fit">{children}</div>
-          </>
+          children.map((child, i) => (
+            <div className="snap-start px-1 py-2" key={i}>
+              {child}
+            </div>
+          ))
         ) : (
           <NoContent></NoContent>
         )}

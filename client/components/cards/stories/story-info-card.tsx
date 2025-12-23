@@ -18,7 +18,7 @@ export default function StoryInfoCard({ story, newestChapter, className }: Story
   return (
     <div
       className={`flex flex-col   bg-background border-2 rounded-[5] p-2.5
-        w-lg h-fit
+        w-[300px] lg:w-[400px] h-fit
         ${className}`}
     >
       {/* Title */}
