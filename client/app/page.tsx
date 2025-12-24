@@ -17,8 +17,6 @@ import CategoryCard from "@/components/cards/category-card";
 import storyService from "@/services/story";
 import Story from "@/types/story";
 import StoryCard from "@/components/cards/stories/story-card";
-import StorySearchCard from "@/components/cards/story-search-card";
-import SimpleStoryCard from "@/components/cards/stories/simple-story-card";
 import RankingCard from "@/components/cards/ranking-card";
 
 export default function Home() {

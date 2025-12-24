@@ -31,18 +31,18 @@ export default function InfinityScrollHorizontalList({
   const sliderRef = useRef<HTMLDivElement>(null);
   const itemRef = useRef<HTMLDivElement>(null);
 
-  const [topSliderRef, topSliderInView] = useInView();
-  const [endSliderRef, endSliderInView] = useInView();
+  const [endSliderRef, endSliderInView] = useInView({ threshold: 0 });
+  const [topSliderRef, topSliderInView] = useInView({ threshold: 0 });
 
   const [loading, setLoading] = useState(isLoading);
 
   function slideToNextItem() {
-    const itemWidth = itemRef.current?.offsetWidth;
+    const itemWidth = endSliderRef.current?.offsetWidth;
     sliderRef.current?.scrollBy({ left: itemWidth });
   }
 
   function slideToPrevItem() {
-    const itemWidth = itemRef.current?.offsetWidth;
+    const itemWidth = endSliderRef.current?.offsetWidth;
     sliderRef.current?.scrollBy({ left: itemWidth ? -itemWidth : 0 });
   }
 
@@ -54,6 +54,7 @@ export default function InfinityScrollHorizontalList({
       else slideToNextItem();
     }, autoSlide);
   }
+
   function stopAutoPlay() {
     clearInterval(Number(slideIntervalId.current));
     slideIntervalId.current = null;
@@ -66,7 +67,6 @@ export default function InfinityScrollHorizontalList({
   useEffect(() => {
     if (endSliderInView) onScrollToEnd?.();
 
-    if (autoSlide == 0) return;
     startAutoPlay();
 
     return () => {
@@ -91,6 +91,9 @@ export default function InfinityScrollHorizontalList({
         onPointerDown={stopAutoPlay}
         onWheel={stopAutoPlay}
         onPointerLeave={startAutoPlay}
+        onTouchStart={stopAutoPlay}
+        onTouchMove={stopAutoPlay}
+        onTouchEnd={startAutoPlay}
         style={
           {
             "--col": `${100 / numberOfElementInScreen.basic}%`,
@@ -102,26 +105,26 @@ export default function InfinityScrollHorizontalList({
         }
         className="flex w-full h-fit overflow-x-scroll scroll-smooth snap-x snap-mandatory no-scrollbar"
       >
-        <div ref={topSliderRef as any} className=" invisible "></div>
+        {/* <div ref={topSliderRef as any} className=" bg-transparent opacity-0 w-1 "></div> */}
 
         {loading && <Loading className="w-full h-48"></Loading>}
 
         {children?.map((child, i) => (
           <div
             className=" flex-none snap-start
-            w-(--col)
-            sm:w-(--col-sm)
-            md:w-(--col-md)
-            lg:w-(--col-lg)
-            xl:w-(--col-xl)
-          "
+              w-(--col)
+              sm:w-(--col-sm)
+              md:w-(--col-md)
+              lg:w-(--col-lg)
+              xl:w-(--col-xl)
+            "
             key={i}
-            ref={itemRef}
+            ref={i === 0 ? (topSliderRef as any) : (endSliderRef as any)}
           >
             {child}
           </div>
         ))}
-        <div ref={endSliderRef as any} className=" invisible "></div>
+        {/* <div ref={endSliderRef as any} className=" bg-transparent opacity-0 w-1 "></div> */}
       </div>
     </div>
   );
