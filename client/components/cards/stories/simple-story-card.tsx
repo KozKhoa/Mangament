@@ -28,7 +28,7 @@ export default function SimpleStoryCard({ story, className }: { story: Story; cl
 
       <div className="flex flex-col gap-1 w-full h-full">
         {/* Tittle */}
-        <div onClick={() => handleClickStory()} className="text-[1em] text-start font-semibold leading-tight cursor-pointer">
+        <div onClick={() => handleClickStory()} className="text-[1.2em] text-start font-semibold leading-tight cursor-pointer">
           {"[" + snakeCaseToCapitalizeWord(story?.type ?? "") + "] " + story?.title}
         </div>
       </div>

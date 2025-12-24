@@ -67,7 +67,7 @@ export default function HistoryCard({ history, onClickRemove, className }: { his
       >
         <img
           onClick={() => navigateToStoryNode()}
-          className="object-cover rounded-[5]"
+          className="h-full rounded-[5]"
           src={process.env.NEXT_PUBLIC_API_URL + "uploads/story/" + story?.cover_art?.url}
           alt="Cover Art"
         ></img>
@@ -78,13 +78,13 @@ export default function HistoryCard({ history, onClickRemove, className }: { his
           absolute right-0 bottom-0 px-1 bg-background rounded-tl-md"
         >
           <EyeIcon className="w-5 h-5"></EyeIcon>
-          <p className="text-[1em] italic font-semibold">{beautifulView(story?.view || 0)}</p>
+          <p className="text-[0.8em] italic font-semibold">{beautifulView(story?.view || 0)}</p>
         </div>
       </div>
 
       <div className="flex flex-col justify-between gap-1 h-full w-full">
         {/* Tittle */}
-        <div onClick={() => navigateToStory()} className="text-[1.2em] font-bold leading-tight cursor-pointer">
+        <div onClick={() => navigateToStory()} className="text-[1.2em] font-bold leading-tight cursor-pointer line-clamp-2">
           {"[" + snakeCaseToCapitalizeWord(story?.type ?? "") + "] " + story?.title}
         </div>
 

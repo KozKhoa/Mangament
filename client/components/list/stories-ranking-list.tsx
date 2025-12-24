@@ -17,19 +17,18 @@ const arrowClassName = "w-5 h-5 cursor-pointer ";
 
 export default function StoriesRankingList({ rankBy = "view", label, className }: { rankBy?: string; label?: string; className?: string }) {
   const [stories, setStories] = useState<Story[]>([]);
-  const itemRef = useRef<HTMLDivElement>(null);
   const sliderRef = useRef<HTMLDivElement>(null);
 
   const [topSliderRef, topSliderInView] = useInView();
   const [endSliderRef, endSliderInView] = useInView();
 
   function slideToNextItem() {
-    const itemWidth = itemRef.current?.offsetWidth;
+    const itemWidth = endSliderRef.current?.offsetWidth;
     sliderRef.current?.scrollBy({ left: itemWidth });
   }
 
   function slideToPrevItem() {
-    const itemWidth = itemRef.current?.offsetWidth;
+    const itemWidth = endSliderRef.current?.offsetWidth;
     sliderRef.current?.scrollBy({ left: itemWidth ? -itemWidth : 0 });
   }
 
@@ -39,17 +38,29 @@ export default function StoriesRankingList({ rankBy = "view", label, className }
     if (!res) return toast.warning("Cannot connect with server");
     if (!res.success) return toast.warning(res.message);
 
-    console.log(res.data);
-
     setStories(res.data);
   }
+
+  useEffect(() => {
+    const autoSlide = setInterval(() => {
+      if (endSliderInView) {
+        sliderRef.current?.scrollTo({ left: 0 });
+      } else {
+        slideToNextItem();
+      }
+    }, 4000);
+
+    return () => {
+      clearInterval(autoSlide);
+    };
+  }, [endSliderRef, endSliderInView]);
 
   useEffect(() => {
     fetchStories();
   }, []);
 
   return (
-    <div className={`px-2 py-1 border-2 rounded-md w-full shadow-[5px_8px_4px_rgba(0,0,0,0.3)]   ${className}`}>
+    <div className={`px-2 py-1 border-2 rounded-md w-full shadow-[5px_8px_4px_rgba(0,0,0,0.3)] ${className}`}>
       <div className="w-full flex flex-row justify-between items-center border-b-2 mb-2">
         {!topSliderInView ? <ArrowLeftIcon onClick={slideToPrevItem} className={arrowClassName}></ArrowLeftIcon> : <div className={arrowClassName}></div>}
 
@@ -57,13 +68,21 @@ export default function StoriesRankingList({ rankBy = "view", label, className }
 
         {!endSliderInView ? <ArrowRightIcon onClick={slideToNextItem} className={arrowClassName}></ArrowRightIcon> : <div className={arrowClassName}></div>}
       </div>
-      <div ref={sliderRef} className=" overflow-y-scroll scroll-smooth no-scrollbar snap-x snap-mandatory">
-        <div className="flex flex-row w-fit">
-          <div ref={topSliderRef as any}></div>
-          {stories.map((story, i) => (
-            <RankingCard ref={itemRef} className="snap-start w-[320px] lg:w-[400px] " top={i + 1} key={story.id} story={story}></RankingCard>
-          ))}
-          <div ref={endSliderRef as any}></div>
+      <div className="flex flex-row">
+        <div
+          ref={sliderRef}
+          className="grid grid-flow-col auto-cols-[100%] sm:auto-cols-[50%] lg:auto-cols-[33.3333333%] overflow-y-scroll scroll-smooth no-scrollbar snap-x snap-mandatory"
+        >
+          {stories &&
+            stories.length > 0 &&
+            stories.map((story, i) => {
+              const ref = i === stories.length - 1 ? (endSliderRef as any) : i === 0 ? (topSliderRef as any) : null;
+              return (
+                <div className="snap-start w-full" key={story.id} ref={ref}>
+                  <RankingCard className="w-full " top={i + 1} story={story}></RankingCard>
+                </div>
+              );
+            })}
         </div>
       </div>
     </div>

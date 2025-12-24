@@ -1,6 +1,10 @@
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import NoContent from "../cards/no-content";
 import useInView from "@/hooks/useInView";
+
+import ArrowRightIcon from "@/public/arrows/right-v.svg";
+import ArrowLeftIcon from "@/public/arrows/left-v.svg";
+import Loading from "../loadings/loading";
 
 export default function InfinityScrollHorizontalList({
   onScrollToEnd,
@@ -8,39 +12,116 @@ export default function InfinityScrollHorizontalList({
   onClickLabel,
   children,
   className,
+  numberOfElementInScreen = { basic: 2, sm: 3, md: 4, lg: 6, xl: 7 }, // This is determine number of element you would like to show on screen depend on your screen width [basic, sm, md, lg, xl]
+  autoSlide = 0,
+  isLoading = false,
 }: {
   onScrollToEnd?: () => void;
   className?: string;
   label?: string;
   onClickLabel?: () => void;
+  numberOfElementInScreen?: { basic: number; sm: number; md: number; lg: number; xl: number };
+  autoSlide?: number;
+  isLoading?: boolean;
   children?: React.ReactNode[];
 }) {
-  const [inViewRef, isInView] = useInView();
+  const slideIntervalId = useRef<NodeJS.Timeout>(null);
+  const arrowClassName = "w-6 h-6 cursor-pointer ";
+
+  const sliderRef = useRef<HTMLDivElement>(null);
+  const itemRef = useRef<HTMLDivElement>(null);
+
+  const [topSliderRef, topSliderInView] = useInView();
+  const [endSliderRef, endSliderInView] = useInView();
+
+  const [loading, setLoading] = useState(isLoading);
+
+  function slideToNextItem() {
+    const itemWidth = itemRef.current?.offsetWidth;
+    sliderRef.current?.scrollBy({ left: itemWidth });
+  }
+
+  function slideToPrevItem() {
+    const itemWidth = itemRef.current?.offsetWidth;
+    sliderRef.current?.scrollBy({ left: itemWidth ? -itemWidth : 0 });
+  }
+
+  function startAutoPlay() {
+    if (slideIntervalId.current !== null || autoSlide === 0) return;
+
+    slideIntervalId.current = setInterval(() => {
+      if (endSliderInView) sliderRef.current?.scrollTo({ left: 0 });
+      else slideToNextItem();
+    }, autoSlide);
+  }
+  function stopAutoPlay() {
+    clearInterval(Number(slideIntervalId.current));
+    slideIntervalId.current = null;
+  }
 
   useEffect(() => {
-    if (isInView) onScrollToEnd?.();
-  }, [isInView]);
+    setLoading(isLoading);
+  }, [isLoading]);
+
+  useEffect(() => {
+    if (endSliderInView) onScrollToEnd?.();
+
+    if (autoSlide == 0) return;
+    startAutoPlay();
+
+    return () => {
+      stopAutoPlay();
+    };
+  }, [endSliderRef.current, endSliderInView, autoSlide]);
 
   return (
     <div className={` flex flex-col justify-center items-center gap-5 w-full ${className}`}>
-      <h2 onClick={() => onClickLabel?.()} className="text-[2em] font-bold cursor-pointer border-b-2">
-        {label}
-      </h2>
+      <div className="w-full flex flex-row justify-between items-center">
+        {!topSliderInView ? <ArrowLeftIcon onClick={slideToPrevItem} className={arrowClassName}></ArrowLeftIcon> : <div className={arrowClassName}></div>}
+
+        <div onClick={() => onClickLabel?.()} className="text-[2em] font-bold cursor-pointer border-b-2">
+          {label}
+        </div>
+
+        {!endSliderInView ? <ArrowRightIcon onClick={slideToNextItem} className={arrowClassName}></ArrowRightIcon> : <div className={arrowClassName}></div>}
+      </div>
 
       <div
-        className="grid grid-flow-col auto-cols-[50%] md:auto-cols-[25%] lg:auto-cols-[16.6666666667%] xl:auto-cols-[14.2857142857%] 
-        w-full overflow-x-auto scroll-smooth no-scrollbar snap-x snap-mandatory no-scrollbar"
+        ref={sliderRef}
+        onPointerDown={stopAutoPlay}
+        onWheel={stopAutoPlay}
+        onPointerLeave={startAutoPlay}
+        style={
+          {
+            "--col": `${100 / numberOfElementInScreen.basic}%`,
+            "--col-sm": `${100 / numberOfElementInScreen.sm}%`,
+            "--col-md": `${100 / numberOfElementInScreen.md}%`,
+            "--col-lg": `${100 / numberOfElementInScreen.lg}%`,
+            "--col-xl": `${100 / numberOfElementInScreen.xl}%`,
+          } as React.CSSProperties
+        }
+        className="flex w-full h-fit overflow-x-scroll scroll-smooth snap-x snap-mandatory no-scrollbar"
       >
-        {children && children.length > 0 ? (
-          children.map((child, i) => (
-            <div className="snap-start px-1 py-2" key={i}>
-              {child}
-            </div>
-          ))
-        ) : (
-          <NoContent></NoContent>
-        )}
-        <div ref={inViewRef as any}></div>
+        <div ref={topSliderRef as any} className=" invisible "></div>
+
+        {loading && <Loading className="w-full h-48"></Loading>}
+
+        {children?.map((child, i) => (
+          <div
+            className=" flex-none snap-start
+            w-(--col)
+            sm:w-(--col-sm)
+            md:w-(--col-md)
+            lg:w-(--col-lg)
+            xl:w-(--col-xl)
+          "
+            key={i}
+            ref={itemRef}
+          >
+            {child}
+          </div>
+        ))}
+        <div ref={endSliderRef as any} className=" invisible "></div>
       </div>
     </div>
   );

@@ -2,18 +2,20 @@ import Story from "@/types/story";
 
 import StoryCard from "./stories/story-card";
 
-import FirstRankIcon from "@/public/ranking/1.png";
-import SecondRankIcon from "@/public/ranking/2.png";
-import ThirdRankIcon from "@/public/ranking/3.png";
-import { Ref, RefAttributes } from "react";
+import { Ref } from "react";
 
 export default function RankingCard({ top, story, className, ref }: { top?: number; story: Story; className?: string; ref?: Ref<HTMLDivElement> }) {
   function textColorMapping(top: number) {
     if (top === 1) return "text-yellow-500";
     if (top === 2) return "text-gray-500";
-    if (top === 3) return "text-orange-800";
-    if (top === 4) return "text-orange-600";
-    if (top === 5) return "text-green-800";
+    if (top === 3) return "text-amber-700";
+    if (top === 4) return "text-blue-800";
+    if (top === 5) return "text-green-700";
+    if (top === 6) return "text-teal-600";
+    if (top === 7) return "text-violet-700";
+    if (top === 8) return "text-orange-600";
+    if (top === 9) return "text-red-600";
+    if (top === 10) return "text-foreground";
 
     return "text-foreground";
   }
