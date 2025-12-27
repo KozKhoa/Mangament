@@ -2,6 +2,7 @@
 .gitignore
 
 node_modules/
+
 logs/
 
 /src/generated/
