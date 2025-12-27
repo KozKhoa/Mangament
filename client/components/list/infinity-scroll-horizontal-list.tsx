@@ -29,10 +29,9 @@ export default function InfinityScrollHorizontalList({
   const arrowClassName = "w-6 h-6 cursor-pointer ";
 
   const sliderRef = useRef<HTMLDivElement>(null);
-  const itemRef = useRef<HTMLDivElement>(null);
 
-  const [endSliderRef, endSliderInView] = useInView({ threshold: 0 });
-  const [topSliderRef, topSliderInView] = useInView({ threshold: 0 });
+  const [endSliderRef, endSliderInView] = useInView({ threshold: 0.5 });
+  const [topSliderRef, topSliderInView] = useInView({ threshold: 0.5 });
 
   const [loading, setLoading] = useState(isLoading);
 
