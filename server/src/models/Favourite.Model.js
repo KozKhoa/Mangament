@@ -55,42 +55,6 @@ export async function FindAllFavouriteStories({
   });
 
   return { success: true, data: favourites };
-  // try {
-  //   const favouriteStories = await db.favouriteStory.findMany({
-  //     where: { is_deleted: false, ...where },
-  //     take: take,
-  //     skip: skip,
-  //     orderBy: [orderBy, { created_at: "desc" }, { id: "desc" }],
-  //     select: {
-  //       id: true,
-  //       created_at: true,
-  //       user_id: true,
-  //       story: {
-  //         select: {
-  //           id: true,
-  //           title: true,
-  //           nation: true,
-  //           star: true,
-  //           view: true,
-  //           status: true,
-  //           type: true,
-  //           cover_art: {
-  //             select: { url: true, width: true, height: true },
-  //           },
-  //           favourite: {
-  //             select: { id: true, user_id: true },
-  //           },
-  //         },
-  //       },
-  //     },
-  //   });
-
-  //   if (!favouriteStories) return { success: false, data: null };
-  //   return { success: true, data: favouriteStories };
-  // } catch (error) {
-  //   console.error("❌ [User.Model.js] Error finding all favourite stories:", error);
-  //   return { success: false, error: error.code };
-  // }
 }
 
 export async function FindFavouriesStories({ id }) {

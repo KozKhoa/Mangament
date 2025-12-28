@@ -161,17 +161,11 @@ export async function GetCountStories(req, res, next) {
 
 export async function GetRandomStory(req, res, next) {
   try {
-    const storyType = req.query?.type;
-    if (storyType && !ValidateStoryType(storyType)) throw CreateError(ErrorCodes.BAD_REQUEST);
-
-    const isGettingChildren = req.query?.isGettingChildren == "true" ? true : false;
-    const isGettingContent = req.query?.isGettingContent == "true" ? true : false;
-    const isGettingSummary = req.query?.isGettingSummary == "true" ? true : false;
-
     const count = (await CountStory()).data;
     const random = parseInt(((Math.random() * count * 100) % count) + 1);
 
-    const story = await FindAllStories({ ...(storyType && { type: storyType }) }, {}, 1, random - 1, isGettingChildren, isGettingContent, isGettingSummary);
+    const story = await FindAllStories({ page: random, limit: 1, isGettingChildren: true });
+
     if (!story || !story.success) throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
 
     return res.status(200).json({
