@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 import SearchBar from "@/components/search/search";
@@ -18,12 +18,7 @@ import { toast } from "sonner";
 import { snakeCaseToCapitalizeWord, snakeCaseToNormal } from "@/utils/string";
 import { useRouter } from "next/navigation";
 import useAuth from "@/contexts/AuthContext";
-import authService from "@/services/auth";
-import storyService from "@/services/story";
-import Story from "@/types/story";
-import StoryCard from "../cards/stories/story-card";
-import NoContent from "../cards/no-content";
-import StorySearchCard from "../cards/story-search-card";
+
 import SearchStories from "../search/search-stories";
 import { usePathname } from "next/navigation";
 
@@ -36,25 +31,35 @@ function NavBar({ duration = 100, className }: NavBarProps) {
   const path = usePathname();
   const router = useRouter();
   const auth = useAuth();
+
   const user = auth?.user;
+
+  const [hidden, setHidden] = useState(false);
+
   const [openSidebar, setOpenSidebar] = useState(false);
-  const [genres, setGenres] = useState<string[]>([]);
-
-  async function fetchGenres() {
-    const res = await genreService.get();
-
-    if (!res) return toast.warning("Server Error");
-    if (!res.success) return toast.warning(res.message);
-
-    setGenres(res.data);
-  }
+  const lastScrollY = useRef(0);
 
   function toggleSidebar() {
     setOpenSidebar(!openSidebar);
   }
 
   useEffect(() => {
-    fetchGenres();
+    function handleNavbarHidden() {
+      if (window.scrollY < 100) {
+        setHidden(false);
+        return;
+      }
+
+      if (window.scrollY - lastScrollY.current > 10 || window.scrollY - lastScrollY.current < -30) {
+        setHidden(window.scrollY > lastScrollY.current);
+      }
+
+      lastScrollY.current = window.scrollY;
+    }
+
+    window.addEventListener("scroll", handleNavbarHidden);
+
+    return () => window.removeEventListener("scroll", handleNavbarHidden);
   }, []);
 
   useEffect(() => {
@@ -64,12 +69,13 @@ function NavBar({ duration = 100, className }: NavBarProps) {
     <>
       <div
         className={`flex flex-row   justify-between text-center   text-foreground 
-       items-center px-2.5 py-1 h-fit bg-background z-20
-       rounded-b-md border-b-3 border-x-2 shadow-[5px_8px_4px_rgba(0,0,0,0.3)]
-       ${className}
+          items-center px-2.5 py-1 h-fit bg-background z-20 transition-transform duration-300
+          rounded-b-md border-b-3 border-x-2 shadow-[5px_8px_4px_rgba(0,0,0,0.3)]
+          ${hidden ? "-translate-y-full" : ""} 
+          ${className}
        `}
       >
-        <div className="flex flex-row justify-center items-center gap-5">
+        <div className={`flex flex-row justify-center items-center gap-5`}>
           <Link href={"/"}>
             <p className={`text-2xl  font-holtwood`}>Mangament</p>
           </Link>
@@ -78,7 +84,7 @@ function NavBar({ duration = 100, className }: NavBarProps) {
           <div className="hidden lg:flex flex-row justify-center items-center gap-5">
             <ButtonDropdown className="h-full" label="Random" />
             <ButtonDropdown className="h-full" label="Lịch phát hành" />
-            <ButtonDropdown className="h-full" label="Xếp hạng" />
+            <ButtonDropdown className="h-full" label="Xếp hạng" onClick={() => router.push("/ranking")} />
           </div>
         </div>
 

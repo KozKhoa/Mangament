@@ -41,9 +41,21 @@ export default function FavouritePage() {
   const [histories, setHistories] = useState<History[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
 
-  async function fetchFavourite() {
+  async function fetchHistories() {
     setLoading(true);
-    const res = await historyService.get({ ...params, ...{ page: page.current } });
+    const res = await historyService.get({ ...params, ...{ page: 1 } });
+
+    if (!res) return toast.warning("Can not connect with server");
+    if (!res.success) return toast.warning(res.message);
+
+    setHistories(res.data);
+
+    setLoading(false);
+  }
+
+  async function fetchMoreHistories(page: number) {
+    setLoading(true);
+    const res = await historyService.get({ ...params, ...{ page: page } });
 
     if (!res) return toast.warning("Can not connect with server");
     if (!res.success) return toast.warning(res.message);
@@ -59,8 +71,7 @@ export default function FavouritePage() {
 
   useEffect(() => {
     page.current = 1;
-    setHistories([]);
-    fetchFavourite();
+    fetchHistories();
   }, [params]);
 
   return (
@@ -71,9 +82,7 @@ export default function FavouritePage() {
             label="Lịch sử xem"
             isLoading={loading}
             onScrollToEnd={() => {
-              page.current++;
-
-              fetchFavourite();
+              fetchMoreHistories(++page.current);
             }}
             onChangeParams={(newParams) => {
               setParams(newParams as HistoryParams);

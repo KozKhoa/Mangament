@@ -71,39 +71,67 @@ export async function FindAllReadingHistories({
   return { success: true, data: histories };
 }
 
-export const AddReadingHistory = async ({ user_id, story_id, story_node_id }) => {
-  try {
-    const isExisting = await db.readingHistory.findFirst({ where: { user_id: user_id, story_id: story_id, story_node_id: story_node_id } });
-    console.log(isExisting);
-    if (isExisting) {
-      return { success: true, data: await db.readingHistory.update({ where: { id: isExisting.id }, data: { updated_at: new Date(), is_deleted: false } }) };
-    }
+export async function FindReadingHistory({ id, userId, storyId, storyNodeId }) {
+  if (!id) return { success: false, message: "Missing history id" };
+  if (!id && !userId && !storyId && !storyNodeId) return { success: false, message: "Require all three user id, story id and story node id" };
 
-    const result = await db.readingHistory.create({
-      data: {
-        user: {
-          connect: {
-            id: user_id,
-          },
-        },
-        story: {
-          connect: {
-            id: story_id,
-          },
-        },
-        story_node: {
-          connect: {
-            id: story_node_id,
-          },
+  const history = await db.readingHistory.findUnique({
+    where: {
+      is_deleted: false,
+      ...(id && { id: id }),
+      ...(userId && (storyId || storyNodeId) && { user_id: userId, story_id: storyId, story_node_id: storyNodeId }),
+    },
+  });
+
+  return { success: true, data: history };
+}
+
+export async function AddReadingHistory({ userId, storyId, storyNodeId, position }) {
+  // Check if story
+  const story = await db.story.findUnique({ where: { id: storyId } });
+  if (!story) return { success: false, message: "Story does not exist" };
+
+  // Check if story node exist
+  const storyNode = await db.storyNode.findUnique({ where: { id: storyNodeId } });
+  if (!storyNode) return { success: false, message: "Story node does not exist" };
+
+  // Update status if this history exist
+  const history = await db.readingHistory.findUnique({
+    where: {
+      user_id_story_id_story_node_id: {
+        user_id: userId,
+        story_id: storyId,
+        story_node_id: storyNodeId,
+      },
+    },
+  });
+  if (history) {
+    const update = await db.readingHistory.update({ where: { id: history.id }, data: { is_deleted: false, updated_at: new Date() } });
+    return { success: true, data: update };
+  }
+
+  const newHistory = await db.readingHistory.create({
+    data: {
+      user: {
+        connect: {
+          id: userId,
         },
       },
-    });
-    return { success: true, data: result };
-  } catch (error) {
-    console.error("❌ [User.Model.js] Error adding reading history:", error);
-    return { success: false, error: error.code };
-  }
-};
+      story: {
+        connect: {
+          id: storyId,
+        },
+      },
+      story_node: {
+        connect: {
+          id: storyNodeId,
+        },
+      },
+    },
+  });
+
+  return { success: true, data: newHistory };
+}
 
 export const HardDeleteReadingHistory = async (where = { id }) => {
   try {
@@ -115,15 +143,13 @@ export const HardDeleteReadingHistory = async (where = { id }) => {
   }
 };
 
-export const SoftDeleteReadingHistory = async (where = { id }) => {
+export async function SoftDeleteReadingHistory({ id }) {
   try {
-    const readingHistory = await FindAllReadingHistories({ id: where.id });
-    if (!readingHistory || !readingHistory.success || !readingHistory.data) {
-      return { success: false, data: null };
-    }
+    const readingHistory = await db.readingHistory.findUnique({ where: { id: id } });
+    if (!readingHistory) return { success: false, message: "Cannot find reading history" };
 
     const result = await db.readingHistory.update({
-      where: where,
+      where: { id: id },
       data: { is_deleted: true },
     });
     return { success: true, data: result };
@@ -131,7 +157,7 @@ export const SoftDeleteReadingHistory = async (where = { id }) => {
     console.error("❌ [User.Model.js] Error soft delete reading history: ", error);
     return { success: false, error: error.code };
   }
-};
+}
 
 export const UpdateReadingHistory = async (where = { id }, data = {}) => {
   try {

@@ -17,6 +17,7 @@ export function convertNewestChapter(newestChapter: StoryNode[], number: number 
     if (storyNode.type === "chapter") {
       result?.push({
         id: storyNode.id,
+        orderIndex: storyNode.order_index,
         dir: parent + " " + node,
         dayPass: diffDate(new Date(), new Date(storyNode?.created_at ?? "")),
       });
