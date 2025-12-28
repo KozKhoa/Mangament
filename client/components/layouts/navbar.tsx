@@ -82,7 +82,7 @@ function NavBar({ duration = 100, className }: NavBarProps) {
 
           {/* Desktop */}
           <div className="hidden lg:flex flex-row justify-center items-center gap-5">
-            <ButtonDropdown className="h-full" label="Random" />
+            <ButtonDropdown className="h-full" label="Random" onClick={() => router.push("/story/random")} />
             <ButtonDropdown className="h-full" label="Lịch phát hành" />
             <ButtonDropdown className="h-full" label="Xếp hạng" onClick={() => router.push("/ranking")} />
           </div>
@@ -163,7 +163,7 @@ function NavBar({ duration = 100, className }: NavBarProps) {
                     </li>
                   )}
                   <li>
-                    <ButtonExpandable onClick={() => router.push("/random")} label="Random" />
+                    <ButtonExpandable onClick={() => router.push("/story/random")} label="Random" />
                   </li>
                   <li>
                     <ButtonExpandable onClick={() => router.push("/ranking")} label="Xếp hạng" />

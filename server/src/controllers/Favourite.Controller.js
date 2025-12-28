@@ -1,8 +1,7 @@
-import { FindAllFavouriteStories, AddFavouriteStory, SoftDeleteFavouriteStory, FindFavouriesStories } from "../models/Favourite.Model.js";
+import { FindAllFavouriteStories, AddFavouriteStory, SoftDeleteFavouriteStory } from "../models/Favourite.Model.js";
 
 import { CreateError } from "../utils/ErrorHandle.js";
 import ErrorCodes from "../constants/Error.js";
-import { FindStory } from "../models/Story.Model.js";
 
 import { ConvertQuery } from "../utils/QueryConvert.js";
 
@@ -47,34 +46,18 @@ export async function PostFavouriteStory(req, res, next) {
     // It is not neccessary to check user exist because authentication already did it
     const userId = req.user?.id;
     const storyId = req.body?.storyId;
+
     if (!storyId) throw CreateError(ErrorCodes.MISSING_FIELD);
 
-    // Check if the story exist
-    const story = await FindStory({ id: storyId });
-    if (!story || !story.success || !story.data) throw CreateError(ErrorCodes.STORY_NOT_FOUND);
+    const favouriteStory = await AddFavouriteStory({ userId: userId, storyId: storyId });
+    if (!favouriteStory || !favouriteStory.success) throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
 
-    const favouriteStory = await AddFavouriteStory({
-      user_id: userId,
-      story_id: storyId,
-    });
-    if (!favouriteStory || !favouriteStory.success)
-      if (favouriteStory.error == "P2002") throw CreateError(ErrorCodes.ASSET_ALREADY_EXIST);
-      else throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
+    delete favouriteStory.data.is_deleted;
 
     return res.status(200).json({
       success: true,
       message: "Add new favourite story successfully",
-      data: {
-        favourite: {
-          id: favouriteStory.data.id,
-        },
-        user: {
-          id: userId,
-        },
-        story: {
-          id: storyId,
-        },
-      },
+      data: favouriteStory.data,
     });
   } catch (error) {
     if (!error.status) console.error("❌ [User.Controller.js] Error posting user favourite story:", error);

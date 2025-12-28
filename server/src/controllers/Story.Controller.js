@@ -17,7 +17,7 @@ import {
   GetReview,
 } from "../models/Story.Model.js";
 
-import { FindAllFavouriteStories } from "../models/Favourite.Model.js";
+import { FindAllFavouriteStories, FindFavouriteStory } from "../models/Favourite.Model.js";
 
 import { CreateNewFolder, IsFileExist, MoveFile, SoftRemoveFile } from "../utils/FileHandle.js";
 import DIRECTORY from "../constants/Directory.js";
@@ -27,48 +27,11 @@ export async function GetStory(req, res, next) {
   try {
     const userId = req.user?.id;
     const storyId = req?.params?.id;
+
     // Check user request
     if (!storyId) throw CreateError(ErrorCodes.BAD_REQUEST);
 
     const { type, isGettingChildren, isGettingContent, isGettingSummary, isGettingNewestChapter } = ConvertQuery(req.query);
-
-    let select = {};
-    if (userId) {
-      select = {
-        favourite: {
-          where: {
-            is_deleted: false,
-            user_id: userId,
-          },
-        },
-        rating: {
-          where: {
-            is_deleted: false,
-            user_id: userId,
-          },
-          select: {
-            id: true,
-            star: true,
-            message: true,
-            created_at: true,
-            updated_at: true,
-            user: {
-              select: {
-                id: true,
-                name: true,
-                avatar: {
-                  select: {
-                    url: true,
-                    width: true,
-                    height: true,
-                  },
-                },
-              },
-            },
-          },
-        },
-      };
-    }
 
     const story = await FindStory({
       id: storyId,
@@ -83,10 +46,13 @@ export async function GetStory(req, res, next) {
     if (!story.data) throw CreateError(ErrorCodes.STORY_NOT_FOUND);
 
     // Format story.favourite
-    // if (userId) {
-    //   story.data.favourite = story.data.favourite[0];
-    //   story.data.rating = story.data.rating[0];
-    // }
+    if (userId) {
+      const favourite = await FindFavouriteStory({ userId: userId, storyId: story.data.id });
+
+      if (favourite && favourite.data) {
+        story.data.favourite = { id: favourite.data.id };
+      }
+    }
 
     if (!isGettingSummary) delete story.data.summary;
 

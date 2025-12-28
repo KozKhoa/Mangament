@@ -227,6 +227,7 @@ model FavouriteStory {
   user_id    String   @db.Uuid
   story_id   String   @db.Uuid
   created_at DateTime @default(now())
+  updated_at DateTime @default(now())
   is_deleted Boolean  @default(false)
 
   user  User  @relation(fields: [user_id], references: [id], onDelete: Cascade)

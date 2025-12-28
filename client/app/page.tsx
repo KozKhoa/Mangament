@@ -37,7 +37,7 @@ export default function Home() {
   }
 
   async function fetchNewestStories() {
-    const res = await storyService.get({ page: 1, limit: 20, sort: "created_at:desc", isGettingNewestChapter: true });
+    const res = await storyService.get({ page: 1, limit: 20, sort: "updated_at:desc", isGettingNewestChapter: true });
 
     if (!res) return toast.warning("Server Error");
     if (!res.success) return toast.warning(res.message);

@@ -1,7 +1,6 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import StoryDetailPage from "../[type]/[id]/page";
 import storyService from "@/services/story";
 import { toast } from "sonner";
 import { useEffect } from "react";
@@ -18,7 +17,7 @@ export default function StoryRandomPage() {
 
     const story = res.data;
 
-    router.push(`/story/${story.type}/${story.id}`);
+    router.replace(`/story/${story.type}/${story.id}`);
   }
 
   useEffect(() => {

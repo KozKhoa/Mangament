@@ -13,7 +13,6 @@ import StoryCardAllInfo from "@/components/cards/stories/story-card-all-info";
 import StoryNodeList from "@/components/list/story-node-list";
 import RatingList from "@/components/list/rating-list";
 import CommentList from "@/components/list/comment-list";
-import StoryList from "@/components/list/stories-list";
 
 import StoryNode from "@/types/story-node";
 import { StoryParams } from "@/types/params";
@@ -21,6 +20,7 @@ import Story from "@/types/story";
 import useApp from "@/contexts/AppContext";
 import path from "path";
 import RecommendStories from "@/components/list/recommend-story";
+import useAuth from "@/contexts/AuthContext";
 
 function getParams(params: Params) {
   const rawType = params?.type;
@@ -35,23 +35,21 @@ function getParams(params: Params) {
 export default function StoryDetailPage() {
   const router = useRouter();
   const params = useParams();
-  const app = useApp();
+  const auth = useAuth();
+  const user = auth?.user;
 
   const { type, id } = getParams(params);
   const [story, setStory] = useState<Story>();
   const [review, setReview] = useState<string[]>();
-  const [favouriteId, setFavouriteId] = useState<string>(story?.favourite ? story.favourite.id : "");
+  const [favouriteId, setFavouriteId] = useState<string | null>(story?.favourite ? story.favourite.id : null);
 
   async function fetchStory() {
-    const storyParams: StoryParams = { id: id, isGettingChildren: true, isGettingSummary: true, type: type };
-
-    const res = await storyService.get(storyParams);
+    const res = await storyService.get({ id: id, isGettingChildren: true, isGettingSummary: true, type: type });
 
     if (!res) toast.warning("Cannot connect with server");
     if (!res.success) return toast.warning(res.message);
 
     setStory(res.data);
-    app?.setStory(res.data);
   }
 
   async function fetchStoryReview() {
@@ -64,35 +62,37 @@ export default function StoryDetailPage() {
     setReview(res.data);
   }
 
-  async function addStoryToFavourite(storyId: string) {
-    const res = await favouriteService.post({ storyId: storyId });
-    if (!res) return toast.warning("Cannot connect with server");
-    if (!res.success) return toast.warning(res.message);
+  const toggleFavourite = () => {
+    const saveFavourite = async () => {
+      const res = await favouriteService.post({ storyId: story?.id ?? "" });
 
-    toast.message("Add successfully");
+      if (!res) return toast.warning("Cannot connect with server");
+      if (!res.success) return toast.warning(res.message);
 
-    setFavouriteId(res.data.favourite.id);
+      console.log(res.data);
 
-    return res.data;
-  }
+      setFavouriteId(res.data.id);
+      toast.message(`Added successfully`);
+    };
 
-  async function removeStoryFromFavouite(favouriteId: string) {
-    const res = await favouriteService.remove(favouriteId);
+    const removeFavourite = async () => {
+      const res = await favouriteService.remove(story?.favourite?.id ?? ""); // Error: id must be favourite id
 
-    if (!res) return toast.warning("Cannot connect with server");
-    if (!res.success) return toast.warning(res.message);
+      if (!res) return toast.warning("Cannot connect with server");
+      if (!res.success) return toast.warning(res.message);
 
-    toast.message("Remove successfully");
-    setFavouriteId("");
-  }
+      setFavouriteId(null);
+      toast.message(`Removed successfully`);
+    };
 
-  function toggleFavourite() {
-    if (favouriteId) {
-      removeStoryFromFavouite(favouriteId);
-    } else {
-      story && addStoryToFavourite(story?.id);
+    if (!user) {
+      return toast.warning("Please login to add to favourite ");
+    } else if (!favouriteId) {
+      saveFavourite();
+    } else if (favouriteId) {
+      removeFavourite();
     }
-  }
+  };
 
   function handleNavigateStoryNode(storyNode: StoryNode[]) {
     if (storyNode[storyNode.length - 1].type !== "chapter") return;

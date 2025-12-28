@@ -50,7 +50,7 @@ export default function RankingPage() {
 
   async function fetchNewestStories() {
     setLoading(true);
-    const res = await storyService.get({ type: storyType, limit: LIMIT, sort: "created_at:desc" });
+    const res = await storyService.get({ type: storyType, limit: LIMIT, sort: "updated_at:desc" });
 
     if (!res) return toast.warning("Cannot connect with server");
     if (!res.success) return toast.warning(res.message);
