@@ -107,28 +107,28 @@ export default function Home() {
         numberOfElementInScreen={{ basic: 1, sm: 2, md: 2, lg: 3, xl: 4 }}
         autoSlide={3000}
       >
-        <div className="py-2 px-5">
+        <div className="py-3.5 px-5">
           <CategoryCard className="m-auto" imageSource="/genres/comedy.jpg" label="COMEDY"></CategoryCard>
         </div>
-        <div className="py-2 px-5">
+        <div className="py-3.5 px-5">
           <CategoryCard className="m-auto" imageSource="/genres/fantasy.jpg" label="FANTASY"></CategoryCard>
         </div>
-        <div className="py-2 px-5">
+        <div className="py-3.5 px-5">
           <CategoryCard className="m-auto" imageSource="/genres/harem.jpg" label="HAREM"></CategoryCard>
         </div>
-        <div className="py-2 px-5">
+        <div className="py-3.5 px-5">
           <CategoryCard className="m-auto" imageSource="/genres/isekai.jpg" label="ISEKAI"></CategoryCard>
         </div>
-        <div className="py-2 px-5">
+        <div className="py-3.5 px-5">
           <CategoryCard className="m-auto" imageSource="/genres/romance.jpg" label="ROMANCE"></CategoryCard>
         </div>
-        <div className="py-2 px-5">
+        <div className="py-3.5 px-5">
           <CategoryCard className="m-auto" imageSource="/genres/shonen.jpg" label="SHONEN"></CategoryCard>
         </div>
-        <div className="py-2 px-5">
+        <div className="py-3.5 px-5">
           <CategoryCard className="m-auto" imageSource="/genres/slice_of_life.jpg" label="SLICE OF LIFE"></CategoryCard>
         </div>
-        <div className="py-2 px-5">
+        <div className="py-3.5 px-5">
           <CategoryCard className="m-auto" imageSource="/genres/sport.jpg" label="SPORT"></CategoryCard>
         </div>
       </InfinityScrollHorizontalList>

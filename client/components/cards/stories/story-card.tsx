@@ -87,11 +87,11 @@ export default function StoryCard({ data, className }: StoryCardProps) {
         max-w-sm w-full h-full
         ${className} `}
     >
-      <div className={`relative rounded-[5] w-full cursor-pointer`}>
+      <div className={`relative rounded-[5] w-full h-fit cursor-pointer`}>
         {/* Cover art */}
         <img
           onClick={() => handleClickStory()}
-          className="h-full rounded-[5]"
+          className="h-full aspect-2/3 rounded-[5]"
           src={process.env.NEXT_PUBLIC_API_URL + "uploads/story/" + story?.cover_art?.url}
           alt="Cover Art"
         ></img>

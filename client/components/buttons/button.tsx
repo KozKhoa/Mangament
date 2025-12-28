@@ -14,19 +14,19 @@ export default function Button({
   onClick?: MouseEventHandler<HTMLButtonElement>;
 }) {
   function bgColorMapping(type: ButtonType) {
-    if (type === "default") return "bg-background";
+    if (type === "default") return "bg-foreground";
     if (type === "add") return "bg-blue-800";
     if (type === "delete") return "bg-red-500";
     return "bg-background";
   }
 
   function borderColorMapping(type: ButtonType) {
-    if (type === "default") return "border-forground";
+    if (type === "default") return "border-foreground";
     return "border-transparent";
   }
 
   function textColorMapping(type: ButtonType) {
-    if (type === "default") return "text-foreground";
+    if (type === "default") return "text-background";
     return "text-white";
   }
 

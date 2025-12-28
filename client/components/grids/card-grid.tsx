@@ -65,7 +65,7 @@ export default function CardGrid({
   return (
     <div className={`w-full ${className}`}>
       {/* Header */}
-      <div className=" w-full border-b-2">
+      <div className=" w-full border-b-2 bg-background">
         <h2 className="text-[2em] font-bold cursor-pointer mx-4" onClick={() => onClickLabel?.()}>
           {label}
         </h2>
