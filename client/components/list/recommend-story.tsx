@@ -6,6 +6,9 @@ import { StoryParams } from "@/types/params";
 import { toast } from "sonner";
 import { useEffect, useState } from "react";
 
+import InfinityScrollHorizontalList from "./infinity-scroll-horizontal-list";
+import StoryCard from "../cards/stories/story-card";
+
 export default function RecommendStories({ user, story, className }: { user?: User; story?: Story; className?: string }) {
   const [recommend, setRecommend] = useState<Story[]>([]);
 
@@ -26,5 +29,11 @@ export default function RecommendStories({ user, story, className }: { user?: Us
     fetchRecommendStory();
   }, []);
 
-  return <StoryList className={className} label="Gợi ý cho bạn" stories={recommend}></StoryList>;
+  return (
+    <InfinityScrollHorizontalList label="Gợi ý cho bạn">
+      {recommend.map((story, i) => (
+        <StoryCard key={story.id} data={story}></StoryCard>
+      ))}
+    </InfinityScrollHorizontalList>
+  );
 }

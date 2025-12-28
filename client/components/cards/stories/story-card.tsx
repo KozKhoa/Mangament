@@ -71,8 +71,7 @@ export default function StoryCard({ data, className }: StoryCardProps) {
   };
 
   const handleClickNewestChapter = () => {
-    // router.push(`/story-node/${newestChapter.current.at(0)}`);
-    // Todo: thêm điều hướng tới trang đọc chapter
+    router.push(`/story/${story.type}/${story.id}/chapter/${newestChapter.at(0)?.orderIndex}/${newestChapter.at(0)?.id}`);
   };
 
   useEffect(() => {
@@ -81,18 +80,18 @@ export default function StoryCard({ data, className }: StoryCardProps) {
 
   return (
     <div
-      className={`flex flex-col justify-start items-center bg-background text-foreground gap-2.5 p-1.5 rounded-[5]
+      className={`flex flex-col bg-background text-foreground gap-2.5 p-1.5 rounded-[5]
         border-transparent border-2 transition-all duration-50 ease-linear
         shadow-md
         hover:shadow-[6px_8px_5px_0px_rgba(0,0,0,0.3)] hover:border-foreground
         max-w-sm w-full h-full
         ${className} `}
     >
-      <div className={`relative aspect-2/3 rounded-[5] w-full cursor-pointer`}>
+      <div className={`relative rounded-[5] w-full h-fit cursor-pointer`}>
         {/* Cover art */}
         <img
           onClick={() => handleClickStory()}
-          className="object-cover rounded-[5]"
+          className="h-full aspect-2/3 rounded-[5]"
           src={process.env.NEXT_PUBLIC_API_URL + "uploads/story/" + story?.cover_art?.url}
           alt="Cover Art"
         ></img>
@@ -103,7 +102,7 @@ export default function StoryCard({ data, className }: StoryCardProps) {
           absolute right-0 bottom-0 px-1 bg-background rounded-tl-md"
         >
           <EyeIcon className="w-5 h-5"></EyeIcon>
-          <p className="text-[1.1em] italic font-bold">{beautifulView(story?.view || 0)}</p>
+          <p className="italic font-semibold text-[0.8em]">{beautifulView(story?.view || 0)}</p>
         </div>
 
         {/* Save favourite */}
@@ -114,7 +113,7 @@ export default function StoryCard({ data, className }: StoryCardProps) {
 
       <div className="flex flex-col gap-1 w-full h-full">
         {/* Tittle */}
-        <div onClick={() => handleClickStory()} className="text-[1.5em] text-start font-bold leading-tight cursor-pointer">
+        <div onClick={() => handleClickStory()} className="text-[1.2em] text-start font-bold leading-tight cursor-pointer line-clamp-2">
           {"[" + snakeCaseToCapitalizeWord(story?.type ?? "") + "] " + story?.title}
         </div>
 
@@ -131,7 +130,7 @@ export default function StoryCard({ data, className }: StoryCardProps) {
         {/* Newest chapter */}
         {newestChapter && newestChapter.length > 0 && (
           <div className="flex flex-col justify-center items-start gap-x-2.5-2.5">
-            <p className="text-[0.8em] italic font-bold">Chap mới nhất:</p>
+            <p className="text-[0.8em] italic">Chap mới nhất:</p>
 
             <div onClick={() => handleClickNewestChapter()} className="flex flex-wrap items-center justify-between cursor-pointer gap-x-2">
               <p>{newestChapter?.[0].dir}</p>

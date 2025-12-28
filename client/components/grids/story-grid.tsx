@@ -114,7 +114,7 @@ export default function StoryGrid({ label, storyType, elementsPerPage, className
       <div className="w-full">
         {/* Header use to display story type and page index */}
         <div
-          className=" sticky top-12 py-2 px-5 z-10 w-full
+          className=" sticky top-0 py-2 px-5 z-10 w-full
               flex flex-row flex-wrap justify-between items-center gap-2
               bg-background border-b-2 "
         >

@@ -1,76 +1,151 @@
 "use client";
 
-import Image from "next/image";
-import Link from "next/link";
-import { useEffect, useRef } from "react";
-
-import NavBar from "@/components/layouts/navbar";
-import Switch from "@/components/switchs/switch";
-import SearchBar from "@/components/search/search";
-import ButtonExpandable from "@/components/buttons/expandable/btn-expandable";
-import ButtonDropdown from "@/components/buttons/dropdown/btn-dropdown";
-
-import ButtonDropdownCheckbox from "@/components/buttons/dropdown/btn-dropdown-checkbox";
-import Checkbox from "@/components/inputs/checkbox";
-import AuthorIcon from "@/public/people/people.svg";
-import Radio from "@/components/inputs/radio";
-import ButtonDropdownRadio from "@/components/buttons/dropdown/btn-drop-down-radio";
-import LoginRegister from "@/components/forms/login-register";
-import Input from "@/components/forms/input";
-
-// import StoryCard from "@/components/cards/stories/story-card";
-import StoryGrid from "@/components/grids/story-grid";
-import NumberInput from "@/components/inputs/number-input";
-import FontSelection from "@/components/selections/font-selection";
-import SortStories from "@/components/sorts/sort-stories";
-import RankingCard from "@/components/cards/ranking-card";
 import StoriesRankingList from "@/components/list/stories-ranking-list";
+import StoryList from "@/components/list/stories-list";
+import { useRouter } from "next/navigation";
+import RatingList from "@/components/list/rating-list";
+import InfinityScrollHorizontalList from "@/components/list/infinity-scroll-horizontal-list";
+import { useEffect, useRef, useState } from "react";
 
-const OPTIONS = [
-  { label: "op1", checked: false },
-  { label: "op2", checked: false },
-  { label: "op3", checked: false },
-];
+import historyService from "@/services/history";
+import DEFAULT from "@/constants/default";
+import { toast } from "sonner";
+import HistoryCard from "@/components/cards/history-card";
+import History from "@/types/history";
+import useAuth from "@/contexts/AuthContext";
+import CategoryCard from "@/components/cards/category-card";
+import storyService from "@/services/story";
+import Story from "@/types/story";
+import StoryCard from "@/components/cards/stories/story-card";
+import RankingCard from "@/components/cards/ranking-card";
 
 export default function Home() {
-  // const newestChapter = useRef<NewestChapter[]>(convertNewestChapter(story?.newest_chapter || []));
+  const router = useRouter();
+  const auth = useAuth();
 
-  function handlePress(text: string) {}
+  const [histories, setHistories] = useState<History[]>([]);
+  const [newestStories, setNewestStories] = useState<Story[]>([]);
+  const [bestRankingStories, setBestRankingStories] = useState<Story[]>([]);
+
+  async function fetchHistories() {
+    const res = await historyService.get({ ...DEFAULT.params, ...{ page: 1, limit: 20 } });
+
+    if (!res) return toast.warning("Server error");
+    if (!res.success) return toast.warning(res.message);
+
+    setHistories(res.data);
+  }
+
+  async function fetchNewestStories() {
+    const res = await storyService.get({ page: 1, limit: 20, sort: "created_at:desc", isGettingNewestChapter: true });
+
+    if (!res) return toast.warning("Server Error");
+    if (!res.success) return toast.warning(res.message);
+
+    setNewestStories(res.data);
+  }
+
+  async function fetchBestRankingStories() {
+    const res = await storyService.get({ page: 1, limit: 10, sort: "star:desc" });
+
+    if (!res) return toast.warning("Server Error");
+    if (!res.success) return toast.warning(res.message);
+
+    setBestRankingStories(res.data);
+  }
+
+  async function removeHistory(history: History) {
+    setHistories((prev) => prev.filter((x) => x !== history));
+  }
+
+  useEffect(() => {
+    fetchHistories();
+    fetchNewestStories();
+    fetchBestRankingStories();
+  }, []);
 
   return (
-    <div className="flex flex-col gap-2.5  ">
+    <div className="flex flex-col gap-10  ">
+      {/* Ranking */}
       <StoriesRankingList label="Xem nhiều nhất" className="m-auto max-w-[1200px]" rankBy="view"></StoriesRankingList>
 
-      <NumberInput></NumberInput>
-      <FontSelection></FontSelection>
+      {/* Story type */}
+      <div className="flex flex-col gap-5">
+        <h2 className="text-[2em] font-bold cursor-pointer border-b-2 w-fit m-auto">Danh mục truyện</h2>
 
-      <Link className="w-fit" href={"/login"}>
-        Login page
-      </Link>
-      <Link className="w-fit" href={"/register"}>
-        Register page
-      </Link>
-
-      <StoryGrid label="Manga" storyType="manga" elementsPerPage={4}></StoryGrid>
-
-      <FontSelection
-        onChange={(options) => {
-          console.log(options);
-        }}
-      ></FontSelection>
-
-      <SortStories></SortStories>
-
-      <Input type="password" label={"Email"} placeHolder="Placeholder" error="error"></Input>
-
-      <div className="w-full flex flex-col gap-5 justify-center">
-        {/* <LoginRegister type="register"></LoginRegister> */}
-        <LoginRegister type="login"></LoginRegister>
+        <div className="flex flex-row flex-wrap justify-center items-center gap-x-20 gap-y-10  m-auto w-fit">
+          <CategoryCard className="hover:scale-115" imageSource="/manga.jpg" label="MANGA" onClick={() => router.push("/stories/manga")}></CategoryCard>
+          <CategoryCard
+            className="hover:scale-115"
+            imageSource="/light_novel.jpg"
+            label="LIGHT NOVEL"
+            onClick={() => router.push("/stories/light_novel")}
+          ></CategoryCard>
+        </div>
       </div>
 
-      <Radio>hello</Radio>
+      {/* Continue reading */}
+      {auth?.user && (
+        <InfinityScrollHorizontalList label="Tiếp tục đọc" onClickLabel={() => router.push("/histories")} isLoading={histories.length <= 0}>
+          {histories.map((history, i) => (
+            <HistoryCard key={history.id} history={history} onClickRemove={() => removeHistory(history)}></HistoryCard>
+          ))}
+        </InfinityScrollHorizontalList>
+      )}
 
-      <Switch roundImageBgOnUrl="/theme/sun.svg" roundImageBgOffUrl="/theme/moon.svg" />
+      {/* Latest update */}
+      <InfinityScrollHorizontalList label="Mới cập nhật" isLoading={newestStories.length <= 0}>
+        {newestStories.map((story, i) => (
+          <StoryCard key={story.id} data={story}></StoryCard>
+        ))}
+      </InfinityScrollHorizontalList>
+
+      {/*Genres list */}
+      <InfinityScrollHorizontalList
+        label="Tag nổi bật"
+        onClickLabel={() => {}}
+        numberOfElementInScreen={{ basic: 1, sm: 2, md: 2, lg: 3, xl: 4 }}
+        autoSlide={3000}
+      >
+        <div className="py-3.5 px-5">
+          <CategoryCard className="m-auto" imageSource="/genres/comedy.jpg" label="COMEDY"></CategoryCard>
+        </div>
+        <div className="py-3.5 px-5">
+          <CategoryCard className="m-auto" imageSource="/genres/fantasy.jpg" label="FANTASY"></CategoryCard>
+        </div>
+        <div className="py-3.5 px-5">
+          <CategoryCard className="m-auto" imageSource="/genres/harem.jpg" label="HAREM"></CategoryCard>
+        </div>
+        <div className="py-3.5 px-5">
+          <CategoryCard className="m-auto" imageSource="/genres/isekai.jpg" label="ISEKAI"></CategoryCard>
+        </div>
+        <div className="py-3.5 px-5">
+          <CategoryCard className="m-auto" imageSource="/genres/romance.jpg" label="ROMANCE"></CategoryCard>
+        </div>
+        <div className="py-3.5 px-5">
+          <CategoryCard className="m-auto" imageSource="/genres/shonen.jpg" label="SHONEN"></CategoryCard>
+        </div>
+        <div className="py-3.5 px-5">
+          <CategoryCard className="m-auto" imageSource="/genres/slice_of_life.jpg" label="SLICE OF LIFE"></CategoryCard>
+        </div>
+        <div className="py-3.5 px-5">
+          <CategoryCard className="m-auto" imageSource="/genres/sport.jpg" label="SPORT"></CategoryCard>
+        </div>
+      </InfinityScrollHorizontalList>
+
+      {/* Best ranking stories */}
+      <InfinityScrollHorizontalList
+        label="Đánh giá cao nhất"
+        numberOfElementInScreen={{ basic: 1, sm: 2, md: 2, lg: 3, xl: 4 }}
+        isLoading={bestRankingStories.length <= 0}
+        autoSlide={4000}
+      >
+        {bestRankingStories.map((story, i) => (
+          <div key={story.id} className="px-5">
+            <RankingCard story={story} top={i + 1}></RankingCard>
+          </div>
+        ))}
+      </InfinityScrollHorizontalList>
     </div>
   );
 }

@@ -20,6 +20,7 @@ import { StoryParams } from "@/types/params";
 import Story from "@/types/story";
 import useApp from "@/contexts/AppContext";
 import path from "path";
+import RecommendStories from "@/components/list/recommend-story";
 
 function getParams(params: Params) {
   const rawType = params?.type;
@@ -40,7 +41,6 @@ export default function StoryDetail() {
   const [story, setStory] = useState<Story>();
   const [review, setReview] = useState<string[]>();
   const [favouriteId, setFavouriteId] = useState<string>(story?.favourite ? story.favourite.id : "");
-  const [recommendStory, setRecommendStory] = useState<Story[]>([]);
 
   async function fetchStory() {
     const storyParams: StoryParams = { id: id, isGettingChildren: true, isGettingSummary: true, type: type };
@@ -62,18 +62,6 @@ export default function StoryDetail() {
     if (!res.success) return toast.warning(res.message);
 
     setReview(res.data);
-  }
-
-  async function fetchRecommendStory() {
-    const params: StoryParams = {
-      limit: 100,
-    };
-    const res = await storyService.get(params);
-
-    if (!res) return toast.error("Sever error");
-    if (!res.success) return toast.warning(res.message);
-
-    setRecommendStory(res.data);
   }
 
   async function addStoryToFavourite(storyId: string) {
@@ -121,7 +109,6 @@ export default function StoryDetail() {
 
   useEffect(() => {
     fetchStory();
-    fetchRecommendStory();
   }, []);
 
   return (
@@ -171,10 +158,7 @@ export default function StoryDetail() {
         <CommentList className="w-full" story={story}></CommentList>
       </div>
 
-      <div className="flex flex-col justify-center items-center">
-        <h2 className="font-bold border-b-2">Gợi ý cho bạn</h2>
-        <StoryList stories={recommendStory}></StoryList>
-      </div>
+      <RecommendStories className="max-w-[1800] mx-auto"></RecommendStories>
     </div>
   );
 }

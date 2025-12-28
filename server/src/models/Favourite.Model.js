@@ -93,6 +93,11 @@ export async function FindAllFavouriteStories({
   // }
 }
 
+export async function FindFavouriesStories({ id }) {
+  const favourite = await db.favouriteStory.findUnique({ where: { id: id } });
+  return { success: true, data: favourite };
+}
+
 export async function AddFavouriteStory(data = { user_id, story_id }) {
   try {
     const isExist = await db.favouriteStory.findFirst({ where: { user_id: data.user_id, story_id: data.story_id } });
@@ -139,20 +144,17 @@ export async function HardDeleteFavouriteStory(where = { id }) {
   }
 }
 
-export async function SoftDeleteFavouriteStory(where = { id }) {
-  try {
-    const favouriteStory = await FindAllFavouriteStories({ id: where.id });
-    if (!favouriteStory || !favouriteStory.success || !favouriteStory.data) return { success: false, data: null };
+export async function SoftDeleteFavouriteStory({ id, userId }) {
+  // Check if exist
+  const favourite = await db.favouriteStory.findUnique({ where: { id: id } });
+  if (!favourite) return { success: false, message: "Cannot find favourite story" };
 
-    const result = await db.favouriteStory.update({
-      where: where,
-      data: { is_deleted: true },
-    });
-    return { success: true, data: result };
-  } catch (error) {
-    console.error("❌ [User.Model.js] Error soft delete favourite story:", error);
-    return { success: false, error: error.code };
-  }
+  // Check if this favourite belong to user
+  if (favourite.user_id !== userId) return { success: false, message: "This favourite story does not belong to this user" };
+
+  // Soft remove
+  const softRemove = await db.favouriteStory.update({ where: { id: id }, data: { is_deleted: true } });
+  return { success: true, data: softRemove };
 }
 
 export async function UpdateFavouriteStory(where = { id }, data) {

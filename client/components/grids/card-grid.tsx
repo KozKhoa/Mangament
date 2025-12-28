@@ -65,7 +65,7 @@ export default function CardGrid({
   return (
     <div className={`w-full ${className}`}>
       {/* Header */}
-      <div className=" w-full border-b-2">
+      <div className=" w-full border-b-2 bg-background">
         <h2 className="text-[2em] font-bold cursor-pointer mx-4" onClick={() => onClickLabel?.()}>
           {label}
         </h2>
@@ -81,7 +81,7 @@ export default function CardGrid({
             // Grid
             <div
               ref={childRef}
-              className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 gap-2
+              className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-7 gap-2
                 border-b-2 border-foreground pb-2 w-full"
             >
               {children}

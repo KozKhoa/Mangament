@@ -58,37 +58,6 @@ function getParams(params: Params) {
   return { storyParams, storyNodeParams };
 }
 
-async function updateOneViewForStory(storyId: string) {
-  await sleep(10000); // one udpate view immediately due to auto reload prevent
-  const res = await storyService.addOneView(storyId);
-
-  if (!res) return toast.warning("Cannot connect with server");
-  if (!res.success) toast.warning(res.message);
-
-  return res.data;
-}
-
-async function updateOneViewForStoryNode(storyNode: StoryNode[]) {
-  await sleep(10000); // one udpate view immediately due to auto reload prevent
-  for (const node of storyNode) {
-    const res = await storyNodeService.addOneView(node.id);
-
-    if (!res) return toast.warning("Cannot connect with server");
-    if (!res.success) toast.warning(res.message);
-  }
-}
-
-async function updateReadingHistory(storyId: string, storyNodeId: string) {
-  await sleep(10000);
-
-  const res = await historyService.post(storyId, storyNodeId);
-
-  if (!res) return toast.warning("Cannot connect with server");
-  if (!res.success) return toast.warning(res.message);
-
-  return res.data;
-}
-
 // Use to get the next chapter in story node tree
 function getNextChapter(storyNode?: StoryNode[], currentChapter?: StoryNode): StoryNode | null {
   let isAtCurrentChapter = false;
@@ -139,7 +108,8 @@ export default function StoryNodeReading() {
 
   const { storyParams, storyNodeParams } = getParams(params);
 
-  const { type, id, order_index } = storyNodeParams[storyNodeParams.length - 1];
+  const { id: storyNodeId } = storyNodeParams[storyNodeParams.length - 1];
+  const storyId = storyParams.id;
 
   const [story, setStory] = useState<Story>();
   const [storyNode, setStoryNode] = useState<StoryNode>();
@@ -149,11 +119,7 @@ export default function StoryNodeReading() {
   const content = storyNode?.content;
 
   async function fetchStoryNode() {
-    const params: StoryNodeParams = {
-      isGettingChildren: false,
-      isGettingContent: true,
-    };
-    const res = await storyNodeService.get(id, params);
+    const res = await storyNodeService.get(storyNodeId, { isGettingContent: true });
 
     if (!res) return toast.warning("Cannot connect with server");
     if (!res.success) toast.warning(res.message);
@@ -162,16 +128,39 @@ export default function StoryNodeReading() {
   }
 
   async function fetchStory() {
-    const params: StoryParams = {
-      id: storyParams.id,
-      isGettingChildren: true,
-    };
-    const res = await storyService.get(params);
+    const res = await storyService.get({ id: storyId, isGettingChildren: true });
 
     if (!res) return toast.warning("Cannot connect with server");
     if (!res.success) toast.warning(res.message);
 
     setStory(res.data);
+  }
+
+  async function updateOneViewForStory(storyId: string) {
+    const res = await storyService.addOneView(storyId);
+
+    if (!res) return toast.warning("Cannot connect with server");
+    if (!res.success) toast.warning(res.message);
+
+    return res.data;
+  }
+
+  async function updateOneViewForStoryNode(storyNode: StoryNode[]) {
+    for (const node of storyNode) {
+      const res = await storyNodeService.addOneView(node.id);
+
+      if (!res) return toast.warning("Cannot connect with server");
+      if (!res.success) toast.warning(res.message);
+    }
+  }
+
+  async function updateReadingHistory(storyId: string, storyNodeId: string) {
+    const res = await historyService.post(storyId, storyNodeId);
+
+    if (!res) return toast.warning("Cannot connect with server");
+    if (!res.success) return toast.warning(res.message);
+
+    return res.data;
   }
 
   async function addStoryToFavourite(storyId: string) {
@@ -220,10 +209,15 @@ export default function StoryNodeReading() {
     fetchStoryNode();
     fetchStory();
     updateOneViewForStory(storyParams?.id);
-    updateOneViewForStoryNode(storyNodeParams);
-    updateReadingHistory(storyParams.id, id);
+
+    const timer = setTimeout(() => {
+      updateOneViewForStoryNode(storyNodeParams);
+      updateReadingHistory(storyParams.id, storyNodeId);
+    }, 10000);
 
     window.scrollTo({ top: 0, behavior: "smooth" });
+
+    return () => clearTimeout(timer);
   }, []);
 
   useEffect(() => {

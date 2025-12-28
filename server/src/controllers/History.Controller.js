@@ -1,4 +1,4 @@
-import { FindAllReadingHistories, AddReadingHistory, SoftDeleteReadingHistory } from "../models/History.Model.js";
+import { FindAllReadingHistories, AddReadingHistory, SoftDeleteReadingHistory, FindReadingHistory } from "../models/History.Model.js";
 
 import { CreateError } from "../utils/ErrorHandle.js";
 import ErrorCodes from "../constants/Error.js";
@@ -45,24 +45,11 @@ export async function PostReadingHistory(req, res, next) {
     const userId = req.user?.id;
     const storyId = req.body?.storyId;
     const storyNodeId = req.body?.storyNodeId;
-    const datetime = req.body?.dateTime ? new Date(req.body.dateTime) : new Date();
 
     // Position will be added later
 
-    // Make sure story and story node exist
-    const story = await FindStory({ id: storyId });
-    if (!story || !story.success || !story.data) throw CreateError(ErrorCodes.STORY_NOT_FOUND);
-    const storyNode = await FindStoryNode({ id: storyNodeId });
-    if (!storyNode || !storyNode.success || !storyNode.data) throw CreateError(ErrorCodes.STORY_NODE_NOT_FOUND);
-
-    const histories = await AddReadingHistory({
-      user_id: userId,
-      story_id: storyId,
-      story_node_id: storyNodeId,
-      created_at: datetime,
-    });
-
-    if (!histories || !histories.success) throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
+    const histories = await AddReadingHistory({ userId: userId, storyId: storyId, storyNodeId: storyNodeId });
+    if (!histories || !histories.success) throw CreateError(histories.message || ErrorCodes.INTERNAL_SERVER_ERROR);
 
     return res.status(200).json({
       success: true,
@@ -89,12 +76,12 @@ export async function DeleteReadingHistory(req, res, next) {
     if (!historyId) throw CreateError(ErrorCodes.BAD_REQUEST);
 
     // Make sure history exist
-    const history = await FindAllReadingHistories({ id: historyId });
+    const history = await FindReadingHistory({ id: historyId });
 
-    if (!history || !history.success || history.data.length <= 0) throw CreateError(ErrorCodes.ASSET_NOT_FOUND);
+    if (!history || !history.success) throw CreateError(ErrorCodes.ASSET_NOT_FOUND);
 
     // Make sure reading history belong to user
-    if (history.data[0].user_id !== userId) throw CreateError(ErrorCodes.FORBIDDEN);
+    if (history.data.user_id !== userId) throw CreateError(ErrorCodes.FORBIDDEN);
 
     const removing = await SoftDeleteReadingHistory({ id: historyId });
     if (!removing || !removing.success) throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
