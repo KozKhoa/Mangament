@@ -116,13 +116,13 @@ export async function GetReview(storyId, number = 1) {
 export async function FindAllStories({
   keyword,
   type = [],
-  view = [],
-  star = [],
+  view = [[0, 2147483647]],
+  star = [[0, 6]],
   genres = [],
   authorsId = [],
   page = 1,
   limit = 10,
-  sort,
+  sort = { created_at: "desc" },
   isGettingChildren = false,
   isGettingNewestChapter = false,
 }) {
@@ -130,11 +130,12 @@ export async function FindAllStories({
     where: {
       is_deleted: false,
       ...(keyword && { title: { contains: keyword, mode: "insensitive" } }),
-      ...(type && { type: { in: type } }),
-      ...(genres && { genres: { hasEvery: genres } }),
-      ...(authorsId && {
-        authors: { some: { author_id: { in: authorsId } } },
-      }),
+      ...(type && type.length > 0 && { type: { in: type } }),
+      ...(genres && genres.length > 0 && { genres: { hasEvery: genres } }),
+      ...(authorsId &&
+        authorsId.length > 0 && {
+          authors: { some: { author_id: { in: authorsId } } },
+        }),
       AND: [
         {
           OR: [...star.map(([min, max]) => ({ star: { gte: min, lte: max } }))],
@@ -157,7 +158,7 @@ export async function FindAllStories({
 
   for (const story of stories) {
     story.authors = story.authors.map((author) => author.author);
-    if (isGettingChildren) story.children = await GetStoryTree(story.id, null, isGettingContent);
+    if (isGettingChildren) story.children = await GetStoryTree(story.id, null, false);
     if (isGettingNewestChapter) {
       story.newest_chapter = await GetNewestChapter(story.id, 5);
     }

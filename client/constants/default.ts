@@ -5,7 +5,7 @@ const DEFAULT = {
   textSize: 16,
   lineSpacing: 22,
 
-  params: { sort: "created_at:desc", page: 1, limit: 30 },
+  params: { sort: "updated_at:desc", page: 1, limit: 30 },
 };
 
 export default DEFAULT;

@@ -5,12 +5,12 @@ import SortIcon from "@/public/sort.svg";
 const SORTS = [
   {
     label: "Mới nhất",
-    code: "created_at:desc",
+    code: "updated_at:desc",
     isChecked: true,
   },
   {
     label: "Cũ nhất",
-    code: "created_at:asc",
+    code: "updated_at:asc",
     isChecked: false,
   },
   {

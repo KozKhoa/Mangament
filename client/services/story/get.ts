@@ -30,3 +30,15 @@ export async function getReview(storyId: string) {
     return error;
   }
 }
+
+export async function getRandomStory() {
+  try {
+    const res = await api.get(`/stories/random`);
+    return res.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      return error?.response?.data;
+    }
+    return error;
+  }
+}

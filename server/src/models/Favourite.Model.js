@@ -55,83 +55,59 @@ export async function FindAllFavouriteStories({
   });
 
   return { success: true, data: favourites };
-  // try {
-  //   const favouriteStories = await db.favouriteStory.findMany({
-  //     where: { is_deleted: false, ...where },
-  //     take: take,
-  //     skip: skip,
-  //     orderBy: [orderBy, { created_at: "desc" }, { id: "desc" }],
-  //     select: {
-  //       id: true,
-  //       created_at: true,
-  //       user_id: true,
-  //       story: {
-  //         select: {
-  //           id: true,
-  //           title: true,
-  //           nation: true,
-  //           star: true,
-  //           view: true,
-  //           status: true,
-  //           type: true,
-  //           cover_art: {
-  //             select: { url: true, width: true, height: true },
-  //           },
-  //           favourite: {
-  //             select: { id: true, user_id: true },
-  //           },
-  //         },
-  //       },
-  //     },
-  //   });
-
-  //   if (!favouriteStories) return { success: false, data: null };
-  //   return { success: true, data: favouriteStories };
-  // } catch (error) {
-  //   console.error("❌ [User.Model.js] Error finding all favourite stories:", error);
-  //   return { success: false, error: error.code };
-  // }
 }
 
-export async function FindFavouriesStories({ id }) {
-  const favourite = await db.favouriteStory.findUnique({ where: { id: id } });
+export async function FindFavouriteStory({ id, userId, storyId }) {
+  const favourite = await db.favouriteStory.findUnique({
+    where: {
+      is_deleted: false,
+      ...(id && { id: id }),
+      ...(userId &&
+        storyId && {
+          user_id_story_id: {
+            user_id: userId,
+            story_id: storyId,
+          },
+        }),
+    },
+  });
   return { success: true, data: favourite };
 }
 
-export async function AddFavouriteStory(data = { user_id, story_id }) {
-  try {
-    const isExist = await db.favouriteStory.findFirst({ where: { user_id: data.user_id, story_id: data.story_id } });
-    if (isExist) {
-      return {
-        success: true,
-        data: await db.favouriteStory.update({ where: { id: isExist.id }, data: { is_deleted: false } }),
-      };
-    }
+export async function AddFavouriteStory({ userId, storyId }) {
+  // Is story exist
+  const isStoryExist = await db.story.findUnique({ where: { is_deleted: false, id: storyId } });
+  if (!isStoryExist) return { success: false, message: "Story not found" };
 
-    const favouriteStory = await db.favouriteStory.create({
-      data: {
-        user: {
-          connect: {
-            id: data.user_id,
-          },
-        },
-        story: {
-          connect: {
-            id: data.story_id,
-          },
+  const isExist = await db.favouriteStory.findUnique({
+    where: {
+      user_id_story_id: {
+        user_id: userId,
+        story_id: storyId,
+      },
+    },
+  });
+  if (isExist) {
+    const update = await db.favouriteStory.update({ where: { id: isExist.id }, data: { is_deleted: false, updated_at: new Date() } });
+    return { success: true, data: update };
+  }
+
+  const newFav = await db.favouriteStory.create({
+    data: {
+      user: {
+        connect: {
+          id: userId,
         },
       },
-    });
+      story: {
+        connect: {
+          id: storyId,
+        },
+      },
+    },
+  });
 
-    if (!favouriteStory) return { success: false, data: null };
-
-    return { success: true, data: favouriteStory };
-  } catch (error) {
-    if (error.code !== "P2002")
-      // Unique error => already exist
-      console.error("❌ [User.Model.js] Error adding new favourite story:", error);
-    return { success: false, error: error.code };
-  }
+  return { success: !!newFav, data: newFav };
 }
 
 export async function HardDeleteFavouriteStory(where = { id }) {

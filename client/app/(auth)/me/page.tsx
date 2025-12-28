@@ -31,7 +31,7 @@ export default function ProfilePage() {
   const [history, setHistory] = useState<History[]>([]);
 
   async function fetchFavourite(page: number, limit: number) {
-    const res = await favouriteService.get({ limit: limit, page: page, sort: "created_at:desc" });
+    const res = await favouriteService.get({ limit: limit, page: page, sort: "updated_at:desc" });
 
     if (!res) return toast.warning("Cannot connect with server");
     if (!res.success) return toast.warning(res.message);
@@ -43,7 +43,7 @@ export default function ProfilePage() {
   }
 
   async function fetchHistory(page: number, limit: number) {
-    const res = await historyService.get({ limit: limit, page: page, sort: "created_at:desc" });
+    const res = await historyService.get({ limit: limit, page: page, sort: "updated_at:desc" });
 
     if (!res) return toast.warning("Cannot connect with server");
     if (!res.success) return toast.warning(res.message);

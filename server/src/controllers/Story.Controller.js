@@ -17,7 +17,7 @@ import {
   GetReview,
 } from "../models/Story.Model.js";
 
-import { FindAllFavouriteStories } from "../models/Favourite.Model.js";
+import { FindAllFavouriteStories, FindFavouriteStory } from "../models/Favourite.Model.js";
 
 import { CreateNewFolder, IsFileExist, MoveFile, SoftRemoveFile } from "../utils/FileHandle.js";
 import DIRECTORY from "../constants/Directory.js";
@@ -27,48 +27,11 @@ export async function GetStory(req, res, next) {
   try {
     const userId = req.user?.id;
     const storyId = req?.params?.id;
+
     // Check user request
     if (!storyId) throw CreateError(ErrorCodes.BAD_REQUEST);
 
     const { type, isGettingChildren, isGettingContent, isGettingSummary, isGettingNewestChapter } = ConvertQuery(req.query);
-
-    let select = {};
-    if (userId) {
-      select = {
-        favourite: {
-          where: {
-            is_deleted: false,
-            user_id: userId,
-          },
-        },
-        rating: {
-          where: {
-            is_deleted: false,
-            user_id: userId,
-          },
-          select: {
-            id: true,
-            star: true,
-            message: true,
-            created_at: true,
-            updated_at: true,
-            user: {
-              select: {
-                id: true,
-                name: true,
-                avatar: {
-                  select: {
-                    url: true,
-                    width: true,
-                    height: true,
-                  },
-                },
-              },
-            },
-          },
-        },
-      };
-    }
 
     const story = await FindStory({
       id: storyId,
@@ -83,10 +46,13 @@ export async function GetStory(req, res, next) {
     if (!story.data) throw CreateError(ErrorCodes.STORY_NOT_FOUND);
 
     // Format story.favourite
-    // if (userId) {
-    //   story.data.favourite = story.data.favourite[0];
-    //   story.data.rating = story.data.rating[0];
-    // }
+    if (userId) {
+      const favourite = await FindFavouriteStory({ userId: userId, storyId: story.data.id });
+
+      if (favourite && favourite.data) {
+        story.data.favourite = { id: favourite.data.id };
+      }
+    }
 
     if (!isGettingSummary) delete story.data.summary;
 
@@ -161,23 +127,20 @@ export async function GetCountStories(req, res, next) {
 
 export async function GetRandomStory(req, res, next) {
   try {
-    const storyType = req.query?.type;
-    if (storyType && !ValidateStoryType(storyType)) throw CreateError(ErrorCodes.BAD_REQUEST);
-
-    const isGettingChildren = req.query?.isGettingChildren == "true" ? true : false;
-    const isGettingContent = req.query?.isGettingContent == "true" ? true : false;
-    const isGettingSummary = req.query?.isGettingSummary == "true" ? true : false;
-
     const count = (await CountStory()).data;
     const random = parseInt(((Math.random() * count * 100) % count) + 1);
 
-    const story = await FindAllStories({ ...(storyType && { type: storyType }) }, {}, 1, random - 1, isGettingChildren, isGettingContent, isGettingSummary);
+    const story = await FindAllStories({ page: random, limit: 1, isGettingChildren: true });
+
     if (!story || !story.success) throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
 
     return res.status(200).json({
       success: true,
       message: "Get random story successfully",
-      data: story.data[0],
+      data: {
+        id: story.data[0].id,
+        type: story.data[0].type,
+      },
     });
   } catch (error) {
     next(error);
