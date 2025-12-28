@@ -171,7 +171,10 @@ export async function GetRandomStory(req, res, next) {
     return res.status(200).json({
       success: true,
       message: "Get random story successfully",
-      data: story.data[0],
+      data: {
+        id: story.data[0].id,
+        type: story.data[0].type,
+      },
     });
   } catch (error) {
     next(error);

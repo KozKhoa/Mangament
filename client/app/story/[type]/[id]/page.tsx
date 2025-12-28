@@ -32,7 +32,7 @@ function getParams(params: Params) {
   return { type, id };
 }
 
-export default function StoryDetail() {
+export default function StoryDetailPage() {
   const router = useRouter();
   const params = useParams();
   const app = useApp();
