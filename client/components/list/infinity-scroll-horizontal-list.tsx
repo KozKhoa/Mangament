@@ -26,7 +26,7 @@ export default function InfinityScrollHorizontalList({
   children?: React.ReactNode[];
 }) {
   const slideIntervalId = useRef<NodeJS.Timeout>(null);
-  const arrowClassName = "w-6 h-6 cursor-pointer ";
+  const arrowClassName = " w-5 h-5 lg:w-6 lg:h-6 cursor-pointer ";
 
   const sliderRef = useRef<HTMLDivElement>(null);
 
@@ -74,11 +74,11 @@ export default function InfinityScrollHorizontalList({
   }, [endSliderRef.current, endSliderInView, autoSlide]);
 
   return (
-    <div className={` flex flex-col justify-center items-center gap-5 w-full ${className}`}>
+    <div className={` flex flex-col justify-center items-center gap-2 w-full ${className}`}>
       <div className="w-full flex flex-row justify-between items-center">
         {!topSliderInView ? <ArrowLeftIcon onClick={slideToPrevItem} className={arrowClassName}></ArrowLeftIcon> : <div className={arrowClassName}></div>}
 
-        <div onClick={() => onClickLabel?.()} className="text-[2em] font-bold cursor-pointer border-b-2">
+        <div onClick={() => onClickLabel?.()} className="text-[1.5em] lg:text-[2em] font-bold cursor-pointer underline">
           {label}
         </div>
 

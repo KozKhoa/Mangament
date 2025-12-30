@@ -33,7 +33,7 @@ api.interceptors.response.use(
       try {
         // Call api refresh token
         const res = await axios.post(
-          `${process.env.NEXT_PUBLIC_API_URL}/auth/refresh`,
+          `${process.env.NEXT_PUBLIC_API_URL}auth/refresh`,
           {},
           { withCredentials: true } // gửi cookie refresh token
         );
