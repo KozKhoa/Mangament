@@ -1,16 +1,16 @@
+"use client";
+
 import { useRouter } from "next/navigation";
 
 import Story from "@/types/story";
 
-import DisplayStar from "../displays/ratings/display-star";
-
 import EyeIcon from "@/public/eye/open.svg";
 import StarIcon from "@/public/star.svg";
 
-import { snakeCaseToCapitalizeWord, snakeCaseToNormal } from "@/utils/string";
+import { snakeCaseToCapitalizeWord } from "@/utils/string";
 import { beautifulView } from "@/utils/beautiful";
 
-export default function StorySearchCard({ story, className, ref }: { story: Story; className?: string; ref?: React.Ref<HTMLDivElement> }) {
+export default function StorySearchCard({ story, className }: { story: Story; className?: string }) {
   const router = useRouter();
 
   const handleClickStory = () => {
@@ -19,8 +19,7 @@ export default function StorySearchCard({ story, className, ref }: { story: Stor
 
   return (
     <div
-      ref={ref}
-      onClick={() => handleClickStory()}
+      onClick={handleClickStory}
       className={`flex flex-row justify-start items-center bg-background text-foreground gap-2 p-1 rounded-[5]
         border-transparent border-2 transition-all duration-50 ease-linear  h-24
         hover:bg-hover-background w-full cursor-pointer
