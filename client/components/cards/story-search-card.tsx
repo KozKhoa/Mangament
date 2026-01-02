@@ -1,6 +1,4 @@
-"use client";
-
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 import Story from "@/types/story";
 
@@ -11,15 +9,9 @@ import { snakeCaseToCapitalizeWord } from "@/utils/string";
 import { beautifulView } from "@/utils/beautiful";
 
 export default function StorySearchCard({ story, className }: { story: Story; className?: string }) {
-  const router = useRouter();
-
-  const handleClickStory = () => {
-    router.push(`/story/${story.type}/${story.id}`);
-  };
-
   return (
-    <div
-      onClick={handleClickStory}
+    <Link
+      href={`/story/${story.type}/${story.id}`}
       className={`flex flex-row justify-start items-center bg-background text-foreground gap-2 p-1 rounded-[5]
         border-transparent border-2 transition-all duration-50 ease-linear  h-24
         hover:bg-hover-background w-full cursor-pointer
@@ -55,6 +47,6 @@ export default function StorySearchCard({ story, className }: { story: Story; cl
           </div>
         </div>
       </div>
-    </div>
+    </Link>
   );
 }
