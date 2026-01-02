@@ -146,7 +146,7 @@ function LoginRegisterForm({ type, className }: LoginRegisterProps) {
         </div>
       ) : (
         <div className="flex flex-col gap-5">
-          <Link href={""} className="w-fit" tabIndex={7}>
+          <Link href={"/forgot-password"} className="w-fit" tabIndex={7}>
             <p className="w-fit underline">Quên mât khẩu</p>
           </Link>
           <div className="flex items-center gap-5">

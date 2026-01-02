@@ -18,12 +18,6 @@ import { StoryParams } from "@/types/params";
 import NewestChapter from "@/types/newest-chapter";
 import Story from "@/types/story";
 
-import SortStories from "../sorts/sort-stories";
-
-import FilterAuthors from "../filters/filter-authors";
-import FilterGenres from "../filters/fiilter-genres";
-import FilterRatings from "../filters/filter-ratings";
-import FilterViews from "../filters/filter-views";
 import FilterSortStories from "../list/filter-sort-stories";
 
 interface StoryGridProps {
@@ -54,13 +48,15 @@ export default function StoryGrid({ label, storyType, elementsPerPage, className
 
   async function fetchStories() {
     const storyParams: StoryParams = {
+      ...params,
       type: storyType,
       page: page,
       limit: limit,
       isGettingNewestChapter: true,
       isGettingSummary: true,
-      ...params,
     };
+
+    console.log(params);
 
     const res = await storyService.get(storyParams);
 
@@ -90,7 +86,7 @@ export default function StoryGrid({ label, storyType, elementsPerPage, className
       ...{ type: storyType },
     });
 
-    if (!res) return toast.warning("Sever Error");
+    if (!res) return toast.warning("Cannot connect with server");
     if (!res.success) return toast.warning(res.message);
 
     const count = res.data.count;
@@ -134,6 +130,7 @@ export default function StoryGrid({ label, storyType, elementsPerPage, className
           <FilterSortStories
             className="w-full"
             onChange={(newParams) => {
+              console.log("reset page");
               setPage(1);
               handleUpdateParams(newParams);
             }}
@@ -172,7 +169,7 @@ export default function StoryGrid({ label, storyType, elementsPerPage, className
             </div>
           )}
 
-          <SwitchPageBig page={page} maxPage={maxPage} onChange={(pageNumber) => setPage(pageNumber)}></SwitchPageBig>
+          <SwitchPageBig page={page} maxPage={maxPage} onChange={setPage}></SwitchPageBig>
         </div>
       </div>
 
