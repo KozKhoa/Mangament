@@ -18,12 +18,13 @@ import storyService from "@/services/story";
 import Story from "@/types/story";
 import StoryCard from "@/components/cards/stories/story-card";
 import RankingCard from "@/components/cards/ranking-card";
+import NoContent from "@/components/cards/no-content";
 
 export default function Home() {
   const router = useRouter();
   const auth = useAuth();
 
-  const [histories, setHistories] = useState<History[]>([]);
+  const [histories, setHistories] = useState<History[] | null>(null);
   const [newestStories, setNewestStories] = useState<Story[]>([]);
   const [bestRankingStories, setBestRankingStories] = useState<Story[]>([]);
 
@@ -55,7 +56,7 @@ export default function Home() {
   }
 
   async function removeHistory(history: History) {
-    setHistories((prev) => prev.filter((x) => x !== history));
+    setHistories((prev) => (prev ? prev.filter((x) => x !== history) : null));
   }
 
   useEffect(() => {
@@ -86,8 +87,13 @@ export default function Home() {
 
       {/* Continue reading */}
       {auth?.user && (
-        <InfinityScrollHorizontalList label="Tiếp tục đọc" onClickLabel={() => router.push("/histories")} isLoading={histories.length <= 0}>
-          {histories.map((history, i) => (
+        <InfinityScrollHorizontalList
+          label="Tiếp tục đọc"
+          onClickLabel={() => router.push("/histories")}
+          isLoading={histories === null}
+          isNoContent={histories ? histories.length <= 0 : true}
+        >
+          {histories?.map((history, i) => (
             <HistoryCard key={history.id} history={history} onClickRemove={() => removeHistory(history)}></HistoryCard>
           ))}
         </InfinityScrollHorizontalList>
