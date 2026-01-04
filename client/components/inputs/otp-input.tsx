@@ -36,6 +36,21 @@ export default function OtpInput({
     }
   }
 
+  function handlePaste(e: React.ClipboardEvent<HTMLInputElement>) {
+    e.preventDefault();
+    const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, length);
+
+    const newOtp = Array(length).fill("");
+    pasted.split("").forEach((char, i) => {
+      newOtp[i] = char;
+    });
+
+    setOtp(newOtp);
+    inputsRef.current[pasted.length - 1]?.focus();
+
+    onChange?.(newOtp);
+  }
+
   return (
     <div className={`grid grid-cols-6 gap-2 w-fit text-[1.5em] lg:text-[2em] ${className}`}>
       {otp.map((value, i) => (
@@ -56,6 +71,7 @@ export default function OtpInput({
           onChange={(e) => handleChangeOtp(i, e.target.value)}
           onKeyDown={(e) => handleKeyDown(i, e)}
           onBeforeInput={(e) => handleChangeOtp(i, "")}
+          onPaste={handlePaste}
           autoFocus={i === 0}
           disabled={disableAll}
         ></input>
