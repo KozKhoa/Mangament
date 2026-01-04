@@ -12,4 +12,7 @@ export const {
   JWT_ACCESS_EXPIRES_IN,
 
   COOKIES_REFRESH_TOKEN_KEY,
+
+  EMAIL_USER,
+  EMAIL_APP_PASSWORD,
 } = process.env;

@@ -192,3 +192,12 @@ export const HardDeleteRefreshToken = async (where = { user_id, token }) => {
     return { success: false, error: error.code };
   }
 };
+
+export async function ChangePassword({ userId, newPassword }) {
+  const user = await db.user.findUnique({ where: { id: userId, is_deleted: false } });
+  if (!user) return { success: false, message: "User not found" };
+
+  const updateUser = await db.user.update({ where: { id: userId, password: newPassword } });
+
+  return { success: !!updateUser, data: updateUser };
+}
