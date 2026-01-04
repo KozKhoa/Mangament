@@ -1,0 +1,65 @@
+import { useRef, useState } from "react";
+
+export default function OtpInput({
+  className,
+  length = 6,
+  onChange,
+  disableAll = false,
+}: {
+  className?: string;
+  length?: number;
+  onChange?: (otp: string[]) => void;
+  disableAll?: boolean;
+}) {
+  const [otp, setOtp] = useState(Array(length).fill(""));
+  const inputsRef = useRef<Array<HTMLInputElement>>([]);
+
+  function handleChangeOtp(otpIndex: number, value: string) {
+    if (!/^\d?$/.test(value)) return;
+
+    const newOtp = [...otp];
+    newOtp[otpIndex] = value;
+    setOtp(newOtp);
+
+    if (value && otpIndex < length - 1) {
+      inputsRef.current[otpIndex + 1]?.focus();
+    }
+
+    onChange?.(newOtp);
+  }
+
+  function handleKeyDown(otpIndex: number, e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === "Backspace" && !otp[otpIndex].current) {
+      handleChangeOtp(otpIndex, "");
+      if (otpIndex > 0) inputsRef.current[otpIndex - 1]?.focus();
+      else if (otpIndex === 0) inputsRef.current[length - 1]?.focus();
+    }
+  }
+
+  return (
+    <div className={`grid grid-cols-6 gap-2 w-fit text-[1.5em] lg:text-[2em] ${className}`}>
+      {otp.map((value, i) => (
+        <input
+          className={`border-2 rounded-md aspect-square w-[1.8em]  text-center outline-none no-spinner
+          focus:-translate-y-1 focus:shadow-[2px_4px_1px_var(--foreground)]/80
+        
+          ${disableAll ? " opacity-40 " : ""}
+          `}
+          key={i}
+          ref={(el) => {
+            if (el) inputsRef.current[i] = el;
+          }}
+          type="text"
+          inputMode="numeric"
+          maxLength={1}
+          value={value}
+          onChange={(e) => handleChangeOtp(i, e.target.value)}
+          onKeyDown={(e) => handleKeyDown(i, e)}
+          onBeforeInput={(e) => handleChangeOtp(i, "")}
+          autoFocus={i === 0}
+          disabled={disableAll}
+        ></input>
+      ))}
+    </div>
+  );
+}
