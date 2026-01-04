@@ -11,7 +11,7 @@ export const ComparePassword = async (password_user_provide, password_in_db) => 
 };
 
 export function RandomPassword(length = 12) {
-  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+";
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
   const randomValues = new Uint32Array(length);
   crypto.getRandomValues(randomValues);
 

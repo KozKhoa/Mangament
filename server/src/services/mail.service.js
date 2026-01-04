@@ -12,7 +12,6 @@ export async function sendOtpEmail(email, otp) {
       <p>This code will expire in 5 minutes.</p>
     `,
   });
-  //   console.log(sendEmail, email, otp);
 }
 
 export async function sendPasswordEmail(email, password) {

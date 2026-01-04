@@ -7,11 +7,20 @@ import ErrorExclamationIcon from "@/public/error-exclamation.svg";
 
 const COUNTING_TIME = 60;
 
-export default function OtpInputForm({ onSubmit, otpLength = 6 }: { onSubmit?: (otp: string) => void; otpLength?: number }) {
+export default function OtpInputForm({
+  onSubmit,
+  onResend,
+  otpLength = 6,
+  isProcessing = false,
+}: {
+  onSubmit?: (otp: string) => void;
+  onResend?: (otp: string) => void;
+  otpLength?: number;
+  isProcessing?: boolean;
+}) {
   const [otp, setOtp] = useState<string[]>([]);
-  const [isProcessing, setIsProcessing] = useState(false);
 
-  const [resending, setResending] = useState(false);
+  const [requestingOtp, setRequestingOtp] = useState(true);
   const [resendCounting, setResendCounting] = useState(COUNTING_TIME);
 
   const [error, setError] = useState<string | null>(null);
@@ -19,33 +28,31 @@ export default function OtpInputForm({ onSubmit, otpLength = 6 }: { onSubmit?: (
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (isProcessing === true) return;
-    setIsProcessing(true);
 
     otp.forEach((item) => {
       if (!item) {
         setError("OTP không hợp lệ");
-        setIsProcessing(false);
         return;
       }
     });
 
-    console.log(otp.toString().replaceAll(",", ""));
     onSubmit?.(otp.toString().replaceAll(",", ""));
   }
 
   async function handleResend() {
-    if (resending) return;
+    if (requestingOtp) return;
 
-    setResending(true);
+    setRequestingOtp(true);
+    onResend?.(otp.toString().replaceAll(",", ""));
   }
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
-    if (resending) {
+    if (requestingOtp) {
       interval = setInterval(() => {
         setResendCounting((prev) => {
           if (prev === 0) {
-            setResending(false);
+            setRequestingOtp(false);
             setResendCounting(COUNTING_TIME);
           }
           return prev - 1;
@@ -54,7 +61,7 @@ export default function OtpInputForm({ onSubmit, otpLength = 6 }: { onSubmit?: (
     }
 
     return () => clearInterval(interval);
-  }, [resending]);
+  }, [requestingOtp]);
 
   return (
     <form
@@ -82,8 +89,8 @@ export default function OtpInputForm({ onSubmit, otpLength = 6 }: { onSubmit?: (
         disableAll={isProcessing}
       ></OtpInput>
 
-      <p onClick={handleResend} className={`text-lg m-auto ${isProcessing || resending ? " opacity-50" : "cursor-pointer"}`}>
-        Không nhận được mã? <span className="underline">Gửi lại</span> {resending && <span>({resendCounting}s)</span>}
+      <p onClick={handleResend} className={`text-lg m-auto ${isProcessing || requestingOtp ? " opacity-50" : "cursor-pointer"}`}>
+        Không nhận được mã? <span className="underline">Gửi lại</span> {requestingOtp && <span>({resendCounting}s)</span>}
       </p>
 
       <Button type="submit" tabIndex={3} disable={isProcessing} isProcessing={isProcessing} className="m-auto text-lg lg:text-[1.5em] mt-3">

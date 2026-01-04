@@ -258,19 +258,18 @@ export async function ResetPassword(req, res, next) {
     const email = req?.body?.email;
     if (!otp || !email) throw CreateError(ErrorCodes.MISSING_FIELD);
 
-    const user = await FindUser({ email: email });
-    if (!user || !user.data || !user.data.length <= 0) CreateError(ErrorCodes.USER_NOT_FOUND);
-
     const verify = await otpService.verifyOtp(email, otp);
-    if (!verify.success) {
+
+    if (!verify || !verify.success) {
       return res.status(400).json({ success: false, message: verify.message });
     }
 
     // Reset password
-    const newPassword = RandomPassword(12);
-    await ChangePassword(newPassword);
+    const newPassword = RandomPassword(30);
+    const newHashPassword = await HashPassword(newPassword);
+    await ChangePassword({ email: email, newPassword: newHashPassword });
 
-    await mailService.sendPasswordEmail(email, newPassword);
+    mailService.sendPasswordEmail(email, newPassword);
 
     return res.status(200).json({ success: true, message: "New password has been sent to your email" });
   } catch (err) {

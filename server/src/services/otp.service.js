@@ -28,8 +28,6 @@ export async function verifyOtp(email, otp) {
     return { success: false, message: "Maximum retry attempts reached" };
   }
 
-  /*
-   */
   const hashedSaveOtp = await redis.get(`otp:${email}`);
 
   if (hashedSaveOtp) {
@@ -38,9 +36,9 @@ export async function verifyOtp(email, otp) {
       return { success: true, message: "Verify token successfull" };
     } else {
       await redis.incr(`otp_retry:${email}`);
-      return { success: false, message: "Invalid Token" };
     }
   }
+  return { success: false, message: "Invalid OTP" };
 }
 
 export async function applyCooldown(email, cooldownTime) {
