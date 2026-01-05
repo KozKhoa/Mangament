@@ -17,7 +17,7 @@ export const FindAllUser = async (where = {}, orderBy = {}, take, skip) => {
         is_deleted: false,
         ...where,
       },
-      orderBy: [orderBy, { created_at: "desc" }, { id: "desc" }],
+      orderBy: [orderBy, { updated_at: "desc" }, { id: "desc" }],
       take: take,
       skip: skip,
       select: {

@@ -22,6 +22,7 @@ import { FindAllFavouriteStories, FindFavouriteStory } from "../models/Favourite
 import { CreateNewFolder, IsFileExist, MoveFile, SoftRemoveFile } from "../utils/FileHandle.js";
 import DIRECTORY from "../constants/Directory.js";
 import { ConvertQuery } from "../utils/QueryConvert.js";
+import { FindAllReadingHistories, FindReadingHistory } from "../models/History.Model.js";
 
 export async function GetStory(req, res, next) {
   try {
@@ -45,12 +46,21 @@ export async function GetStory(req, res, next) {
 
     if (!story.data) throw CreateError(ErrorCodes.STORY_NOT_FOUND);
 
-    // Format story.favourite
+    // Is story in user favourites list
     if (userId) {
       const favourite = await FindFavouriteStory({ userId: userId, storyId: story.data.id });
 
       if (favourite && favourite.data) {
         story.data.favourite = { id: favourite.data.id };
+      }
+    }
+
+    // Is story in user reading histories list
+    if (userId) {
+      const histories = await FindAllReadingHistories({ userId: userId, storyId: story.data.id, sort: { updated_at: "desc" }, page: 1, limit: 1 });
+
+      if (histories && histories.data.length > 0) {
+        story.data.history = histories.data.at(0);
       }
     }
 

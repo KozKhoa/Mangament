@@ -9,7 +9,7 @@ export async function FindAllFavouriteStories({
   genres = [],
   star = [],
   view = [],
-  sort = { created_at: "desc" },
+  sort = { updated_at: "desc" },
 }) {
   const favourites = await db.favouriteStory.findMany({
     where: {
@@ -49,7 +49,7 @@ export async function FindAllFavouriteStories({
         },
       },
     },
-    orderBy: [sort, { created_at: "desc" }, { id: "desc" }],
+    orderBy: [sort, { updated_at: "desc" }, { id: "desc" }],
     take: limit,
     skip: (page - 1) * limit,
   });

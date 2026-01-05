@@ -3,9 +3,10 @@ import { GetParentStoryNodeTree } from "./StoryNode.Model.js";
 
 export async function FindAllReadingHistories({
   userId,
+  storyId,
   limit = 10,
   page = 1,
-  sort = "created_at:desc",
+  sort = { updated_at: "desc" },
   type = [],
   authorsId = [],
   genres = [],
@@ -20,17 +21,25 @@ export async function FindAllReadingHistories({
     where: {
       is_deleted: false,
 
-      updated_at: {
-        ...(fromDate && { gte: fromDate }),
-        ...(toDate && { lt: toDate }),
-      },
+      user_id: userId,
+
+      ...(storyId && { story_id: storyId }),
+
+      ...(fromDate ||
+        (toDate && {
+          updated_at: {
+            ...(fromDate && { gte: fromDate }),
+            ...(toDate && { lt: toDate }),
+          },
+        })),
 
       story: {
-        ...(type && { type: { in: type } }),
-        ...(genres && { genres: { hasEvery: genres } }),
-        ...(authorsId && {
-          authors: { some: { author_id: { in: authorsId } } },
-        }),
+        ...(type && type.length > 0 && { type: { in: type } }),
+        ...(genres && genres.length > 0 && { genres: { hasEvery: genres } }),
+        ...(authorsId &&
+          authorsId.length > 0 && {
+            authors: { some: { author_id: { in: authorsId } } },
+          }),
         AND: [
           {
             OR: [...star.map(([min, max]) => ({ star: { gte: min, lte: max } }))],
@@ -59,12 +68,13 @@ export async function FindAllReadingHistories({
         },
       },
     },
-    orderBy: [sort, { created_at: "desc" }, { id: "desc" }],
+    orderBy: [sort, { updated_at: "desc" }, { id: "desc" }],
     take: limit,
     skip: (page - 1) * limit,
   });
 
   for (const history of histories) {
+    delete history.is_deleted;
     history.story_node = await GetParentStoryNodeTree(history.story_node_id);
   }
 
@@ -72,16 +82,28 @@ export async function FindAllReadingHistories({
 }
 
 export async function FindReadingHistory({ id, userId, storyId, storyNodeId }) {
-  if (!id) return { success: false, message: "Missing history id" };
-  if (!id && !userId && !storyId && !storyNodeId) return { success: false, message: "Require all three user id, story id and story node id" };
+  // if (!id) return { success: false, message: "Missing history id" };
+  // if (!id && !userId && !storyId && !storyNodeId) return { success: false, message: "Require all three user id, story id and story node id" };
 
   const history = await db.readingHistory.findUnique({
     where: {
       is_deleted: false,
       ...(id && { id: id }),
-      ...(userId && (storyId || storyNodeId) && { user_id: userId, story_id: storyId, story_node_id: storyNodeId }),
+      ...(userId &&
+        storyId &&
+        storyNodeId && {
+          user_id_story_id_story_node_id: {
+            user_id: userId,
+            story_id: storyId,
+            story_node_id: storyNodeId,
+          },
+        }),
     },
   });
+
+  history.story_node = await GetParentStoryNodeTree(history.story_node_id);
+
+  delete history.is_deleted;
 
   return { success: true, data: history };
 }
