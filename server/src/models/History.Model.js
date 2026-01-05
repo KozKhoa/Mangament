@@ -20,6 +20,8 @@ export async function FindAllReadingHistories({
     where: {
       is_deleted: false,
 
+      user_id: userId,
+
       updated_at: {
         ...(fromDate && { gte: fromDate }),
         ...(toDate && { lt: toDate }),
@@ -65,6 +67,7 @@ export async function FindAllReadingHistories({
   });
 
   for (const history of histories) {
+    delete history.is_deleted;
     history.story_node = await GetParentStoryNodeTree(history.story_node_id);
   }
 
