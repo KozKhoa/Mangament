@@ -101,6 +101,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     token.setAccessToken(login?.data?.token);
 
     toast.message(login?.message);
+
+    // navigate to home page
+    router.replace("/");
   }
 
   async function register(name: string, email: string, password: string) {
@@ -117,6 +120,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       token.setAccessToken(register.data.token);
 
       toast.message(register.message);
+
+      // navigate to home page
+      router.replace("/");
     }
   }
 

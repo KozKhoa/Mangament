@@ -1,4 +1,5 @@
 import db from "../configs/db.js";
+import { RandomPassword } from "../utils/PasswordHandle.js";
 import { GetParentStoryNodeTree } from "./StoryNode.Model.js";
 
 const IsUserExist = async (where = { id, email }) => {
@@ -192,3 +193,26 @@ export const HardDeleteRefreshToken = async (where = { user_id, token }) => {
     return { success: false, error: error.code };
   }
 };
+
+export async function ChangePassword({ userId, email, newPassword }) {
+  if (!email && !userId) return { success: false, message: "Missing field" };
+
+  const user = await db.user.findUnique({ where: { is_deleted: false, ...(userId && { id: userId }), ...(email && { email: email }) } });
+
+  if (!user) return { success: false, message: "User not found" };
+
+  const updateUser = await db.user.update({ where: { id: user.id }, data: { password: newPassword } });
+
+  return { success: !!updateUser, data: updateUser };
+}
+
+export async function ResetPassword({ userId }) {
+  const user = await db.user.findUnique({ where: { id: userId, is_deleted: false } });
+  if (!user) return { success: false, message: "User not found" };
+
+  const newPassword = RandomPassword(12);
+
+  const resetPassword = await db.user.update({ where: { id: userId }, data: { password: newPassword } });
+
+  return { success: true, data: resetPassword };
+}

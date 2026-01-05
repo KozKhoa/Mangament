@@ -1,12 +1,24 @@
-import { AddUser, SoftDeleteUser, UpdateUser, FindUser, HardDeleteRefreshToken, AddRefreshToken, FindRefreshToken } from "../models/User.Model.js";
+import {
+  AddUser,
+  SoftDeleteUser,
+  UpdateUser,
+  FindUser,
+  HardDeleteRefreshToken,
+  AddRefreshToken,
+  FindRefreshToken,
+  ChangePassword,
+} from "../models/User.Model.js";
 import { CheckEmailAndPasswordFormat } from "../utils/Validators.js";
 import { CreateError } from "../utils/ErrorHandle.js";
-import { ComparePassword, HashPassword } from "../utils/PasswordHandle.js";
+import { ComparePassword, HashPassword, RandomPassword } from "../utils/PasswordHandle.js";
 import { GenAccessToken, GenRefreshToken, SaveTokenOnCookies, VerifyRefreshToken } from "../utils/TokenHandle.js";
 import ErrorCodes from "../constants/Error.js";
 
 import { COOKIES_REFRESH_TOKEN_KEY } from "../configs/env.js";
 import logger from "../models/LogReport.Model.js";
+
+import * as otpService from "../services/otp.service.js";
+import * as mailService from "../services/mail.service.js";
 
 export const Login = async (req, res, next) => {
   try {
@@ -215,3 +227,52 @@ export const Refresh = async (req, res, next) => {
     next(error);
   }
 };
+
+export async function ForgotPassword(req, res, next) {
+  try {
+    const email = req?.body?.email;
+    if (!email) throw CreateError(ErrorCodes.MISSING_FIELD);
+
+    // const cooldownTime = await otpService.cooldownTimeLeft(email);
+    // if (cooldownTime > 0) {
+    //   const minutes = Math.floor(cooldownTime / 60);
+    //   const seconds = cooldownTime % 60;
+    //   throw CreateError({ status: 400, message: `OTP request is on cooldown. Please wait ${minutes} minutes and ${seconds} seconds.` });
+    // }
+
+    const otp = otpService.generateOtp(email);
+
+    await otpService.saveOtp(email, otp.toString());
+
+    mailService.sendOtpEmail(email, otp);
+
+    return res.status(200).json({ success: true, message: "OTP has been sent to your email" });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function ResetPassword(req, res, next) {
+  try {
+    const otp = req?.body?.otp;
+    const email = req?.body?.email;
+    if (!otp || !email) throw CreateError(ErrorCodes.MISSING_FIELD);
+
+    const verify = await otpService.verifyOtp(email, otp);
+
+    if (!verify || !verify.success) {
+      return res.status(400).json({ success: false, message: verify.message });
+    }
+
+    // Reset password
+    const newPassword = RandomPassword(30);
+    const newHashPassword = await HashPassword(newPassword);
+    await ChangePassword({ email: email, newPassword: newHashPassword });
+
+    mailService.sendPasswordEmail(email, newPassword);
+
+    return res.status(200).json({ success: true, message: "New password has been sent to your email" });
+  } catch (err) {
+    next(err);
+  }
+}

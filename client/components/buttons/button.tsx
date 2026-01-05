@@ -1,16 +1,29 @@
-import { MouseEventHandler } from "react";
+import { ButtonHTMLAttributes, MouseEventHandler } from "react";
+import Loading from "../loadings/loading";
 
 type ButtonType = "default" | "delete" | "add";
 
 export default function Button({
   children,
   className,
-  type = "default",
+  buttonType = "default",
+  isProcessing = false,
+
+  disable,
+  type,
+  tabIndex,
+
   onClick,
 }: {
   children?: React.ReactNode;
   className?: string;
-  type?: ButtonType;
+  buttonType?: ButtonType;
+  isProcessing?: boolean;
+
+  disable?: boolean;
+  type?: React.ButtonHTMLAttributes<HTMLButtonElement>["type"];
+  tabIndex?: React.ButtonHTMLAttributes<HTMLButtonElement>["tabIndex"];
+
   onClick?: MouseEventHandler<HTMLButtonElement>;
 }) {
   function bgColorMapping(type: ButtonType) {
@@ -33,12 +46,19 @@ export default function Button({
   return (
     <button
       onClick={onClick}
-      className={`w-32 py-1.5 font-semibold border-2 text-center rounded-sm 
-        ${bgColorMapping(type)} 
-        ${borderColorMapping(type)}  
-        ${textColorMapping(type)}
+      type={type}
+      tabIndex={tabIndex}
+      disabled={disable}
+      className={`w-fit py-1 px-8 border-2 text-center rounded-sm flex justify-center items-center gap-2
+      ${bgColorMapping(buttonType)} 
+      ${borderColorMapping(buttonType)}  
+      ${textColorMapping(buttonType)}
+
+
+        ${disable ? " opacity-50 cursor-none" : " cursor-pointer "}
         ${className}`}
     >
+      {isProcessing && <Loading spinnerClassName="w-[24px]"></Loading>}
       {children}
     </button>
   );

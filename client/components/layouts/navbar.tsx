@@ -135,7 +135,7 @@ function NavBar({ duration = 100, className }: NavBarProps) {
               // onFocus={() => setOpenSidebar(true)}
               // onBlur={() => setOpenSidebar(false)}
               transition={{ duration: duration / 1000, ease: "linear" }}
-              className={`flex fixed top-0 left-0 h-screen w-screen z-50`}
+              className={`flex fixed top-0 left-0 h-screen w-screen z-40`}
             >
               {/* The blur black will cover all screen */}
               <button onClick={toggleSidebar} className="fixed top-0 left-0 h-screen w-screen bg-[#0000007a] "></button>
@@ -200,7 +200,7 @@ function NavBar({ duration = 100, className }: NavBarProps) {
       </div>
 
       <button
-        className={` w-12 h-12 flex justify-center items-center border rounded-sm fixed bottom-4 right-4   p-3 z-50`}
+        className={` w-12 h-12 flex justify-center items-center border rounded-sm fixed bottom-4 right-4 p-3 z-30`}
         onClick={(e) => {
           window.scrollTo({ top: 0, behavior: "smooth" });
         }}

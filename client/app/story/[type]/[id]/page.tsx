@@ -21,6 +21,7 @@ import useApp from "@/contexts/AppContext";
 import path from "path";
 import RecommendStories from "@/components/list/recommend-story";
 import useAuth from "@/contexts/AuthContext";
+import Button from "@/components/buttons/button";
 
 function getParams(params: Params) {
   const rawType = params?.type;
@@ -95,6 +96,7 @@ export default function StoryDetailPage() {
   };
 
   function handleNavigateStoryNode(storyNode: StoryNode[]) {
+    console.log(storyNode);
     if (storyNode[storyNode.length - 1].type !== "chapter") return;
 
     let routeDir = "";
@@ -120,11 +122,14 @@ export default function StoryDetailPage() {
 
           {/* Button */}
           <div className="grid grid-cols-2 md:grid-cols-4 justify-center items-center gap-2">
-            <button className="w-full py-1.5 font-semibold border-2 border-foreground text-center rounded-sm bg-foreground text-background ">Đọc từ đầu</button>
-            <button className="w-full py-1.5 font-semibold border-2 border-foreground text-center rounded-sm bg-foreground text-background ">
+            <Button onClick={() => story?.children[0] && handleNavigateStoryNode([story?.children[0]])} className="w-full">
+              Đọc từ đầu
+            </Button>
+            <Button onClick={() => story?.children[0] && handleNavigateStoryNode([story?.children[story.children.length - 1]])} className="w-full">
               Đọc từ cuối
-            </button>
-            <button className="w-full py-1.5 font-semibold border-2 border-foreground text-center rounded-sm bg-foreground text-background ">Đọc tiếp</button>
+            </Button>
+            <Button className="w-full">Đọc tiếp</Button>
+
             <button
               onClick={toggleFavourite}
               className={`w-full py-1.5 font-semibold border-2 border-foreground text-center rounded-sm ${favouriteId && "bg-red-400 text-white"}`}

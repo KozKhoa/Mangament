@@ -1,26 +1,17 @@
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 import Story from "@/types/story";
-
-import DisplayStar from "../displays/ratings/display-star";
 
 import EyeIcon from "@/public/eye/open.svg";
 import StarIcon from "@/public/star.svg";
 
-import { snakeCaseToCapitalizeWord, snakeCaseToNormal } from "@/utils/string";
+import { snakeCaseToCapitalizeWord } from "@/utils/string";
 import { beautifulView } from "@/utils/beautiful";
 
-export default function StorySearchCard({ story, className, ref }: { story: Story; className?: string; ref?: React.Ref<HTMLDivElement> }) {
-  const router = useRouter();
-
-  const handleClickStory = () => {
-    router.push(`/story/${story.type}/${story.id}`);
-  };
-
+export default function StorySearchCard({ story, className }: { story: Story; className?: string }) {
   return (
-    <div
-      ref={ref}
-      onClick={() => handleClickStory()}
+    <Link
+      href={`/story/${story.type}/${story.id}`}
       className={`flex flex-row justify-start items-center bg-background text-foreground gap-2 p-1 rounded-[5]
         border-transparent border-2 transition-all duration-50 ease-linear  h-24
         hover:bg-hover-background w-full cursor-pointer
@@ -56,6 +47,6 @@ export default function StorySearchCard({ story, className, ref }: { story: Stor
           </div>
         </div>
       </div>
-    </div>
+    </Link>
   );
 }

@@ -15,6 +15,7 @@ export default function InfinityScrollHorizontalList({
   numberOfElementInScreen = { basic: 2, sm: 3, md: 4, lg: 6, xl: 7 }, // This is determine number of element you would like to show on screen depend on your screen width [basic, sm, md, lg, xl]
   autoSlide = 0,
   isLoading = false,
+  isNoContent = false,
 }: {
   onScrollToEnd?: () => void;
   className?: string;
@@ -23,10 +24,11 @@ export default function InfinityScrollHorizontalList({
   numberOfElementInScreen?: { basic: number; sm: number; md: number; lg: number; xl: number };
   autoSlide?: number;
   isLoading?: boolean;
+  isNoContent?: boolean;
   children?: React.ReactNode[];
 }) {
   const slideIntervalId = useRef<NodeJS.Timeout>(null);
-  const arrowClassName = "w-6 h-6 cursor-pointer ";
+  const arrowClassName = " w-5 h-5 lg:w-6 lg:h-6 cursor-pointer ";
 
   const sliderRef = useRef<HTMLDivElement>(null);
 
@@ -34,6 +36,7 @@ export default function InfinityScrollHorizontalList({
   const [topSliderRef, topSliderInView] = useInView({ threshold: 0.5 });
 
   const [loading, setLoading] = useState(isLoading);
+  const [noContent, setNoContent] = useState(isNoContent);
 
   function slideToNextItem() {
     const itemWidth = endSliderRef.current?.offsetWidth;
@@ -64,6 +67,10 @@ export default function InfinityScrollHorizontalList({
   }, [isLoading]);
 
   useEffect(() => {
+    setNoContent(isNoContent);
+  }, [isNoContent]);
+
+  useEffect(() => {
     if (endSliderInView) onScrollToEnd?.();
 
     startAutoPlay();
@@ -74,11 +81,11 @@ export default function InfinityScrollHorizontalList({
   }, [endSliderRef.current, endSliderInView, autoSlide]);
 
   return (
-    <div className={` flex flex-col justify-center items-center gap-5 w-full ${className}`}>
+    <div className={` flex flex-col justify-center items-center gap-2 w-full ${className}`}>
       <div className="w-full flex flex-row justify-between items-center">
         {!topSliderInView ? <ArrowLeftIcon onClick={slideToPrevItem} className={arrowClassName}></ArrowLeftIcon> : <div className={arrowClassName}></div>}
 
-        <div onClick={() => onClickLabel?.()} className="text-[2em] font-bold cursor-pointer border-b-2">
+        <div onClick={() => onClickLabel?.()} className="text-[1.5em] lg:text-[2em] font-bold cursor-pointer underline">
           {label}
         </div>
 
@@ -104,26 +111,28 @@ export default function InfinityScrollHorizontalList({
         }
         className="flex w-full h-fit overflow-x-scroll scroll-smooth snap-x snap-mandatory no-scrollbar"
       >
-        {/* <div ref={topSliderRef as any} className=" bg-transparent opacity-0 w-1 "></div> */}
+        {loading && <Loading className="w-full h-64"></Loading>}
+        {!loading && noContent && <NoContent></NoContent>}
 
-        {loading && <Loading className="w-full h-48"></Loading>}
-
-        {children?.map((child, i) => (
-          <div
-            className=" flex-none snap-start
-              w-(--col)
-              sm:w-(--col-sm)
-              md:w-(--col-md)
-              lg:w-(--col-lg)
-              xl:w-(--col-xl)
-            "
-            key={i}
-            ref={i === 0 ? (topSliderRef as any) : (endSliderRef as any)}
-          >
-            {child}
-          </div>
-        ))}
-        {/* <div ref={endSliderRef as any} className=" bg-transparent opacity-0 w-1 "></div> */}
+        {children && children?.length > 0 && (
+          <>
+            {children?.map((child, i) => (
+              <div
+                className=" flex-none snap-start
+                  w-(--col)
+                  sm:w-(--col-sm)
+                  md:w-(--col-md)
+                  lg:w-(--col-lg)
+                  xl:w-(--col-xl)
+                "
+                key={i}
+                ref={i === 0 ? (topSliderRef as any) : (endSliderRef as any)}
+              >
+                {child}
+              </div>
+            ))}
+          </>
+        )}
       </div>
     </div>
   );

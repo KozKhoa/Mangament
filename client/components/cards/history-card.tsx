@@ -103,7 +103,7 @@ export default function HistoryCard({ history, onClickRemove, className }: { his
 
           {/* Remove history card */}
           <Button
-            type="delete"
+            buttonType="delete"
             onClick={() => {
               removeHistory(history.id);
               onClickRemove?.();
