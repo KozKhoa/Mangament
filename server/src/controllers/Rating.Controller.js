@@ -69,7 +69,7 @@ export async function GetAllRatings(req, res, next) {
     if (req.query?.sort) {
       const [field, direction] = req.query.sort.split(":");
       sort[field.toLowerCase()] = direction.toLowerCase();
-    } else sort["created_at"] = "desc";
+    } else sort["updated_at"] = "desc";
 
     const where = {
       story_id: storyId,

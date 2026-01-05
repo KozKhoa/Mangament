@@ -1,27 +1,26 @@
 "use client";
 
-import { Params } from "next/dist/server/request/params";
+import path from "path";
+import { toast } from "sonner";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { Params } from "next/dist/server/request/params";
+
+import useAuth from "@/contexts/AuthContext";
 
 import storyService from "@/services/story";
 import favouriteService from "@/services/favourite";
 
-import StoryCardAllInfo from "@/components/cards/stories/story-card-all-info";
-import StoryNodeList from "@/components/list/story-node-list";
+import Story from "@/types/story";
+import StoryNode from "@/types/story-node";
+
+import Button from "@/components/buttons/button";
 import RatingList from "@/components/list/rating-list";
 import CommentList from "@/components/list/comment-list";
-
-import StoryNode from "@/types/story-node";
-import { StoryParams } from "@/types/params";
-import Story from "@/types/story";
-import useApp from "@/contexts/AppContext";
-import path from "path";
+import StoryNodeList from "@/components/list/story-node-list";
 import RecommendStories from "@/components/list/recommend-story";
-import useAuth from "@/contexts/AuthContext";
-import Button from "@/components/buttons/button";
+import StoryCardAllInfo from "@/components/cards/stories/story-card-all-info";
 
 function getParams(params: Params) {
   const rawType = params?.type;
@@ -122,13 +121,20 @@ export default function StoryDetailPage() {
 
           {/* Button */}
           <div className="grid grid-cols-2 md:grid-cols-4 justify-center items-center gap-2">
-            <Button onClick={() => story?.children[0] && handleNavigateStoryNode([story?.children[0]])} className="w-full">
+            <Button onClick={() => story?.children[0] && handleNavigateStoryNode([story?.children[0]])} className="w-full font-semibold">
               Đọc từ đầu
             </Button>
-            <Button onClick={() => story?.children[0] && handleNavigateStoryNode([story?.children[story.children.length - 1]])} className="w-full">
+            <Button
+              onClick={() => story?.children[0] && handleNavigateStoryNode([story?.children[story.children.length - 1]])}
+              className="w-full font-semibold"
+            >
               Đọc từ cuối
             </Button>
-            <Button className="w-full">Đọc tiếp</Button>
+            {story?.history && (
+              <Button onClick={() => story?.history && handleNavigateStoryNode([story?.history?.story_node])} className="w-full font-semibold">
+                Đọc tiếp
+              </Button>
+            )}
 
             <button
               onClick={toggleFavourite}

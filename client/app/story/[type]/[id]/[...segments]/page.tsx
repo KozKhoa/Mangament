@@ -229,7 +229,7 @@ export default function StoryNodeReading() {
       {/* Header - Story title  */}
       <div className="flex flex-row flex-wrap justify-around gap-2">
         <div>
-          <h3 className="font-bold">
+          <h3 onClick={() => router.push(`/story/${story?.type}/${story?.id}`)} className="font-bold cursor-pointer">
             [{snakeCaseToCapitalizeWord(story?.type ?? "")}] {story?.title}
           </h3>
           <div className="flex flex-row flex-wrap gap-1">

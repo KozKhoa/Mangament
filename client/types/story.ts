@@ -1,4 +1,5 @@
 import Author from "./author";
+import History from "./history";
 import Image from "./image";
 import Rating from "./ratings";
 import StoryNode from "./story-node";
@@ -30,4 +31,6 @@ export default interface Story {
   newest_chapter?: StoryNode[];
 
   children: StoryNode[];
+
+  history?: History;
 }

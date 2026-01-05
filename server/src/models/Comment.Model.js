@@ -4,7 +4,7 @@ export async function FindAllComments(where = { id, user_id, story_id, story_nod
   try {
     const comments = await db.comment.findMany({
       where: { is_deleted: false, ...where },
-      orderBy: [orderBy, { created_at: "desc" }, { id: "desc" }],
+      orderBy: [orderBy, { updated_at: "desc" }, { id: "desc" }],
       take: take,
       skip: skip,
       select: {

@@ -28,7 +28,7 @@ export function ConvertQuery(query) {
     const [field, direction] = query.sort.split(":");
     sort[field.toLowerCase()] = direction.toLowerCase();
   } else {
-    sort["created_at"] = "desc";
+    sort["updated_at"] = "desc";
   }
 
   const keyword = query.keyword ? query.keyword : null;
