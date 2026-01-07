@@ -69,14 +69,12 @@ export default function StoryDetailPage() {
       if (!res) return toast.warning("Cannot connect with server");
       if (!res.success) return toast.warning(res.message);
 
-      console.log(res.data);
-
       setFavouriteId(res.data.id);
       toast.message(`Added successfully`);
     };
 
     const removeFavourite = async () => {
-      const res = await favouriteService.remove(story?.favourite?.id ?? ""); // Error: id must be favourite id
+      const res = await favouriteService.remove(favouriteId ?? ""); // Error: id must be favourite id
 
       if (!res) return toast.warning("Cannot connect with server");
       if (!res.success) return toast.warning(res.message);
@@ -95,7 +93,6 @@ export default function StoryDetailPage() {
   };
 
   function handleNavigateStoryNode(storyNode: StoryNode[]) {
-    console.log(storyNode);
     if (storyNode[storyNode.length - 1].type !== "chapter") return;
 
     let routeDir = "";

@@ -29,39 +29,37 @@ export default function StoryCard({ data, className }: StoryCardProps) {
   const router = useRouter();
   const story = data;
 
-  const [isInFavourite, setIsInFavourite] = useState<boolean>(!story?.favourite ? false : true);
+  const [favouriteId, setFavouriteId] = useState<string | null>(story.favourite?.id ?? null);
   const [newestChapter, setNewestChapter] = useState<NewestChapter[]>([]);
 
   const handleClickFavourite = () => {
     const saveFavourite = async () => {
       const res = await favouriteService.post({ storyId: story.id });
-      if (res.success) {
-        setIsInFavourite(true);
-        story.favourite = res.data.favourite;
 
-        toast.message(`Added successfully`);
-      } else {
-        toast.warning(res.message);
-      }
+      if (!res) return toast.warning("Cannot connect with server");
+      if (!res.success) return toast.warning(res.messsage);
+
+      setFavouriteId(res.data.id);
+
+      toast.message(`Added successfully`);
     };
 
     const removeFavourite = async () => {
-      const res = await favouriteService.remove(story?.favourite?.id || ""); // Error: id must be favourite id
+      const res = await favouriteService.remove(story?.favourite?.id ?? ""); // Error: id must be favourite id
 
-      if (res.success) {
-        setIsInFavourite(false);
-        story.favourite = undefined;
-        toast.message(`Removed successfully`);
-      } else {
-        toast.warning(res.message);
-      }
+      if (!res) return toast.warning("Cannot connect with server");
+      if (!res.success) return toast.warning(res.messsage);
+
+      setFavouriteId(null);
+      // delete story.favourite;
+      toast.message(`Removed successfully`);
     };
 
     if (!user) {
       return toast.warning("Please login to add to favourite ");
-    } else if (!isInFavourite) {
+    } else if (!favouriteId) {
       saveFavourite();
-    } else if (isInFavourite) {
+    } else if (favouriteId) {
       removeFavourite();
     }
   };
@@ -107,7 +105,7 @@ export default function StoryCard({ data, className }: StoryCardProps) {
 
         {/* Save favourite */}
         <button className=" absolute top-0 right-0 bg-background rounded-b-4xl" onClick={() => handleClickFavourite()}>
-          <HeartIcon className={`w-8 h-8  stroke-1 ${isInFavourite ? " fill-red-400 text-red-400" : " fill-background text-foreground"}`}></HeartIcon>
+          <HeartIcon className={`w-8 h-8  stroke-1 ${favouriteId ? " fill-red-400 text-red-400" : " fill-background text-foreground"}`}></HeartIcon>
         </button>
       </div>
 
@@ -123,18 +121,18 @@ export default function StoryCard({ data, className }: StoryCardProps) {
             <div className="flex justify-center items-center">
               <DisplayStar rating={story?.star || 0}></DisplayStar>
             </div>
-            <p className="">{story?.star}</p>
+            <p>{story?.star}</p>
           </div>
         </div>
 
         {/* Newest chapter */}
         {newestChapter && newestChapter.length > 0 && (
-          <div className="flex flex-col justify-center items-start gap-x-2.5-2.5">
-            <p className="text-[0.8em] italic">Chap mới nhất:</p>
+          <div className="flex flex-col justify-center items-start gap-x-2.5-2.5 opacity-70">
+            <p className="text-[0.8em] italic opacity-70">Chap mới nhất:</p>
 
             <div onClick={() => handleClickNewestChapter()} className="flex flex-wrap items-center justify-between cursor-pointer gap-x-2">
               <p>{newestChapter?.[0].dir}</p>
-              <p className="text-[0.8em] italic">{newestChapter?.[0].dayPass} ngày trước</p>
+              <p className="text-[0.8em] italic opacity-70">{newestChapter?.[0].dayPass} ngày trước</p>
             </div>
           </div>
         )}
