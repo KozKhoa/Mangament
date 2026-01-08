@@ -69,7 +69,7 @@ function NavBar({ duration = 100, className }: NavBarProps) {
     <>
       <div
         className={`flex flex-row   justify-between text-center   text-foreground 
-          items-center px-2.5 py-1 h-fit bg-background z-20 transition-transform duration-300
+          items-center px-2.5 py-1 h-fit bg-background-items z-20 transition-transform duration-300
           rounded-b-md border-b-3 border-x-2 shadow-[5px_8px_4px_rgba(0,0,0,0.3)]
           ${hidden ? "-translate-y-full" : ""} 
           ${className}

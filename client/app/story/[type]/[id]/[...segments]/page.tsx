@@ -232,7 +232,7 @@ export default function StoryNodeReading() {
           <h3 onClick={() => router.push(`/story/${story?.type}/${story?.id}`)} className="font-bold cursor-pointer">
             [{snakeCaseToCapitalizeWord(story?.type ?? "")}] {story?.title}
           </h3>
-          <div className="flex flex-row flex-wrap gap-1">
+          <div className="flex flex-row flex-wrap gap-1 text-foreground/70">
             {storyNodeParams.map((node, i) => (
               <h4 key={i}>
                 {capitalizeWords(node.type)} {node.order_index} {i < storyNodeParams.length - 1 && "➤"}
@@ -242,7 +242,7 @@ export default function StoryNodeReading() {
           </div>
 
           <div>
-            <span className="italic font-bold">Lượt xem:</span> {storyNode?.view}
+            <span className="italic font-bold text-foreground/70">Lượt xem:</span> {storyNode?.view}
           </div>
         </div>
         <div className="flex flex-row gap-3 justify-center items-center">
@@ -266,7 +266,7 @@ export default function StoryNodeReading() {
               className="w-full "
             >
               <StoryNodeList
-                className="bg-background shadow-2xs"
+                className="shadow-2xs"
                 onClickItem={(nodeList) => handleNavigateStoryNode(nodeList.at(nodeList.length - 1))}
                 storyNodes={story?.children}
                 size={story?.number_of_chidren}
@@ -280,7 +280,9 @@ export default function StoryNodeReading() {
       <div className="flex flex-row flex-wrap justify-center items-center gap-5">
         <button
           onClick={toggleFavourite}
-          className={`w-32 py-1.5 font-semibold border-2 border-foreground text-center rounded-sm ${favouriteId && "bg-red-400 text-white"}`}
+          className={`w-32 py-1.5 font-semibold border-2 border-foreground text-center rounded-sm ${
+            favouriteId ? "bg-red-400 text-white" : "bg-background-items"
+          }`}
         >
           {favouriteId ? "Đã yêu thích" : "Yêu thích"}
         </button>
@@ -294,11 +296,19 @@ export default function StoryNodeReading() {
           <FontSelection onChange={(fontId) => app?.updateReadingFont(fontId)} defaultValue={app?.readingFont}></FontSelection>
           <div className="flex flex-row gap-2 justify-center items-center w-fit">
             <p>Khoảng cách dòng</p>
-            <NumberInput defaultValue={app?.readingLineSpacing} onChange={(value) => app?.updateReadingLineSpacing(value)}></NumberInput>
+            <NumberInput
+              className="bg-background-items"
+              defaultValue={app?.readingLineSpacing}
+              onChange={(value) => app?.updateReadingLineSpacing(value)}
+            ></NumberInput>
           </div>
           <div className="flex flex-row gap-2 justify-center items-center w-fit">
             <p>Cỡ chữ</p>
-            <NumberInput defaultValue={app?.readingTextSize} onChange={(value) => app?.updateReadingTextSize(value)}></NumberInput>
+            <NumberInput
+              className="bg-background-items"
+              defaultValue={app?.readingTextSize}
+              onChange={(value) => app?.updateReadingTextSize(value)}
+            ></NumberInput>
           </div>
         </div>
 

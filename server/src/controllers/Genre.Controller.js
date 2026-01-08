@@ -1,5 +1,8 @@
 import * as genreModel from "../models/Genre.Model.js";
 
+import { CreateError } from "../utils/ErrorHandle.js";
+import ErrorCodes from "../constants/Error.js";
+
 export async function GetAllGenre(req, res, next) {
   try {
     const genres = genreModel.GetAllGenre();
@@ -11,5 +14,15 @@ export async function GetAllGenre(req, res, next) {
     });
   } catch (error) {
     next(error);
+  }
+}
+
+export async function AddNewGenre(req, res, next) {
+  try {
+    const newGenres = req?.body?.genres;
+
+    if (genres) throw CreateError(ErrorCodes.MISSING_FIELD);
+  } catch (err) {
+    next(err);
   }
 }

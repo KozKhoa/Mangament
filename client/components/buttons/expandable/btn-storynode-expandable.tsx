@@ -24,14 +24,14 @@ export default function ButtonStoryNodeExpandable({ onClick, storyNode, classNam
 
   return (
     <div
-      className={`flex flex-col w-full h-fit     rounded-t-[5] overflow-hidden 
+      className={`flex flex-col w-full h-fit rounded-t-[5] overflow-hidden 
         transition-all duration-100   ${className}`}
     >
       {/* Label*/}
       <button
         className={`flex flex-row justify-between items-center
         px-2 py-1.5 border-b border-foreground w-full rounded-t-[5] 
-        hover:bg-hover-background ${open ? "bg-hover-background" : "bg-background"} ${className}`}
+        hover:bg-hover-background ${open ? "bg-hover-background" : ""} ${className}`}
         onClick={() => handleClick([storyNode])}
       >
         <div className="flex flex-row gap-1 overflow-hidden truncate">

@@ -217,12 +217,9 @@ export async function AddOneViewForStory(req, res, next) {
     const storyId = req?.params?.id;
     if (!storyId) throw CreateError(ErrorCodes.BAD_REQUEST);
 
-    // Make sure story exist
-    const story = await FindStory({ id: storyId });
-    if (!story || !story.success || !story.data) throw CreateError(ErrorCodes.STORY_NOT_FOUND);
-
-    const update = await UpdateStory({ id: storyId }, { view: { increment: 1 } });
-    if (!update || !update.success) throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
+    const update = await UpdateStory(storyId, { view: { increment: 1 } });
+    if (!update) throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
+    if (!update.success) throw CreateError({ status: 400, message: update.message });
 
     return res.status(200).json({
       success: true,
@@ -284,78 +281,29 @@ export async function PostStory(req, res, next) {
 
 export async function PutStory(req, res, next) {
   try {
-    // Get infor from body
-    const userId = req.user.id;
-    const storyId = req.params?.id;
-    if (!storyId) throw CreateError(ErrorCodes.BAD_REQUEST);
+    const storyId = req?.params?.id;
 
-    // Make sure story exist
-    const story = await FindStory({ id: storyId });
-    if (!story || !story.success || !story.data) throw CreateError(ErrorCodes.STORY_NOT_FOUND);
+    const body = req?.body;
 
-    const { title, nation, status, view, star, nextChapterIn, summary } = req.body;
-    const genre = req?.body?.genre ? req.body.genre.split(",") : null;
+    const title = body.title;
+    const type = body.type;
+    const nation = body.nation;
+    const status = body.status;
+    const view = body.view;
+    const summary = body.summary;
+    const nextChapterIn = body.nextChapterIn;
+    const genres = body.genres ? body.genres.split(",") : null;
+    const authorIds = body.authorIds ? body.authorIds.split(",") : null;
 
-    // Make sure all values are valid
-    if (!ValidateStoryStatus(status) || !ValidateGenre(genre)) throw CreateError(ErrorCodes.INVALID_INPUT);
-    const isTitleExist = await FindStory({ title: title });
-    if (isTitleExist.data) throw CreateError(ErrorCodes.TITLE_ALDREADY_EXIST);
-    if (nextChapterIn && !new Date(nextChapterIn)) throw CreateError(ErrorCodes.INVALID_INPUT);
-
-    if (req.file) {
-      // Create and add cover art for story
-      const fileName = "cover_art" + path.extname(req.file.filename);
-      const folderPath = `${DIRECTORY.UPLOADS_STORY}/${story.data.type}/${story.data.title}`;
-      const filePath = `${folderPath}/${fileName}`;
-
-      if (await IsFileExist(filePath)) {
-        const delteFilePath = SoftRemoveFile(filePath); // remove the previous image
-        await MoveFile(req.file.path, filePath); // move new file to its path
-        // soft delete old image in db
-        await UpdateImage({ url: filePath }, { url: delteFilePath, is_deleted: true });
-      }
-
-      var image = await AddImage({ url: filePath }); // Update image to db
-    }
-
-    const update = await UpdateStory(
-      { id: storyId },
-      {
-        ...(title && { title: title }),
-        ...(nation && { nation: nation }),
-        ...(view && { view: Number(view) }),
-        ...(star && { star: Float64Array(star) }),
-        ...(status && { status: status }),
-        ...(nextChapterIn && { next_chapter_in: new Date(nextChapterIn) }),
-        ...(summary && { summary: summary }),
-        ...(image &&
-          image.success &&
-          image.data && {
-            cover_art: {
-              connect: {
-                id: image.data.id,
-              },
-            },
-          }),
-        updated_at: new Date(),
-      }
-    );
-
-    // Due to its complex, genre will be updated later
-    if (genre) {
-      const deleteGenre = await HardDeleteStoryGenre({ story_id: storyId });
-      const addGenre = await AddManyStoryGenres(genre.map((element) => ({ story_id: storyId, genre: element })));
-    }
-
-    if (!update || !update.success) throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
+    const update = await UpdateStory(storyId, { title, type, view, summary, nation, status, nextChapterIn, genres, authorIds });
 
     return res.status(200).json({
       success: true,
       message: "Update story successfully",
       data: update.data,
     });
-  } catch (error) {
-    next(error);
+  } catch (err) {
+    next(err);
   }
 }
 

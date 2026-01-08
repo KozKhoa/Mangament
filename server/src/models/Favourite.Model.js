@@ -17,7 +17,16 @@ export async function FindAllFavouriteStories({
       user_id: userId,
       story: {
         ...(storyType && { type: { in: storyType } }),
-        ...(genres && { genres: { hasEvery: genres } }),
+        ...(genres &&
+          genres.length > 0 && {
+            genres: {
+              some: {
+                genre: {
+                  in: genres,
+                },
+              },
+            },
+          }),
         ...(authorsId && {
           authors: { some: { author_id: { in: authorsId } } },
         }),

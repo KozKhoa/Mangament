@@ -54,9 +54,8 @@ export default function HistoryCard({ history, onClickRemove, className }: { his
 
   return (
     <div
-      className={`flex flex-col justify-start items-center bg-background  text-foreground gap-2.5 p-1.5 rounded-[5]
+      className={`flex flex-col justify-start items-center bg-background-items text-foreground gap-2.5 p-1.5 rounded-[5]
         border-transparent border-2 transition-all duration-100 ease-linear shadow-md
-        hover:shadow-[6px_8px_5px_0px_rgba(0,0,0,0.3)] hover:border-foreground
         max-w-sm w-full h-full
         ${className} `}
     >
@@ -75,7 +74,7 @@ export default function HistoryCard({ history, onClickRemove, className }: { his
         {/* View */}
         <div
           className="flex flex-row justify-star items-center gap-x-1
-          absolute right-0 bottom-0 px-1 bg-background rounded-tl-md"
+          absolute right-0 bottom-0 px-1 bg-background-items rounded-tl-md"
         >
           <EyeIcon className="w-5 h-5"></EyeIcon>
           <p className="text-[0.8em] italic font-semibold">{beautifulView(story?.view || 0)}</p>

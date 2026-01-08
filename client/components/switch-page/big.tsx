@@ -57,7 +57,7 @@ export default function SwitchPageBig({ page, maxPage, onChange, className }: Sw
               onClick={() => handleChange(i + 1)}
               className={`p-1.5 min-w-10 h-10 border rounded-md border-transparent hover:border-black cursor-pointer
                 text-black 
-                ${i + 1 === page ? "bg-gray-200" : "bg-background"}
+                ${i + 1 === page ? "bg-background-items" : "bg-background"}
                 `}
             >
               {i + 1}

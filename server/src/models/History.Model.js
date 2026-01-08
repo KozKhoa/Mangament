@@ -35,7 +35,16 @@ export async function FindAllReadingHistories({
 
       story: {
         ...(type && type.length > 0 && { type: { in: type } }),
-        ...(genres && genres.length > 0 && { genres: { hasEvery: genres } }),
+        ...(genres &&
+          genres.length > 0 && {
+            genres: {
+              some: {
+                genre: {
+                  in: genres,
+                },
+              },
+            },
+          }),
         ...(authorsId &&
           authorsId.length > 0 && {
             authors: { some: { author_id: { in: authorsId } } },

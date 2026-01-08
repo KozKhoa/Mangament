@@ -25,7 +25,7 @@ export default function StoriesRankingList({ rankBy = "view", label, className }
   }, []);
 
   return (
-    <div className={`px-2 py-1 border-2 rounded-md w-full shadow-[5px_8px_4px_rgba(0,0,0,0.3)] ${className}`}>
+    <div className={`px-2 py-1 border-2 rounded-md w-full shadow-[5px_8px_4px_rgba(0,0,0,0.3)] bg-background-items ${className}`}>
       <InfinityScrollHorizontalList
         label={label}
         autoSlide={4000}

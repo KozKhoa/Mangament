@@ -77,7 +77,7 @@ export default function RankingPage() {
           <div
             className=" py-2 px-5 z-10 w-full
                 flex flex-row flex-wrap justify-between items-center gap-2
-                bg-background border-b-2 "
+                border-b-2 "
           >
             {/* Story type */}
             <h2 onClick={() => router.push("/ranking")} className="text-[2em] font-bold cursor-pointer">

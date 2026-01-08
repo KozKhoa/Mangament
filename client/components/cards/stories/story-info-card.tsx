@@ -4,6 +4,7 @@ import Story from "@/types/story";
 import { capitalizeFirstChar, capitalizeWords } from "@/utils/string";
 import StatusTag from "@/components/tags/status-tag";
 import Tag from "@/components/tags/tag";
+import GenreTag from "@/components/tags/genre-tag";
 
 interface StoryInfoCardProps {
   story?: Story;
@@ -12,7 +13,7 @@ interface StoryInfoCardProps {
 }
 
 export default function StoryInfoCard({ story, newestChapter, className }: StoryInfoCardProps) {
-  const labelClassName = "text-[1em] font-bold italic";
+  const labelClassName = "text-[1em] font-bold italic opacity-80";
   const subContainerClassName = "flex flex-row gap-1 justify-center items-center w-fit";
 
   return (
@@ -44,13 +45,12 @@ export default function StoryInfoCard({ story, newestChapter, className }: Story
         </div>
 
         {/* Genre */}
-        <div className={`${subContainerClassName}`}>
-          <p className={`${labelClassName} `}>Thể loại:</p>
-          <div className="flex flex-row flex-wrap gap-1">
-            {story?.genre?.map((name, i) => (
-              <Tag key={i}>#{capitalizeWords(name)}</Tag>
-            ))}
-          </div>
+        <div className={`flex flex-row flex-wrap gap-1`}>
+          <p className={`${labelClassName} pr-2`}>Thể loại:</p>
+
+          {story?.genres?.map((name, i) => (
+            <GenreTag key={name} tagName={name}></GenreTag>
+          ))}
         </div>
       </div>
 

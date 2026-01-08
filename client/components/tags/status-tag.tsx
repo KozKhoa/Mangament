@@ -7,10 +7,10 @@ interface StatusTagProps {
 }
 
 function mapStatus(status: string) {
-  if (status === "ongoing") return "bg-[#3AAED8]! text-black!";
-  if (status === "finished") return "bg-[#0C7C59]! text-white!";
-  if (status === "postpone") return "bg-[#FFCB77]! text-black!";
-  if (status === "upcoming") return "bg-[#D3EFBD]! text-black!";
+  if (status === "ongoing") return "bg-[#3AAED8]! text-black/80!";
+  if (status === "finished") return "bg-[#0C7C59]! text-white/80!";
+  if (status === "postpone") return "bg-[#FFCB77]! text-black/80!";
+  if (status === "upcoming") return "bg-[#D3EFBD]! text-black/80!";
   return "red";
 }
 
