@@ -76,9 +76,9 @@ export default function Home() {
         <h2 className="text-[2em] font-bold cursor-pointer border-b-2 w-fit m-auto">Danh mục truyện</h2>
 
         <div className="flex flex-row flex-wrap justify-center items-center gap-x-20 gap-y-10  m-auto w-fit">
-          <CategoryCard className="hover:scale-115" imageSource="/manga.jpg" label="MANGA" onClick={() => router.push("/stories/manga")}></CategoryCard>
+          <CategoryCard className="hover:scale-110" imageSource="/manga.jpg" label="MANGA" onClick={() => router.push("/stories/manga")}></CategoryCard>
           <CategoryCard
-            className="hover:scale-115"
+            className="hover:scale-110"
             imageSource="/light_novel.jpg"
             label="LIGHT NOVEL"
             onClick={() => router.push("/stories/light_novel")}

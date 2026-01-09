@@ -171,7 +171,7 @@ export default function StoryNodeReading() {
 
     toast.message("Add successfully");
 
-    setFavouriteId(res.data.favourite.id);
+    setFavouriteId(res.data.id);
 
     return res.data;
   }
