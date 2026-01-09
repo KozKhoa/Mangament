@@ -10,7 +10,7 @@ export async function GetAllFavouriteStories(req, res, next) {
     // It is not neccessary to check user exist because authentication already did it
     const userId = req.user?.id;
 
-    const { limit, page, sort, type, authors, genres, rating, view } = ConvertQuery(req.query);
+    const { limit, page, sort, type, authors, genres, star, view } = ConvertQuery(req.query);
 
     const favouriteStories = await FindAllFavouriteStories({
       userId: userId,
@@ -18,7 +18,7 @@ export async function GetAllFavouriteStories(req, res, next) {
       page: page,
       storyType: type,
       sort: sort,
-      star: rating,
+      star: star,
       view: view,
       authorsId: authors,
       genres: genres,
@@ -34,9 +34,9 @@ export async function GetAllFavouriteStories(req, res, next) {
       success: true,
       message: "Getting favourite stories successfully",
       data: favouriteStories.data,
+      pagination: favouriteStories.pagination,
     });
   } catch (error) {
-    if (!error.status) console.error("❌ [User.Controller.js] Error getting user favourite story:", error);
     next(error);
   }
 }
@@ -82,7 +82,6 @@ export async function DeleteFavouriteStory(req, res, next) {
       message: "Delete user favourite story successfully",
     });
   } catch (error) {
-    if (!error.status) console.error("❌ [User.Controller.js] Error deleting user favourite story:", error);
     next(error);
   }
 }

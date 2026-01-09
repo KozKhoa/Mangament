@@ -1,19 +1,10 @@
 import chokidar from "chokidar";
 import path from "path";
 
-import {
-  AddImage,
-  UpdateImage,
-  SoftDeleteImage,
-  FindImage,
-} from "./Image.Model.js";
+import { AddImage, UpdateImage, SoftDeleteImage, FindImage } from "./Image.Model.js";
 
 import { AddStory, UpdateStory, FindStory } from "./Story.Model.js";
-import {
-  FindStoryNode,
-  UpdateStoryNode,
-  AddStoryNode,
-} from "./StoryNode.Model.js";
+import { FindStoryNode, UpdateStoryNode, AddStoryNode } from "./StoryNode.Model.js";
 
 import DIRECTORY from "../constants/Directory.js";
 
@@ -47,9 +38,7 @@ const HandleAdding = async (filePath) => {
     });
 
     if (storyNode.success === true) {
-      console.log(
-        `✅ [Upload.Model.js] StoryNode ${storyNodeType} ${storyNodeIndex} added`
-      );
+      console.log(`✅ [Upload.Model.js] StoryNode ${storyNodeType} ${storyNodeIndex} added`);
     }
 
     parentId = storyNode.data.id;
@@ -66,16 +55,13 @@ const HandleAdding = async (filePath) => {
     // Update cover art for story
     const fileName = node[node.length - 1].split(".")[0];
     if (fileName === "cover_art" && imageId) {
-      const coverArt = await UpdateStory(
-        { id: storyId },
-        { cover_art: { connect: { id: image?.data?.id || null } } }
-      );
+      const coverArt = await UpdateStory({ id: storyId }, { cover_art: { connect: { id: image?.data?.id || null } } });
       if (coverArt && coverArt.success) {
         console.log(`✅ [Upload.Model.js] Cover art for ${storyName} added`);
       }
     } else if (imageId) {
       // Add image id to story node
-      const storyNode = await FindStoryNode({ id: parentId }, false, true);
+      const storyNode = await FindStoryNode({ id: parentId });
       const oldStoryNodeContent = storyNode?.data?.content || [];
 
       const newStoryNodeContent = [

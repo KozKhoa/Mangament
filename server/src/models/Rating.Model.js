@@ -1,37 +1,64 @@
 import db from "../configs/db.js";
 
-export async function FindAllRatings(where = { id, story_id, user_id }, sort, take = 1, skip = 0) {
-  try {
-    const ratings = await db.rating.findMany({
-      where: {
-        is_deleted: false,
-        ...where,
-      },
-      select: {
-        id: true,
-        story_id: true,
-        star: true,
-        message: true,
-        created_at: true,
-        updated_at: true,
-        user: {
-          select: {
-            id: true,
-            name: true,
-            avatar: { select: { url: true, width: true, height: true } },
-          },
+export async function FindAllRatings({ storyId, userId, star = [[0, 6]], sort = { updated_at: "desc" }, page = 1, limit = 10 }) {
+  if (storyId) {
+    const story = await db.story.findFirst({ where: { is_deleted: false, id: storyId } });
+    if (!story) throw new Error("Story not found");
+  }
+
+  if (userId) {
+    const user = await db.user.findFirst({ where: { is_deleted: false, id: userId } });
+    if (!user) throw new Error("User not found");
+  }
+
+  const where = {
+    is_deleted: false,
+    ...(storyId && { story_id: storyId }),
+    ...(userId && { user_id: userId }),
+
+    OR: [...star.map(([min, max]) => ({ star: { gte: min, lte: max } }))],
+  };
+
+  const ratings = await db.rating.findMany({
+    where: where,
+
+    include: {
+      user: {
+        select: {
+          id: true,
+          name: true,
+          avatar: { select: { url: true, height: true, width: true } },
         },
       },
-      orderBy: [sort, { updated_at: "desc" }, { id: "desc" }],
-      ...(take && { take: take }),
-      ...(skip && { skip: skip }),
-    });
+    },
 
-    return { success: true, data: ratings };
-  } catch (error) {
-    console.error("❌ [Rating.Model.js] Error finding all ratings: ", error);
-    return { success: false, error: error.code };
+    orderBy: [sort, { id: "asc" }],
+    take: limit,
+    skip: (page - 1) * limit,
+  });
+
+  const totalItems = await db.rating.count({ where: where });
+
+  return {
+    success: true,
+    data: ratings,
+    pagination: {
+      page: page,
+      pageSize: limit,
+      totalPages: Math.floor(totalItems / limit),
+      totalItems: totalItems,
+    },
+  };
+}
+
+export async function FindRating({ id, userId, storyId }) {
+  if (!(id || (userId && storyId))) {
+    throw new Error("Require id or (user id and story id)");
   }
+
+  const rating = await db.rating.findFirst({ where: { is_deleted: false, id: id } });
+
+  return { success: true, data: rating };
 }
 
 export async function AddRatings(data = { user_id, story_id, star, message }) {

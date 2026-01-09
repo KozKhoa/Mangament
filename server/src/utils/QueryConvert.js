@@ -19,7 +19,7 @@ export function ConvertQuery(query) {
   const nations = query.nation ? query.nation.split(",") : null;
 
   // rating = [[1,2], [4,5]]
-  const rating = query.star ? query.star.split(",").map((range) => range.split("-").map((number) => parseFloat(number))) : [[0, 6]];
+  const star = query.star ? query.star.split(",").map((range) => range.split("-").map((number) => parseFloat(number))) : [[0, 6]];
   // view = [[0, 100], [1000, 100000]]
   const view = query.view ? query.view.split(",").map((range) => range.split("-").map((number) => Number(number))) : [[0, 2147483647]];
 
@@ -47,7 +47,7 @@ export function ConvertQuery(query) {
     page,
     type,
     genres,
-    rating,
+    star,
     view,
     authors,
     nations,

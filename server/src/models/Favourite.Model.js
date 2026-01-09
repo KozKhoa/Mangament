@@ -11,35 +11,37 @@ export async function FindAllFavouriteStories({
   view = [],
   sort = { updated_at: "desc" },
 }) {
-  const favourites = await db.favouriteStory.findMany({
-    where: {
-      is_deleted: false,
-      user_id: userId,
-      story: {
-        ...(storyType && { type: { in: storyType } }),
-        ...(genres &&
-          genres.length > 0 && {
-            genres: {
-              some: {
-                genre: {
-                  in: genres,
-                },
+  const where = {
+    is_deleted: false,
+    user_id: userId,
+    story: {
+      ...(storyType && { type: { in: storyType } }),
+      ...(genres &&
+        genres.length > 0 && {
+          genres: {
+            some: {
+              genre: {
+                in: genres,
               },
             },
-          }),
-        ...(authorsId && {
-          authors: { some: { author_id: { in: authorsId } } },
+          },
         }),
-        AND: [
-          {
-            OR: [...star.map(([min, max]) => ({ star: { gte: min, lte: max } }))],
-          },
-          {
-            OR: [...view.map(([min, max]) => ({ view: { gte: min, lte: max } }))],
-          },
-        ],
-      },
+      ...(authorsId && {
+        authors: { some: { author_id: { in: authorsId } } },
+      }),
+      AND: [
+        {
+          OR: [...star.map(([min, max]) => ({ star: { gte: min, lte: max } }))],
+        },
+        {
+          OR: [...view.map(([min, max]) => ({ view: { gte: min, lte: max } }))],
+        },
+      ],
     },
+  };
+
+  const favourites = await db.favouriteStory.findMany({
+    where: where,
     include: {
       story: {
         select: {
@@ -63,7 +65,18 @@ export async function FindAllFavouriteStories({
     skip: (page - 1) * limit,
   });
 
-  return { success: true, data: favourites };
+  const totalItems = await db.favouriteStory.count({ where: where });
+
+  return {
+    success: true,
+    data: favourites,
+    pagination: {
+      page: page,
+      pageSize: limit,
+      totalPages: Math.floor(totalItems / limit),
+      totalItems: totalItems,
+    },
+  };
 }
 
 export async function FindFavouriteStory({ id, userId, storyId }) {

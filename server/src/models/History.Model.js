@@ -17,48 +17,55 @@ export async function FindAllReadingHistories({
 }) {
   if (!userId) return { success: false, message: "Missing user id" };
 
-  const histories = await db.readingHistory.findMany({
-    where: {
-      is_deleted: false,
+  if (storyId) {
+    const story = await db.story.findFirst({ where: { is_deleted: false, id: storyId } });
+    if (!story) throw new Error("Story not found");
+  }
 
-      user_id: userId,
+  const where = {
+    is_deleted: false,
 
-      ...(storyId && { story_id: storyId }),
+    user_id: userId,
 
-      ...(fromDate ||
-        (toDate && {
-          updated_at: {
-            ...(fromDate && { gte: fromDate }),
-            ...(toDate && { lt: toDate }),
-          },
-        })),
+    ...(storyId && { story_id: storyId }),
 
-      story: {
-        ...(type && type.length > 0 && { type: { in: type } }),
-        ...(genres &&
-          genres.length > 0 && {
-            genres: {
-              some: {
-                genre: {
-                  in: genres,
-                },
+    ...(fromDate ||
+      (toDate && {
+        updated_at: {
+          ...(fromDate && { gte: fromDate }),
+          ...(toDate && { lt: toDate }),
+        },
+      })),
+
+    story: {
+      ...(type && type.length > 0 && { type: { in: type } }),
+      ...(genres &&
+        genres.length > 0 && {
+          genres: {
+            some: {
+              genre: {
+                in: genres,
               },
             },
-          }),
-        ...(authorsId &&
-          authorsId.length > 0 && {
-            authors: { some: { author_id: { in: authorsId } } },
-          }),
-        AND: [
-          {
-            OR: [...star.map(([min, max]) => ({ star: { gte: min, lte: max } }))],
           },
-          {
-            OR: [...view.map(([min, max]) => ({ view: { gte: min, lte: max } }))],
-          },
-        ],
-      },
+        }),
+      ...(authorsId &&
+        authorsId.length > 0 && {
+          authors: { some: { author_id: { in: authorsId } } },
+        }),
+      AND: [
+        {
+          OR: [...star.map(([min, max]) => ({ star: { gte: min, lte: max } }))],
+        },
+        {
+          OR: [...view.map(([min, max]) => ({ view: { gte: min, lte: max } }))],
+        },
+      ],
     },
+  };
+
+  const histories = await db.readingHistory.findMany({
+    where: where,
     include: {
       story: {
         select: {
@@ -87,12 +94,39 @@ export async function FindAllReadingHistories({
     history.story_node = await GetParentStoryNodeTree(history.story_node_id);
   }
 
-  return { success: true, data: histories };
+  const totalItems = await db.readingHistory.count({ where: where });
+
+  return {
+    success: true,
+    data: histories,
+    pagination: {
+      page: page,
+      pageSize: limit,
+      totalPages: Math.floor(totalItems / limit),
+      totalItems: totalItems,
+    },
+  };
 }
 
 export async function FindReadingHistory({ id, userId, storyId, storyNodeId }) {
-  // if (!id) return { success: false, message: "Missing history id" };
-  // if (!id && !userId && !storyId && !storyNodeId) return { success: false, message: "Require all three user id, story id and story node id" };
+  if (!(id || (userId && storyId && storyNodeId))) {
+    throw new Error("Require id or (user id, story id and story node id)");
+  }
+
+  if (userId) {
+    const user = await db.user.findFirst({ where: { is_deleted: false, id: userId } });
+    if (!user) throw new Error("User not found");
+  }
+
+  if (storyId) {
+    const story = await db.story.findFirst({ where: { is_deleted: false, id: storyId } });
+    if (!story) throw new Error("Story not found");
+  }
+
+  if (storyNodeId) {
+    const storyNode = await db.storyNode.findFirst({ where: { is_deleted: false, id: storyNodeId } });
+    if (!storyNode) throw new Error("Story node not found");
+  }
 
   const history = await db.readingHistory.findUnique({
     where: {

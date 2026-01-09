@@ -1,17 +1,16 @@
 import { FindAllReadingHistories, AddReadingHistory, SoftDeleteReadingHistory, FindReadingHistory } from "../models/History.Model.js";
 
 import { CreateError } from "../utils/ErrorHandle.js";
-import ErrorCodes from "../constants/Error.js";
-import { FindStory } from "../models/Story.Model.js";
-import { FindStoryNode, ValidateStoryNodeType } from "../models/StoryNode.Model.js";
 import { ConvertQuery } from "../utils/QueryConvert.js";
+
+import ErrorCodes from "../constants/Error.js";
 
 export async function GetAllReadingHistories(req, res, next) {
   try {
     // It is not neccessary to check user exist because authentication already did it
     const userId = req.user?.id;
 
-    const { limit, page, sort, type, authors, genres, rating, view, fromDate, toDate } = ConvertQuery(req.query);
+    const { limit, page, sort, type, authors, genres, star, view, fromDate, toDate } = ConvertQuery(req.query);
 
     const readingHistory = await FindAllReadingHistories({
       userId: userId,
@@ -21,21 +20,21 @@ export async function GetAllReadingHistories(req, res, next) {
       type: type,
       authorsId: authors,
       genres: genres,
-      star: rating,
+      star: star,
       view: view,
       fromDate: fromDate,
       toDate: toDate,
     });
 
-    if (!readingHistory || !readingHistory.success) throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
+    if (!readingHistory) throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
 
     return res.status(200).json({
       success: true,
       message: "Get reading history successfully",
       data: readingHistory.data,
+      pagination: readingHistory.pagination,
     });
   } catch (error) {
-    if (!error.status) console.error("❌ [ReadingHistory.Controller.js] Error getting reading histories:", error);
     next(error);
   }
 }

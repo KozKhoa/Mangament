@@ -90,18 +90,6 @@ export async function PutStoryNode(req, res, next) {
     if (!ValidateStoryNodeType(type)) throw CreateError(ErrorCodes.INVALID_INPUT);
     if (!storyId) throw CreateError(ErrorCodes.MISSING_FIELD);
 
-    // Make sure story node exist
-    const storyNode = await FindStoryNode({ id: storyNodeId });
-    if (!storyNode || !storyNode.success || !storyNode.data) throw CreateError(ErrorCodes.STORY_NODE_NOT_FOUND);
-
-    // Make sure story and parent exist
-    const story = await FindStory({ id: storyId || storyNode.data.story_id });
-    if (!story || !story.success || !story.data) throw CreateError(ErrorCodes.STORY_NOT_FOUND);
-    if (parentId) {
-      const parent = await FindStoryNode({ id: parentId });
-      if (!parent || !parent.success || !parent.data) throw CreateError(ErrorCodes.STORY_NOT_FOUND);
-    }
-
     // Updating
     const updating = await UpdateStoryNode(
       { id: storyNodeId },
@@ -136,10 +124,6 @@ export async function PatchStoryNodeContent(req, res, next) {
     if (!IsJsonString(req.body.content)) {
       throw CreateError(ErrorCodes.INVALID_INPUT);
     }
-
-    // Make sure story node exist
-    const storyNode = await FindStoryNode({ id: storyNodeId });
-    if (!storyNode || !storyNode.success || !storyNode.data) throw CreateError(ErrorCodes.STORY_NODE_NOT_FOUND);
 
     // Get image
     const images = [];

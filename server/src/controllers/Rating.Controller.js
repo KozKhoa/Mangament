@@ -3,6 +3,8 @@ import ErrorCodes from "../constants/Error.js";
 import { AddRatings, CountRating, FindAllRatings, SoftDeleteRating, UpdateRating } from "../models/Rating.Model.js";
 import { FindStory } from "../models/Story.Model.js";
 
+import { ConvertQuery } from "../utils/QueryConvert.js";
+
 export async function PostRating(req, res, next) {
   try {
     const userId = req.user?.id;
@@ -61,29 +63,17 @@ export async function GetAllRatings(req, res, next) {
     const story = await FindStory({ id: storyId });
     if (!story || !story.data) throw CreateError(ErrorCodes.STORY_NOT_FOUND);
 
-    const limit = req.query?.limit ? Number(req.query.limit) : 1;
-    const page = req.query?.page ? Number(req.query.page) : 1;
-    const star = req.query.star ? req.query.star.split(",").map((range) => range.split("-").map((number) => parseFloat(number))) : [[0, 6]];
-    const sort = {};
+    const { limit, page, star, sort } = ConvertQuery(req?.query);
 
-    if (req.query?.sort) {
-      const [field, direction] = req.query.sort.split(":");
-      sort[field.toLowerCase()] = direction.toLowerCase();
-    } else sort["updated_at"] = "desc";
+    const ratings = await FindAllRatings({ storyId: storyId, star: star, sort: sort, page: page, limit: limit });
 
-    const where = {
-      story_id: storyId,
-      OR: [...star.map(([min, max]) => ({ star: { gte: min, lte: max } }))],
-    };
-
-    const ratings = await FindAllRatings(where, sort, limit, (page - 1) * limit);
-
-    if (!ratings || !ratings.success) throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
+    if (!ratings) throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
 
     return res.status(200).json({
       success: true,
       message: "Getting all raings successfully",
       data: ratings.data,
+      pagination: ratings.pagination,
     });
   } catch (error) {
     next(error);

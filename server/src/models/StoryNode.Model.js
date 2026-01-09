@@ -32,29 +32,73 @@ export const GetParentStoryNodeTree = async (story_node_id, isGettingContent = f
   return node;
 };
 
-export async function FindAllStoryNodes({ id, storyId, parentId, sort, page, limit, isGettingChildren = false }) {
+export async function FindAllStoryNodes({ storyId, parentId, sort = { updated_at: "desc" } }, page = 1, limit = 10, isGettingChildren = false) {
+  if (storyId) {
+    const story = await db.story.findFirst({ where: { is_deleted: false, id: storyId } });
+    if (!story) throw new Error("Story not found");
+  }
+
+  if (parentId) {
+    const parent = await db.storyNode.findFirst({ where: { is_deleted: false, id: parentId } });
+    if (!parent) throw new Error("Story node's parent not found");
+  }
+
+  const where = {
+    is_deleted: false,
+    ...(storyId && { story_id: storyId }),
+    ...(parentId && { parent_id: parentId }),
+  };
+
   const storyNodes = await db.storyNode.findMany({
-    where: {
-      is_deleted: false,
-      id: id,
-      story_id: storyId,
-      parent_id: parentId,
-    },
-    // orderBy: [sort, { created_at: "desc" }, { id: "desc" }],
+    where: where,
+
+    orderBy: [sort, { id: "asc" }],
+
     take: limit,
     skip: (page - 1) * limit,
   });
 
-  if (isGettingChildren)
+  const totalItems = await db.storyNode.count({ where: where });
+
+  if (isGettingChildren) {
     for (const node of storyNodes) {
       node.children = await GetStoryTree(node.story_id, node.id);
     }
+  }
 
-  return { success: true, data: storyNodes };
+  return {
+    success: true,
+    data: storyNodes,
+    pagination: {
+      page: page,
+      pageSize: limit,
+      totalPages: Math.floor(totalItems / limit),
+      totalItems: totalItems,
+    },
+  };
 }
 
-export async function FindStoryNode({ id, storyId, parentId, orderIndex, isGettingChildren = false }) {
-  const storyNode = (await FindAllStoryNodes({ id, storyId, parentId, orderIndex, page: 1, limit: 1, isGettingChildren })).data[0];
+export async function FindStoryNode({ id, storyId, parentId, storyNodeType, orderIndex, isGettingChildren = false }) {
+  if (!(id || (storyId && storyNodeType && orderIndex && parentId))) {
+    throw new Error("Require id or (story id, story node type, story node's parent id and order index)");
+  }
+
+  const storyNode = await db.storyNode.findFirst({
+    where: {
+      is_deleted: false,
+
+      ...(id && { id: id }),
+      ...(storyId && { story_id: storyId }),
+      ...(parentId && { parent_id: parentId }),
+      ...(storyNodeType && { type: storyNodeType }),
+      ...(orderIndex && { order_index: orderIndex }),
+    },
+  });
+
+  if (isGettingChildren) {
+    storyNode.children = await GetStoryTree(node.story_id, node.id);
+  }
+
   return { success: true, data: storyNode };
 }
 
