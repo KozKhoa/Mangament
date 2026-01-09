@@ -19,7 +19,7 @@ export default function NoContent({
       <h2>{header1}</h2>
       <p>{header2}</p>
       {buttonLabel && (
-        <button onClick={onClickButton} className="px-5 py-2 bg-foreground text-background rounded-sm">
+        <button onClick={onClickButton} className="px-5 py-2 bg-foreground text-background-items rounded-sm">
           {buttonLabel}
         </button>
       )}

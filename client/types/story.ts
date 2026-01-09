@@ -15,7 +15,7 @@ export default interface Story {
   next_chapter_in?: Date;
   number_of_chidren?: number;
   author?: Author[];
-  genre?: string[];
+  genres?: string[];
   cover_art?: Image;
   created_at?: Date;
   updated_at?: Date;

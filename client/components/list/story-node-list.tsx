@@ -25,7 +25,7 @@ export default function StoryNodeList({ storyNodes, size, onClickItem, className
       ) : (
         <div className="w-full">
           {/* Header */}
-          <div className="px-2.5 py-1.5 border-b-2 border-foreground text-[1.2em] flex flex-row bg-background">
+          <div className="px-2.5 py-1.5 border-b-2 border-foreground text-[1.2em] flex flex-row">
             <div className="flex flex-row justify-between w-full h-full">
               <p>Số chap / {size}</p>
               <div className="flex flex-row gap-3">

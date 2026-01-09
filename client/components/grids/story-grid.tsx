@@ -148,7 +148,7 @@ export default function StoryGrid({ label, storyType, elementsPerPage, className
             >
               {stories.map((story, i) => (
                 <div key={story.id} onMouseEnter={() => setStoryIndex(i)}>
-                  <StoryCard data={story}></StoryCard>
+                  <StoryCard className="bg-background-items" data={story}></StoryCard>
                 </div>
               ))}
             </main>
@@ -158,7 +158,7 @@ export default function StoryGrid({ label, storyType, elementsPerPage, className
               <h2>Không có kết quả</h2>
               <p>Vui lòng điều chỉnh bộ lọc</p>
               <button
-                className="px-5 py-2 bg-foreground text-background rounded-sm"
+                className="px-5 py-2 bg-foreground text-background-items rounded-sm"
                 onClick={() => {
                   setParams({});
                   setIsResetFilterSort(true);
@@ -175,7 +175,7 @@ export default function StoryGrid({ label, storyType, elementsPerPage, className
 
       {!isLoading && stories?.length !== undefined && stories?.length > 0 && (
         <StoryInfoCard
-          className="hidden md:flex sticky top-30 mt-30"
+          className="hidden md:flex sticky top-16 bg-background-items"
           story={stories?.at(storyIndex)}
           newestChapter={newestChapter?.[storyIndex]}
         ></StoryInfoCard>

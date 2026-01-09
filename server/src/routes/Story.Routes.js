@@ -39,7 +39,7 @@ storyRoute.get("/:id", OptionalAuth, GetStory);
 storyRoute.get("/", OptionalAuth, GetAllStories);
 storyRoute.patch("/:id/view", AddOneViewForStory);
 storyRoute.post("/", AuthenticationToken, AuthorizationRole, upload.single("coverArt"), PostStory); // coverArt is the image for the cover art of the story
-storyRoute.put("/:id", AuthenticationToken, AuthorizationRole, upload.single("coverArt"), PutStory);
+storyRoute.put("/:id", AuthenticationToken, AuthorizationRole, PutStory);
 storyRoute.delete("/:id", AuthenticationToken, AuthorizationRole, DeleteStory);
 
 // Comment

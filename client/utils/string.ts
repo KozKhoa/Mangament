@@ -20,3 +20,7 @@ export function snakeCaseToCapitalizeWord(snake: string) {
     .map((word) => capitalizeFirstChar(word))
     .join(" ");
 }
+
+export function snakeCaseToAllCapital(str: string) {
+  return str.replaceAll("_", " ").toLocaleUpperCase();
+}

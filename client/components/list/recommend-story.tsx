@@ -32,7 +32,9 @@ export default function RecommendStories({ user, story, className }: { user?: Us
   return (
     <InfinityScrollHorizontalList label="Gợi ý cho bạn">
       {recommend.map((story, i) => (
-        <StoryCard key={story.id} data={story}></StoryCard>
+        <div className="p-1 h-full">
+          <StoryCard className="bg-background-items" key={story.id} data={story}></StoryCard>
+        </div>
       ))}
     </InfinityScrollHorizontalList>
   );

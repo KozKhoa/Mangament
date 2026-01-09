@@ -127,7 +127,6 @@ model Story {
   view               Int         @default(0)
   star               Float       @default(0)
   type               StoryType
-  genres             Genre[]
   status             StoryStatus @default(ongoing)
   next_chapter_in    DateTime?
   number_of_children Int         @default(0)
@@ -147,7 +146,7 @@ model Story {
   favourite       FavouriteStory[]
   comment         Comment[]
   authors         Story_Author[]
-  storyGenres     Story_Genre[]
+  genres          Story_Genre[]
 }
 
 model StoryNode {

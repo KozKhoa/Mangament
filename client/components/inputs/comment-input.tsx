@@ -30,7 +30,7 @@ export default function CommentInput({ onFinish, className }: CommentInputProps)
     <div className={`w-full h-full flex flex-col gap-1 ${className}`}>
       <div className="flex flex-row items-center justify-between gap-2">
         {/* Finish button */}
-        <button onClick={handleFinish} className="text-center px-3 py-2 bg-foreground text-background font-semibold rounded-md">
+        <button onClick={handleFinish} className="text-center px-3 py-2 bg-foreground text-background-items font-semibold rounded-md">
           Hoàn tất
         </button>
       </div>

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 import SearchBar from "@/components/search/search";
@@ -11,8 +11,10 @@ import SwitchTheme from "@/components/switchs/switch-theme";
 
 import BurgerMenuIcon from "@/public/burger-menu.svg";
 import XCloseIcon from "@/public/x-close.svg";
-import ButtonDropdown from "@/components/buttons/dropdown/btn-dropdown";
 import ArrowUpIcon from "@/public/arrows/up-v.svg";
+import ArrowDownIcon from "@/public/arrows/down-v.svg";
+
+import ButtonDropdown from "@/components/buttons/dropdown/btn-dropdown";
 import genreService from "@/services/genre";
 import { toast } from "sonner";
 import { snakeCaseToCapitalizeWord, snakeCaseToNormal } from "@/utils/string";
@@ -44,18 +46,18 @@ function NavBar({ duration = 100, className }: NavBarProps) {
   }
 
   useEffect(() => {
-    function handleNavbarHidden() {
+    const handleNavbarHidden = () => {
       if (window.scrollY < 100) {
         setHidden(false);
         return;
       }
 
-      if (window.scrollY - lastScrollY.current > 10 || window.scrollY - lastScrollY.current < -30) {
+      if (window.scrollY - lastScrollY.current > 20 || window.scrollY - lastScrollY.current < -30) {
         setHidden(window.scrollY > lastScrollY.current);
       }
 
       lastScrollY.current = window.scrollY;
-    }
+    };
 
     window.addEventListener("scroll", handleNavbarHidden);
 
@@ -68,8 +70,8 @@ function NavBar({ duration = 100, className }: NavBarProps) {
   return (
     <>
       <div
-        className={`flex flex-row   justify-between text-center   text-foreground 
-          items-center px-2.5 py-1 h-fit bg-background z-20 transition-transform duration-300
+        className={`flex flex-row justify-between text-center text-foreground 
+          items-center px-2.5 py-1 h-fit bg-background-items z-20 transition-transform duration-300
           rounded-b-md border-b-3 border-x-2 shadow-[5px_8px_4px_rgba(0,0,0,0.3)]
           ${hidden ? "-translate-y-full" : ""} 
           ${className}
@@ -132,8 +134,6 @@ function NavBar({ duration = 100, className }: NavBarProps) {
               initial={{ x: "100%" }}
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
-              // onFocus={() => setOpenSidebar(true)}
-              // onBlur={() => setOpenSidebar(false)}
               transition={{ duration: duration / 1000, ease: "linear" }}
               className={`flex fixed top-0 left-0 h-screen w-screen z-40`}
             >
@@ -197,6 +197,24 @@ function NavBar({ duration = 100, className }: NavBarProps) {
             </motion.div>
           )}
         </AnimatePresence>
+
+        <div
+          className={`absolute top-full left-1/2 -translate-x-1/2 cursor-pointer transition-all duration-300 overflow-hidden
+              ${!hidden ? "scale-0" : "scale-100 "}`}
+          onClick={() => setHidden(false)}
+        >
+          <div
+            className="relative shadow-[5px_8px_4px_rgba(0,0,0,0.3)] aspect-square w-11
+                bg-foreground [clip-path:polygon(50%_50%,0_0,100%_0)]"
+          >
+            <div
+              className="absolute shadow-[5px_8px_4px_rgba(0,0,0,0.3)] bg-background-items aspect-square w-10
+                [clip-path:polygon(50%_50%,0_0,100%_0)]  left-1/2 -translate-x-1/2 -translate-y-0.5"
+            >
+              <ArrowDownIcon className="w-4.5 h-4.5 m-auto"></ArrowDownIcon>
+            </div>
+          </div>
+        </div>
       </div>
 
       <button

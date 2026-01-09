@@ -1,4 +1,8 @@
 import db from "../configs/db.js";
+import { ValidateStoryType } from "./Enum.Model.js";
+import { ValidateGenre } from "./Genre.Model.js";
+
+import { validate as isUUID } from "uuid";
 
 export const GetStoryTree = async (story_id, parent_id, isGettingContent = false) => {
   const nodes = await db.storyNode.findMany({
@@ -131,7 +135,10 @@ export async function FindAllStories({
       is_deleted: false,
       ...(keyword && { title: { contains: keyword, mode: "insensitive" } }),
       ...(type && type.length > 0 && { type: { in: type } }),
-      ...(genres && genres.length > 0 && { genres: { hasEvery: genres } }),
+      ...(genres &&
+        genres.length > 0 && {
+          genres: { some: { genre: { in: genres } } },
+        }),
       ...(authorsId &&
         authorsId.length > 0 && {
           authors: { some: { author_id: { in: authorsId } } },
@@ -149,7 +156,10 @@ export async function FindAllStories({
       authors: {
         select: { author: { select: { id: true, name: true } } },
       },
-      cover_art: true,
+      cover_art: {
+        select: { url: true, height: true, width: true },
+      },
+      genres: { select: { genre: true } },
     },
     orderBy: [sort, { updated_at: "desc" }, { id: "desc" }],
     take: limit,
@@ -158,10 +168,13 @@ export async function FindAllStories({
 
   for (const story of stories) {
     story.authors = story.authors.map((author) => author.author);
+    story.genres = story.genres.map((genre) => genre.genre);
     if (isGettingChildren) story.children = await GetStoryTree(story.id, null, false);
     if (isGettingNewestChapter) {
       story.newest_chapter = await GetNewestChapter(story.id, 5);
     }
+
+    delete story.cover_art_id;
   }
 
   return { success: true, data: stories };
@@ -170,7 +183,13 @@ export async function FindAllStories({
 export async function FindStory({ id, title, isGettingChildren = false, isGettingContent = false, isGettingNewestChapter = false }) {
   const story = await db.story.findUnique({
     where: { ...(id && { id: id }), ...(title && { title: title }), is_deleted: false },
-    include: { authors: { select: { author: { select: { id: true, name: true } } } }, cover_art: true },
+    include: {
+      authors: { select: { author: { select: { id: true, name: true } } } },
+      genres: { select: { genre: true } },
+      cover_art: {
+        select: { url: true, height: true, width: true },
+      },
+    },
   });
 
   if (!story) {
@@ -178,6 +197,7 @@ export async function FindStory({ id, title, isGettingChildren = false, isGettin
   }
 
   story.authors = story.authors.map((author) => author.author);
+  story.genres = story.genres.map((genre) => genre.genre);
 
   if (isGettingChildren) {
     story.children = await GetStoryTree(story.id, null, isGettingContent);
@@ -243,30 +263,111 @@ export const HardDeleteStory = async (where = { id, title }) => {
   }
 };
 
-export const UpdateStory = async (where = { id, title }, data) => {
-  try {
-    // Check if story exist or not
-    const story = await FindStory(where);
-    if (!story || !story.success || !story.data) {
-      return { success: false, data: null };
+export async function UpdateStory(id, { title, type, view, summary, posterId, nation, status, genres = [], coverArtUrl, nextChapterIn, authorIds = [] }) {
+  return await db.$transaction(async function (tx) {
+    const story = await tx.story.findFirst({ where: { id: id, is_deleted: false } });
+    if (!story) {
+      throw new Error("Story not found");
     }
-    // If exist
-    const result = await db.story.update({
-      where: where,
-      data: data,
-      select: {
-        id: true,
+
+    if (title && title !== story.title) {
+      const isTitleExist = await tx.story.findFirst({ where: { title: title, is_deleted: false, NOT: { id: id } } });
+      if (isTitleExist) {
+        throw new Error("Title already exist");
+      }
+    }
+
+    if (type && !ValidateStoryType(type)) {
+      throw new Error("Invalid story type");
+    }
+
+    if (authorIds && authorIds.length > 0) {
+      for (const authorId of authorIds) {
+        if (!isUUID(authorId)) throw new Error("authorIds must be uuid[]");
+
+        const author = await tx.author.findUnique({ where: { id: authorId } });
+        console.log(author);
+        if (!author) throw new Error(`Author ${authorId} is not exist`);
+      }
+    }
+
+    if (genres && genres.length > 0) {
+      genres = ValidateGenre(genres);
+    }
+
+    const result = await tx.story.update({
+      where: { id: id },
+      data: {
+        ...(title && { title: title }),
+        ...(type && { type: type }),
+        ...(view !== undefined && { view: view }),
+        ...(summary && { summary: summary }),
+        ...(nation && { nation: nation }),
+        ...(status && { status: status }),
+        ...(nextChapterIn && { next_chapter_in: nextChapterIn }),
+
+        ...(coverArtUrl && {
+          cover_art: {
+            connectOrCreate: {
+              where: { url: coverArtUrl },
+              create: { url: coverArtUrl },
+            },
+          },
+        }),
+
+        ...(posterId && {
+          poster: {
+            connect: {
+              id: posterId,
+            },
+          },
+        }),
       },
     });
-    return {
-      success: true,
-      data: result,
-    };
-  } catch (error) {
-    console.error("❌ [Story.Model.js] Error updating story: ", error);
-    return { success: false, error: error.code };
-  }
-};
+
+    if (genres && genres.length > 0) {
+      await tx.story_Genre.deleteMany({ where: { story_id: story.id } });
+
+      await tx.story_Genre.createMany({
+        data: genres.map((genre) => ({
+          story_id: story.id,
+          genre,
+        })),
+        skipDuplicates: true,
+      });
+    }
+
+    if (authorIds && authorIds.length > 0) {
+      await tx.story_Author.deleteMany({ where: { story_id: story.id } });
+
+      await tx.story_Author.createMany({
+        data: authorIds.map((authorId) => ({
+          story_id: story.id,
+          author_id: authorId,
+        })),
+        skipDuplicates: true,
+      });
+    }
+
+    return { success: true, data: result };
+  });
+}
+
+export async function AddOneViewForStory(storyId) {
+  const story = await db.story.findUnique({ where: { id: storyId } });
+  if (!story) return { success: false, message: "Story not found" };
+
+  const update = await db.story.update({
+    where: { id: storyId },
+    data: {
+      view: {
+        increment: 1,
+      },
+    },
+  });
+
+  return { success: !!update, data: update };
+}
 
 export async function CountStory(where = {}) {
   try {

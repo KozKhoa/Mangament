@@ -54,7 +54,7 @@ export default function FilterRatings({ onFilter, isReset = false }: { onFilter:
     <ButtonDropdownCheckbox
       label={
         <div className="flex flex-row flex-wrap gap-1.5 justify-center items-center w-fit h-fit">
-          <StarIcon className="w-5 h-5 fill-background stroke-foreground"></StarIcon>
+          <StarIcon className="w-5 h-5 fill-background-items stroke-foreground"></StarIcon>
           <p className="font-bold">Đánh giá</p>
           <div className="flex flex-row flex-wrap gap-1">{RATINGS?.map((rating, i) => rating.isChecked && <Tag key={rating.code}>{rating.label}</Tag>)}</div>
         </div>

@@ -1,0 +1,32 @@
+import Masonry from "react-masonry-css";
+
+export default function MasonryGrid({
+  breakpointCols,
+  className,
+  columnClassName,
+  children,
+}: {
+  className?: string;
+  columnClassName?: string;
+  breakpointCols?: number | { [key: number]: number };
+  children?: React.ReactNode[];
+}) {
+  const breakpointColumnsObj = {
+    default: 6,
+    1400: 5,
+    1100: 4,
+    700: 3,
+    500: 2,
+    300: 1,
+  };
+
+  return (
+    <Masonry
+      breakpointCols={{ ...breakpointColumnsObj, ...(breakpointCols && { breakpointCols }) }}
+      className={`my-masonry-grid ${className}`}
+      columnClassName={`my-masonry-grid_column ${columnClassName}`}
+    >
+      {children && children.length > 0 && children.map((child, i) => child)}
+    </Masonry>
+  );
+}

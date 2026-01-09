@@ -21,12 +21,12 @@ export default function RankingCard({ top, story, className, ref }: { top?: numb
   }
 
   return (
-    <div ref={ref} className={`relative ${className}`}>
+    <div ref={ref} className={`relative `}>
       {top && (
         <>
           <StoryCard className={`flex-row justify-start shadow-none border-0 hover:shadow-none hover:border-transparent ${className}`} data={story}></StoryCard>
           <div
-            className={`absolute right-0 bottom-0 font-aclonica text-8xl
+            className={`absolute right-2 bottom-0 font-aclonica text-8xl
           ${textColorMapping(top)}`}
           >
             {top}

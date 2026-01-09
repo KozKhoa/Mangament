@@ -58,7 +58,7 @@ export default function RatingCommentInput({ type, value, onChange, className }:
 
         {/* Finish button */}
 
-        <button onClick={handleFinish} className="text-center px-3 py-2 bg-foreground text-background font-semibold rounded-md">
+        <button onClick={handleFinish} className="text-center px-3 py-2 bg-foreground text-background-items font-semibold rounded-md">
           Hoàn tất
         </button>
       </div>

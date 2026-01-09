@@ -69,14 +69,12 @@ export default function StoryDetailPage() {
       if (!res) return toast.warning("Cannot connect with server");
       if (!res.success) return toast.warning(res.message);
 
-      console.log(res.data);
-
       setFavouriteId(res.data.id);
       toast.message(`Added successfully`);
     };
 
     const removeFavourite = async () => {
-      const res = await favouriteService.remove(story?.favourite?.id ?? ""); // Error: id must be favourite id
+      const res = await favouriteService.remove(favouriteId ?? ""); // Error: id must be favourite id
 
       if (!res) return toast.warning("Cannot connect with server");
       if (!res.success) return toast.warning(res.message);
@@ -95,7 +93,6 @@ export default function StoryDetailPage() {
   };
 
   function handleNavigateStoryNode(storyNode: StoryNode[]) {
-    console.log(storyNode);
     if (storyNode[storyNode.length - 1].type !== "chapter") return;
 
     let routeDir = "";
@@ -114,10 +111,10 @@ export default function StoryDetailPage() {
 
   return (
     <div className="flex flex-col gap-10">
-      <div className="flex flex-col lg:flex-row gap-5">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         {/* Story info */}
         <div className="lg:flex-1 flex flex-col gap-3">
-          <StoryCardAllInfo story={story}></StoryCardAllInfo>
+          <StoryCardAllInfo className="bg-background-items" story={story}></StoryCardAllInfo>
 
           {/* Button */}
           <div className="grid grid-cols-2 md:grid-cols-4 justify-center items-center gap-2">
@@ -138,7 +135,9 @@ export default function StoryDetailPage() {
 
             <button
               onClick={toggleFavourite}
-              className={`w-full py-1.5 font-semibold border-2 border-foreground text-center rounded-sm ${favouriteId && "bg-red-400 text-white"}`}
+              className={`w-full py-1.5 font-semibold border-2 border-foreground text-center rounded-sm ${
+                favouriteId ? "bg-red-400 text-white" : "bg-background-items"
+              }`}
             >
               {favouriteId ? "Đã yêu thích" : "Yêu thích"}
             </button>
@@ -146,11 +145,16 @@ export default function StoryDetailPage() {
         </div>
 
         {/* Chapter list */}
-        <StoryNodeList onClickItem={handleNavigateStoryNode} className="lg:flex-1" storyNodes={story?.children} size={story?.number_of_chidren}></StoryNodeList>
+        <StoryNodeList
+          onClickItem={handleNavigateStoryNode}
+          className="lg:flex-1 bg-background-items"
+          storyNodes={story?.children}
+          size={story?.number_of_chidren}
+        ></StoryNodeList>
       </div>
 
       {/* Review */}
-      <div className="flex flex-col border-2 border-foreground rounded-md px-5 py-2.5 gap-7">
+      <div className="flex flex-col border-2 border-foreground rounded-md px-5 py-2.5 gap-7 bg-background-items">
         <h2 className="w-full text-center border-b-2 border-foreground font-semibold">Xem trước</h2>
         <div
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 

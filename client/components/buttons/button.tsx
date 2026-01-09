@@ -30,7 +30,7 @@ export default function Button({
     if (type === "default") return "bg-foreground";
     if (type === "add") return "bg-blue-800";
     if (type === "delete") return "bg-red-500";
-    return "bg-background";
+    return "bg-background-items";
   }
 
   function borderColorMapping(type: ButtonType) {
@@ -39,7 +39,7 @@ export default function Button({
   }
 
   function textColorMapping(type: ButtonType) {
-    if (type === "default") return "text-background";
+    if (type === "default") return "text-background-items";
     return "text-white";
   }
 

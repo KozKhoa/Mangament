@@ -19,7 +19,7 @@ function Radio({ onChange, name, value, children, className, defaultChecked = fa
   return (
     <label
       className={`flex flex-row relative justify-start items-center gap-2 cursor-pointer w-full h-fit 
-          text-foreground bg-background
+          text-foreground
         ${className}`}
     >
       <input

@@ -13,12 +13,13 @@ import { toast } from "sonner";
 import HistoryCard from "@/components/cards/history-card";
 import History from "@/types/history";
 import useAuth from "@/contexts/AuthContext";
-import CategoryCard from "@/components/cards/category-card";
+import CategoryCard from "@/components/cards/categories/category-card";
 import storyService from "@/services/story";
 import Story from "@/types/story";
 import StoryCard from "@/components/cards/stories/story-card";
 import RankingCard from "@/components/cards/ranking-card";
 import NoContent from "@/components/cards/no-content";
+import Link from "next/link";
 
 export default function Home() {
   const router = useRouter();
@@ -94,7 +95,9 @@ export default function Home() {
           isNoContent={histories ? histories.length <= 0 : true}
         >
           {histories?.map((history, i) => (
-            <HistoryCard key={history.id} history={history} onClickRemove={() => removeHistory(history)}></HistoryCard>
+            <div className="px-1 h-full">
+              <HistoryCard className="bg-background-items" key={history.id} history={history} onClickRemove={() => removeHistory(history)}></HistoryCard>
+            </div>
           ))}
         </InfinityScrollHorizontalList>
       )}
@@ -102,7 +105,9 @@ export default function Home() {
       {/* Latest update */}
       <InfinityScrollHorizontalList label="Mới cập nhật" isLoading={newestStories.length <= 0}>
         {newestStories.map((story, i) => (
-          <StoryCard key={story.id} data={story}></StoryCard>
+          <div className="px-1 h-full">
+            <StoryCard className="bg-background-items" key={story.id} data={story}></StoryCard>
+          </div>
         ))}
       </InfinityScrollHorizontalList>
 
@@ -114,28 +119,44 @@ export default function Home() {
         autoSlide={3000}
       >
         <div className="py-3.5 px-5">
-          <CategoryCard className="m-auto" imageSource="/genres/comedy.jpg" label="COMEDY"></CategoryCard>
+          <Link href={`/genre/comedy`}>
+            <CategoryCard className="m-auto hover:scale-110 hover:z-10" imageSource="/genres/comedy.jpg" label="COMEDY"></CategoryCard>
+          </Link>
         </div>
         <div className="py-3.5 px-5">
-          <CategoryCard className="m-auto" imageSource="/genres/fantasy.jpg" label="FANTASY"></CategoryCard>
+          <Link href={`/genre/fantasy`}>
+            <CategoryCard className="m-auto hover:scale-110 hover:z-10" imageSource="/genres/fantasy.jpg" label="FANTASY"></CategoryCard>
+          </Link>
         </div>
         <div className="py-3.5 px-5">
-          <CategoryCard className="m-auto" imageSource="/genres/harem.jpg" label="HAREM"></CategoryCard>
+          <Link href={`/genre/harem`}>
+            <CategoryCard className="m-auto hover:scale-110 hover:z-10" imageSource="/genres/harem.jpg" label="HAREM"></CategoryCard>
+          </Link>
         </div>
         <div className="py-3.5 px-5">
-          <CategoryCard className="m-auto" imageSource="/genres/isekai.jpg" label="ISEKAI"></CategoryCard>
+          <Link href={`/genre/isekai`}>
+            <CategoryCard className="m-auto hover:scale-110 hover:z-10" imageSource="/genres/isekai.jpg" label="ISEKAI"></CategoryCard>
+          </Link>
         </div>
         <div className="py-3.5 px-5">
-          <CategoryCard className="m-auto" imageSource="/genres/romance.jpg" label="ROMANCE"></CategoryCard>
+          <Link href={`/genre/romance`}>
+            <CategoryCard className="m-auto hover:scale-110 hover:z-10" imageSource="/genres/romance.jpg" label="ROMANCE"></CategoryCard>
+          </Link>
         </div>
         <div className="py-3.5 px-5">
-          <CategoryCard className="m-auto" imageSource="/genres/shonen.jpg" label="SHONEN"></CategoryCard>
+          <Link href={`/genre/shonen`}>
+            <CategoryCard className="m-auto hover:scale-110 hover:z-10" imageSource="/genres/shonen.jpg" label="SHONEN"></CategoryCard>
+          </Link>
         </div>
         <div className="py-3.5 px-5">
-          <CategoryCard className="m-auto" imageSource="/genres/slice_of_life.jpg" label="SLICE OF LIFE"></CategoryCard>
+          <Link href={`/genre/slice_of_life`}>
+            <CategoryCard className="m-auto hover:scale-110 hover:z-10" imageSource="/genres/slice_of_life.jpg" label="SLICE OF LIFE"></CategoryCard>
+          </Link>
         </div>
         <div className="py-3.5 px-5">
-          <CategoryCard className="m-auto" imageSource="/genres/sport.jpg" label="SPORT"></CategoryCard>
+          <Link href={`/genre/sport`}>
+            <CategoryCard className="m-auto hover:scale-110 hover:z-10" imageSource="/genres/sport.jpg" label="SPORT"></CategoryCard>
+          </Link>
         </div>
       </InfinityScrollHorizontalList>
 
@@ -148,7 +169,7 @@ export default function Home() {
       >
         {bestRankingStories.map((story, i) => (
           <div key={story.id} className="px-5">
-            <RankingCard story={story} top={i + 1}></RankingCard>
+            <RankingCard className="bg-background-items w-full" story={story} top={i + 1}></RankingCard>
           </div>
         ))}
       </InfinityScrollHorizontalList>

@@ -29,39 +29,37 @@ export default function StoryCard({ data, className }: StoryCardProps) {
   const router = useRouter();
   const story = data;
 
-  const [isInFavourite, setIsInFavourite] = useState<boolean>(!story?.favourite ? false : true);
+  const [favouriteId, setFavouriteId] = useState<string | null>(story.favourite?.id ?? null);
   const [newestChapter, setNewestChapter] = useState<NewestChapter[]>([]);
 
   const handleClickFavourite = () => {
     const saveFavourite = async () => {
       const res = await favouriteService.post({ storyId: story.id });
-      if (res.success) {
-        setIsInFavourite(true);
-        story.favourite = res.data.favourite;
 
-        toast.message(`Added successfully`);
-      } else {
-        toast.warning(res.message);
-      }
+      if (!res) return toast.warning("Cannot connect with server");
+      if (!res.success) return toast.warning(res.messsage);
+
+      setFavouriteId(res.data.id);
+
+      toast.message(`Added successfully`);
     };
 
     const removeFavourite = async () => {
-      const res = await favouriteService.remove(story?.favourite?.id || ""); // Error: id must be favourite id
+      const res = await favouriteService.remove(favouriteId ?? ""); // Error: id must be favourite id
 
-      if (res.success) {
-        setIsInFavourite(false);
-        story.favourite = undefined;
-        toast.message(`Removed successfully`);
-      } else {
-        toast.warning(res.message);
-      }
+      if (!res) return toast.warning("Cannot connect with server");
+      if (!res.success) return toast.warning(res.messsage);
+
+      setFavouriteId(null);
+
+      toast.message(`Removed successfully`);
     };
 
     if (!user) {
       return toast.warning("Please login to add to favourite ");
-    } else if (!isInFavourite) {
+    } else if (!favouriteId) {
       saveFavourite();
-    } else if (isInFavourite) {
+    } else if (favouriteId) {
       removeFavourite();
     }
   };
@@ -80,11 +78,9 @@ export default function StoryCard({ data, className }: StoryCardProps) {
 
   return (
     <div
-      className={`flex flex-col bg-background text-foreground gap-2.5 p-1.5 rounded-[5]
+      className={`flex flex-col text-foreground gap-2.5 p-1.5 rounded-[5]
         border-transparent border-2 transition-all duration-50 ease-linear
-        shadow-md
-        hover:shadow-[6px_8px_5px_0px_rgba(0,0,0,0.3)] hover:border-foreground
-        max-w-sm w-full h-full
+        shadow-md max-w-sm w-full h-full bg-background-items
         ${className} `}
     >
       <div className={`relative rounded-[5] w-full h-fit cursor-pointer`}>
@@ -99,15 +95,15 @@ export default function StoryCard({ data, className }: StoryCardProps) {
         {/* View */}
         <div
           className="flex flex-row justify-star items-center gap-x-1
-          absolute right-0 bottom-0 px-1 bg-background rounded-tl-md"
+          absolute right-0 bottom-0 px-1 rounded-tl-md bg-background-items"
         >
           <EyeIcon className="w-5 h-5"></EyeIcon>
           <p className="italic font-semibold text-[0.8em]">{beautifulView(story?.view || 0)}</p>
         </div>
 
         {/* Save favourite */}
-        <button className=" absolute top-0 right-0 bg-background rounded-b-4xl" onClick={() => handleClickFavourite()}>
-          <HeartIcon className={`w-8 h-8  stroke-1 ${isInFavourite ? " fill-red-400 text-red-400" : " fill-background text-foreground"}`}></HeartIcon>
+        <button className=" absolute top-0 right-0 rounded-b-4xl bg-background-items" onClick={() => handleClickFavourite()}>
+          <HeartIcon className={`w-8 h-8 stroke-1 ${favouriteId ? " fill-red-400 text-red-400" : " fill-background-items text-foreground"}`}></HeartIcon>
         </button>
       </div>
 
@@ -123,14 +119,14 @@ export default function StoryCard({ data, className }: StoryCardProps) {
             <div className="flex justify-center items-center">
               <DisplayStar rating={story?.star || 0}></DisplayStar>
             </div>
-            <p className="">{story?.star}</p>
+            <p>{story?.star}</p>
           </div>
         </div>
 
         {/* Newest chapter */}
         {newestChapter && newestChapter.length > 0 && (
-          <div className="flex flex-col justify-center items-start gap-x-2.5-2.5">
-            <p className="text-[0.8em] italic">Chap mới nhất:</p>
+          <div className="flex flex-col justify-center items-start gap-x-2.5-2.5 opacity-90">
+            <p className="text-[0.8em] italic ">Chap mới nhất:</p>
 
             <div onClick={() => handleClickNewestChapter()} className="flex flex-wrap items-center justify-between cursor-pointer gap-x-2">
               <p>{newestChapter?.[0].dir}</p>

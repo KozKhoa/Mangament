@@ -8,20 +8,21 @@ import StatusTag from "@/components/tags/status-tag";
 import Tag from "@/components/tags/tag";
 import Loading from "@/components/loadings/loading";
 import Line from "@/components/lines/line";
+import GenreTag from "@/components/tags/genre-tag";
 
 interface StoryCardAllInfoProps {
   story?: Story;
   className?: string;
 }
 
-const subLabelStyle = "font-bold italic";
+const subLabelStyle = "font-bold italic opacity-75";
 const labelContainerStyle = "flex flex-row flex-wrap justify-start items-start gap-x-3 gap-y-1";
 
 export default function StoryCardAllInfo({ story, className }: StoryCardAllInfoProps) {
   return (
     <div
       className={` flex bg-background   text-foreground p-1.5 rounded-[5]
-        border-foreground border-2 w-full h-fit text-[1.2em]
+        border-foreground border-2 w-full h-fit 
         ${className} `}
     >
       {!story ? (
@@ -79,13 +80,12 @@ export default function StoryCardAllInfo({ story, className }: StoryCardAllInfoP
               </div>
 
               {/* Genre */}
-              <div className={labelContainerStyle}>
-                <p className={subLabelStyle}>Thể loại:</p>
-                <div className="flex flex-row flex-wrap gap-2">
-                  {story?.genre?.map((g, i) => (
-                    <Tag key={i}># {snakeCaseToCapitalizeWord(g)}</Tag>
-                  ))}
-                </div>
+              <div className={`flex flex-row flex-wrap gap-1 `}>
+                <p className={`${subLabelStyle} pr-2`}>Thể loại:</p>
+
+                {story?.genres?.map((name, i) => (
+                  <GenreTag key={name} tagName={name}></GenreTag>
+                ))}
               </div>
 
               <div className="flex flex-col justify-between gap-1 w-full 2 "></div>

@@ -5,24 +5,18 @@ export function GetAllGenre() {
   return Object.values(Genre);
 }
 
-export function ValidateGenre(genre) {
-  if (!genre) return true;
-  let returnValue = true;
-  const genreList = GetAllGenre();
-  if (genre.length > genreList.length) return false;
-  const checkDuplicate = {};
-  genre.forEach((e) => {
-    if (checkDuplicate[e] !== true) checkDuplicate[e] = true;
-    else {
-      returnValue = false;
-      return false;
-    }
-    if (!genreList.includes(e)) {
-      returnValue = false;
-      return false;
-    }
-  });
-  return returnValue;
+export function ValidateGenre(genres = []) {
+  let inputGenres;
+  if (Array.isArray(genres)) {
+    inputGenres = genres;
+  } else {
+    inputGenres = [genres];
+  }
+  const genresSet = new Set(GetAllGenre());
+
+  const validGenres = inputGenres.filter((genre) => genresSet.has(genre));
+
+  return [...new Set(validGenres)];
 }
 
 export async function FindAllStoryGenres(where = { story_id }) {

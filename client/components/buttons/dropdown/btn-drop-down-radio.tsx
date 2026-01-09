@@ -55,7 +55,7 @@ function ButtonDropdownRadio({ onFinishCheck, name, label, options, className }:
       icon={
         <div
           className={`flex flex-row relative justify-start items-center gap-1.5 cursor-pointer w-fit
-          text-foreground bg-background px-2 
+          text-foreground px-2 
         ${className}`}
         >
           {label && label}
