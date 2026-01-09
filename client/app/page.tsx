@@ -154,7 +154,7 @@ export default function Home() {
           </Link>
         </div>
         <div className="py-3.5 px-5">
-          <Link href={`/genre/sport"`}>
+          <Link href={`/genre/sport`}>
             <CategoryCard className="m-auto hover:scale-110 hover:z-10" imageSource="/genres/sport.jpg" label="SPORT"></CategoryCard>
           </Link>
         </div>

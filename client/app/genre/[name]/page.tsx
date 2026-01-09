@@ -106,8 +106,10 @@ export default function StoryGenrePage() {
 
   return (
     <div>
-      <div className=" py-2 px-5 z-10 w-full flex flex-row flex-wrap justify-between items-center gap-2 border-b-2 ">
-        <h2 className="text-[2em] font-bold cursor-pointer">{snakeCaseToCapitalizeWord(genre ?? "")}</h2>
+      <h2 className="font-bold text-3xl m-auto w-fit mt-4">Thể loại</h2>
+
+      <div className="  px-5 z-10 w-full flex flex-row flex-wrap justify-between items-center gap-2 border-b-2 ">
+        <p className="text-[2em] font-bold cursor-pointer">{snakeCaseToCapitalizeWord(genre ?? "")}</p>
       </div>
 
       {feeds && feeds.length > 0 && (
