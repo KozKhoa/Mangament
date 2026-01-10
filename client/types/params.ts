@@ -16,6 +16,7 @@ export interface StoryParams {
 }
 
 export interface StoryNodeParams {
+  id?: string;
   type?: string;
   isGettingChildren?: boolean;
   isGettingContent?: boolean;

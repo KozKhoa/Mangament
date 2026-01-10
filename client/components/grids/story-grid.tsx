@@ -58,12 +58,12 @@ export default function StoryGrid({ label, storyType, elementsPerPage, className
 
     console.log(params);
 
-    const res = await storyService.get(storyParams);
+    const res = await storyService.getStories(storyParams);
 
     if (!res) return toast.warning("Cannot connect with server");
     if (!res.success) return toast.warning(res.message);
 
-    const stories = res.data;
+    const stories = res.data ?? [];
 
     setNewestChapter(
       stories.map((story: Story) => {
@@ -81,7 +81,7 @@ export default function StoryGrid({ label, storyType, elementsPerPage, className
       ...params,
     };
 
-    const res = await storyService.count({
+    const res = await storyService.countStories({
       ...storyParams,
       ...{ type: storyType },
     });
@@ -89,7 +89,7 @@ export default function StoryGrid({ label, storyType, elementsPerPage, className
     if (!res) return toast.warning("Cannot connect with server");
     if (!res.success) return toast.warning(res.message);
 
-    const count = res.data.count;
+    const count = res.data ?? 0;
 
     setMaxPage(Math.ceil(count / limit) ?? 0);
   }

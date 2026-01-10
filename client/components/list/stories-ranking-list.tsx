@@ -12,12 +12,12 @@ export default function StoriesRankingList({ rankBy = "view", label, className }
   const [stories, setStories] = useState<Story[]>([]);
 
   async function fetchStories() {
-    const res = await storyService.get({ page: 1, limit: 5, sort: `${rankBy}:desc` });
+    const res = await storyService.getStories({ page: 1, limit: 5, sort: `${rankBy}:desc` });
 
     if (!res) return toast.warning("Cannot connect with server");
     if (!res.success) return toast.warning(res.message);
 
-    setStories(res.data);
+    setStories(res.data ?? []);
   }
 
   useEffect(() => {

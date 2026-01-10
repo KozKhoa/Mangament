@@ -59,28 +59,28 @@ export default function StoryGenrePage() {
     if (!genre) return;
 
     setLoading(true);
-    const res = await storyService.get({ ...DEFAULT.params, ...{ genre: [genre], page: page, limit: limit } });
+    const res = await storyService.getStories({ ...DEFAULT.params, ...{ genre: [genre], page: page, limit: limit } });
     setLoading(false);
 
     if (!res) return toast.warning("Cannot connect with server");
     if (!res.success) return toast.warning(res.message);
 
-    setStories(res.data);
+    setStories(res.data ?? []);
 
-    setFeeds(buildFeed(res.data));
+    setFeeds(buildFeed(res.data ?? []));
   }
 
   async function fetchMoreStories(page: number, limit: number) {
     if (!genre) return;
 
     setLoading(true);
-    const res = await storyService.get({ ...DEFAULT.params, ...{ genre: [genre], page: page, limit: limit } });
+    const res = await storyService.getStories({ ...DEFAULT.params, ...{ genre: [genre], page: page, limit: limit } });
     setLoading(false);
 
     if (!res) return toast.warning("Cannot connect with server");
     if (!res.success) return toast.warning(res.message);
 
-    if (res.data.length <= 0) return;
+    if (!res.data || res.data.length <= 0) return;
 
     setStories([...(stories || []), ...res.data]);
     setFeeds(buildFeed([...(stories || []), ...res.data]));

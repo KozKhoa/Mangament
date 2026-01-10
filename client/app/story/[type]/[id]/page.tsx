@@ -21,6 +21,7 @@ import CommentList from "@/components/list/comment-list";
 import StoryNodeList from "@/components/list/story-node-list";
 import RecommendStories from "@/components/list/recommend-story";
 import StoryCardAllInfo from "@/components/cards/stories/story-card-all-info";
+import ButtonOfFavouriteStory from "@/components/buttons/favourite-button";
 
 function getParams(params: Params) {
   const rawType = params?.type;
@@ -41,12 +42,10 @@ export default function StoryDetailPage() {
   const { type, id } = getParams(params);
   const [story, setStory] = useState<Story>();
   const [review, setReview] = useState<string[]>();
-  const [favouriteId, setFavouriteId] = useState<string | null>(story?.favourite ? story.favourite.id : null);
 
   async function fetchStory() {
-    const res = await storyService.get({ id: id, isGettingChildren: true, isGettingSummary: true, type: type });
+    const res = await storyService.getStory({ id: id, isGettingChildren: true, isGettingSummary: true, type: type });
 
-    if (!res) toast.warning("Cannot connect with server");
     if (!res.success) return toast.warning(res.message);
 
     setStory(res.data);
@@ -56,41 +55,10 @@ export default function StoryDetailPage() {
     if (!story) return;
     const res = await storyService.getReview(story?.id);
 
-    if (!res) toast.warning("Cannot connect with server");
     if (!res.success) return toast.warning(res.message);
 
     setReview(res.data);
   }
-
-  const toggleFavourite = () => {
-    const saveFavourite = async () => {
-      const res = await favouriteService.post({ storyId: story?.id ?? "" });
-
-      if (!res) return toast.warning("Cannot connect with server");
-      if (!res.success) return toast.warning(res.message);
-
-      setFavouriteId(res.data.id);
-      toast.message(`Added successfully`);
-    };
-
-    const removeFavourite = async () => {
-      const res = await favouriteService.remove(favouriteId ?? ""); // Error: id must be favourite id
-
-      if (!res) return toast.warning("Cannot connect with server");
-      if (!res.success) return toast.warning(res.message);
-
-      setFavouriteId(null);
-      toast.message(`Removed successfully`);
-    };
-
-    if (!user) {
-      return toast.warning("Please login to add to favourite ");
-    } else if (!favouriteId) {
-      saveFavourite();
-    } else if (favouriteId) {
-      removeFavourite();
-    }
-  };
 
   function handleNavigateStoryNode(storyNode: StoryNode[]) {
     if (storyNode[storyNode.length - 1].type !== "chapter") return;
@@ -101,7 +69,6 @@ export default function StoryDetailPage() {
   }
 
   useEffect(() => {
-    setFavouriteId(story?.favourite ? story.favourite.id : "");
     fetchStoryReview();
   }, [story]);
 
@@ -133,14 +100,7 @@ export default function StoryDetailPage() {
               </Button>
             )}
 
-            <button
-              onClick={toggleFavourite}
-              className={`w-full py-1.5 font-semibold border-2 border-foreground text-center rounded-sm ${
-                favouriteId ? "bg-red-400 text-white" : "bg-background-items"
-              }`}
-            >
-              {favouriteId ? "Đã yêu thích" : "Yêu thích"}
-            </button>
+            <ButtonOfFavouriteStory className="w-full h-full" story={story}></ButtonOfFavouriteStory>
           </div>
         </div>
 

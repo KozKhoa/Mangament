@@ -17,12 +17,12 @@ export default function RecommendStories({ user, story, className }: { user?: Us
       page: 1,
       limit: 20,
     };
-    const res = await storyService.get(params);
+    const res = await storyService.getStories(params);
 
     if (!res) return toast.warning("Cannot connect with server");
     if (!res.success) toast.warning(res.message);
 
-    setRecommend(res.data);
+    setRecommend(res.data ?? []);
   }
 
   useEffect(() => {

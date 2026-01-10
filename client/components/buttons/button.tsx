@@ -53,8 +53,6 @@ export default function Button({
       ${bgColorMapping(buttonType)} 
       ${borderColorMapping(buttonType)}  
       ${textColorMapping(buttonType)}
-
-
         ${disable ? " opacity-50 cursor-none" : " cursor-pointer "}
         ${className}`}
     >
