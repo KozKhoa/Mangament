@@ -1,4 +1,4 @@
-const WHITE_LIST = ["http://localhost:3000"];
+const WHITE_LIST = ["*"];
 
 export const corsOptions = {
   origin: function (origin, callback) {
