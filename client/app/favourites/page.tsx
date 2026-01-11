@@ -28,24 +28,24 @@ export default function FavouritePage() {
 
   async function fetchFavourites() {
     setLoading(true);
-    const res = await favouriteService.get({ ...params, ...{ page: 1 } });
+    const res = await favouriteService.getFavouriteStories({ ...params, ...{ page: 1 } });
 
     if (!res) return toast.warning("Can not connect with server");
     if (!res.success) return toast.warning(res.message);
 
-    setFavourites(res.data);
+    setFavourites(res.data ?? []);
 
     setLoading(false);
   }
 
   async function fetchMoreFavourites(page: number) {
     setLoading(true);
-    const res = await favouriteService.get({ ...params, ...{ page: page } });
+    const res = await favouriteService.getFavouriteStories({ ...params, ...{ page: page } });
 
     if (!res) return toast.warning("Can not connect with server");
     if (!res.success) return toast.warning(res.message);
 
-    setFavourites((prevFav) => [...prevFav, ...res.data]);
+    setFavourites((prevFav) => [...prevFav, ...(res.data ?? [])]);
 
     setLoading(false);
   }
