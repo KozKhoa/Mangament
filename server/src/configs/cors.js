@@ -1,7 +1,9 @@
-const WHITE_LIST = ["*"];
+const WHITE_LIST = ["http://localhost:3000"];
 
 export const corsOptions = {
   origin: function (origin, callback) {
+    return callback(null, true); // temporary open for everyone
+
     if (process.env.NODE_ENV === "development") {
       return callback(null, true);
     }
