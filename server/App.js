@@ -18,11 +18,11 @@ console.log("App is running with NODE ENV =", process.env.NODE_ENV);
 
 const app = express();
 
+app.use(cors(corsOptions));
+
 app.use(cookieParser());
 app.use(express.json());
 app.use(RequestLogger);
-
-app.use(cors(corsOptions));
 
 // Main routes
 app.use("/auth", authRouter);
