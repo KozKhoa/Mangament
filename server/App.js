@@ -41,7 +41,13 @@ app.use("/uploads", express.static("./../uploads"));
 // Middlewares
 app.use(ErrorMiddleware);
 
-// Listen
-app.listen(process.env.PORT, "0.0.0.0", () => {
-  console.log(`🚀 Server chạy tại http://localhost:${process.env.PORT}`);
-});
+if (process.env.NODE_ENV === "development") {
+  // Listen
+  app.listen(process.env.LOCAL_PORT, "0.0.0.0", () => {
+    console.log(`🚀 Server chạy tại http://localhost:${process.env.LOCAL_PORT}`);
+  });
+} else if (process.env.NODE_ENV === "production") {
+  app.listen(process.env.PORT, () => {
+    console.log(`🚀 Server chạy tại http://localhost:${process.env.PORT}`);
+  });
+}
