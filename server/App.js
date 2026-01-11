@@ -48,6 +48,6 @@ if (process.env.NODE_ENV === "development") {
   });
 } else if (process.env.NODE_ENV === "production") {
   app.listen(process.env.PORT, () => {
-    console.log(`🚀 Server chạy tại http://localhost:${process.env.PORT}`);
+    console.log(`🚀 Server chạy tại :${process.env.PORT}`);
   });
 }
