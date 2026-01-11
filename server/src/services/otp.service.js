@@ -16,8 +16,8 @@ export function generateOtp(email) {
 export async function saveOtp(email, otp) {
   const hashedOtp = await bcrypt.hash(otp, await bcrypt.genSalt(10));
 
-  await redis.set(`otp:${email}`, hashedOtp, { expiration: { type: "EX", value: OTP_EXPIRATION_TIME } });
-  await redis.set(`otp_retry:${email}`, 0, { expiration: { type: "EX", value: OTP_EXPIRATION_TIME } });
+  await redis.set(`otp:${email}`, hashedOtp, "EX", OTP_EXPIRATION_TIME);
+  await redis.set(`otp_retry:${email}`, 0, "EX", OTP_EXPIRATION_TIME);
 }
 
 export async function verifyOtp(email, otp) {
@@ -43,7 +43,7 @@ export async function verifyOtp(email, otp) {
 
 export async function applyCooldown(email, cooldownTime) {
   const currentTime = Math.floor(Date.now() / 1000);
-  await redis.set(`otp_cooldown:${email}`, currentTime + cooldownTime, { expiration: { type: "EX", value: cooldownTime } });
+  await redis.set(`otp_cooldown:${email}`, currentTime + cooldownTime, "EX", cooldownTime);
 }
 
 export async function cooldownTimeLeft(email) {

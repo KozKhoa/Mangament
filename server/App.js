@@ -13,6 +13,9 @@ import storyRoute from "./src/routes/Story.Routes.js";
 import storyNodeRoute from "./src/routes/StoryNode.Route.js";
 import authorRoute from "./src/routes/Author.Route.js";
 import genreRoute from "./src/routes/Genre.Route.js";
+import { initRedis } from "./src/configs/redis.js";
+
+initRedis();
 
 console.log("App is running with NODE ENV =", process.env.NODE_ENV);
 
