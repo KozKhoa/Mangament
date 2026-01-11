@@ -13,7 +13,7 @@ authRouter.post("/login", Login);
 authRouter.post("/logout", Logout);
 authRouter.post("/refresh", Refresh);
 authRouter.get("/me", AuthenticationToken, GetUser);
-authRouter.post("/forgot-password", ForgotPassword);
-authRouter.post("/reset-password", ResetPassword);
+// authRouter.post("/forgot-password", ForgotPassword);
+// authRouter.post("/reset-password", ResetPassword);
 
 export default authRouter;
