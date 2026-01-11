@@ -5,7 +5,6 @@ config({ path: `.env.${process.env.NODE_ENV || "development"} ` });
 
 export const {
   PORT,
-  DATABASE_URL,
 
   JWT_REFRESH_SECRET,
   JWT_REFRESH_EXPIRES_IN,
