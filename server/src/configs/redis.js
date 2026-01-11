@@ -1,11 +1,18 @@
-import { createClient } from "redis";
+import Redis from "ioredis";
 
-export const redis = createClient({
-  url: process.env.REDIS_URL,
+export const redis = new Redis(process.env.REDIS_URL, {
+  lazyConnect: true,
+  maxRetriesPerRequest: 3,
+  enableOfflineQueue: false,
 });
 
-redis.on("error", (err) => {
-  console.error("Redis error:", err);
-});
-
-await redis.connect();
+export async function initRedis() {
+  try {
+    await redis.connect();
+    await redis.ping();
+    console.log("Redis connected");
+  } catch (err) {
+    console.error("Redis connection failed", err);
+    process.exit(1);
+  }
+}
