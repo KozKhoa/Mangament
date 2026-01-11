@@ -5,7 +5,7 @@ import * as token from "@/lib/token";
 // Create instance
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
-  timeout: 1000,
+  timeout: 5000,
 });
 
 // Auto add access token to every request

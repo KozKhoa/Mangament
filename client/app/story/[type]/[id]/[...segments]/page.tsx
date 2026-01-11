@@ -31,6 +31,7 @@ import FontSelection from "@/components/selections/font-selection";
 import { sleep } from "@/utils/others";
 import { capitalizeWords, snakeCaseToCapitalizeWord } from "@/utils/string";
 import historyService from "@/services/history";
+import ButtonOfFavouriteStory from "@/components/buttons/favourite-button";
 
 function getParams(params: Params) {
   const storyId = Array.isArray(params.id) ? params.id[0] : params.id ?? "";
@@ -119,7 +120,7 @@ export default function StoryNodeReading() {
   const content = storyNode?.content;
 
   async function fetchStoryNode() {
-    const res = await storyNodeService.get(storyNodeId, { isGettingContent: true });
+    const res = await storyNodeService.getStoryNode({ id: storyNodeId, isGettingContent: true });
 
     if (!res) return toast.warning("Cannot connect with server");
     if (!res.success) toast.warning(res.message);
@@ -128,7 +129,7 @@ export default function StoryNodeReading() {
   }
 
   async function fetchStory() {
-    const res = await storyService.get({ id: storyId, isGettingChildren: true });
+    const res = await storyService.getStory({ id: storyId, isGettingChildren: true });
 
     if (!res) return toast.warning("Cannot connect with server");
     if (!res.success) toast.warning(res.message);
@@ -161,37 +162,6 @@ export default function StoryNodeReading() {
     if (!res.success) return toast.warning(res.message);
 
     return res.data;
-  }
-
-  async function addStoryToFavourite(storyId: string) {
-    const res = await favouriteService.post({ storyId: storyId });
-
-    if (!res) return toast.warning("Cannot connect with server");
-    if (!res.success) return toast.warning(res.message);
-
-    toast.message("Add successfully");
-
-    setFavouriteId(res.data.favourite.id);
-
-    return res.data;
-  }
-
-  async function removeStoryFromFavouite(favouriteId: string) {
-    const res = await favouriteService.remove(favouriteId);
-
-    if (!res) return toast.warning("Cannot connect with server");
-    if (!res.success) return toast.warning(res.message);
-
-    toast.message("Remove successfully");
-    setFavouriteId("");
-  }
-
-  function toggleFavourite() {
-    if (favouriteId) {
-      removeStoryFromFavouite(favouriteId);
-    } else {
-      story && addStoryToFavourite(story?.id);
-    }
   }
 
   function handleNavigateStoryNode(storyNode?: StoryNode) {
@@ -232,7 +202,7 @@ export default function StoryNodeReading() {
           <h3 onClick={() => router.push(`/story/${story?.type}/${story?.id}`)} className="font-bold cursor-pointer">
             [{snakeCaseToCapitalizeWord(story?.type ?? "")}] {story?.title}
           </h3>
-          <div className="flex flex-row flex-wrap gap-1 text-foreground/70">
+          <div className="flex flex-row flex-wrap gap-1 text-foreground">
             {storyNodeParams.map((node, i) => (
               <h4 key={i}>
                 {capitalizeWords(node.type)} {node.order_index} {i < storyNodeParams.length - 1 && "➤"}
@@ -242,7 +212,7 @@ export default function StoryNodeReading() {
           </div>
 
           <div>
-            <span className="italic font-bold text-foreground/70">Lượt xem:</span> {storyNode?.view}
+            <span className="italic font-bold text-foreground">Lượt xem:</span> {storyNode?.view}
           </div>
         </div>
         <div className="flex flex-row gap-3 justify-center items-center">
@@ -278,14 +248,7 @@ export default function StoryNodeReading() {
 
       {/* Button favourite, download */}
       <div className="flex flex-row flex-wrap justify-center items-center gap-5">
-        <button
-          onClick={toggleFavourite}
-          className={`w-32 py-1.5 font-semibold border-2 border-foreground text-center rounded-sm ${
-            favouriteId ? "bg-red-400 text-white" : "bg-background-items"
-          }`}
-        >
-          {favouriteId ? "Đã yêu thích" : "Yêu thích"}
-        </button>
+        <ButtonOfFavouriteStory></ButtonOfFavouriteStory>
         <Button>Tải về</Button>
       </div>
 

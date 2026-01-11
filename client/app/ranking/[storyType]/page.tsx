@@ -28,34 +28,34 @@ export default function RankingPage() {
 
   async function fetchHostestStories() {
     setLoading(true);
-    const res = await storyService.get({ type: storyType, limit: LIMIT, sort: "view:desc" });
+    const res = await storyService.getStories({ type: storyType, limit: LIMIT, sort: "view:desc" });
 
     if (!res) return toast.warning("Cannot connect with server");
     if (!res.success) return toast.warning(res.message);
 
-    setStories(res.data);
+    setStories(res.data ?? []);
     setLoading(false);
   }
 
   async function fetchBestRankStories() {
     setLoading(true);
-    const res = await storyService.get({ type: storyType, limit: LIMIT, sort: "star:desc" });
+    const res = await storyService.getStories({ type: storyType, limit: LIMIT, sort: "star:desc" });
 
     if (!res) return toast.warning("Cannot connect with server");
     if (!res.success) return toast.warning(res.message);
 
-    setStories(res.data);
+    setStories(res.data ?? []);
     setLoading(false);
   }
 
   async function fetchNewestStories() {
     setLoading(true);
-    const res = await storyService.get({ type: storyType, limit: LIMIT, sort: "updated_at:desc" });
+    const res = await storyService.getStories({ type: storyType, limit: LIMIT, sort: "updated_at:desc" });
 
     if (!res) return toast.warning("Cannot connect with server");
     if (!res.success) return toast.warning(res.message);
 
-    setStories(res.data);
+    setStories(res.data ?? []);
     setLoading(false);
   }
 

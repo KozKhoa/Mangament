@@ -199,16 +199,21 @@ function NavBar({ duration = 100, className }: NavBarProps) {
         </AnimatePresence>
 
         <div
-          className={`absolute top-full left-1/2 -translate-x-1/2 cursor-pointer transition-all duration-300 overflow-hidden
-              ${!hidden ? "scale-0" : "scale-100 "}`}
-          onClick={() => setHidden(false)}
+          className={`absolute top-full left-1/2 -translate-x-1/2 transition-all duration-300
+            flex justify-center
+            ${!hidden ? "scale-0" : ""}`}
         >
+          <div className="h-16 w-28 absolute peer"></div>
+
           <div
-            className="relative shadow-[5px_8px_4px_rgba(0,0,0,0.3)] aspect-square w-11
-                bg-foreground [clip-path:polygon(50%_50%,0_0,100%_0)]"
+            className="relative shadow-[5px_8px_4px_rgba(0,0,0,0.3)] cursor-pointer aspect-square w-11 h-11
+                bg-foreground [clip-path:polygon(50%_50%,0_0,100%_0)] transition-all duration-300
+                hover:scale-150 hover:translate-y-1/4
+                peer-hover:scale-150 peer-hover:translate-y-1/4"
+            onClick={() => setHidden(false)}
           >
             <div
-              className="absolute shadow-[5px_8px_4px_rgba(0,0,0,0.3)] bg-background-items aspect-square w-10
+              className="absolute shadow-[5px_8px_4px_rgba(0,0,0,0.3)] bg-background-items aspect-square w-10 
                 [clip-path:polygon(50%_50%,0_0,100%_0)]  left-1/2 -translate-x-1/2 -translate-y-0.5"
             >
               <ArrowDownIcon className="w-4.5 h-4.5 m-auto"></ArrowDownIcon>

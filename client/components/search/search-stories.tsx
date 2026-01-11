@@ -25,12 +25,12 @@ export default function SearchStories({ className }: { className?: string }) {
     }
 
     setIsLoading(true);
-    const res = await storyService.get({ keyword: keyword.current, limit: 10, sort: "view:desc", page: page.current });
+    const res = await storyService.getStories({ keyword: keyword.current, limit: 10, sort: "view:desc", page: page.current });
 
     if (!res) return toast.warning("Cannot connect with server");
     if (!res.success) return toast.warning(res.message);
 
-    setStories(res.data);
+    setStories(res.data ?? []);
     setIsLoading(false);
   }
 
@@ -41,15 +41,18 @@ export default function SearchStories({ className }: { className?: string }) {
     }
 
     setIsLoading(true);
-    const res = await storyService.get({ keyword: keyword.current, limit: 10, sort: "view:desc", page: ++page.current });
+    const res = await storyService.getStories({ keyword: keyword.current, limit: 10, sort: "view:desc", page: ++page.current });
 
     if (!res) return toast.warning("Cannot connect with server");
     if (!res.success) return toast.warning(res.message);
 
+    const stories = res.data ?? [];
+
     setStories((prev) => {
-      if (!prev) return res.data;
-      return [...prev, ...res.data];
+      if (!prev || prev.length <= 0) return stories;
+      return [...prev, ...stories];
     });
+
     setIsLoading(false);
   }
 

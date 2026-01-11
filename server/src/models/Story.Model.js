@@ -130,28 +130,30 @@ export async function FindAllStories({
   isGettingChildren = false,
   isGettingNewestChapter = false,
 }) {
+  const where = {
+    is_deleted: false,
+    ...(keyword && { title: { contains: keyword, mode: "insensitive" } }),
+    ...(type && type.length > 0 && { type: { in: type } }),
+    ...(genres &&
+      genres.length > 0 && {
+        genres: { some: { genre: { in: genres } } },
+      }),
+    ...(authorsId &&
+      authorsId.length > 0 && {
+        authors: { some: { author_id: { in: authorsId } } },
+      }),
+    AND: [
+      {
+        OR: [...star.map(([min, max]) => ({ star: { gte: min, lte: max } }))],
+      },
+      {
+        OR: [...view.map(([min, max]) => ({ view: { gte: min, lte: max } }))],
+      },
+    ],
+  };
+
   const stories = await db.story.findMany({
-    where: {
-      is_deleted: false,
-      ...(keyword && { title: { contains: keyword, mode: "insensitive" } }),
-      ...(type && type.length > 0 && { type: { in: type } }),
-      ...(genres &&
-        genres.length > 0 && {
-          genres: { some: { genre: { in: genres } } },
-        }),
-      ...(authorsId &&
-        authorsId.length > 0 && {
-          authors: { some: { author_id: { in: authorsId } } },
-        }),
-      AND: [
-        {
-          OR: [...star.map(([min, max]) => ({ star: { gte: min, lte: max } }))],
-        },
-        {
-          OR: [...view.map(([min, max]) => ({ view: { gte: min, lte: max } }))],
-        },
-      ],
-    },
+    where: where,
     include: {
       authors: {
         select: { author: { select: { id: true, name: true } } },
@@ -166,6 +168,8 @@ export async function FindAllStories({
     skip: (page - 1) * limit,
   });
 
+  const totalItems = await db.story.count({ where: where });
+
   for (const story of stories) {
     story.authors = story.authors.map((author) => author.author);
     story.genres = story.genres.map((genre) => genre.genre);
@@ -175,9 +179,19 @@ export async function FindAllStories({
     }
 
     delete story.cover_art_id;
+    delete story.poster_id;
   }
 
-  return { success: true, data: stories };
+  return {
+    success: true,
+    data: stories,
+    pagination: {
+      page: page,
+      pageSize: limit,
+      totalPages: Math.floor(totalItems / limit),
+      totalItems: totalItems,
+    },
+  };
 }
 
 export async function FindStory({ id, title, isGettingChildren = false, isGettingContent = false, isGettingNewestChapter = false }) {

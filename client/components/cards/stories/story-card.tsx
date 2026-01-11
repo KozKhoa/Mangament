@@ -34,21 +34,19 @@ export default function StoryCard({ data, className }: StoryCardProps) {
 
   const handleClickFavourite = () => {
     const saveFavourite = async () => {
-      const res = await favouriteService.post({ storyId: story.id });
+      const res = await favouriteService.addNewFavouriteStory(story.id);
 
-      if (!res) return toast.warning("Cannot connect with server");
-      if (!res.success) return toast.warning(res.messsage);
+      if (!res.success) return toast.warning(res.message);
 
-      setFavouriteId(res.data.id);
+      setFavouriteId(res.data?.id ?? null);
 
       toast.message(`Added successfully`);
     };
 
     const removeFavourite = async () => {
-      const res = await favouriteService.remove(favouriteId ?? ""); // Error: id must be favourite id
+      const res = await favouriteService.removeFavouriteStory(favouriteId ?? ""); // Error: id must be favourite id
 
-      if (!res) return toast.warning("Cannot connect with server");
-      if (!res.success) return toast.warning(res.messsage);
+      if (!res.success) return toast.warning(res.message);
 
       setFavouriteId(null);
 

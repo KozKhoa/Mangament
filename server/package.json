@@ -7,8 +7,8 @@
   "type": "module",
   "main": "App.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon App.js"
+    "dev": "cross-env NODE_ENV=development nodemon App.js",
+    "start": "cross-env NODE_ENV=production node App.js"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^6.16.2",
@@ -31,5 +31,8 @@
     "redis": "^5.10.0",
     "uuid": "^13.0.0",
     "winston": "^3.18.3"
+  },
+  "devDependencies": {
+    "cross-env": "^10.1.0"
   }
 }

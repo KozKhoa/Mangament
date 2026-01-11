@@ -17,7 +17,7 @@ export default function StoryRandomPage() {
 
     const story = res.data;
 
-    router.replace(`/story/${story.type}/${story.id}`);
+    router.replace(`/story/${story?.type}/${story?.id}`);
   }
 
   useEffect(() => {

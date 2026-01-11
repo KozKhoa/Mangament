@@ -3,26 +3,16 @@ import { CreateError } from "../utils/ErrorHandle.js";
 import ErrorCodes from "../constants/Error.js";
 import { ValidateStoryType, ValidateStoryStatus } from "../models/Enum.Model.js";
 
-import { AddManyStoryGenres, HardDeleteStoryGenre, ValidateGenre } from "../models/Genre.Model.js";
-import { AddImage, UpdateImage } from "../models/Image.Model.js";
-import {
-  FindAllStories,
-  FindStory,
-  UpdateStory,
-  AddStory,
-  SoftDeleteStory,
-  CountStory,
-  GetNewestChapter,
-  GetStoryTree,
-  GetReview,
-} from "../models/Story.Model.js";
+import { ValidateGenre } from "../models/Genre.Model.js";
+import { AddImage } from "../models/Image.Model.js";
+import { FindAllStories, FindStory, UpdateStory, AddStory, SoftDeleteStory, CountStory, GetReview } from "../models/Story.Model.js";
 
 import { FindAllFavouriteStories, FindFavouriteStory } from "../models/Favourite.Model.js";
 
-import { CreateNewFolder, IsFileExist, MoveFile, SoftRemoveFile } from "../utils/FileHandle.js";
+import { CreateNewFolder, MoveFile } from "../utils/FileHandle.js";
 import DIRECTORY from "../constants/Directory.js";
 import { ConvertQuery } from "../utils/QueryConvert.js";
-import { FindAllReadingHistories, FindReadingHistory } from "../models/History.Model.js";
+import { FindAllReadingHistories } from "../models/History.Model.js";
 
 export async function GetStory(req, res, next) {
   try {
@@ -161,13 +151,13 @@ export async function GetAllStories(req, res, next) {
   try {
     const userId = req?.user?.id;
 
-    const { isGettingChildren, authors, keyword, isGettingNewestChapter, limit, page, type, genres, rating, view, sort } = ConvertQuery(req.query);
+    const { isGettingChildren, authors, keyword, isGettingNewestChapter, limit, page, type, genres, star, view, sort } = ConvertQuery(req.query);
 
     const stories = await FindAllStories({
       keyword: keyword,
       type: type,
       view: view,
-      star: rating,
+      star: star,
       genres: genres,
       genres: genres,
       authorsId: authors,
@@ -188,7 +178,7 @@ export async function GetAllStories(req, res, next) {
         limit: 2147483647,
         page: 1,
         storyType: type,
-        star: rating,
+        star: star,
         view: view,
         authorsId: authors,
         genres: genres,
@@ -206,6 +196,7 @@ export async function GetAllStories(req, res, next) {
       success: true,
       message: "Get story list successfully",
       data: stories.data,
+      pagination: stories.pagination,
     });
   } catch (error) {
     next(error);
