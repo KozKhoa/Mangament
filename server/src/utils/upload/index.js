@@ -2,7 +2,7 @@ import path, { parse, sep } from "path";
 
 import db from "../../configs/db.js";
 
-import { listAllFiles } from "../../configs/google-drive-api.js";
+import { listAllFiles } from "../../services/google-drive.service.js";
 
 const allFiles = await listAllFiles();
 
