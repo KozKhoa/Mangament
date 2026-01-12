@@ -1,36 +1,61 @@
-import chokidar from "chokidar";
 import path, { parse, sep } from "path";
 
 import db from "../../configs/db.js";
 
-// const db = new PrismaClient();
+import { listAllFiles } from "../../configs/google-drive-api.js";
 
-const root = path.resolve("../../../../uploads/story");
+const allFiles = await listAllFiles();
 
-const watch = chokidar.watch(root, {
-  ignored: /(^|[\/\\])\../, // ignore file và folder ẩn bắt đầu bằng .
-  persistent: true,
-});
+const map = new Map();
 
-async function handleAdd(filePath) {
-  // dir = manga/Genshin Impact/chapter 10/001.png
-  const dir = path.relative(root, filePath);
+for (const file of allFiles) {
+  map.set(file.id, file);
+}
+
+function buildPath(fileId) {
+  let id = fileId;
+  let dir = "";
+
+  do {
+    const file = map.get(id);
+    if (!file) continue;
+
+    dir = file.name + "/" + dir;
+
+    id = file.parents && file.parents.length > 0 ? file.parents[0] : "";
+  } while (id !== "");
+
+  return dir;
+}
+
+function buildShareLink(fileId) {
+  const imgUrl = `https://drive.google.com/uc?id=${fileId}&export=view`;
+  return imgUrl;
+}
+
+async function handleAdd(filePath, fileId) {
+  const shareLink = buildShareLink(fileId);
+
+  // dir = story/manga/Genshin Impact/chapter 10/001.png
+  const dir = filePath;
 
   const seperateDir = dir.split(path.sep);
 
-  const storyType = seperateDir[0].toLowerCase();
-  const storyName = seperateDir[1];
+  const storyType = seperateDir[1].toLowerCase();
+  const storyName = seperateDir[2];
   const imageName = seperateDir[seperateDir.length - 1];
-  const storyNodeNames = seperateDir.slice(2, -1);
+  const storyNodeNames = seperateDir.slice(3, -2);
 
   // Add image
-  const image = await handleAddImage({ imageUrl: dir });
+  const image = await handleAddImage({ imageUrl: shareLink });
+  console.log(image);
 
   // Add story
   const story = await handleAddStory({
     storyName: storyName,
     storyType: storyType,
   });
+  console.log(story);
 
   // Update cover art for story and terminate this
   if (path.parse(image.url).name === "cover_art") {
@@ -49,6 +74,7 @@ async function handleAdd(filePath) {
       storyId: story.id,
       parentId: parentId,
     });
+    console.log(storyNode);
 
     parentId = storyNode.id;
   }
@@ -63,29 +89,8 @@ async function handleAdd(filePath) {
     storyNodeId: storyNodeId,
     content: content,
   });
+  console.log(updateStoryNodeContent);
 }
-
-const addingQueue = [];
-let isProccessingAdding = false;
-const ProccessAddingQueue = async () => {
-  if (isProccessingAdding) return;
-  isProccessingAdding = true;
-
-  while (addingQueue.length > 0) {
-    const dir = addingQueue.shift();
-    try {
-      await handleAdd(dir);
-    } catch (error) {
-      console.error("❌ [Upload.Model.js] Error update change: ", error);
-    }
-  }
-  isProccessingAdding = false;
-};
-
-watch.on("add", async (filePath) => {
-  addingQueue.push(filePath);
-  await ProccessAddingQueue();
-});
 
 const handleAddStory = async ({ storyName = "", storyType = "", covertArtId = "" }) => {
   // Skip qua đoạn check story type
@@ -239,3 +244,9 @@ const handleAddCoverArtForStory = async ({
 
   return story;
 };
+
+for (const file of allFiles) {
+  if (file.mimeType !== "application/vnd.google-apps.folder") {
+    await handleAdd(buildPath(file.id), file.id);
+  }
+}
