@@ -16,7 +16,6 @@ import favouriteService from "@/services/favourite";
 
 import Story from "@/types/story";
 import StoryNode from "@/types/story-node";
-import { StoryNodeParams, StoryParams } from "@/types/params";
 
 import ArrowLeftIcon from "@/public/arrows/left-v.svg";
 import ArrowRightIcon from "@/public/arrows/right-v.svg";
@@ -316,9 +315,9 @@ export default function StoryNodeReading() {
       </div>
 
       {/* Comment */}
-      <div>
+      {/* <div>
         <CommentList storyNode={storyNode} elementPerPage={5}></CommentList>
-      </div>
+      </div> */}
 
       {/* Recommend */}
       <div>

@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { ReadonlyURLSearchParams, useParams, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
+import { ReadonlyURLSearchParams, useParams, useRouter, useSearchParams } from "next/navigation";
 
 import { snakeCaseToCapitalizeWord } from "@/utils/string";
 
@@ -9,57 +9,169 @@ import Story from "@/types/story";
 
 import storyService from "@/services/story";
 
-import StoryGridWithInfoCard from "@/components/grids/story-grid";
 import RecommendStories from "@/components/list/recommend-story";
 import { toast } from "sonner";
+import Loading from "@/components/loadings/loading";
+import StoryCard from "@/components/cards/stories/story-card";
+import SwitchPageBig from "@/components/switch-page/big";
+import StoryInfoCard from "@/components/cards/stories/story-info-card";
 
-function getSearchParams(searchParams: ReadonlyURLSearchParams) {
-  const page = Number(searchParams.get("page") ?? 1);
-  const sort = searchParams.get("sort") ?? "";
+import DEFAULT from "@/constants/default";
 
-  const authorIds = searchParams.get("authorIds")?.split(",");
-  const star = searchParams.get("star");
-}
+import { StoryParams } from "@/types/params";
+import { Pagination } from "@/types/pagination";
+import SwitchPageSmall from "@/components/switch-page/small";
+import SortStories from "@/components/sorts/sort-stories";
+import FilterRatings, { TargetRating } from "@/components/filters/filter-ratings";
+import FilterGenres from "@/components/filters/fiilter-genres";
+import FilterAuthors from "@/components/filters/filter-authors";
+import FilterViews, { TargetView } from "@/components/filters/filter-views";
+
+const LIMIT = 30;
 
 export default function StoriesPage() {
+  const router = useRouter();
   const params = useParams();
   const searchParams = useSearchParams();
+  const urlSearchParams = new URLSearchParams(searchParams);
+
+  const storyType = params?.type?.toString() ?? "";
 
   const page = Number(searchParams.get("page") ?? 1);
-  const sort = searchParams.get("sort") ?? "";
+  const sort = searchParams.get("sort");
+  const genres = searchParams.get("genres")?.split(",");
+  const author = searchParams.get("author")?.split(",");
+  const star = searchParams.get("star")?.split(",");
+  const view = searchParams.get("view")?.split(",");
 
-  console.log(sort, page);
+  const [loading, setLoading] = useState(false);
+  const [stories, setStories] = useState<Story[] | null>(null);
+  const [pagination, setPagination] = useState<Pagination>();
 
-  const rawType = params?.type;
-  const typeParam = Array.isArray(rawType) ? rawType[0] : rawType ?? "";
+  const fetchStories = useCallback(async () => {
+    setLoading(true);
+    const res = await storyService.getStories({
+      ...DEFAULT.params,
+      page: page,
+      limit: LIMIT,
+      type: storyType,
+      isGettingNewestChapter: true,
+      isGettingSummary: true,
 
-  const [recommendedStories, setRecommendedStories] = useState<Story[]>();
+      ...(sort && { sort: sort }),
+      ...(author && author.length > 0 && { author: author }),
+      ...(genres && genres.length > 0 && { genre: genres }),
+      ...(star && star.length > 0 && { star: star }),
+      ...(view && view.length > 0 && { view: view }),
+    });
+
+    setLoading(false);
+
+    if (!res.success) return toast.warning(res.message);
+
+    setStories(res.data ?? []);
+    setPagination(res.pagination);
+  }, [page, sort, genres, author, star, view, searchParams]);
+
+  const handleNavigate = useCallback(
+    (key: string, value: string) => {
+      const params = new URLSearchParams(searchParams);
+
+      params.set("page", "1");
+
+      if (!value) {
+        params.delete(key);
+      } else {
+        params.set(key, value);
+      }
+
+      router.push(`?${params.toString()}`);
+    },
+    [searchParams]
+  );
+
+  const handleResetSearchParams = useCallback(() => {
+    router.push(`?page=${page}`);
+  }, [page]);
 
   useEffect(() => {
-    const getRecommendStory = async () => {
-      const res = await storyService.getStories({ limit: 10 });
-
-      if (!res) return toast.warning("Cannot connect with server");
-      if (!res.success) return toast.warning(res.message);
-
-      const stories = res.data;
-
-      setRecommendedStories(stories);
-    };
-
-    getRecommendStory();
-  }, []);
+    fetchStories();
+  }, [searchParams]);
 
   return (
     <div className="w-full h-full flex flex-col font-afacad gap-12">
-      <StoryGridWithInfoCard
-        className="max-w-[1800] mx-auto"
-        label={typeParam ? snakeCaseToCapitalizeWord(typeParam) : "Story"}
-        storyType={typeParam}
-        elementsPerPage={30}
-      ></StoryGridWithInfoCard>
+      <div className={`w-full flex flex-row justify-center items-start gap-5 `}>
+        <div className="w-full">
+          {/* Header use to display story type and page index */}
+          <div
+            className=" sticky top-0 py-2 px-5 z-10 w-full
+                    flex flex-row flex-wrap justify-between items-center gap-2
+                    bg-background border-b-2 "
+          >
+            {/* Story type */}
+            <h2 className="text-[2em] font-bold cursor-pointer" onClick={() => router.push(`/stories/${storyType}`)}>
+              {snakeCaseToCapitalizeWord(storyType)} <span className="text-[0.7em] font-normal text-center h-full">({pagination?.totalItems})</span>
+            </h2>
+            <div className="flex flex-row flex-wrap justify-start items-center gap-2 text-[1.2em] font-bold">
+              {/* Switch page */}
+              <SwitchPageSmall
+                maxPage={pagination?.totalPages ?? 0}
+                page={page}
+                onChange={(pageNumber) => handleNavigate("page", pageNumber.toString())}
+              ></SwitchPageSmall>
+            </div>
+          </div>
 
-      <RecommendStories className="max-w-[1800] mx-auto"></RecommendStories>
+          {/* Main grid with sort */}
+          <div className="flex flex-col gap-2 justify-start items-center py-2 w-full">
+            <div className={`flex flex-row flex-wrap gap-2 w-full`}>
+              <SortStories onSort={(param) => handleNavigate("sort", param?.sort)}></SortStories>
+
+              <FilterRatings value={(star ?? []) as TargetRating[]} onChange={(stars) => handleNavigate("star", stars?.join(","))}></FilterRatings>
+
+              <FilterGenres value={genres ?? []} onChange={(genres) => handleNavigate("genres", genres.join(","))}></FilterGenres>
+
+              <FilterAuthors value={author ?? []} onChange={(authors) => handleNavigate("author", authors.join(","))}></FilterAuthors>
+
+              <FilterViews value={(view ?? []) as TargetView[]} onChange={(view) => handleNavigate("view", view.join(","))}></FilterViews>
+            </div>
+
+            {loading ? (
+              <Loading className="w-full h-64"></Loading>
+            ) : stories?.length !== undefined && stories?.length > 0 ? (
+              // Grid
+              <main
+                className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 gap-2
+                  border-b-2 border-foreground pb-2
+                "
+              >
+                {stories.map((story, i) => (
+                  <div key={story.id}>
+                    <StoryCard className="bg-background-items" data={story}></StoryCard>
+                  </div>
+                ))}
+              </main>
+            ) : (
+              <div className="w-full flex flex-col gap-5 py-20 justify-center items-center ">
+                <img className="w-20 h-20" src={"/filter-color.png"}></img>
+                <h2>Không có kết quả</h2>
+                <p>Vui lòng điều chỉnh bộ lọc</p>
+                <button onClick={handleResetSearchParams} className="px-5 py-2 bg-foreground text-background-items rounded-sm">
+                  Xóa bộ lọc
+                </button>
+              </div>
+            )}
+
+            <SwitchPageBig page={page} maxPage={pagination?.totalPages ?? 0} onChange={(page) => handleNavigate("page", page.toString())}></SwitchPageBig>
+          </div>
+        </div>
+
+        {!loading && stories?.length !== undefined && stories?.length > 0 && (
+          <StoryInfoCard className="hidden md:flex sticky top-16 bg-background-items"></StoryInfoCard>
+        )}
+      </div>
+
+      {/* <RecommendStories className="max-w-[1800] mx-auto"></RecommendStories> */}
     </div>
   );
 }

@@ -9,7 +9,6 @@ import GENRES from "@/constants/genres";
 import useInView from "@/hooks/useInView";
 import genreService from "@/services/genre";
 import storyService from "@/services/story";
-import { StoryParams } from "@/types/params";
 import Story from "@/types/story";
 import { randomNumerInRange } from "@/utils/number";
 import { snakeCaseToCapitalizeWord } from "@/utils/string";

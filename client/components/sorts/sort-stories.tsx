@@ -35,7 +35,7 @@ const SORTS = [
   },
 ];
 
-export default function SortStories({ onSort }: { onSort?: ({}) => void }) {
+export default function SortStories({ onSort }: { onSort?: ({ sort }: { sort: string }) => void }) {
   function handleSort(
     value: {
       label: string;

@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 
 import Loading from "../loadings/loading";
 
-import { Params, StoryParams } from "@/types/params";
+import { Params } from "@/types/params";
 import SortStories from "../sorts/sort-stories";
 
 import FilterAuthors from "../filters/filter-authors";

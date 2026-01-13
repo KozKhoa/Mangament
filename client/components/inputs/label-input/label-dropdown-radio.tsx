@@ -8,7 +8,7 @@ import ConfirmIcon from "@/public/edit/confirm.svg";
 import ButtonDropdownRadio from "@/components/buttons/dropdown/btn-drop-down-radio";
 import FilterProps from "@/types/filter";
 import ButtonDropdown from "@/components/buttons/dropdown/btn-dropdown";
-import Checkbox from "../checkbox";
+
 import Radio from "../radio";
 import { capitalizeWords } from "@/utils/string";
 

@@ -128,10 +128,10 @@ export default function StoryDetailPage() {
         </div>
       </div>
 
-      <div className="flex flex-col gap-5 w-full h-full p-2.5 border-2 rounded-md">
+      {/* <div className="flex flex-col gap-5 w-full h-full p-2.5 border-2 rounded-md">
         <RatingList className="w-full" story={story}></RatingList>
         <CommentList className="w-full" story={story}></CommentList>
-      </div>
+      </div> */}
 
       <RecommendStories className="max-w-[1800] mx-auto"></RecommendStories>
     </div>

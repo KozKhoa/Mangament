@@ -28,7 +28,7 @@ export default function SwitchPageSmall({ defaultPage, maxPage, page, onChange, 
   }, [page]);
 
   return (
-    <div className={`flex flex-row gap-3   font-bold justify-center items-center w-fit  ${className}`}>
+    <div className={`flex flex-row gap-1 font-bold justify-center items-center w-fit  ${className}`}>
       <button
         className={`${buttonClassName} ${page === 1 ? "text-gray-300" : "text-foreground hover:border-black cursor-pointer "}`}
         onClick={() => handleChange(page - 1)}
@@ -50,7 +50,8 @@ export default function SwitchPageSmall({ defaultPage, maxPage, page, onChange, 
           className="text-[1.5em] w-20 text-center outline-none
             [-moz-appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
           onKeyDown={(e) => e.key === "Enter" && handleChange(Number(pageNumber))}
-        ></input>
+        ></input>{" "}
+        <span className="font-normal text-[0.8em]">/{maxPage}</span>
       </label>
       <button
         className={` ${buttonClassName} ${page >= maxPage ? "text-gray-300" : "text-foreground hover:border-black cursor-pointer "}`}
