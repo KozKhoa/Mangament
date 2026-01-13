@@ -14,7 +14,7 @@ import CommentInput from "../inputs/comment-input";
 import CommentBox from "../boxs/comment-box";
 import Comment from "@/types/comment";
 
-interface RatingList {
+interface CommentListProps {
   story?: Story;
   storyNode?: StoryNode;
   userId?: string;
@@ -23,7 +23,7 @@ interface RatingList {
   className?: string;
 }
 
-export default function CommentList({ story, storyNode, elementPerPage = 5, className }: RatingList) {
+export default function CommentList({ story, storyNode, elementPerPage = 5, className }: CommentListProps) {
   const auth = useAuth();
   const user = auth?.user;
 

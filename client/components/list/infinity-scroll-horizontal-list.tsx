@@ -32,8 +32,8 @@ export default function InfinityScrollHorizontalList({
 
   const sliderRef = useRef<HTMLDivElement>(null);
 
-  const [endSliderRef, endSliderInView] = useInView({ threshold: 0.5 });
-  const [topSliderRef, topSliderInView] = useInView({ threshold: 0.5 });
+  const [endSliderRef, endSliderInView] = useInView({ threshold: 0.5, rootMargin: "0px" });
+  const [topSliderRef, topSliderInView] = useInView({ threshold: 0.5, rootMargin: "0px" });
 
   const [loading, setLoading] = useState(isLoading);
   const [noContent, setNoContent] = useState(isNoContent);

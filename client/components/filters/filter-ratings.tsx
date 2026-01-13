@@ -76,7 +76,7 @@ export default function FilterRatings({ value, onChange }: FilterRatingsProps) {
       closeButtonLabel="Reset"
       onClickCloseButton={resetAllField}
       icon={
-        <div className={`flex flex-row relative justify-start items-center gap-1.5 cursor-pointer w-fit text-foreground px-2 `}>
+        <div className={`flex flex-row relative justify-start items-center gap-1.5 p-0.5 cursor-pointer w-fit text-foreground px-2 `}>
           {
             <div className="flex flex-row flex-wrap gap-1.5 justify-center items-center w-fit h-fit">
               <StarIcon className="w-5 h-5 fill-background-items stroke-foreground"></StarIcon>

@@ -62,9 +62,8 @@ function ButtonDropdown({
 
   return (
     <div
-      className={`flex flex-col relative justify-center items-start p-[1]
-            text-foreground bg-background-items
-        h-fit w-fit ${className}`}
+      className={`flex flex-col relative justify-center items-start p-[1] text-foreground bg-background-items h-fit w-fit 
+        ${className}`}
       ref={dropdown}
     >
       {/* Main button */}
@@ -95,7 +94,7 @@ function ButtonDropdown({
             animate={{ height: "fit-content", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: duration / 1000, ease: "linear" }}
-            className={`relative z-10`}
+            className={`relative z-10 w-fit`}
           >
             <div
               ref={refs.setFloating}
@@ -105,7 +104,7 @@ function ButtonDropdown({
               `}
             >
               {/* List */}
-              <div className="flex flex-col gap-2.5 max-h-90 w-full h-full overflow-y-scroll no-scrollbar p-1">{children}</div>
+              <div className="flex flex-col gap-2.5 max-h-90 w-fit h-full overflow-y-scroll no-scrollbar p-1">{children}</div>
 
               <div className="flex flex-row w-full gap-2 justify-around">
                 {/* Accept button */}

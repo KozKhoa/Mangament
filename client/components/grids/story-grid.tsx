@@ -174,11 +174,7 @@ export default function StoryGrid({ label, storyType, elementsPerPage, className
       </div>
 
       {!isLoading && stories?.length !== undefined && stories?.length > 0 && (
-        <StoryInfoCard
-          className="hidden md:flex sticky top-16 bg-background-items"
-          story={stories?.at(storyIndex)}
-          newestChapter={newestChapter?.[storyIndex]}
-        ></StoryInfoCard>
+        <StoryInfoCard className="hidden md:flex sticky top-16 bg-background-items" story={stories?.at(storyIndex)}></StoryInfoCard>
       )}
     </div>
   );

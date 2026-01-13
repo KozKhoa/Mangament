@@ -45,19 +45,19 @@ export default function FilterSortStories({
   return (
     <div className={`flex flex-row flex-wrap gap-2 ${className}`}>
       {/* Sort */}
-      <SortStories onSort={updateParams}></SortStories>
+      {/* <SortStories onSort={updateParams}></SortStories> */}
 
       {/* Rating */}
-      <FilterRatings onFilter={updateParams} isReset={isResetAll}></FilterRatings>
+      {/* <FilterRatings onFilter={updateParams} isReset={isResetAll}></FilterRatings> */}
 
       {/* Genre */}
-      <FilterGenres onFilter={updateParams} isReset={isResetAll}></FilterGenres>
+      {/* <FilterGenres onFilter={updateParams} isReset={isResetAll}></FilterGenres> */}
 
       {/* Author */}
-      <FilterAuthors onFilter={updateParams} isReset={isResetAll}></FilterAuthors>
+      {/* <FilterAuthors onFilter={updateParams} isReset={isResetAll}></FilterAuthors> */}
 
       {/* View */}
-      <FilterViews onFilter={updateParams} isReset={isResetAll}></FilterViews>
+      {/* <FilterViews onFilter={updateParams} isReset={isResetAll}></FilterViews> */}
     </div>
   );
 }

@@ -78,7 +78,7 @@ export default function FilterGenres({ value, onChange }: FilterGenresProps) {
       icon={
         <div className={`flex flex-row relative justify-start items-center gap-1.5 cursor-pointer w-fit text-foreground px-2 `}>
           {
-            <div className="flex flex-row flex-wrap gap-1.5 justify-center items-center w-fit h-fit">
+            <div className="flex flex-row flex-wrap gap-1.5 justify-center items-center w-fit h-fit p-0.5">
               <LayerIcon className="w-5 h-5 text-foreground stroke-0"></LayerIcon>
               <p className="font-bold">Thể loại</p>
               <div className="flex flex-row flex-wrap gap-0.5">{GENRES?.map((genre, i) => genre.isChecked && <Tag key={genre.code}>{genre.label}</Tag>)}</div>
@@ -90,7 +90,7 @@ export default function FilterGenres({ value, onChange }: FilterGenresProps) {
         </div>
       }
     >
-      <div className="flex flex-col justify-start items-center gap-2.5 w-full h-fit">
+      <div className="grid grid-cols-2 gap-2.5 w-[300px] sm:w-[400px] lg:grid-cols-3 lg:w-[600px]">
         {GENRES?.map((genre, index) => (
           <div key={index} className="flex w-full h-fit justify-start items-center">
             <Checkbox defaultChecked={genre.isChecked} onChange={(isChecked) => (genre.isChecked = isChecked)}>

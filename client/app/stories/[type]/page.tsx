@@ -1,13 +1,16 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { ReadonlyURLSearchParams, useParams, useRouter, useSearchParams } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 
 import { snakeCaseToCapitalizeWord } from "@/utils/string";
 
 import Story from "@/types/story";
+import { Pagination } from "@/types/pagination";
 
 import storyService from "@/services/story";
+
+import XIcon from "@/public/x-icon.svg";
 
 import RecommendStories from "@/components/list/recommend-story";
 import { toast } from "sonner";
@@ -18,8 +21,6 @@ import StoryInfoCard from "@/components/cards/stories/story-info-card";
 
 import DEFAULT from "@/constants/default";
 
-import { StoryParams } from "@/types/params";
-import { Pagination } from "@/types/pagination";
 import SwitchPageSmall from "@/components/switch-page/small";
 import SortStories from "@/components/sorts/sort-stories";
 import FilterRatings, { TargetRating } from "@/components/filters/filter-ratings";
@@ -43,8 +44,8 @@ export default function StoriesPage() {
   const star = searchParams.get("star")?.split(",");
   const view = searchParams.get("view")?.split(",");
 
-  const [hoverStoryIndex, setHoverStoryIndex] = useState<number>(0);
   const [loading, setLoading] = useState(false);
+  const [hoverStoryIndex, setHoverStoryIndex] = useState<number>(0);
   const [stories, setStories] = useState<Story[] | null>(null);
   const [pagination, setPagination] = useState<Pagination>();
 
@@ -91,8 +92,8 @@ export default function StoriesPage() {
   );
 
   const handleResetSearchParams = useCallback(() => {
-    router.push(`?page=${page}`);
-  }, [page]);
+    router.push(`?page=1&sort=updated_at:desc`);
+  }, []);
 
   useEffect(() => {
     fetchStories();
@@ -134,6 +135,15 @@ export default function StoriesPage() {
               <FilterAuthors value={author ?? []} onChange={(authors) => handleNavigate("author", authors.join(","))}></FilterAuthors>
 
               <FilterViews value={(view ?? []) as TargetView[]} onChange={(view) => handleNavigate("view", view.join(","))}></FilterViews>
+
+              {searchParams.size > 1 && (
+                <div
+                  onClick={handleResetSearchParams}
+                  className="h-full my-auto w-fit flex justify-center items-center font-semibold gap-1 text-error cursor-pointer"
+                >
+                  <XIcon className="w-5 h-5 text-error"></XIcon> Xóa bộ lọc
+                </div>
+              )}
             </div>
             {loading ? (
               <Loading className="w-full h-64"></Loading>

@@ -37,6 +37,7 @@ function NavBar({ duration = 100, className }: NavBarProps) {
   const user = auth?.user;
 
   const [hidden, setHidden] = useState(false);
+  const [genres, setGenres] = useState<string[]>([]);
 
   const [openSidebar, setOpenSidebar] = useState(false);
   const lastScrollY = useRef(0);
@@ -45,8 +46,18 @@ function NavBar({ duration = 100, className }: NavBarProps) {
     setOpenSidebar(!openSidebar);
   }
 
+  async function fetchGenres() {
+    const res = await genreService.get();
+
+    if (!res.success) return toast.warning(res.message);
+
+    setGenres(res.data);
+  }
+
   useEffect(() => {
     const handleNavbarHidden = () => {
+      if (openSidebar) return;
+
       if (window.scrollY < 100) {
         setHidden(false);
         return;
@@ -62,6 +73,10 @@ function NavBar({ duration = 100, className }: NavBarProps) {
     window.addEventListener("scroll", handleNavbarHidden);
 
     return () => window.removeEventListener("scroll", handleNavbarHidden);
+  }, [openSidebar]);
+
+  useEffect(() => {
+    fetchGenres();
   }, []);
 
   useEffect(() => {
@@ -85,8 +100,18 @@ function NavBar({ duration = 100, className }: NavBarProps) {
           {/* Desktop */}
           <div className="hidden lg:flex flex-row justify-center items-center gap-5">
             <ButtonDropdown className="h-full" label="Random" onClick={() => router.push("/story/random")} />
-            <ButtonDropdown className="h-full" label="Lịch phát hành" />
             <ButtonDropdown className="h-full" label="Xếp hạng" onClick={() => router.push("/ranking")} />
+            <ButtonDropdown className="h-full" label="Thể loại">
+              <div className="grid grid-cols-2 gap-x-5 gap-y-1 w-[300px] sm:w-[400px] lg:grid-cols-3 lg:w-[600px]">
+                {genres &&
+                  genres.length > 0 &&
+                  genres.map((genre, i) => (
+                    <Link key={genre} href={`/genre/${genre}`} className="w-full text-start p-2 border-b hover:bg-foreground/30 rounded-t-md cursor-pointer">
+                      {snakeCaseToCapitalizeWord(genre)}
+                    </Link>
+                  ))}
+              </div>
+            </ButtonDropdown>
           </div>
         </div>
 
@@ -169,7 +194,22 @@ function NavBar({ duration = 100, className }: NavBarProps) {
                     <ButtonExpandable onClick={() => router.push("/ranking")} label="Xếp hạng" />
                   </li>
                   <li>
-                    <ButtonExpandable label="Lịch phát hành" />
+                    <ButtonExpandable label="Thể loại">
+                      <div className="flex flex-col gap-x-5 gap-y-1 w-full pt-1">
+                        {genres &&
+                          genres.length > 0 &&
+                          genres.map((genre, i) => (
+                            <Link
+                              key={genre}
+                              href={`/genre/${genre}`}
+                              className={`w-full text-start p-2 px-5  hover:bg-foreground/30 rounded-t-md cursor-pointer 
+                                ${i === genres.length - 1 ? "" : "border-b"}`}
+                            >
+                              {snakeCaseToCapitalizeWord(genre)}
+                            </Link>
+                          ))}
+                      </div>
+                    </ButtonExpandable>
                   </li>
                   <li>
                     <ButtonExpandable label="Cài đặt" />

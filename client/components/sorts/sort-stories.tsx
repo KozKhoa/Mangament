@@ -54,7 +54,7 @@ export default function SortStories({ onSort }: { onSort?: ({ sort }: { sort: st
   return (
     <ButtonDropdownRadio
       label={
-        <div className="flex flex-row flex-wrap gap-1.5 justify-center items-center w-fit h-fit">
+        <div className="flex flex-row flex-wrap gap-1.5 p-0.5 justify-center items-center w-fit h-fit">
           <SortIcon className="w-5 h-5 text-foreground stroke-0"></SortIcon>
           <p className="font-bold">Sắp xếp: </p>
           <div className="flex flex-row flex-wrap gap-2">{SORTS?.map((sort, i) => sort.isChecked && <p key={sort.code}>{sort.label}</p>)}</div>

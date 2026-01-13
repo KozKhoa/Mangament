@@ -16,8 +16,7 @@ import Story from "@/types/story";
 import StoryNode from "@/types/story-node";
 
 import Button from "@/components/buttons/button";
-import RatingList from "@/components/list/rating-list";
-import CommentList from "@/components/list/comment-list";
+
 import StoryNodeList from "@/components/list/story-node-list";
 import RecommendStories from "@/components/list/recommend-story";
 import StoryCardAllInfo from "@/components/cards/stories/story-card-all-info";

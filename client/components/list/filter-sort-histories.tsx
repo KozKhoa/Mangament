@@ -49,16 +49,16 @@ export default function FilterSortHistories({
       <SortTime onSort={updateParams}></SortTime>
 
       {/* Rating */}
-      <FilterRatings onFilter={updateParams} isReset={isResetAll}></FilterRatings>
+      {/* <FilterRatings onFilter={updateParams} isReset={isResetAll}></FilterRatings> */}
 
       {/* Genre */}
-      <FilterGenres onFilter={updateParams} isReset={isResetAll}></FilterGenres>
+      {/* <FilterGenres onFilter={updateParams} isReset={isResetAll}></FilterGenres> */}
 
       {/* Author */}
-      <FilterAuthors onFilter={updateParams} isReset={isResetAll}></FilterAuthors>
+      {/* <FilterAuthors onFilter={updateParams} isReset={isResetAll}></FilterAuthors> */}
 
       {/* View */}
-      <FilterViews onFilter={updateParams} isReset={isResetAll}></FilterViews>
+      {/* <FilterViews onFilter={updateP  arams} isReset={isResetAll}></FilterViews> */}
 
       {/* Story type */}
       <FilterStoryType onFilter={updateParams} isReset={isResetAll}></FilterStoryType>

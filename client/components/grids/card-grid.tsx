@@ -5,7 +5,6 @@ import { useEffect, useRef, useState } from "react";
 import Loading from "../loadings/loading";
 
 import { Params } from "@/types/params";
-import SortStories from "../sorts/sort-stories";
 
 import FilterAuthors from "../filters/filter-authors";
 import FilterGenres from "../filters/fiilter-genres";

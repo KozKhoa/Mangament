@@ -3,7 +3,7 @@
 import StoriesRankingList from "@/components/list/stories-ranking-list";
 import StoryList from "@/components/list/stories-list";
 import { useRouter } from "next/navigation";
-import RatingList from "@/components/list/rating-list";
+
 import InfinityScrollHorizontalList from "@/components/list/infinity-scroll-horizontal-list";
 import { useEffect, useRef, useState } from "react";
 

@@ -106,7 +106,7 @@ export default function RatingList({ story, elementPerPage = 5, className }: Rat
         <div className="flex flex-row flex-wrap justify-between items-center">
           <h3>{count} đánh giá khác</h3>
 
-          <FilterRatings onFilter={updateParams}></FilterRatings>
+          {/* <FilterRatings onFilter={updateParams}></FilterRatings> */}
         </div>
 
         {count ? (
