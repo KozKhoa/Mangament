@@ -189,7 +189,7 @@ export async function FindAllStories({
     pagination: {
       page: page,
       pageSize: limit,
-      totalPages: Math.floor(totalItems / limit),
+      totalPages: Math.ceil(totalItems / limit),
       totalItems: totalItems,
     },
   };
@@ -303,7 +303,7 @@ export async function UpdateStory(id, { title, type, view, summary, posterId, na
         if (!isUUID(authorId)) throw new Error("authorIds must be uuid[]");
 
         const author = await tx.author.findUnique({ where: { id: authorId } });
-        console.log(author);
+
         if (!author) throw new Error(`Author ${authorId} is not exist`);
       }
     }

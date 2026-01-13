@@ -77,7 +77,7 @@ export async function FindAllStoryNodes({ storyId, parentId, sort = { updated_at
     pagination: {
       page: page,
       pageSize: limit,
-      totalPages: Math.floor(totalItems / limit),
+      totalPages: Math.ceil(totalItems / limit),
       totalItems: totalItems,
     },
   };
@@ -136,7 +136,7 @@ export const AddStoryNode = async (data = { title, type, story_id, parent_id, or
         }),
         ...(data.content && { content: data.content }),
         title: data.title,
-        type: data.type || console.log(data.type),
+        type: data.type,
         order_index: data.order_index,
         number_of_children: data.number_of_children,
       },

@@ -10,35 +10,51 @@ const IsUserExist = async (where = { id, email }) => {
   return false;
 };
 
-export const FindAllUser = async (where = {}, orderBy = {}, take, skip) => {
-  try {
-    const result = await db.user.findMany({
-      where: {
-        is_deleted: false,
-        ...where,
+export async function FindAllUser({ gender = [], joinDate, role = [], birthday, page = 1, limit = 10, sort = { updated_at: "desc" } }) {
+  const where = {
+    is_deleted: false,
+
+    ...(role && role.length > 0 && { role: { in: role } }),
+    ...(birthday && { birthday: birthday }),
+    ...(joinDate && { join_date: joinDate }),
+    ...(gender && gender.length > 0 && { gender: { in: gender } }),
+  };
+
+  const users = await db.user.findMany({
+    where: where,
+
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      gender: true,
+      birthday: true,
+      join_date: true,
+      role: true,
+      avatar: {
+        select: { url: true, width: true, height: true },
       },
-      orderBy: [orderBy, { updated_at: "desc" }, { id: "desc" }],
-      take: take,
-      skip: skip,
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        gender: true,
-        birthday: true,
-        join_date: true,
-        role: true,
-        avatar: {
-          select: { url: true, width: true, height: true },
-        },
-      },
-    });
-    return { success: true, data: result };
-  } catch (error) {
-    console.error("❌ [User.Model.js] Error finding user:", error);
-    return { success: false, error: error.code };
-  }
-};
+    },
+
+    take: limit,
+    skip: (page - 1) * limit,
+
+    orderBy: [sort, { id: "asc" }],
+  });
+
+  const totalItems = await db.user.count({ where: where });
+
+  return {
+    success: true,
+    data: users,
+    pagination: {
+      page: page,
+      pageSize: limit,
+      totalPages: Math.ceil(totalItems / limit),
+      totalItems: totalItems,
+    },
+  };
+}
 
 export const FindUser = async (where = { id, email }) => {
   try {

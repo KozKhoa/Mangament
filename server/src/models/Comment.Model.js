@@ -50,7 +50,7 @@ export async function FindAllComments({ userId, storyId, storyNodeId, sort = { u
     pagination: {
       page: page,
       pageSize: limit,
-      totalPages: Math.floor(totalItems / limit),
+      totalPages: Math.ceil(totalItems / limit),
       totalItems: totalItems,
     },
   };
@@ -109,39 +109,6 @@ export async function AddComment({ userId, storyId, storyNodeId, message }) {
 
   return { success: true, data: newComment };
 }
-
-// export async function AddComment(data = { user_id, story_id, story_node_id, message }) {
-//   try {
-//     if (!data.story_id || !data.user_id || !data.message || !data.message.length === 0) return { success: false, data: null };
-
-//     const newComment = await db.comment.create({
-//       data: {
-//         user: {
-//           connect: {
-//             id: data.user_id,
-//           },
-//         },
-//         story: {
-//           connect: {
-//             id: data.story_id,
-//           },
-//         },
-//         ...(data.story_node_id && {
-//           story_node: {
-//             connect: {
-//               id: data.story_node_id,
-//             },
-//           },
-//         }),
-//         message: data.message,
-//       },
-//     });
-//     return { success: true, data: newComment };
-//   } catch (error) {
-//     console.error("❌ [User.Model.js] Error adding new comment: ", error);
-//     return { success: false, error: error.code };
-//   }
-// }
 
 export async function UpdateComment(where = { id }, data = { message }) {
   try {

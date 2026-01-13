@@ -1,16 +1,6 @@
 import db from "../configs/db.js";
 
 export async function FindAllRatings({ storyId, userId, star = [[0, 6]], sort = { updated_at: "desc" }, page = 1, limit = 10 }) {
-  if (storyId) {
-    const story = await db.story.findFirst({ where: { is_deleted: false, id: storyId } });
-    if (!story) throw new Error("Story not found");
-  }
-
-  if (userId) {
-    const user = await db.user.findFirst({ where: { is_deleted: false, id: userId } });
-    if (!user) throw new Error("User not found");
-  }
-
   const where = {
     is_deleted: false,
     ...(storyId && { story_id: storyId }),
@@ -45,7 +35,7 @@ export async function FindAllRatings({ storyId, userId, star = [[0, 6]], sort = 
     pagination: {
       page: page,
       pageSize: limit,
-      totalPages: Math.floor(totalItems / limit),
+      totalPages: Math.ceil(totalItems / limit),
       totalItems: totalItems,
     },
   };

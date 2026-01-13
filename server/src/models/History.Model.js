@@ -17,11 +17,6 @@ export async function FindAllReadingHistories({
 }) {
   if (!userId) return { success: false, message: "Missing user id" };
 
-  if (storyId) {
-    const story = await db.story.findFirst({ where: { is_deleted: false, id: storyId } });
-    if (!story) throw new Error("Story not found");
-  }
-
   const where = {
     is_deleted: false,
 
@@ -29,13 +24,12 @@ export async function FindAllReadingHistories({
 
     ...(storyId && { story_id: storyId }),
 
-    ...(fromDate ||
-      (toDate && {
-        updated_at: {
-          ...(fromDate && { gte: fromDate }),
-          ...(toDate && { lt: toDate }),
-        },
-      })),
+    ...((fromDate || toDate) && {
+      updated_at: {
+        ...(fromDate && { gte: fromDate }),
+        ...(toDate && { lt: toDate }),
+      },
+    }),
 
     story: {
       ...(type && type.length > 0 && { type: { in: type } }),
@@ -102,7 +96,7 @@ export async function FindAllReadingHistories({
     pagination: {
       page: page,
       pageSize: limit,
-      totalPages: Math.floor(totalItems / limit),
+      totalPages: Math.ceil(totalItems / limit),
       totalItems: totalItems,
     },
   };
