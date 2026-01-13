@@ -133,7 +133,7 @@ export async function PatchStoryNodeContent(req, res, next) {
       if (!story || !story.success || !story.data) throw CreateError(ErrorCodes.STORY_NOT_FOUND);
 
       // Get tree structure for the whole story node parents
-      const storyNodeTree = await GetParentStoryNodeTree(storyNode.data.parent_id);
+      const storyNodeTree = await GetParentStoryNodeTree(story.id, storyNode.data.parent_id);
 
       // Generate directory for image
       let newFolderPath = "";

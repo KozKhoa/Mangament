@@ -178,7 +178,7 @@ export const Logout = async (req, res, next) => {
 export const Refresh = async (req, res, next) => {
   try {
     const refreshToken = req.cookies[COOKIES_REFRESH_TOKEN_KEY]; // Get refreh token from cookies
-    if (!refreshToken) throw CreateError(ErrorCodes.TOKEN_NOT_FOUND);
+    if (!refreshToken) throw CreateError(ErrorCodes.TOKEN_INVALID);
 
     const { decodedToken, isExpire } = VerifyRefreshToken(refreshToken);
 

@@ -13,47 +13,52 @@ export function ValidateStoryNodeType(storyNodeType) {
   return storyNodeTypeList.includes(storyNodeType);
 }
 
-export const GetParentStoryNodeTree = async (story_node_id, isGettingContent = false) => {
-  if (!story_node_id) return null;
-  const node = await db.storyNode.findUnique({
-    where: { is_deleted: false, id: story_node_id },
+export const GetParentStoryNodeTree = async (storyId, storyNodeId, isGettingContent = false) => {
+  if (!storyId) throw new Error("Require story id");
+  if (!storyNodeId) throw new Error("Require story node id");
+
+  const nodes = await db.storyNode.findMany({
+    where: {
+      is_deleted: false,
+      story_id: storyId,
+    },
     select: {
       id: true,
+      story_id: true,
       parent_id: true,
-      title: true,
       type: true,
       order_index: true,
+      updated_at: true,
+      created_at: true,
       ...(isGettingContent && { content: true }),
     },
   });
-  if (!node) return null;
 
-  node.parent = await GetParentStoryNodeTree(node.parent_id, isGettingContent);
-  return node;
+  const map = new Map();
+  for (const node of nodes) {
+    map.set(node.id, { ...node, parent: null });
+  }
+
+  let node = map.get(storyNodeId);
+  while (node) {
+    map.get(node.id).parent = map.get(node.parent_id);
+    node = map.get(node.parent_id);
+  }
+
+  return map.get(storyNodeId);
 };
 
 export async function FindAllStoryNodes({ storyId, parentId, sort = { updated_at: "desc" } }, page = 1, limit = 10, isGettingChildren = false) {
-  if (storyId) {
-    const story = await db.story.findFirst({ where: { is_deleted: false, id: storyId } });
-    if (!story) throw new Error("Story not found");
-  }
-
-  if (parentId) {
-    const parent = await db.storyNode.findFirst({ where: { is_deleted: false, id: parentId } });
-    if (!parent) throw new Error("Story node's parent not found");
-  }
-
   const where = {
     is_deleted: false,
-    ...(storyId && { story_id: storyId }),
-    ...(parentId && { parent_id: parentId }),
+
+    ...(storyId && { story: { is_deleted: false, id: storyId } }),
+    ...(parentId && { parent: { is_deleted: false, id: parentId } }),
   };
 
   const storyNodes = await db.storyNode.findMany({
     where: where,
-
     orderBy: [sort, { id: "asc" }],
-
     take: limit,
     skip: (page - 1) * limit,
   });

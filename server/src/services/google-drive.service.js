@@ -1,4 +1,4 @@
-import drive from "../configs/google-drive-api";
+import drive from "../configs/google-drive-api.js";
 
 export async function listRoot() {
   const res = await drive.files.list({
