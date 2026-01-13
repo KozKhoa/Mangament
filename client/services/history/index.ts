@@ -1,7 +1,51 @@
-import remove from "./delete";
-import get from "./get";
-import post from "./post";
+import { HistoryParams } from "@/types/params";
+import api from "@/lib/axios";
+import axios from "axios";
+import qs from "qs";
+import History from "@/types/history";
+import { Pagination } from "@/types/pagination";
 
-const historyService = { get, post, remove };
+type ServiceResult<T> = { success: boolean; data?: T; message?: any; pagination?: Pagination };
+
+export async function getHistories(params: HistoryParams): Promise<ServiceResult<History[]>> {
+  try {
+    const res = await api.get("/users/me/histories", { params: params, paramsSerializer: (params) => qs.stringify(params, { arrayFormat: "comma" }) });
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    if (axios.isAxiosError(error)) {
+      return { success: false, message: error?.response?.data };
+    }
+    return { success: false, message: error };
+  }
+}
+
+export async function addHistory(storyId: string, storyNodeId: string): Promise<ServiceResult<History>> {
+  try {
+    const res = await api.post("/users/me/histories", { storyId, storyNodeId });
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    if (axios.isAxiosError(error)) {
+      return { success: false, message: error?.response?.data };
+    }
+    return { success: false, message: error };
+  }
+}
+
+export async function removeHistory(historyId: string): Promise<ServiceResult<History>> {
+  try {
+    const res = await api.delete(`/users/me/histories/${historyId}`);
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    if (axios.isAxiosError(error)) {
+      return { success: false, message: error?.response?.data };
+    }
+    return { success: false, message: error };
+  }
+}
+
+const historyService = { getHistories, addHistory, removeHistory };
 
 export default historyService;

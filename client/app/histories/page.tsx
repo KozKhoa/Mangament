@@ -28,6 +28,7 @@ import FilterStoryType from "@/components/filters/filter-story-type";
 import SortTime from "@/components/sorts/sort-time";
 import FilterSortHistories from "@/components/list/filter-sort-histories";
 import HistoryGrid from "@/components/grids/history-grid";
+import { Pagination } from "@/types/pagination";
 
 export default function FavouritePage() {
   const auth = useAuth();
@@ -40,27 +41,28 @@ export default function FavouritePage() {
   const [params, setParams] = useState<HistoryParams>(DEFAULT.params);
   const [histories, setHistories] = useState<History[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
+  const [pagination, setPagination] = useState<Pagination>();
 
   async function fetchHistories() {
     setLoading(true);
-    const res = await historyService.get({ ...params, ...{ page: 1 } });
+    const res = await historyService.getHistories({ ...params, ...{ page: 1 } });
 
-    if (!res) return toast.warning("Can not connect with server");
     if (!res.success) return toast.warning(res.message);
 
-    setHistories(res.data);
+    setHistories(res.data ?? []);
+    setPagination(res.pagination);
 
     setLoading(false);
   }
 
   async function fetchMoreHistories(page: number) {
     setLoading(true);
-    const res = await historyService.get({ ...params, ...{ page: page } });
+    const res = await historyService.getHistories({ ...params, ...{ page: page } });
 
     if (!res) return toast.warning("Can not connect with server");
     if (!res.success) return toast.warning(res.message);
 
-    setHistories((prevHis) => [...prevHis, ...res.data]);
+    setHistories((prevHis) => [...prevHis, ...(res.data ?? [])]);
 
     setLoading(false);
   }
@@ -79,7 +81,11 @@ export default function FavouritePage() {
       {user ? (
         <>
           <HistoryGrid
-            label="Lịch sử xem"
+            label={
+              <>
+                Lịch sử đọc <span className="text-[0.6em] font-normal text-center h-full">({pagination?.totalItems})</span>
+              </>
+            }
             isLoading={loading}
             onScrollToEnd={() => {
               fetchMoreHistories(++page.current);

@@ -155,7 +155,7 @@ export default function StoryNodeReading() {
   }
 
   async function updateReadingHistory(storyId: string, storyNodeId: string) {
-    const res = await historyService.post(storyId, storyNodeId);
+    const res = await historyService.addHistory(storyId, storyNodeId);
 
     if (!res) return toast.warning("Cannot connect with server");
     if (!res.success) return toast.warning(res.message);

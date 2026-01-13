@@ -30,7 +30,7 @@ export default function Home() {
   const [bestRankingStories, setBestRankingStories] = useState<Story[]>([]);
 
   async function fetchHistories() {
-    const res = await historyService.get({
+    const res = await historyService.getHistories({
       ...DEFAULT.params,
       ...{ page: 1, limit: 20 },
     });
@@ -38,7 +38,7 @@ export default function Home() {
     if (!res) return toast.warning("Server error");
     if (!res.success) return toast.warning(res.message);
 
-    setHistories(res.data);
+    setHistories(res.data ?? []);
   }
 
   async function fetchNewestStories() {

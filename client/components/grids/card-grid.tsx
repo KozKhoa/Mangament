@@ -27,7 +27,7 @@ export default function CardGrid({
   onScrollToEnd,
   className,
 }: {
-  label: string;
+  label: string | React.ReactNode;
 
   className?: string;
   isLoading?: boolean;
@@ -74,7 +74,8 @@ export default function CardGrid({
       {/* Main grid with sort */}
       <div className="flex flex-col gap-2 justify-start items-center py-2 w-full">
         {/* Sort and fiter */}
-        <FilterSort className="w-full" onChange={setParams} isResetAll={isResetFilterSort}></FilterSort>
+
+        {/* <FilterSort className="w-full" onChange={setParams} isResetAll={isResetFilterSort}></FilterSort> */}
 
         <div ref={parentRef}>
           {children && children.length > 0 ? (

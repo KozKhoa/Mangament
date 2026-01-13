@@ -33,7 +33,6 @@ export default function StoriesPage() {
   const router = useRouter();
   const params = useParams();
   const searchParams = useSearchParams();
-  const urlSearchParams = new URLSearchParams(searchParams);
 
   const storyType = params?.type?.toString() ?? "";
 
@@ -44,6 +43,7 @@ export default function StoriesPage() {
   const star = searchParams.get("star")?.split(",");
   const view = searchParams.get("view")?.split(",");
 
+  const [hoverStoryIndex, setHoverStoryIndex] = useState<number>(0);
   const [loading, setLoading] = useState(false);
   const [stories, setStories] = useState<Story[] | null>(null);
   const [pagination, setPagination] = useState<Pagination>();
@@ -110,7 +110,7 @@ export default function StoriesPage() {
           >
             {/* Story type */}
             <h2 className="text-[2em] font-bold cursor-pointer" onClick={() => router.push(`/stories/${storyType}`)}>
-              {snakeCaseToCapitalizeWord(storyType)} <span className="text-[0.7em] font-normal text-center h-full">({pagination?.totalItems})</span>
+              {snakeCaseToCapitalizeWord(storyType)} <span className="text-[0.6em] font-normal text-center h-full">({pagination?.totalItems})</span>
             </h2>
             <div className="flex flex-row flex-wrap justify-start items-center gap-2 text-[1.2em] font-bold">
               {/* Switch page */}
@@ -135,7 +135,6 @@ export default function StoriesPage() {
 
               <FilterViews value={(view ?? []) as TargetView[]} onChange={(view) => handleNavigate("view", view.join(","))}></FilterViews>
             </div>
-
             {loading ? (
               <Loading className="w-full h-64"></Loading>
             ) : stories?.length !== undefined && stories?.length > 0 ? (
@@ -146,7 +145,7 @@ export default function StoriesPage() {
                 "
               >
                 {stories.map((story, i) => (
-                  <div key={story.id}>
+                  <div key={story.id} onMouseOver={() => setHoverStoryIndex(i)}>
                     <StoryCard className="bg-background-items" data={story}></StoryCard>
                   </div>
                 ))}
@@ -167,11 +166,11 @@ export default function StoriesPage() {
         </div>
 
         {!loading && stories?.length !== undefined && stories?.length > 0 && (
-          <StoryInfoCard className="hidden md:flex sticky top-16 bg-background-items"></StoryInfoCard>
+          <StoryInfoCard story={stories[hoverStoryIndex ?? 0]} className="hidden md:flex sticky top-16 bg-background-items"></StoryInfoCard>
         )}
       </div>
 
-      {/* <RecommendStories className="max-w-[1800] mx-auto"></RecommendStories> */}
+      <RecommendStories className="max-w-[1800] mx-auto"></RecommendStories>
     </div>
   );
 }

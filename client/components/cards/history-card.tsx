@@ -13,7 +13,7 @@ import EyeIcon from "@/public/eye/open.svg";
 import { beautifulView } from "@/utils/beautiful";
 
 async function removeHistory(historId: string) {
-  const res = await historyService.remove(historId);
+  const res = await historyService.removeHistory(historId);
 
   if (!res) return toast.warning("Cannot connect with server");
   if (!res.success) return toast.warning(res.message);

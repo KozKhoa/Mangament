@@ -5,16 +5,24 @@ import { capitalizeFirstChar, capitalizeWords } from "@/utils/string";
 import StatusTag from "@/components/tags/status-tag";
 import Tag from "@/components/tags/tag";
 import GenreTag from "@/components/tags/genre-tag";
+import { useEffect, useState } from "react";
+import { convertNewestChapter } from "@/utils/convert";
 
 interface StoryInfoCardProps {
   story?: Story;
-  newestChapter?: NewestChapter[];
+
   className?: string;
 }
 
-export default function StoryInfoCard({ story, newestChapter, className }: StoryInfoCardProps) {
+export default function StoryInfoCard({ story, className }: StoryInfoCardProps) {
   const labelClassName = "text-[1em] font-bold italic opacity-80";
   const subContainerClassName = "flex flex-row gap-1 justify-center items-center w-fit";
+
+  const [newestChapter, setNewestChapter] = useState<NewestChapter[]>([]);
+
+  useEffect(() => {
+    setNewestChapter(convertNewestChapter(story?.newest_chapter ?? []));
+  }, [story]);
 
   return (
     <div
