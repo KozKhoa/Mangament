@@ -270,13 +270,14 @@ function NavBar({ duration = 100, className }: NavBarProps) {
         {path.map((p, i) => (
           <div key={i}>
             {i !== 0 && p && (
-              <p
+              <Link
+                href={path.slice(0, i + 1).join("/")}
                 className={`w-fit bg-foreground/10 cursor-pointer p-0.5 px-4 m-0.5 hover:bg-foreground/20
                   ${i === 1 ? "rounded-l-md" : ""}
                   ${i === path.length - 1 ? "rounded-r-md" : ""}`}
               >
                 {snakeCaseToCapitalizeWord(decodeURIComponent(p))}
-              </p>
+              </Link>
             )}
           </div>
         ))}

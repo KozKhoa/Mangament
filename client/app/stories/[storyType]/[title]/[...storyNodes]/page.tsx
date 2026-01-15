@@ -27,78 +27,75 @@ import StoryNodeList from "@/components/list/story-node-list";
 import RecommendStories from "@/components/list/recommend-story";
 import FontSelection from "@/components/selections/font-selection";
 
-import { sleep } from "@/utils/others";
 import { capitalizeWords, snakeCaseToCapitalizeWord } from "@/utils/string";
 import historyService from "@/services/history";
 import ButtonOfFavouriteStory from "@/components/buttons/favourite-button";
 import useAuth from "@/contexts/AuthContext";
 
-function getParams(params: Params) {
-  const storyId = Array.isArray(params.id) ? params.id[0] : params.id ?? "";
-  const storyType = Array.isArray(params.type) ? params.type[0] : params.type ?? "";
+function buildStoryNodeParent(tree: StoryNode[], targetNodeId: string) {
+  const parentList: StoryNode[] = [];
 
-  const storyParams = { id: storyId, type: storyType };
-
-  const segments = params.segments;
-
-  const storyNodeParams: StoryNode[] = [];
-
-  let temp: StoryNode;
-  if (Array.isArray(segments))
-    segments?.forEach((seg, i) => {
-      if (i % 3 === 0) {
-        temp = { type: seg, id: "", order_index: 0, story_id: storyId };
-      } else if (i % 3 === 1) {
-        temp.order_index = Number(seg);
-      } else {
-        temp.id = seg;
-        storyNodeParams.push(temp);
+  function dfs(tree: StoryNode[]): boolean {
+    for (const node of tree) {
+      if (node.id === targetNodeId) {
+        parentList.push(node);
+        return true;
       }
-    });
 
-  return { storyParams, storyNodeParams };
+      parentList.push(node);
+
+      const isFound = dfs(node.children ?? []);
+      if (isFound) return true;
+
+      parentList.pop();
+    }
+
+    return false;
+  }
+
+  dfs(tree);
+
+  return parentList;
 }
 
-// Use to get the next chapter in story node tree
-function getNextChapter(storyNode?: StoryNode[], currentChapter?: StoryNode): StoryNode | null {
-  let isAtCurrentChapter = false;
+function findPrevChapter(tree: StoryNode[], targetNodeId: string): StoryNode | null {
+  let prevChapter: StoryNode | null = null;
 
-  function dfs(storyNode?: StoryNode[], currentChapter?: StoryNode): StoryNode | null {
-    if (!storyNode || !storyNode.length) return null;
+  function dfs(tree: StoryNode[]): StoryNode | null {
+    for (const node of tree) {
+      if (node.id === targetNodeId) {
+        return prevChapter;
+      }
 
-    for (const node of storyNode) {
-      if (isAtCurrentChapter && node.type === "chapter") return node;
-      if (node.id === currentChapter?.id) isAtCurrentChapter = true;
+      if (node.type === "chapter") prevChapter = node;
 
-      const nextChapter = dfs(node.children, currentChapter);
-      if (nextChapter) return nextChapter;
+      const found = dfs(node.children ?? []);
+      if (found) return found;
     }
 
     return null;
   }
 
-  return dfs(storyNode, currentChapter);
+  return dfs(tree);
 }
 
-// Use to get the prev chapter in story node tree
-function getPreviousChapter(storyNode?: StoryNode[], currentChapter?: StoryNode): StoryNode | null {
-  let previousChapter: StoryNode | null = null;
+function findNextChapter(tree: StoryNode[], targetNodeId: string): StoryNode | null {
+  let isFoundTargetId = false;
 
-  function dfs(storyNode?: StoryNode[], currentChapter?: StoryNode): StoryNode | null {
-    if (!storyNode || !storyNode.length) return null;
+  function dfs(tree: StoryNode[]): StoryNode | null {
+    for (const node of tree) {
+      if (isFoundTargetId && node.type === "chapter") return node;
 
-    for (const node of storyNode) {
-      if (node.id === currentChapter?.id) return previousChapter;
-      if (node.type === "chapter") previousChapter = node;
+      if (node.id === targetNodeId) isFoundTargetId = true;
 
-      const prevChapter = dfs(node.children, currentChapter);
-      if (prevChapter) return prevChapter;
+      const found = dfs(node.children ?? []);
+      if (found) return found;
     }
 
     return null;
   }
 
-  return dfs(storyNode, currentChapter);
+  return dfs(tree);
 }
 
 export default function StoryNodeReading() {
@@ -127,8 +124,6 @@ export default function StoryNodeReading() {
 
   const { storyType, storyTitle, storyNodes } = getParams();
 
-  const currentStoryNode = storyNodes.at(-1);
-
   const [storyId, setStoryId] = useState("");
   const [story, setStory] = useState<Story>();
 
@@ -138,15 +133,15 @@ export default function StoryNodeReading() {
 
   const content = storyNode?.content;
 
-  async function fetchStoryNode() {
+  const fetchStoryNode = useCallback(async () => {
     const res = await storyNodeService.getStoryNodeById(storyNodeId, { isGettingContent: true });
 
     if (!res.success) toast.warning(res.message);
 
     setStoryNode(res.data);
-  }
+  }, [storyNodeId]);
 
-  async function fetchStory() {
+  const fetchStory = useCallback(async () => {
     const res = await storyService.getStoryByTitle(storyTitle ?? "", { isGettingChildren: true });
 
     if (!res.success) toast.warning(res.message);
@@ -169,7 +164,7 @@ export default function StoryNodeReading() {
 
     const storyNodeId = currentStoryNode?.id ?? "";
     setStoryNodeId(storyNodeId);
-  }
+  }, [storyTitle, storyNodes]);
 
   async function updateOneViewForStoryNode(storyNodeId: string) {
     const res = await storyNodeService.addOneView(storyNodeId);
@@ -177,25 +172,35 @@ export default function StoryNodeReading() {
     if (!res.success) toast.warning(res.message);
   }
 
-  async function updateReadingHistory(storyId: string, storyNodeId: string) {
+  const updateReadingHistory = useCallback(async () => {
     const res = await historyService.addHistory(storyId, storyNodeId);
 
-    if (!res) return toast.warning("Cannot connect with server");
     if (!res.success) return toast.warning(res.message);
 
     return res.data;
+  }, [storyId, storyNodeId]);
+
+  function handleNavigateStoryNode(storyNodes?: StoryNode[]) {
+    if (!storyNodes || storyNodes?.at(-1)?.type !== "chapter") return;
+
+    const routeDir = storyNodes.map((node) => `${node.type} ${node.order_index}`).join("/");
+
+    router.push(`/stories/${story?.type}/${story?.title}/${routeDir}`);
   }
 
-  function handleNavigateStoryNode(storyNode?: StoryNode) {
-    if (!storyNode || storyNode.type !== "chapter") return;
+  const goToPrevChapter = useCallback(() => {
+    const prevChapter = findPrevChapter(story?.children ?? [], storyNodeId);
+    if (!prevChapter) return;
+    const storyNodes = buildStoryNodeParent(story?.children ?? [], prevChapter.id);
+    handleNavigateStoryNode(storyNodes);
+  }, [storyNodeId, story]);
 
-    let routeDir = "";
-
-    const newParams = [...storyNodes.slice(0, -1).map((node) => `${node.storyNodeType} ${node.orderIndex}`), `${storyNode.type} ${storyNode.order_index}`];
-
-    newParams.forEach((node, i) => (routeDir = path.join(routeDir, node)));
-    router.push(`/stories/${story?.type}/${story?.title}/${routeDir.replace(/\\/g, "/")}`);
-  }
+  const goToNextChapter = useCallback(() => {
+    const nextChapter = findNextChapter(story?.children ?? [], storyNodeId);
+    if (!nextChapter) return;
+    const storyNodes = buildStoryNodeParent(story?.children ?? [], nextChapter.id);
+    handleNavigateStoryNode(storyNodes);
+  }, [storyNodeId, story]);
 
   useEffect(() => {
     if (!storyNodeId) return;
@@ -203,7 +208,7 @@ export default function StoryNodeReading() {
 
     const timer = setTimeout(() => {
       updateOneViewForStoryNode(storyNodeId);
-      if (auth?.user) updateReadingHistory(storyId, storyNodeId);
+      if (auth?.user) updateReadingHistory();
     }, 10000);
 
     return () => clearTimeout(timer);
@@ -237,13 +242,15 @@ export default function StoryNodeReading() {
           </div>
         </div>
         <div className="flex flex-row gap-3 justify-center items-center">
-          <div onClick={() => handleNavigateStoryNode(getPreviousChapter(story?.children, storyNode) ?? undefined)}>
+          <div onClick={goToPrevChapter}>
             <ArrowLeftIcon className="w-6 h-6 cursor-pointer"></ArrowLeftIcon>
           </div>
+
           <h3 className=" cursor-pointer" onClick={() => setOpenStoryNodeList(!openStoryNodeList)}>
             {capitalizeWords(storyNode?.type ?? "")} {storyNode?.order_index}
           </h3>
-          <div onClick={() => handleNavigateStoryNode(getNextChapter(story?.children, storyNode) ?? undefined)}>
+
+          <div onClick={goToNextChapter}>
             <ArrowRightIcon className="w-6 h-6 cursor-pointer"></ArrowRightIcon>
           </div>
         </div>
@@ -258,7 +265,7 @@ export default function StoryNodeReading() {
             >
               <StoryNodeList
                 className="shadow-2xs"
-                onClickItem={(nodeList) => handleNavigateStoryNode(nodeList.at(nodeList.length - 1))}
+                onClickItem={(nodeList) => handleNavigateStoryNode(nodeList)}
                 storyNodes={story?.children}
                 size={story?.number_of_chidren}
               ></StoryNodeList>
@@ -327,10 +334,10 @@ export default function StoryNodeReading() {
 
         {/* Button switch page */}
         <div className="grid grid-cols-2 flex-wrap justify-center items-center gap-2 px-2 max-w-96 m-auto">
-          <div className="flex-1" onClick={() => handleNavigateStoryNode(getPreviousChapter(story?.children, storyNode) ?? undefined)}>
+          <div className="flex-1" onClick={goToPrevChapter}>
             <Button className="font-semibold w-full">Chapter trước</Button>
           </div>
-          <div className="flex-1" onClick={() => handleNavigateStoryNode(getNextChapter(story?.children, storyNode) ?? undefined)}>
+          <div className="flex-1" onClick={goToNextChapter}>
             <Button className="font-semibold w-full">Chapter sau</Button>
           </div>
         </div>
