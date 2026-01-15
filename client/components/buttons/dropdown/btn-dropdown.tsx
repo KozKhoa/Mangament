@@ -36,7 +36,7 @@ function ButtonDropdown({
   const dropdown = useRef<HTMLDivElement>(null);
 
   const { refs, floatingStyles } = useFloating({
-    middleware: [offset(10), flip(), shift()],
+    middleware: [offset(10), flip(), shift({ padding: 10 })],
   });
 
   // Use to catch event clicking outside
@@ -99,12 +99,12 @@ function ButtonDropdown({
             <div
               ref={refs.setFloating}
               style={floatingStyles}
-              className={`flex absolute bg-background-items flex-col justify-center items-start w-fit h-fit rounded-[5] min-w-64
+              className={`flex absolute bg-background-items flex-col justify-center items-start w-fit h-fit rounded-[5]
                 border-2 border-foreground p-2.5 gap-2.5 shadow-[11px_13px_5px_rgba(0,0,0,0.3)]
               `}
             >
               {/* List */}
-              <div className="flex flex-col gap-2.5 max-h-90 w-fit h-full overflow-y-scroll no-scrollbar p-1">{children}</div>
+              <div className="flex flex-col gap-2.5 max-h-[60vh] w-fit h-full overflow-y-scroll no-scrollbar p-1 min-w-64">{children}</div>
 
               <div className="flex flex-row w-full gap-2 justify-around">
                 {/* Accept button */}

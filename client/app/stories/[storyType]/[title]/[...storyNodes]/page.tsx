@@ -4,7 +4,7 @@ import path from "path";
 import { toast } from "sonner";
 import { useParams } from "next/navigation";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Params } from "next/dist/server/request/params";
 
@@ -31,6 +31,7 @@ import { sleep } from "@/utils/others";
 import { capitalizeWords, snakeCaseToCapitalizeWord } from "@/utils/string";
 import historyService from "@/services/history";
 import ButtonOfFavouriteStory from "@/components/buttons/favourite-button";
+import useAuth from "@/contexts/AuthContext";
 
 function getParams(params: Params) {
   const storyId = Array.isArray(params.id) ? params.id[0] : params.id ?? "";
@@ -101,57 +102,79 @@ function getPreviousChapter(storyNode?: StoryNode[], currentChapter?: StoryNode)
 }
 
 export default function StoryNodeReading() {
+  const app = useApp();
+  const auth = useAuth();
+
   const params = useParams();
   const router = useRouter();
 
-  const app = useApp();
+  const getParams = useCallback(() => {
+    const storyType = decodeURIComponent(params.storyType?.toString() ?? "");
+    const storyTitle = decodeURIComponent(params.title?.toString() ?? "");
+    const storyNodes = Array.isArray(params.storyNodes)
+      ? params.storyNodes.map((node) => {
+          const splitNode = decodeURIComponent(node).split(" ");
+          return {
+            storyNodeId: "",
+            storyNodeType: splitNode[0],
+            orderIndex: Number(splitNode[1]),
+          };
+        })
+      : [];
 
-  const { storyParams, storyNodeParams } = getParams(params);
+    return { storyType, storyTitle, storyNodes };
+  }, [params]);
 
-  const { id: storyNodeId } = storyNodeParams[storyNodeParams.length - 1];
-  const storyId = storyParams.id;
+  const { storyType, storyTitle, storyNodes } = getParams();
 
+  const currentStoryNode = storyNodes.at(-1);
+
+  const [storyId, setStoryId] = useState("");
   const [story, setStory] = useState<Story>();
+
+  const [storyNodeId, setStoryNodeId] = useState("");
   const [storyNode, setStoryNode] = useState<StoryNode>();
   const [openStoryNodeList, setOpenStoryNodeList] = useState<boolean>(false);
-  const [favouriteId, setFavouriteId] = useState<string>(story?.favourite ? story.favourite.id : "");
 
   const content = storyNode?.content;
 
   async function fetchStoryNode() {
-    const res = await storyNodeService.getStoryNode({ id: storyNodeId, isGettingContent: true });
+    const res = await storyNodeService.getStoryNodeById(storyNodeId, { isGettingContent: true });
 
-    if (!res) return toast.warning("Cannot connect with server");
     if (!res.success) toast.warning(res.message);
 
     setStoryNode(res.data);
   }
 
   async function fetchStory() {
-    const res = await storyService.getStory({ id: storyId, isGettingChildren: true });
+    const res = await storyService.getStoryByTitle(storyTitle ?? "", { isGettingChildren: true });
 
-    if (!res) return toast.warning("Cannot connect with server");
     if (!res.success) toast.warning(res.message);
 
     setStory(res.data);
-  }
+    setStoryId(res.data?.id ?? "");
 
-  async function updateOneViewForStory(storyId: string) {
-    const res = await storyService.addOneView(storyId);
+    let children = res.data?.children ?? [];
 
-    if (!res) return toast.warning("Cannot connect with server");
-    if (!res.success) toast.warning(res.message);
-
-    return res.data;
-  }
-
-  async function updateOneViewForStoryNode(storyNode: StoryNode[]) {
-    for (const node of storyNode) {
-      const res = await storyNodeService.addOneView(node.id);
-
-      if (!res) return toast.warning("Cannot connect with server");
-      if (!res.success) toast.warning(res.message);
+    let currentStoryNode: StoryNode | null = null;
+    for (const node of storyNodes) {
+      for (const child of children) {
+        if (node.storyNodeType === child.type && node.orderIndex === child.order_index) {
+          currentStoryNode = child;
+          children = child.children ?? [];
+          break;
+        }
+      }
     }
+
+    const storyNodeId = currentStoryNode?.id ?? "";
+    setStoryNodeId(storyNodeId);
+  }
+
+  async function updateOneViewForStoryNode(storyNodeId: string) {
+    const res = await storyNodeService.addOneView(storyNodeId);
+
+    if (!res.success) toast.warning(res.message);
   }
 
   async function updateReadingHistory(storyId: string, storyNodeId: string) {
@@ -168,43 +191,42 @@ export default function StoryNodeReading() {
 
     let routeDir = "";
 
-    const newParams = [...storyNodeParams.slice(0, -1), storyNode];
+    const newParams = [...storyNodes.slice(0, -1).map((node) => `${node.storyNodeType} ${node.orderIndex}`), `${storyNode.type} ${storyNode.order_index}`];
 
-    newParams.forEach((node, i) => (routeDir = path.join(routeDir, node.type, node.order_index.toString(), node.id)));
-    router.push(`/story/${story?.type}/${story?.id}/${routeDir.replace(/\\/g, "/")}`);
+    newParams.forEach((node, i) => (routeDir = path.join(routeDir, node)));
+    router.push(`/stories/${story?.type}/${story?.title}/${routeDir.replace(/\\/g, "/")}`);
   }
 
   useEffect(() => {
+    if (!storyNodeId) return;
     fetchStoryNode();
-    fetchStory();
-    updateOneViewForStory(storyParams?.id);
 
     const timer = setTimeout(() => {
-      updateOneViewForStoryNode(storyNodeParams);
-      updateReadingHistory(storyParams.id, storyNodeId);
+      updateOneViewForStoryNode(storyNodeId);
+      if (auth?.user) updateReadingHistory(storyId, storyNodeId);
     }, 10000);
 
-    window.scrollTo({ top: 0, behavior: "smooth" });
-
     return () => clearTimeout(timer);
-  }, []);
+  }, [storyNodeId]);
 
   useEffect(() => {
-    setFavouriteId(story?.favourite ? story.favourite.id : "");
-  }, [story]);
+    fetchStory();
+
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
 
   return (
     <div className="flex flex-col gap-5">
       {/* Header - Story title  */}
       <div className="flex flex-row flex-wrap justify-around gap-2">
         <div>
-          <h3 onClick={() => router.push(`/story/${story?.type}/${story?.id}`)} className="font-bold cursor-pointer">
+          <h3 onClick={() => router.push(`/story/${story?.type}/${story?.title}`)} className="font-bold cursor-pointer">
             [{snakeCaseToCapitalizeWord(story?.type ?? "")}] {story?.title}
           </h3>
           <div className="flex flex-row flex-wrap gap-1 text-foreground">
-            {storyNodeParams.map((node, i) => (
+            {storyNodes.map((node, i) => (
               <h4 key={i}>
-                {capitalizeWords(node.type)} {node.order_index} {i < storyNodeParams.length - 1 && "➤"}
+                {capitalizeWords(node.storyNodeType)} {node.orderIndex} {i < storyNodes.length - 1 && "➤"}
               </h4>
             ))}
             <h4>:{storyNode?.title} Tiêu đề</h4>
@@ -246,9 +268,9 @@ export default function StoryNodeReading() {
       </div>
 
       {/* Button favourite, download */}
-      <div className="flex flex-row flex-wrap justify-center items-center gap-5">
-        <ButtonOfFavouriteStory></ButtonOfFavouriteStory>
-        <Button>Tải về</Button>
+      <div className="grid grid-cols-2 flex-wrap justify-center items-center gap-2 px-2 max-w-96 m-auto">
+        <ButtonOfFavouriteStory story={story} className="w-full"></ButtonOfFavouriteStory>
+        <Button className="font-semibold w-full">Tải về</Button>
       </div>
 
       {/* Main content */}
@@ -304,12 +326,12 @@ export default function StoryNodeReading() {
         </div>
 
         {/* Button switch page */}
-        <div className="flex flex-row gap-2">
+        <div className="grid grid-cols-2 flex-wrap justify-center items-center gap-2 px-2 max-w-96 m-auto">
           <div className="flex-1" onClick={() => handleNavigateStoryNode(getPreviousChapter(story?.children, storyNode) ?? undefined)}>
-            <Button className="text-[1.1em] w-full">Chapter trước</Button>
+            <Button className="font-semibold w-full">Chapter trước</Button>
           </div>
           <div className="flex-1" onClick={() => handleNavigateStoryNode(getNextChapter(story?.children, storyNode) ?? undefined)}>
-            <Button className="text-[1.1em] w-full">Chapter sau</Button>
+            <Button className="font-semibold w-full">Chapter sau</Button>
           </div>
         </div>
       </div>

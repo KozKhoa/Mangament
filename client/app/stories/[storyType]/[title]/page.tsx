@@ -22,28 +22,18 @@ import RecommendStories from "@/components/list/recommend-story";
 import StoryCardAllInfo from "@/components/cards/stories/story-card-all-info";
 import ButtonOfFavouriteStory from "@/components/buttons/favourite-button";
 
-function getParams(params: Params) {
-  const rawType = params?.type;
-  const type = Array.isArray(rawType) ? rawType[0] : rawType ?? "";
-
-  const rawId = params?.id;
-  const id = Array.isArray(rawId) ? rawId[0] : rawId ?? "";
-
-  return { type, id };
-}
-
 export default function StoryDetailPage() {
   const router = useRouter();
   const params = useParams();
-  const auth = useAuth();
-  const user = auth?.user;
 
-  const { type, id } = getParams(params);
+  const storyType = params.storyType?.toString();
+  const title = params.title?.toString();
+
   const [story, setStory] = useState<Story>();
   const [review, setReview] = useState<string[]>();
 
   async function fetchStory() {
-    const res = await storyService.getStory({ id: id, isGettingChildren: true, isGettingSummary: true, type: type });
+    const res = await storyService.getStoryByTitle(title ?? "", { isGettingChildren: true, isGettingSummary: true, type: storyType });
 
     if (!res.success) return toast.warning(res.message);
 
@@ -63,8 +53,8 @@ export default function StoryDetailPage() {
     if (storyNode[storyNode.length - 1].type !== "chapter") return;
 
     let routeDir = "";
-    storyNode.forEach((node, i) => (routeDir = path.join(routeDir, node.type, node.order_index.toString(), node.id)));
-    router.push(path.join(`/story/${type}/${id}/`, routeDir));
+    storyNode.forEach((node, i) => (routeDir = path.join(routeDir, `${node.type} ${node.order_index}`)));
+    router.push(path.join(`/stories/${storyType}/${title}/`, routeDir));
   }
 
   useEffect(() => {

@@ -29,14 +29,12 @@ export default function RootLayout({
         px-1 text-size-default font-afacad bg-background relative max-w-[1700] m-auto
         `}
       >
-        <s></s>
         <AppProvider>
           <AuthProvider>
             <ThemeProvider attribute="class" defaultTheme="system" enableSystem={true}>
               <NavBar className="fixed left-2.5 right-2.5"></NavBar>
-              <div className="h-16"></div>
 
-              <div className="max-w-[1700px] m-auto">{children}</div>
+              <div className="max-w-[1700px] m-auto transition-all duration-300">{children}</div>
 
               <Footer></Footer>
 

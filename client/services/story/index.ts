@@ -5,23 +5,35 @@ import { StoryParams } from "@/types/params";
 import Story from "@/types/story";
 
 type Pagination = { page: number; pageSize: number; totalItems: number; totalPages: number };
-type ServiceResult<T> = { success: boolean; data?: T; message?: any; pagination?: Pagination };
+type ServiceResult<T> = { success: boolean; data?: T; message?: string; pagination?: Pagination };
 
-export async function getStory(params: StoryParams): Promise<ServiceResult<Story>> {
+export async function getStoryById(storyId: string, params: StoryParams): Promise<ServiceResult<Story>> {
   try {
-    if (!params.id) throw new Error("Require id");
+    if (!storyId) throw new Error("Require id");
 
-    const res = await api.get(`/stories/${params.id}`, {
+    const res = await api.get(`/stories/${storyId}`, {
       params: params,
       paramsSerializer: (params) => qs.stringify(params, { arrayFormat: "comma" }),
     });
     return res.data;
   } catch (error) {
     console.log(error);
-    if (axios.isAxiosError(error)) {
-      return { success: false, message: error?.response?.data };
-    }
-    return { success: false, message: error };
+    return { success: false, message: error?.toString() };
+  }
+}
+
+export async function getStoryByTitle(title: string, params: StoryParams): Promise<ServiceResult<Story>> {
+  try {
+    if (!title) throw new Error("Require title");
+
+    const res = await api.get(`/stories/title/${title}`, {
+      params: params,
+      paramsSerializer: (params) => qs.stringify(params, { arrayFormat: "comma" }),
+    });
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return { success: false, message: error?.toString() };
   }
 }
 
@@ -34,10 +46,7 @@ export async function getStories(params?: StoryParams): Promise<ServiceResult<St
     return res.data;
   } catch (error) {
     console.log(error);
-    if (axios.isAxiosError(error)) {
-      return { success: false, message: error?.response?.data };
-    }
-    return { success: false, message: error };
+    return { success: false, message: error?.toString() };
   }
 }
 
@@ -48,10 +57,7 @@ export async function getReview(storyId: string): Promise<ServiceResult<string[]
     return res.data;
   } catch (error) {
     console.log(error);
-    if (axios.isAxiosError(error)) {
-      return { success: false, message: error?.response?.data };
-    }
-    return { success: false, message: error };
+    return { success: false, message: error?.toString() };
   }
 }
 
@@ -61,10 +67,7 @@ export async function getRandomStory(): Promise<ServiceResult<Story>> {
     return res.data;
   } catch (error) {
     console.log(error);
-    if (axios.isAxiosError(error)) {
-      return { success: false, message: error?.response?.data };
-    }
-    return { success: false, message: error };
+    return { success: false, message: error?.toString() };
   }
 }
 
@@ -77,10 +80,7 @@ export async function countStories(params?: StoryParams): Promise<ServiceResult<
     return res.data;
   } catch (error) {
     console.log(error);
-    if (axios.isAxiosError(error)) {
-      return { success: false, message: error?.response?.data };
-    }
-    return { success: false, message: error };
+    return { success: false, message: error?.toString() };
   }
 }
 
@@ -96,6 +96,6 @@ export async function addOneView(storyId: string) {
   }
 }
 
-const storyService = { getStory, getRandomStory, getReview, getStories, countStories, addOneView };
+const storyService = { getStoryById, getStoryByTitle, getRandomStory, getReview, getStories, countStories, addOneView };
 
 export default storyService;

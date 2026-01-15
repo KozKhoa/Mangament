@@ -53,8 +53,8 @@ export default function StoryGenreCard({ story, className }: { story: Story; cla
   }, [user, favouriteId, story.id, saveFavourite, removeFavourite]);
 
   const handleClickStory = useCallback(() => {
-    router.push(`/story/${story.type}/${story.id}`);
-  }, [router, story.id, story.type]);
+    router.push(`/stories/${story.type}/${story.title}`);
+  }, [router, story.title, story.type]);
 
   useEffect(() => {
     setFavouriteId(story.favourite?.id ?? null);

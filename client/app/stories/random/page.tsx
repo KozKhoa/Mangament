@@ -12,12 +12,11 @@ export default function StoryRandomPage() {
   async function fetchRandomStory() {
     const res = await storyService.getRandomStory();
 
-    if (!res) return toast.warning("Cannot connect with server");
     if (!res.success) return toast.warning(res.message);
 
     const story = res.data;
 
-    router.replace(`/story/${story?.type}/${story?.id}`);
+    router.replace(`/stories/${story?.type}/${story?.title}`);
   }
 
   useEffect(() => {

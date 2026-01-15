@@ -18,7 +18,7 @@ import ButtonDropdown from "@/components/buttons/dropdown/btn-dropdown";
 import genreService from "@/services/genre";
 import { toast } from "sonner";
 import { snakeCaseToCapitalizeWord, snakeCaseToNormal } from "@/utils/string";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import useAuth from "@/contexts/AuthContext";
 
 import SearchStories from "../search/search-stories";
@@ -30,8 +30,10 @@ interface NavBarProps {
 }
 
 function NavBar({ duration = 100, className }: NavBarProps) {
-  const path = usePathname();
+  const path = usePathname().split("/");
   const router = useRouter();
+  const params = useParams();
+
   const auth = useAuth();
 
   const user = auth?.user;
@@ -99,7 +101,7 @@ function NavBar({ duration = 100, className }: NavBarProps) {
 
           {/* Desktop */}
           <div className="hidden lg:flex flex-row justify-center items-center gap-5">
-            <ButtonDropdown className="h-full" label="Random" onClick={() => router.push("/story/random")} />
+            <ButtonDropdown className="h-full" label="Random" onClick={() => router.push("/stories/random")} />
             <ButtonDropdown className="h-full" label="Xếp hạng" onClick={() => router.push("/ranking")} />
             <ButtonDropdown className="h-full" label="Thể loại">
               <div className="grid grid-cols-2 gap-x-5 gap-y-1 w-[300px] sm:w-[400px] lg:grid-cols-3 lg:w-[600px]">
@@ -130,16 +132,16 @@ function NavBar({ duration = 100, className }: NavBarProps) {
               </div>
             }
           >
-            <ButtonExpandable label="Thông tin tài khoản" onClick={() => router.push("/me")}></ButtonExpandable>
-            <ButtonExpandable label="Cài đặt"></ButtonExpandable>
-            <ButtonExpandable label="Truyện yêu thích" onClick={() => router.push("/favourites")}></ButtonExpandable>
-            <ButtonExpandable label="Lịch sử đọc" onClick={() => router.push("/histories")}></ButtonExpandable>
+            <ButtonExpandable className="w-full" label="Thông tin tài khoản" onClick={() => router.push("/me")}></ButtonExpandable>
+            <ButtonExpandable className="w-full" label="Cài đặt"></ButtonExpandable>
+            <ButtonExpandable className="w-full" label="Truyện yêu thích" onClick={() => router.push("/favourites")}></ButtonExpandable>
+            <ButtonExpandable className="w-full" label="Lịch sử đọc" onClick={() => router.push("/histories")}></ButtonExpandable>
             {user ? (
-              <ButtonExpandable label="Đăng xuất" onClick={() => auth?.logout()}></ButtonExpandable>
+              <ButtonExpandable className="w-full" label="Đăng xuất" onClick={() => auth?.logout()}></ButtonExpandable>
             ) : (
               <>
-                <ButtonExpandable label="Đăng nhập" onClick={() => router.push("/login")}></ButtonExpandable>
-                <ButtonExpandable label="Đăng ký" onClick={() => router.push("/register")}></ButtonExpandable>
+                <ButtonExpandable className="w-full" label="Đăng nhập" onClick={() => router.push("/login")}></ButtonExpandable>
+                <ButtonExpandable className="w-full" label="Đăng ký" onClick={() => router.push("/register")}></ButtonExpandable>
               </>
             )}
           </ButtonDropdown>
@@ -260,6 +262,24 @@ function NavBar({ duration = 100, className }: NavBarProps) {
             </div>
           </div>
         </div>
+      </div>
+
+      <div className="h-16"></div>
+
+      <div className="flex flex-row flex-wrap m-1 text-foreground/80 text-[0.8em] lg:text-[1em] transition-all duration-300">
+        {path.map((p, i) => (
+          <div key={i}>
+            {i !== 0 && p && (
+              <p
+                className={`w-fit bg-foreground/10 cursor-pointer p-0.5 px-4 m-0.5 hover:bg-foreground/20
+                  ${i === 1 ? "rounded-l-md" : ""}
+                  ${i === path.length - 1 ? "rounded-r-md" : ""}`}
+              >
+                {snakeCaseToCapitalizeWord(decodeURIComponent(p))}
+              </p>
+            )}
+          </div>
+        ))}
       </div>
 
       <button

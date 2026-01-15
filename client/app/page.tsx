@@ -73,10 +73,13 @@ export default function Home() {
   }
 
   useEffect(() => {
-    fetchHistories();
     fetchNewestStories();
     fetchBestRankingStories();
   }, []);
+
+  useEffect(() => {
+    if (auth?.user) fetchHistories();
+  }, [auth?.user]);
 
   return (
     <div className="flex flex-col gap-10  ">

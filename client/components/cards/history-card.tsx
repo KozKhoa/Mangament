@@ -44,12 +44,12 @@ export default function HistoryCard({ history, onClickRemove, className }: { his
     if (storyNodeArray[storyNodeArray.length - 1].type !== "chapter") return;
 
     let routeDir = "";
-    storyNodeArray.forEach((node, i) => (routeDir = path.join(routeDir, node.type, node.order_index.toString(), node.id)));
-    router.push(path.join(`/story/${story.type}/${story.id}/`, routeDir));
+    storyNodeArray.forEach((node, i) => (routeDir = path.join(routeDir, `${node.type} ${node.order_index}`)));
+    router.push(path.join(`/stories/${story.type}/${story.title}/`, routeDir));
   }
 
   function navigateToStory() {
-    router.push(path.join(`/story/${story.type}/${story.id}/`));
+    router.push(path.join(`/stories/${story.type}/${story.title}/`));
   }
 
   return (

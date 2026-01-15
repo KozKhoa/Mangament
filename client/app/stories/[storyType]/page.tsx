@@ -27,6 +27,7 @@ import FilterRatings, { TargetRating } from "@/components/filters/filter-ratings
 import FilterGenres from "@/components/filters/fiilter-genres";
 import FilterAuthors from "@/components/filters/filter-authors";
 import FilterViews, { TargetView } from "@/components/filters/filter-views";
+import FilterStoryStatus, { TargetStoryStatus } from "@/components/filters/filter-story-status";
 
 const LIMIT = 30;
 
@@ -35,7 +36,7 @@ export default function StoriesPage() {
   const params = useParams();
   const searchParams = useSearchParams();
 
-  const storyType = params?.type?.toString() ?? "";
+  const storyType = params?.storyType?.toString() ?? "";
 
   const page = Number(searchParams.get("page") ?? 1);
   const sort = searchParams.get("sort");
@@ -43,6 +44,7 @@ export default function StoriesPage() {
   const author = searchParams.get("author")?.split(",");
   const star = searchParams.get("star")?.split(",");
   const view = searchParams.get("view")?.split(",");
+  const status = searchParams.get("status")?.split(",");
 
   const [loading, setLoading] = useState(false);
   const [hoverStoryIndex, setHoverStoryIndex] = useState<number>(0);
@@ -64,6 +66,7 @@ export default function StoriesPage() {
       ...(genres && genres.length > 0 && { genre: genres }),
       ...(star && star.length > 0 && { star: star }),
       ...(view && view.length > 0 && { view: view }),
+      ...(status && status.length > 0 && { status: status }),
     });
 
     setLoading(false);
@@ -104,11 +107,7 @@ export default function StoriesPage() {
       <div className={`w-full flex flex-row justify-center items-start gap-5 `}>
         <div className="w-full">
           {/* Header use to display story type and page index */}
-          <div
-            className=" sticky top-0 py-2 px-5 z-10 w-full
-                    flex flex-row flex-wrap justify-between items-center gap-2
-                    bg-background border-b-2 "
-          >
+          <div className=" sticky top-0 py-2 px-5 z-10 w-full flex flex-row flex-wrap justify-between items-center gap-2 bg-background border-b-2 ">
             {/* Story type */}
             <h2 className="text-[2em] font-bold cursor-pointer" onClick={() => router.push(`/stories/${storyType}`)}>
               {snakeCaseToCapitalizeWord(storyType)} <span className="text-[0.6em] font-normal text-center h-full">({pagination?.totalItems})</span>
@@ -125,25 +124,34 @@ export default function StoriesPage() {
 
           {/* Main grid with sort */}
           <div className="flex flex-col gap-2 justify-start items-center py-2 w-full">
-            <div className={`flex flex-row flex-wrap gap-2 w-full`}>
-              <SortStories onSort={(param) => handleNavigate("sort", param?.sort)}></SortStories>
+            <div className="w-full flex flex-col gap-2 px-1.5">
+              <div className={`flex flex-row flex-wrap gap-2 w-full`}>
+                <FilterRatings value={(star ?? []) as TargetRating[]} onChange={(stars) => handleNavigate("star", stars?.join(","))}></FilterRatings>
 
-              <FilterRatings value={(star ?? []) as TargetRating[]} onChange={(stars) => handleNavigate("star", stars?.join(","))}></FilterRatings>
+                <FilterGenres value={genres ?? []} onChange={(genres) => handleNavigate("genres", genres.join(","))}></FilterGenres>
 
-              <FilterGenres value={genres ?? []} onChange={(genres) => handleNavigate("genres", genres.join(","))}></FilterGenres>
+                <FilterAuthors value={author ?? []} onChange={(authors) => handleNavigate("author", authors.join(","))}></FilterAuthors>
 
-              <FilterAuthors value={author ?? []} onChange={(authors) => handleNavigate("author", authors.join(","))}></FilterAuthors>
+                <FilterViews value={(view ?? []) as TargetView[]} onChange={(view) => handleNavigate("view", view.join(","))}></FilterViews>
 
-              <FilterViews value={(view ?? []) as TargetView[]} onChange={(view) => handleNavigate("view", view.join(","))}></FilterViews>
+                <FilterStoryStatus
+                  value={(status ?? []) as TargetStoryStatus[]}
+                  onChange={(status) => handleNavigate("status", status.join(","))}
+                ></FilterStoryStatus>
+              </div>
 
-              {searchParams.size > 1 && (
-                <div
-                  onClick={handleResetSearchParams}
-                  className="h-full my-auto w-fit flex justify-center items-center font-semibold gap-1 text-error cursor-pointer"
-                >
-                  <XIcon className="w-5 h-5 text-error"></XIcon> Xóa bộ lọc
-                </div>
-              )}
+              <div className="flex flex-row flex-wrap justify-between gap-2 w-full">
+                <SortStories onSort={(param) => handleNavigate("sort", param?.sort)}></SortStories>
+
+                {searchParams.size > 2 && (
+                  <div
+                    onClick={handleResetSearchParams}
+                    className="h-full my-auto w-fit flex justify-center items-center font-semibold gap-1 text-error cursor-pointer"
+                  >
+                    <XIcon className="w-5 h-5 text-error"></XIcon> Xóa bộ lọc
+                  </div>
+                )}
+              </div>
             </div>
             {loading ? (
               <Loading className="w-full h-64"></Loading>

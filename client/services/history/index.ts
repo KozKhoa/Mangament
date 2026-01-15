@@ -5,7 +5,7 @@ import qs from "qs";
 import History from "@/types/history";
 import { Pagination } from "@/types/pagination";
 
-type ServiceResult<T> = { success: boolean; data?: T; message?: any; pagination?: Pagination };
+type ServiceResult<T> = { success: boolean; data?: T; message?: string; pagination?: Pagination };
 
 export async function getHistories(params: HistoryParams): Promise<ServiceResult<History[]>> {
   try {
@@ -13,10 +13,7 @@ export async function getHistories(params: HistoryParams): Promise<ServiceResult
     return res.data;
   } catch (error) {
     console.log(error);
-    if (axios.isAxiosError(error)) {
-      return { success: false, message: error?.response?.data };
-    }
-    return { success: false, message: error };
+    return { success: false, message: error?.toString() };
   }
 }
 
@@ -26,10 +23,7 @@ export async function addHistory(storyId: string, storyNodeId: string): Promise<
     return res.data;
   } catch (error) {
     console.log(error);
-    if (axios.isAxiosError(error)) {
-      return { success: false, message: error?.response?.data };
-    }
-    return { success: false, message: error };
+    return { success: false, message: error?.toString() };
   }
 }
 
@@ -39,10 +33,7 @@ export async function removeHistory(historyId: string): Promise<ServiceResult<Hi
     return res.data;
   } catch (error) {
     console.log(error);
-    if (axios.isAxiosError(error)) {
-      return { success: false, message: error?.response?.data };
-    }
-    return { success: false, message: error };
+    return { success: false, message: error?.toString() };
   }
 }
 

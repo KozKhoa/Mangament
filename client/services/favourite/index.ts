@@ -5,7 +5,7 @@ import axios from "axios";
 import qs from "qs";
 
 type Pagination = { page: number; pageSize: number; totalItems: number; totalPages: number };
-type ServiceResult<T> = { success: boolean; data?: T; message?: any; pagination?: Pagination };
+type ServiceResult<T> = { success: boolean; data?: T; message?: string; pagination?: Pagination };
 
 export async function getFavouriteStories(params: FavoureiteParams): Promise<ServiceResult<Favourite[]>> {
   try {
@@ -13,10 +13,7 @@ export async function getFavouriteStories(params: FavoureiteParams): Promise<Ser
     return res.data;
   } catch (error) {
     console.log(error);
-    if (axios.isAxiosError(error)) {
-      return { success: false, message: error?.response?.data };
-    }
-    return { success: false, message: error };
+    return { success: false, message: error?.toString() };
   }
 }
 
@@ -28,10 +25,7 @@ export async function addNewFavouriteStory(storyId: string): Promise<ServiceResu
     return res.data;
   } catch (error) {
     console.log(error);
-    if (axios.isAxiosError(error)) {
-      return { success: false, message: error?.response?.data };
-    }
-    return { success: false, message: error };
+    return { success: false, message: error?.toString() };
   }
 }
 
@@ -41,10 +35,7 @@ export async function removeFavouriteStory(favouriteId: string): Promise<Service
     return res.data;
   } catch (error) {
     console.log(error);
-    if (axios.isAxiosError(error)) {
-      return { success: false, message: error?.response?.data };
-    }
-    return { success: false, message: error };
+    return { success: false, message: error?.toString() };
   }
 }
 

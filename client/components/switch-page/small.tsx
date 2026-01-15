@@ -35,6 +35,7 @@ export default function SwitchPageSmall({ defaultPage, maxPage, page, onChange, 
       >
         <LeftArrowIcon className={`w-5 h-5 `}></LeftArrowIcon>
       </button>
+
       <label className="w-fit">
         <input
           value={pageNumber}
@@ -47,12 +48,12 @@ export default function SwitchPageSmall({ defaultPage, maxPage, page, onChange, 
             }
           }}
           // Remove arrow increase or descrease number in input box
-          className="text-[1.5em] w-20 text-center outline-none
-            [-moz-appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+          className="text-[1.3em] w-16 text-center outline-none no-spinner"
           onKeyDown={(e) => e.key === "Enter" && handleChange(Number(pageNumber))}
         ></input>{" "}
         <span className="font-normal text-[0.8em]">/{maxPage}</span>
       </label>
+
       <button
         className={` ${buttonClassName} ${page >= maxPage ? "text-gray-300" : "text-foreground hover:border-black cursor-pointer "}`}
         onClick={() => handleChange(page + 1)}
