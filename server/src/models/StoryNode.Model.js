@@ -1,7 +1,7 @@
 import db from "../configs/db.js";
 import { StoryNodeType } from "../configs/db.js";
 
-import { GetStoryTree, UpdateStory } from "./Story.Model.js";
+import { BuildStoryTree, UpdateStory } from "./Story.Model.js";
 
 export function GetAllStoryNodeType() {
   return Object.values(StoryNodeType);
@@ -67,7 +67,7 @@ export async function FindAllStoryNodes({ storyId, parentId, sort = { updated_at
 
   if (isGettingChildren) {
     for (const node of storyNodes) {
-      node.children = await GetStoryTree(node.story_id, node.id);
+      node.children = await BuildStoryTree(node.story_id, node.id);
     }
   }
 
@@ -101,7 +101,7 @@ export async function FindStoryNode({ id, storyId, parentId, storyNodeType, orde
   });
 
   if (isGettingChildren) {
-    storyNode.children = await GetStoryTree(node.story_id, node.id);
+    storyNode.children = await BuildStoryTree(node.story_id, node.id);
   }
 
   return { success: true, data: storyNode };
@@ -194,6 +194,35 @@ export const HardDeleteStoryNode = async (where = { id }) => {
     return { success: false, error: error.code };
   }
 };
+
+export async function IncreaseOneViewForStoryNodeAndItsParents(storyNodeId) {
+  if (!storyNodeId) throw new Error("Require story node id");
+
+  //  Update view for current story node
+  const update = await db.storyNode.update({
+    where: { id: storyNodeId, is_deleted: false },
+    data: { view: { increment: 1 } },
+  });
+
+  // Udpate view for story
+  await db.story.update({
+    where: { is_deleted: false, id: update.story_id },
+    data: { view: { increment: 1 } },
+  });
+
+  // Update for current node's parents
+  let parentId = update.parent_id;
+  while (parentId) {
+    const update = await db.storyNode.update({
+      where: { id: parentId, is_deleted: false },
+      data: { view: { increment: 1 } },
+    });
+
+    parentId = update.parent_id;
+  }
+
+  return { success: true, data: update };
+}
 
 export const UpdateStoryNode = async (where = { id }, data = {}) => {
   try {

@@ -36,6 +36,7 @@ storyRoute.get("/random", OptionalAuth, GetRandomStory);
 storyRoute.get("/count", GetCountStories);
 storyRoute.get("/:id/review", GetStoryReview);
 storyRoute.get("/:id", OptionalAuth, GetStory);
+storyRoute.get("/title/:title", OptionalAuth, GetStory);
 storyRoute.get("/", OptionalAuth, GetAllStories);
 storyRoute.patch("/:id/view", AddOneViewForStory);
 storyRoute.post("/", AuthenticationToken, AuthorizationRole, upload.single("coverArt"), PostStory); // coverArt is the image for the cover art of the story

@@ -18,6 +18,8 @@ export function ConvertQuery(query) {
 
   const nations = query.nation ? query.nation.split(",") : null;
 
+  const status = query.status ? query.status.split(",") : null;
+
   // rating = [[1,2], [4,5]]
   const star = query.star ? query.star.split(",").map((range) => range.split("-").map((number) => parseFloat(number))) : [[0, 6]];
   // view = [[0, 100], [1000, 100000]]
@@ -48,6 +50,7 @@ export function ConvertQuery(query) {
     type,
     genres,
     star,
+    status,
     view,
     authors,
     nations,

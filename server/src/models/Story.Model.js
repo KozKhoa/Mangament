@@ -1,10 +1,11 @@
 import db from "../configs/db.js";
+import { randomInt } from "../utils/Number.js";
 import { ValidateStoryType } from "./Enum.Model.js";
 import { ValidateGenre } from "./Genre.Model.js";
 
 import { validate as isUUID } from "uuid";
 
-export async function GetStoryTree(storyId, storyNodeId, isGettingContent = false) {
+export async function BuildStoryTree(storyId, storyNodeId, isGettingContent = false) {
   const storyNodes = await db.storyNode.findMany({
     where: {
       is_deleted: false,
@@ -125,6 +126,7 @@ export async function FindAllStories({
   star = [[0, 6]],
   genres = [],
   authorsId = [],
+  status = [],
   page = 1,
   limit = 10,
   sort = { updated_at: "desc" },
@@ -135,14 +137,9 @@ export async function FindAllStories({
     is_deleted: false,
     ...(keyword && { title: { contains: keyword, mode: "insensitive" } }),
     ...(type && type.length > 0 && { type: { in: type } }),
-    ...(genres &&
-      genres.length > 0 && {
-        genres: { some: { genre: { in: genres } } },
-      }),
-    ...(authorsId &&
-      authorsId.length > 0 && {
-        authors: { some: { author_id: { in: authorsId } } },
-      }),
+    ...(genres && genres.length > 0 && { genres: { some: { genre: { in: genres } } } }),
+    ...(authorsId && authorsId.length > 0 && { authors: { some: { author_id: { in: authorsId } } } }),
+    ...(status && status.length > 0 && { status: { in: status } }),
     AND: [
       {
         OR: [...star.map(([min, max]) => ({ star: { gte: min, lte: max } }))],
@@ -155,6 +152,7 @@ export async function FindAllStories({
 
   const stories = await db.story.findMany({
     where: where,
+
     include: {
       authors: {
         select: { author: { select: { id: true, name: true } } },
@@ -174,7 +172,7 @@ export async function FindAllStories({
   for (const story of stories) {
     story.authors = story.authors.map((author) => author.author);
     story.genres = story.genres.map((genre) => genre.genre);
-    if (isGettingChildren) story.children = await GetStoryTree(story.id, null, false);
+    if (isGettingChildren) story.children = await BuildStoryTree(story.id, null, false);
     if (isGettingNewestChapter) {
       story.newest_chapter = await GetNewestChapter(story.id, 5);
     }
@@ -215,7 +213,7 @@ export async function FindStory({ id, title, isGettingChildren = false, isGettin
   story.genres = story.genres.map((genre) => genre.genre);
 
   if (isGettingChildren) {
-    story.children = await GetStoryTree(story.id, null, isGettingContent);
+    story.children = await BuildStoryTree(story.id, null, isGettingContent);
   }
 
   if (isGettingNewestChapter) {
@@ -389,4 +387,15 @@ export async function CountStory(where = {}) {
     if (error.code !== "P2025") console.error("❌ [Rating.Model.js] Error updating rating:", error);
     return { success: false, error: error.code };
   }
+}
+
+export async function FindRandomStory() {
+  const stories = await db.story.findMany({
+    where: { is_deleted: false },
+    select: { id: true, title: true, type: true },
+  });
+
+  const random = randomInt(0, stories.length);
+
+  return { success: true, data: stories[random] };
 }

@@ -38,24 +38,22 @@ export const GetUser = async (req, res, next) => {
       success: true,
       message: "Get user info success",
       data: {
-        user: {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          gender: user.gender,
-          join_date: user.join_date,
-          role: user.role,
-          birthday: user.birthday,
-          ...(avatar &&
-            avatar.success &&
-            avatar.data && {
-              avatar: {
-                url: avatar.data.url,
-                width: avatar.data.width,
-                height: avatar.data.height,
-              },
-            }),
-        },
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        gender: user.gender,
+        join_date: user.join_date,
+        role: user.role,
+        birthday: user.birthday,
+        ...(avatar &&
+          avatar.success &&
+          avatar.data && {
+            avatar: {
+              url: avatar.data.url,
+              width: avatar.data.width,
+              height: avatar.data.height,
+            },
+          }),
       },
     });
   } catch (error) {

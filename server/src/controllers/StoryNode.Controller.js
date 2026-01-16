@@ -11,6 +11,7 @@ import {
   ValidateStoryNodeType,
   GetParentStoryNodeTree,
   SoftDeleteStoryNode,
+  IncreaseOneViewForStoryNodeAndItsParents,
 } from "../models/StoryNode.Model.js";
 import { FindStory } from "../models/Story.Model.js";
 import { AddImage, FindImage, HardDeleteImage, SoftDeleteImage, UpdateImage } from "../models/Image.Model.js";
@@ -25,11 +26,14 @@ export async function GetStoryNode(req, res, next) {
     const isGettingChildren = req.query?.isGettingChildren == "true" ? true : false;
     const isGettingContent = req.query?.isGettingContent == "true" ? true : false;
 
-    if (!storyNodeId) throw CreateError(ErrorCodes.BAD_REQUEST);
+    if (!storyNodeId && !(storyId && storyNodeType && orderIndex)) throw CreateError(ErrorCodes.BAD_REQUEST);
 
-    const storyNode = await FindStoryNode({ id: storyNodeId, isGettingChildren: isGettingChildren });
+    const storyNode = await FindStoryNode({
+      id: storyNodeId,
+      isGettingChildren: isGettingChildren,
+    });
 
-    if (!storyNode || !storyNode.success || !storyNode.data) throw CreateError(ErrorCodes.STORY_NODE_NOT_FOUND);
+    if (!storyNode) throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
 
     if (!isGettingContent) delete storyNode.data.content;
 
@@ -215,19 +219,12 @@ export async function IncreaseOneViewForStoryNode(req, res, next) {
     const storyNodeId = req.params?.id;
     if (!storyNodeId) throw CreateError(ErrorCodes.BAD_REQUEST);
 
-    const storyNode = await FindStoryNode({ id: storyNodeId });
-    if (!storyNode || !storyNode.success || !storyNode.data) throw CreateError(ErrorCodes.STORY_NODE_NOT_FOUND);
-
-    const updating = await UpdateStoryNode({ id: storyNodeId }, { view: { increment: 1 } });
-    if (!updating || !updating.success) throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
+    const updating = await IncreaseOneViewForStoryNodeAndItsParents(storyNodeId);
+    if (!updating) throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
 
     return res.status(200).json({
       success: true,
       message: "Increase one view for story node successfully",
-      story_node: {
-        id: storyNode.data.id,
-        view: storyNode.data.view + 1,
-      },
     });
   } catch (error) {
     next(error);
