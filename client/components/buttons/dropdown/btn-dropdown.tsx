@@ -67,7 +67,7 @@ function ButtonDropdown({
       ref={dropdown}
     >
       {/* Main button */}
-      <div ref={refs.setReference} className="flex flex-row justify-center items-center gap-2.5 w-full h-fit ">
+      <div ref={refs.setReference} className="flex flex-row justify-center items-center gap-2.5 w-full h-full ">
         {label && (
           <button className="w-fit h-full cursor-pointer" onClick={handleClick}>
             {label}
@@ -75,13 +75,7 @@ function ButtonDropdown({
         )}
         {(children || icon) && (
           <button className="cursor-pointer w-fit h-fit" onClick={toggleOpenDropdown}>
-            {icon ? (
-              icon
-            ) : (
-              <div className="w-[1em]">
-                <TriangleDownIcon className="w-[1em] h-[1em]" />
-              </div>
-            )}
+            {icon ? icon : <TriangleDownIcon className="w-4 h-4" />}
           </button>
         )}
       </div>
@@ -99,7 +93,7 @@ function ButtonDropdown({
             <div
               ref={refs.setFloating}
               style={floatingStyles}
-              className={`flex absolute bg-background-items flex-col justify-center items-start w-fit h-fit rounded-[5]
+              className={`flex absolute bg-background-items flex-col justify-center items-start w-fit h-fit rounded-[4]
                 border-2 border-foreground p-2.5 gap-2.5 shadow-[11px_13px_5px_rgba(0,0,0,0.3)]
               `}
             >

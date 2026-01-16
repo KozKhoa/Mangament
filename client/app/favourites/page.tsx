@@ -16,11 +16,11 @@ import Favourite from "@/types/favourite";
 import DEFAULT from "@/constants/default";
 import CardGrid from "@/components/grids/card-grid";
 import { Pagination } from "@/types/pagination";
+import withAuth from "@/hoc/withAuth";
 
-export default function FavouritePage() {
+export function FavouritePage() {
   const auth = useAuth();
   const user = auth?.user;
-  const router = useRouter();
   const page = useRef(1);
 
   const [params, setParams] = useState<FavoureiteParams>(DEFAULT.params);
@@ -55,8 +55,8 @@ export default function FavouritePage() {
 
   useEffect(() => {
     page.current = 1;
-    fetchFavourites();
-  }, [params]);
+    if (auth?.user) fetchFavourites();
+  }, [params, auth?.user]);
 
   return (
     <div>
@@ -83,3 +83,5 @@ export default function FavouritePage() {
     </div>
   );
 }
+
+export default withAuth(FavouritePage);

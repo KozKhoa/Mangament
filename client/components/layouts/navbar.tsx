@@ -30,9 +30,10 @@ interface NavBarProps {
 }
 
 function NavBar({ duration = 100, className }: NavBarProps) {
-  const path = usePathname().split("/");
+  const pathName = usePathname();
   const router = useRouter();
-  const params = useParams();
+
+  const path = pathName.split("/");
 
   const auth = useAuth();
 
@@ -83,7 +84,8 @@ function NavBar({ duration = 100, className }: NavBarProps) {
 
   useEffect(() => {
     setOpenSidebar(false);
-  }, [path]);
+  }, [pathName]);
+
   return (
     <>
       <div
@@ -94,16 +96,16 @@ function NavBar({ duration = 100, className }: NavBarProps) {
           ${className}
        `}
       >
-        <div className={`flex flex-row justify-center items-center gap-5`}>
+        <div className={`flex flex-row justify-center items-center gap-5 h-10`}>
           <Link href={"/"}>
             <p className={`text-2xl  font-holtwood`}>Mangament</p>
           </Link>
 
           {/* Desktop */}
-          <div className="hidden lg:flex flex-row justify-center items-center gap-5">
+          <div className="hidden lg:flex flex-row justify-center items-center gap-5 h-full">
             <ButtonDropdown className="h-full" label="Random" onClick={() => router.push("/stories/random")} />
             <ButtonDropdown className="h-full" label="Xếp hạng" onClick={() => router.push("/ranking")} />
-            <ButtonDropdown className="h-full" label="Thể loại">
+            <ButtonDropdown className="h-full" label="Thể loại" onClick={() => router.push("/genre")}>
               <div className="grid grid-cols-2 gap-x-5 gap-y-1 w-[300px] sm:w-[400px] lg:grid-cols-3 lg:w-[600px]">
                 {genres &&
                   genres.length > 0 &&
@@ -196,7 +198,7 @@ function NavBar({ duration = 100, className }: NavBarProps) {
                     <ButtonExpandable onClick={() => router.push("/ranking")} label="Xếp hạng" />
                   </li>
                   <li>
-                    <ButtonExpandable label="Thể loại">
+                    <ButtonExpandable label="Thể loại" onClick={() => router.push("/genre")}>
                       <div className="flex flex-col gap-x-5 gap-y-1 w-full pt-1">
                         {genres &&
                           genres.length > 0 &&
@@ -266,21 +268,24 @@ function NavBar({ duration = 100, className }: NavBarProps) {
 
       <div className="h-16"></div>
 
-      <div className="flex flex-row flex-wrap m-1 text-foreground/80 text-[0.8em] lg:text-[1em] transition-all duration-300">
-        {path.map((p, i) => (
-          <div key={i}>
-            {i !== 0 && p && (
+      <div
+        className="flex flex-row flex-wrap m-2 gap-1 text-foreground/80 
+          text-[1em] transition-all duration-300 rounded-md"
+      >
+        {path.map((p, i) => {
+          if (p)
+            return (
               <Link
+                key={i}
                 href={path.slice(0, i + 1).join("/")}
-                className={`w-fit bg-foreground/10 cursor-pointer p-0.5 px-4 m-0.5 hover:bg-foreground/20
+                className={`w-fit cursor-pointer p-1 px-4 hover:bg-foreground/20 bg-foreground/10 
                   ${i === 1 ? "rounded-l-md" : ""}
                   ${i === path.length - 1 ? "rounded-r-md" : ""}`}
               >
                 {snakeCaseToCapitalizeWord(decodeURIComponent(p))}
               </Link>
-            )}
-          </div>
-        ))}
+            );
+        })}
       </div>
 
       <button

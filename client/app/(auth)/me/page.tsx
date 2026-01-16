@@ -16,10 +16,11 @@ import historyService from "@/services/history";
 import History from "@/types/history";
 import HistoryList from "@/components/list/history-list";
 import { useRouter } from "next/navigation";
+import withAuth from "@/hoc/withAuth";
 
 const limit = 20;
 
-export default function ProfilePage() {
+export function ProfilePage() {
   const auth = useAuth();
   const user = auth?.user;
   const router = useRouter();
@@ -89,3 +90,5 @@ export default function ProfilePage() {
     </>
   );
 }
+
+export default withAuth(ProfilePage);

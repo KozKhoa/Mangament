@@ -15,22 +15,13 @@ import CardGrid from "@/components/grids/card-grid";
 import HistoryCard from "@/components/cards/history-card";
 import historyService from "@/services/history";
 
-import NoFilterResult from "@/components/cards/no-filter";
-import FilterSort from "@/components/list/filter-sort";
-import Loading from "@/components/loadings/loading";
 import useInView from "@/hooks/useInView";
 
-import FilterAuthors from "@/components/filters/filter-authors";
-import FilterGenres from "@/components/filters/fiilter-genres";
-import FilterRatings from "@/components/filters/filter-ratings";
-import FilterViews from "@/components/filters/filter-views";
-import FilterStoryType from "@/components/filters/filter-story-type";
-import SortTime from "@/components/sorts/sort-time";
-import FilterSortHistories from "@/components/list/filter-sort-histories";
 import HistoryGrid from "@/components/grids/history-grid";
 import { Pagination } from "@/types/pagination";
+import withAuth from "@/hoc/withAuth";
 
-export default function FavouritePage() {
+export function FavouritePage() {
   const auth = useAuth();
   const user = auth?.user;
   const router = useRouter();
@@ -56,10 +47,11 @@ export default function FavouritePage() {
   }
 
   async function fetchMoreHistories(page: number) {
+    if (!histories || !histories.length) return;
+
     setLoading(true);
     const res = await historyService.getHistories({ ...params, ...{ page: page } });
 
-    if (!res) return toast.warning("Can not connect with server");
     if (!res.success) return toast.warning(res.message);
 
     setHistories((prevHis) => [...prevHis, ...(res.data ?? [])]);
@@ -73,8 +65,8 @@ export default function FavouritePage() {
 
   useEffect(() => {
     page.current = 1;
-    fetchHistories();
-  }, [params]);
+    if (!auth?.user) fetchHistories();
+  }, [params, auth?.user]);
 
   return (
     <div>
@@ -87,9 +79,7 @@ export default function FavouritePage() {
               </>
             }
             isLoading={loading}
-            onScrollToEnd={() => {
-              fetchMoreHistories(++page.current);
-            }}
+            onScrollToEnd={() => fetchMoreHistories(++page.current)}
             onChangeParams={(newParams) => {
               setParams(newParams as HistoryParams);
             }}
@@ -104,3 +94,5 @@ export default function FavouritePage() {
     </div>
   );
 }
+
+export default withAuth(FavouritePage);

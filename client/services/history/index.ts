@@ -12,7 +12,7 @@ export async function getHistories(params: HistoryParams): Promise<ServiceResult
     const res = await api.get("/users/me/histories", { params: params, paramsSerializer: (params) => qs.stringify(params, { arrayFormat: "comma" }) });
     return res.data;
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return { success: false, message: error?.toString() };
   }
 }
@@ -22,7 +22,7 @@ export async function addHistory(storyId: string, storyNodeId: string): Promise<
     const res = await api.post("/users/me/histories", { storyId, storyNodeId });
     return res.data;
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return { success: false, message: error?.toString() };
   }
 }
@@ -32,7 +32,7 @@ export async function removeHistory(historyId: string): Promise<ServiceResult<Hi
     const res = await api.delete(`/users/me/histories/${historyId}`);
     return res.data;
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return { success: false, message: error?.toString() };
   }
 }
