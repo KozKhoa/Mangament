@@ -51,29 +51,61 @@ export async function FindRating({ id, userId, storyId }) {
   return { success: true, data: rating };
 }
 
-export async function AddRatings(data = { user_id, story_id, star, message }) {
-  try {
-    if (!data.user_id && !data.story_id && !data.message) return { success: false, data: null };
+export async function AddRatings({ userId, storyId, star, title, content }) {
+  if (!userId || !storyId) {
+    throw new Error("Require both story id and user id");
+  }
+
+  if ((star !== 0 && !star) || !title || !content) {
+    throw new Error("Require star, title and content");
+  }
+
+  if (typeof star !== "number" || star < 1 || star > 5) {
+    throw new Error("star must be a number between 1 and 5");
+  }
+
+  return db.$transaction(async (db) => {
+    const story = await db.story.findFirst({ where: { id: storyId, is_deleted: false } });
+    if (!story) throw new Error("Story not found");
+
+    const user = await db.user.findFirst({ where: { id: userId, is_deleted: false } });
+    if (!user) throw new Error("User not found");
+
+    const oldRating = await db.rating.findUnique({ where: { user_id_story_id: { story_id: storyId, user_id: userId } } });
+    if (oldRating) throw new Error("Rating already exist");
 
     const newRating = await db.rating.create({
-      data: data,
+      data: {
+        user: {
+          connect: {
+            id: userId,
+          },
+        },
+        story: {
+          connect: {
+            id: storyId,
+          },
+        },
+        star: star,
+        title: title,
+        content: content,
+      },
     });
 
     // Update star for story
-    const count = Number(await db.rating.count({ where: { story_id: data.story_id } }));
-    const currentRating = Number((await db.story.findUnique({ where: { id: data.story_id } })).star);
-    if (count <= 1) {
-      await db.story.update({ where: { id: data.story_id }, data: { star: data.star } });
-    } else {
-      const newStar = currentRating / (count - 1) - currentRating / ((count - 1) * count) + data.star / count;
-      await db.story.update({ where: { id: data.story_id }, data: { star: newStar } });
-    }
+    const newStar = (story.star * story.rating_count + star) / (story.rating_count + 1);
+    await db.story.update({
+      where: { id: storyId },
+      data: {
+        star: newStar,
+        rating_count: story.rating_count + 1,
+      },
+    });
+
+    delete newRating.is_deleted;
 
     return { success: true, data: newRating };
-  } catch (error) {
-    if (error.code !== "P2002") console.error("❌ [Rating.Model.js] Error adding new rating:", error);
-    return { success: false, error: error.code };
-  }
+  });
 }
 
 export async function SoftDeleteRating(where = { id }) {

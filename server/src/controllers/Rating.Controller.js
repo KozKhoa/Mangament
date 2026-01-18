@@ -5,49 +5,29 @@ import { FindStory } from "../models/Story.Model.js";
 
 import { ConvertQuery } from "../utils/QueryConvert.js";
 
+// POST /stories/:id/ratings
 export async function PostRating(req, res, next) {
   try {
     const userId = req.user?.id;
     const storyId = req.params?.id;
     const star = req.body?.star ? Number(req.body?.star) : null;
-    const message = req.body?.message || null;
-    if (!star || !message) throw CreateError(ErrorCodes.MISSING_FIELD);
-    if (!storyId) throw CreateError(ErrorCodes.BAD_REQUEST);
-    if (star < 1 || star > 5) throw CreateError(ErrorCodes.INVALID_INPUT);
+    const title = req.body?.title;
+    const content = req.body?.content;
 
-    // Make sure story exist
-    const story = await FindStory({ id: storyId });
-    if (!story || !story.success || !story.data) throw CreateError(ErrorCodes.STORY_NOT_FOUND);
+    if (!star || !title || !content) throw CreateError({ status: ErrorCodes.MISSING_FIELD.status, message: '"star", "title" and "content" are required' });
 
-    const rating = await AddRatings({
-      user_id: userId,
-      story_id: storyId,
-      star: Number(star),
-      message: message,
-    });
+    if (star < 1 || star > 5) throw CreateError({ status: ErrorCodes.INVALID_INPUT.status, message: '"star" must be number in range (1, 5)' });
 
-    if (rating && rating.error === "P2002")
-      // Unique error code from prisma
-      throw CreateError(ErrorCodes.ASSET_ALREADY_EXIST);
-    if (!rating || !rating.data) throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
+    if (title.length > 100) throw CreateError({ status: ErrorCodes.INVALID_INPUT.status, message: "Title must less than 100 character" });
+
+    const rating = await AddRatings({ userId: userId, storyId: storyId, star: star, title: title, content: content });
+
+    if (!rating) throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
 
     return res.status(200).json({
       success: true,
       message: "Add new rating successfully",
-      data: {
-        story: {
-          id: storyId,
-        },
-        user: {
-          id: userId,
-        },
-        rating: {
-          id: rating.data.id,
-          star: rating.data.star,
-          message: rating.data.message,
-          created_at: rating.data.created_at,
-        },
-      },
+      data: rating.data,
     });
   } catch (error) {
     next(error);

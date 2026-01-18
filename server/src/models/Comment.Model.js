@@ -1,21 +1,6 @@
 import db from "../configs/db.js";
 
 export async function FindAllComments({ userId, storyId, storyNodeId, sort = { updated_at: "desc" }, page = 1, limit = 10 }) {
-  if (storyId) {
-    const story = await db.story.findFirst({ where: { is_deleted: false, id: storyId } });
-    if (!story) throw new Error("Story not found");
-  }
-
-  if (userId) {
-    const user = await db.user.findFirst({ where: { is_deleted: false, id: userId } });
-    if (!user) throw new Error("User not found");
-  }
-
-  if (storyNodeId) {
-    const storyNode = await db.storyNode.findFirst({ where: { is_deleted: false, id: storyNodeId } });
-    if (!storyNode) throw new Error("Story node not found");
-  }
-
   const where = {
     is_deleted: false,
 
@@ -64,9 +49,13 @@ export async function FindComment({ id }) {
   return { success: false, data: comment };
 }
 
-export async function AddComment({ userId, storyId, storyNodeId, message }) {
+export async function AddComment({ userId, storyId, storyNodeId, title, content }) {
   if (!userId || !storyId) {
     throw new Error("Require user id and story id");
+  }
+
+  if (!title || !content) {
+    throw new Error("Require both title and content");
   }
 
   if (storyId) {
@@ -103,9 +92,22 @@ export async function AddComment({ userId, storyId, storyNodeId, message }) {
           },
         },
       }),
-      message: message,
+      title: title,
+      content: content,
+    },
+
+    include: {
+      user: {
+        select: {
+          id: true,
+          name: true,
+          avatar: { select: { url: true, height: true, width: true } },
+        },
+      },
     },
   });
+
+  delete newComment.is_deleted;
 
   return { success: true, data: newComment };
 }
