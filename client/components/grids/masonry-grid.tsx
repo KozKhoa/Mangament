@@ -8,7 +8,7 @@ export default function MasonryGrid({
 }: {
   className?: string;
   columnClassName?: string;
-  breakpointCols?: number | { [key: number]: number };
+  breakpointCols?: number | { [key: string | number]: number };
   children?: React.ReactNode[];
 }) {
   const breakpointColumnsObj = {
@@ -22,7 +22,7 @@ export default function MasonryGrid({
 
   return (
     <Masonry
-      breakpointCols={{ ...breakpointColumnsObj, ...(breakpointCols && { breakpointCols }) }}
+      breakpointCols={breakpointCols ? breakpointCols : breakpointColumnsObj}
       className={`my-masonry-grid ${className}`}
       columnClassName={`my-masonry-grid_column ${columnClassName}`}
     >

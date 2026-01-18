@@ -87,7 +87,7 @@ function LoginRegisterForm({ type, className }: LoginRegisterProps) {
   return (
     <form
       onSubmit={handleSubmit}
-      className={`bg-background   text-foreground flex flex-col gap-5 justify-center 
+      className={`bg-background-items  text-foreground flex flex-col gap-5 justify-center 
         w-full max-w-3xl p-8 pt-5 border-2 rounded-[5] shadow-[11px_13px_5px_rgba(0,0,0,0.3)]
         ${className}
         `}

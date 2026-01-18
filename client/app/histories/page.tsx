@@ -22,8 +22,6 @@ import { Pagination } from "@/types/pagination";
 import withAuth from "@/hoc/withAuth";
 
 export function FavouritePage() {
-  const auth = useAuth();
-  const user = auth?.user;
   const router = useRouter();
   const page = useRef(1);
 
@@ -65,32 +63,26 @@ export function FavouritePage() {
 
   useEffect(() => {
     page.current = 1;
-    if (!auth?.user) fetchHistories();
-  }, [params, auth?.user]);
+    fetchHistories();
+  }, [params]);
 
   return (
     <div>
-      {user ? (
-        <>
-          <HistoryGrid
-            label={
-              <>
-                Lịch sử đọc <span className="text-[0.6em] font-normal text-center h-full">({pagination?.totalItems})</span>
-              </>
-            }
-            isLoading={loading}
-            onScrollToEnd={() => fetchMoreHistories(++page.current)}
-            onChangeParams={(newParams) => {
-              setParams(newParams as HistoryParams);
-            }}
-          >
-            {histories &&
-              histories.map((history, i) => <HistoryCard key={history.id} history={history} onClickRemove={() => removeHistory(history)}></HistoryCard>)}
-          </HistoryGrid>
-        </>
-      ) : (
-        <RequireLogin></RequireLogin>
-      )}
+      <HistoryGrid
+        label={
+          <>
+            Lịch sử đọc <span className="text-[0.6em] font-normal text-center h-full">({pagination?.totalItems})</span>
+          </>
+        }
+        isLoading={loading}
+        onScrollToEnd={() => fetchMoreHistories(++page.current)}
+        onChangeParams={(newParams) => {
+          setParams(newParams as HistoryParams);
+        }}
+      >
+        {histories &&
+          histories.map((history, i) => <HistoryCard key={history.id} history={history} onClickRemove={() => removeHistory(history)}></HistoryCard>)}
+      </HistoryGrid>
     </div>
   );
 }

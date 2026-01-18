@@ -6,6 +6,7 @@
   --background-items: #faf9f6;
 
   --foreground: #171717;
+  --foreground-rgb: rgb(23, 23, 23);
 
   --hover-background: #8383837e;
   --text-size: 16px;
@@ -55,7 +56,6 @@ body {
 }
 
 button {
-  cursor: pointer;
   outline: none;
 }
 

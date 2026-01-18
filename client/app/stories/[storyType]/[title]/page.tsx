@@ -21,6 +21,9 @@ import StoryNodeList from "@/components/list/story-node-list";
 import RecommendStories from "@/components/list/recommend-story";
 import StoryCardAllInfo from "@/components/cards/stories/story-card-all-info";
 import ButtonOfFavouriteStory from "@/components/buttons/favourite-button";
+import StoryNodeCommentsGrid from "@/components/grids/comment-masonry-grid";
+import CommentMasonryGrid from "@/components/grids/comment-masonry-grid";
+import RatingMasonryGrid from "@/components/grids/rating-masonry-grid";
 
 export default function StoryDetailPage() {
   const router = useRouter();
@@ -66,11 +69,11 @@ export default function StoryDetailPage() {
   }, []);
 
   return (
-    <div className="flex flex-col gap-10">
+    <div className="flex flex-col gap-10 p-1">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         {/* Story info */}
-        <div className="lg:flex-1 flex flex-col gap-3">
-          <StoryCardAllInfo className="bg-background-items" story={story}></StoryCardAllInfo>
+        <div className="lg:flex-1 flex flex-col gap-3 ">
+          <StoryCardAllInfo className="bg-background-items shadow-[2px_2px_12px_4px_var(--foreground)]/25 " story={story}></StoryCardAllInfo>
 
           {/* Button */}
           <div className="grid grid-cols-2 md:grid-cols-4 justify-center items-center gap-2">
@@ -96,14 +99,17 @@ export default function StoryDetailPage() {
         {/* Chapter list */}
         <StoryNodeList
           onClickItem={handleNavigateStoryNode}
-          className="lg:flex-1 bg-background-items"
+          className="lg:flex-1 bg-background-items shadow-[2px_2px_12px_4px_var(--foreground)]/25 "
           storyNodes={story?.children}
           size={story?.number_of_chidren}
         ></StoryNodeList>
       </div>
 
       {/* Review */}
-      <div className="flex flex-col border-2 border-foreground rounded-md px-5 py-2.5 gap-7 bg-background-items">
+      <div
+        className="flex flex-col border-2 border-foreground rounded-md px-5 py-2.5 gap-7 
+          bg-background-items shadow-[2px_2px_12px_4px_var(--foreground)]/25 "
+      >
         <h2 className="w-full text-center border-b-2 border-foreground font-semibold">Xem trước</h2>
         <div
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 
@@ -117,10 +123,11 @@ export default function StoryDetailPage() {
         </div>
       </div>
 
-      {/* <div className="flex flex-col gap-5 w-full h-full p-2.5 border-2 rounded-md">
-        <RatingList className="w-full" story={story}></RatingList>
-        <CommentList className="w-full" story={story}></CommentList>
-      </div> */}
+      {/* Rating */}
+      <RatingMasonryGrid storyId={story?.id ?? ""}></RatingMasonryGrid>
+
+      {/* Comment */}
+      <CommentMasonryGrid storyId={story?.id}></CommentMasonryGrid>
 
       <RecommendStories className="max-w-[1800] mx-auto"></RecommendStories>
     </div>

@@ -23,28 +23,18 @@ export default function ButtonStoryNodeExpandable({ onClick, storyNode, classNam
   }
 
   return (
-    <div
-      className={`flex flex-col w-full h-fit rounded-t-[5] overflow-hidden 
-        transition-all duration-100   ${className}`}
-    >
+    <div className={`flex flex-col w-full h-fit rounded-t-[5] overflow-hidden transition-all duration-100 ${className}`}>
       {/* Label*/}
       <button
-        className={`flex flex-row justify-between items-center
-        px-2 py-1.5 border-b border-foreground w-full rounded-t-[5] 
-        hover:bg-hover-background ${open ? "bg-hover-background" : ""} ${className}`}
+        className={`flex flex-row justify-between items-center px-2 py-1.5 border-b border-foreground w-full 
+          rounded-t-[5] hover:bg-hover-background ${open ? "bg-hover-background" : ""} ${className}`}
         onClick={() => handleClick([storyNode])}
       >
         <div className="flex flex-row gap-1 overflow-hidden truncate">
           {storyNode.type !== "chapter" ? (
-            open ? (
-              <div className="w-5 h-5">
-                <SharpTriangleDownIcon className="w-full h-full"></SharpTriangleDownIcon>
-              </div>
-            ) : (
-              <div className="w-5 h-5 -rotate-90">
-                <SharpTriangleDownIcon className="w-full h-full"></SharpTriangleDownIcon>
-              </div>
-            )
+            <div className={`w-5 h-5 transition-all duration-100 ${open ? "" : "-rotate-90"}`}>
+              <SharpTriangleDownIcon className="w-full h-full"></SharpTriangleDownIcon>
+            </div>
           ) : (
             <div className="w-5 h-5"></div>
           )}
@@ -70,13 +60,17 @@ export default function ButtonStoryNodeExpandable({ onClick, storyNode, classNam
             className="pl-4 sm:pl-5 md:pl-6 w-full h-fit"
           >
             <div
-              className={`flex w-full h-fit max-h-[700] overflow-y-scroll 
+              className={`flex w-full h-fit max-h-[700] overflow-y-scroll no-scrollbar
                 border-b border-l border-foreground rounded-bl-md pt-1 overflow-hidden`}
             >
-              <ul className="flex flex-col justify-center items-start w-full h-fit">
+              <ul className="flex flex-col justify-center items-start w-full h-fit gap-1">
                 {storyNode.children.map((child, i) => (
                   <li key={i} className={`flex justify-start items-center w-full h-fit`}>
-                    <ButtonStoryNodeExpandable onClick={(node) => handleClick([storyNode].concat(node))} storyNode={child}></ButtonStoryNodeExpandable>
+                    <ButtonStoryNodeExpandable
+                      className={`${i === (storyNode.children?.length ?? 0) - 1 ? "border-transparent" : ""}`}
+                      onClick={(node) => handleClick([storyNode].concat(node))}
+                      storyNode={child}
+                    ></ButtonStoryNodeExpandable>
                   </li>
                 ))}
               </ul>

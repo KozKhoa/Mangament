@@ -91,7 +91,7 @@ export default function StoriesPage() {
 
       router.push(`?${params.toString()}`);
     },
-    [searchParams]
+    [searchParams],
   );
 
   const handleResetSearchParams = useCallback(() => {

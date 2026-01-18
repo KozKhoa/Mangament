@@ -1,12 +1,10 @@
 "use client";
 
-import path from "path";
 import { toast } from "sonner";
 import { useParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Params } from "next/dist/server/request/params";
 
 import useApp from "@/contexts/AppContext";
 
@@ -31,6 +29,7 @@ import { capitalizeWords, snakeCaseToCapitalizeWord } from "@/utils/string";
 import historyService from "@/services/history";
 import ButtonOfFavouriteStory from "@/components/buttons/favourite-button";
 import useAuth from "@/contexts/AuthContext";
+import CommentMasonryGrid from "@/components/grids/comment-masonry-grid";
 
 function buildStoryNodeParent(tree: StoryNode[], targetNodeId: string) {
   const parentList: StoryNode[] = [];
@@ -225,7 +224,7 @@ export default function StoryNodeReading() {
       {/* Header - Story title  */}
       <div className="flex flex-row flex-wrap justify-around gap-2">
         <div>
-          <h3 onClick={() => router.push(`/story/${story?.type}/${story?.title}`)} className="font-bold cursor-pointer">
+          <h3 onClick={() => router.push(`/stories/${story?.type}/${story?.title}`)} className="font-bold cursor-pointer">
             [{snakeCaseToCapitalizeWord(story?.type ?? "")}] {story?.title}
           </h3>
           <div className="flex flex-row flex-wrap gap-1 text-foreground">
@@ -344,9 +343,7 @@ export default function StoryNodeReading() {
       </div>
 
       {/* Comment */}
-      {/* <div>
-        <CommentList storyNode={storyNode} elementPerPage={5}></CommentList>
-      </div> */}
+      <CommentMasonryGrid className="my-2" storyNodeId={storyNodeId}></CommentMasonryGrid>
 
       {/* Recommend */}
       <div>
