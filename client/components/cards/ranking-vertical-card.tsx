@@ -26,7 +26,7 @@ export default function RankingVerticalCard({ top, story, className, ref }: { to
         <>
           <StoryCard className="h-full w-full" data={story}></StoryCard>
           <div
-            className={`absolute top-1.5 left-1.5 rounded-l-md px-2 py-1 font-aclonica text-[02px] md:text-[22px] lg:text-[28px] 
+            className={`absolute top-1.5 left-1.5 rounded-l-md px-2 py-1 font-aclonica text-[20px] md:text-[22px] lg:text-[28px] 
               bg-background-items rounded-b-full shadow-md
           ${textColorMapping(top)}`}
           >

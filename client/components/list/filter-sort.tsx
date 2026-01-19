@@ -40,16 +40,16 @@ export default function FilterSort({ onChange, isResetAll = false, className }: 
       <SortTime onSort={updateParams}></SortTime>
 
       {/* Rating */}
-      <FilterRatings onFilter={updateParams} isReset={isResetAll}></FilterRatings>
+      {/* <FilterRatings onFilter={updateParams} isReset={isResetAll}></FilterRatings> */}
 
       {/* Genre */}
-      <FilterGenres onFilter={updateParams} isReset={isResetAll}></FilterGenres>
+      {/* <FilterGenres onFilter={updateParams} isReset={isResetAll}></FilterGenres> */}
 
       {/* Author */}
-      <FilterAuthors onFilter={updateParams} isReset={isResetAll}></FilterAuthors>
+      {/* <FilterAuthors onFilter={updateParams} isReset={isResetAll}></FilterAuthors> */}
 
       {/* View */}
-      <FilterViews onFilter={updateParams} isReset={isResetAll}></FilterViews>
+      {/* <FilterViews onFilter={updateParams} isReset={isResetAll}></FilterViews> */}
 
       {/* Story type */}
       <FilterStoryType onFilter={updateParams} isReset={isResetAll}></FilterStoryType>

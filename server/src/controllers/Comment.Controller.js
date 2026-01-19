@@ -33,34 +33,24 @@ export async function PostComment(req, res, next) {
     const userId = req.user.id;
     const storyId = req.params?.storyId;
     const storyNodeId = req.params?.storyNodeId;
-    const message = req.body?.message;
-    if (!storyId && !storyNodeId) throw CreateError(ErrorCodes.BAD_REQUEST);
-    if (!message) throw CreateError(ErrorCodes.MISSING_FIELD);
 
-    const comment = await AddComment({ userId, storyId, storyNodeId, message });
+    const content = req.body?.content ?? "";
+    const title = req.body.title ?? "";
 
-    if (!comment || !comment.success) throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
+    if (title) if (!storyId && !storyNodeId) throw CreateError(ErrorCodes.BAD_REQUEST);
+
+    if (!title || !content) throw CreateError(ErrorCodes.MISSING_FIELD);
+
+    if (title.length > 100) throw CreateError({ status: ErrorCodes.INVALID_INPUT.status, message: "Title must less than 100 character" });
+
+    const comment = await AddComment({ userId, storyId, storyNodeId, title, content });
+
+    if (!comment.success) throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
 
     return res.status(200).json({
       success: true,
       message: "Add new comment successfully",
-      data: {
-        user: {
-          id: userId,
-        },
-        story: {
-          id: storyId,
-        },
-        ...(storyNodeId && {
-          storyNode: {
-            id: storyNodeId,
-          },
-        }),
-        comment: {
-          id: comment.data.id,
-          message: comment.data.message,
-        },
-      },
+      data: comment,
     });
   } catch (error) {
     next(error);

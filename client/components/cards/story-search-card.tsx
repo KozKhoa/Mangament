@@ -11,7 +11,7 @@ import { beautifulView } from "@/utils/beautiful";
 export default function StorySearchCard({ story, className }: { story: Story; className?: string }) {
   return (
     <Link
-      href={`/story/${story.type}/${story.id}`}
+      href={`/stories/${story.type}/${story.title}`}
       className={`flex flex-row justify-start items-center bg-background text-foreground gap-2 p-1 rounded-[5]
         border-transparent border-2 transition-all duration-50 ease-linear  h-24
         hover:bg-hover-background w-full cursor-pointer

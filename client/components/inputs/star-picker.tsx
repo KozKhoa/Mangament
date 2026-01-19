@@ -8,9 +8,11 @@ interface StarPickerProps {
 
   width?: string;
   height?: string;
+
+  className?: string;
 }
 
-export default function StarPicker({ onChange, defaultValue, maxStar, width = "1.5em", height = "1.5em" }: StarPickerProps) {
+export default function StarPicker({ onChange, defaultValue, maxStar, width = "1.5em", height = "1.5em", className }: StarPickerProps) {
   const [rating, setRating] = useState<number>(defaultValue ?? 0);
 
   function handleChosen(index: number) {
@@ -20,7 +22,7 @@ export default function StarPicker({ onChange, defaultValue, maxStar, width = "1
 
   const arr = useRef(Array.from({ length: maxStar ?? 5 }));
   return (
-    <div className="flex flex-row gap-1 justify-center items-center">
+    <div className={`flex flex-row gap-1 justify-center items-center ${className}`}>
       {arr.current.map((_, i) => (
         <button key={i} onClick={() => handleChosen(i)}>
           {i <= rating ? (

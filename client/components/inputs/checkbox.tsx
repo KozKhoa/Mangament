@@ -21,7 +21,7 @@ function Checkbox({ defaultChecked = false, children, className, name, value, on
   return (
     <label
       className={`flex flex-row relative justify-start items-center gap-2 cursor-pointer w-full h-fit 
-          text-foreground bg-background-items
+          text-foreground 
         ${className}`}
     >
       <input

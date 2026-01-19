@@ -13,7 +13,7 @@ import EyeIcon from "@/public/eye/open.svg";
 import { beautifulView } from "@/utils/beautiful";
 
 async function removeHistory(historId: string) {
-  const res = await historyService.remove(historId);
+  const res = await historyService.removeHistory(historId);
 
   if (!res) return toast.warning("Cannot connect with server");
   if (!res.success) return toast.warning(res.message);
@@ -44,12 +44,12 @@ export default function HistoryCard({ history, onClickRemove, className }: { his
     if (storyNodeArray[storyNodeArray.length - 1].type !== "chapter") return;
 
     let routeDir = "";
-    storyNodeArray.forEach((node, i) => (routeDir = path.join(routeDir, node.type, node.order_index.toString(), node.id)));
-    router.push(path.join(`/story/${story.type}/${story.id}/`, routeDir));
+    storyNodeArray.forEach((node, i) => (routeDir = path.join(routeDir, `${node.type} ${node.order_index}`)));
+    router.push(path.join(`/stories/${story.type}/${story.title}/`, routeDir));
   }
 
   function navigateToStory() {
-    router.push(path.join(`/story/${story.type}/${story.id}/`));
+    router.push(path.join(`/stories/${story.type}/${story.title}/`));
   }
 
   return (

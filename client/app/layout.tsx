@@ -1,46 +1,17 @@
 import type { Metadata } from "next";
-import { Afacad, Geist, Geist_Mono, Holtwood_One_SC, Roboto, Aclonica } from "next/font/google";
+
 import { ThemeProvider } from "next-themes";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { AppProvider } from "@/contexts/AppContext";
 import { Toaster } from "sonner";
+
+import { Afacad, Holtwood_One_SC, Geist_Mono, Geist, Roboto, Aclonica } from "./font";
+
 import "./globals.css";
 
 import NavBar from "@/components/layouts/navbar";
 import Footer from "@/components/layouts/footer";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
-const afacad = Afacad({
-  variable: "--font-afacad", // để dùng trong Tailwind
-  weight: ["400", "500", "600", "700"], // tùy chọn độ đậm
-  subsets: ["latin", "vietnamese"],
-});
-
-const holtwood = Holtwood_One_SC({
-  variable: "--font-holtwood",
-  subsets: ["latin"],
-  weight: "400",
-});
-
-const roboto = Roboto({
-  variable: "--font-roboto",
-  subsets: ["latin", "vietnamese"],
-});
-
-const aclonica = Aclonica({
-  variable: "--font-aclonica",
-  subsets: ["latin"],
-  weight: ["400"],
-});
+import { ModalRoot } from "@/components/modal/modal-root";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -55,7 +26,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${afacad.variable}  ${holtwood.variable} ${roboto.variable} ${aclonica.variable} antialiased
+        className={`${Geist.variable} ${Geist_Mono.variable} ${Afacad.variable} ${Holtwood_One_SC.variable} ${Roboto.variable} ${Aclonica.variable} antialiased
         px-1 text-size-default font-afacad bg-background relative max-w-[1700] m-auto
         `}
       >
@@ -63,13 +34,13 @@ export default function RootLayout({
           <AuthProvider>
             <ThemeProvider attribute="class" defaultTheme="system" enableSystem={true}>
               <NavBar className="fixed left-2.5 right-2.5"></NavBar>
-              <div className="h-16"></div>
 
-              <div className="max-w-[1700px] m-auto">{children}</div>
+              <div className="max-w-[1700px] m-auto transition-all duration-300">{children}</div>
 
               <Footer></Footer>
 
               <Toaster position="top-center" />
+              <ModalRoot />
             </ThemeProvider>
           </AuthProvider>
         </AppProvider>

@@ -5,7 +5,7 @@ import { ValidateStoryType, ValidateStoryStatus } from "../models/Enum.Model.js"
 
 import { ValidateGenre } from "../models/Genre.Model.js";
 import { AddImage } from "../models/Image.Model.js";
-import { FindAllStories, FindStory, UpdateStory, AddStory, SoftDeleteStory, CountStory, GetReview } from "../models/Story.Model.js";
+import { FindAllStories, FindStory, UpdateStory, AddStory, SoftDeleteStory, CountStory, GetReview, FindRandomStory } from "../models/Story.Model.js";
 
 import { FindAllFavouriteStories, FindFavouriteStory } from "../models/Favourite.Model.js";
 
@@ -18,14 +18,16 @@ export async function GetStory(req, res, next) {
   try {
     const userId = req.user?.id;
     const storyId = req?.params?.id;
+    const title = req.params?.title;
 
     // Check user request
-    if (!storyId) throw CreateError(ErrorCodes.BAD_REQUEST);
+    if (!storyId && !title) throw CreateError(ErrorCodes.BAD_REQUEST);
 
     const { type, isGettingChildren, isGettingContent, isGettingSummary, isGettingNewestChapter } = ConvertQuery(req.query);
 
     const story = await FindStory({
       id: storyId,
+      title: title,
       isGettingChildren: isGettingChildren,
       isGettingContent: isGettingContent,
       isGettingNewestChapter: isGettingNewestChapter,
@@ -127,20 +129,12 @@ export async function GetCountStories(req, res, next) {
 
 export async function GetRandomStory(req, res, next) {
   try {
-    const count = (await CountStory()).data;
-    const random = parseInt(((Math.random() * count * 100) % count) + 1);
-
-    const story = await FindAllStories({ page: random, limit: 1, isGettingChildren: true });
-
-    if (!story || !story.success) throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
+    const story = await FindRandomStory();
 
     return res.status(200).json({
       success: true,
       message: "Get random story successfully",
-      data: {
-        id: story.data[0].id,
-        type: story.data[0].type,
-      },
+      data: story.data,
     });
   } catch (error) {
     next(error);
@@ -151,7 +145,7 @@ export async function GetAllStories(req, res, next) {
   try {
     const userId = req?.user?.id;
 
-    const { isGettingChildren, authors, keyword, isGettingNewestChapter, limit, page, type, genres, star, view, sort } = ConvertQuery(req.query);
+    const { isGettingChildren, authors, keyword, isGettingNewestChapter, limit, status, page, type, genres, star, view, sort } = ConvertQuery(req.query);
 
     const stories = await FindAllStories({
       keyword: keyword,
@@ -164,6 +158,7 @@ export async function GetAllStories(req, res, next) {
       sort: sort,
       page: page,
       limit: limit,
+      status: status,
       isGettingChildren: isGettingChildren,
       isGettingNewestChapter: isGettingNewestChapter,
     });

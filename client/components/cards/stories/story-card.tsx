@@ -63,11 +63,11 @@ export default function StoryCard({ data, className }: StoryCardProps) {
   };
 
   const handleClickStory = () => {
-    router.push(`/story/${story.type}/${story.id}`);
+    router.push(`/stories/${story.type}/${story.title}`);
   };
 
   const handleClickNewestChapter = () => {
-    router.push(`/story/${story.type}/${story.id}/chapter/${newestChapter.at(0)?.orderIndex}/${newestChapter.at(0)?.id}`);
+    router.push(`/stories/${story.type}/${story.title}/chapter/${newestChapter.at(0)?.orderIndex}/${newestChapter.at(0)?.id}`);
   };
 
   useEffect(() => {
@@ -117,7 +117,7 @@ export default function StoryCard({ data, className }: StoryCardProps) {
             <div className="flex justify-center items-center">
               <DisplayStar rating={story?.star || 0}></DisplayStar>
             </div>
-            <p>{story?.star}</p>
+            <p>{Math.round((story?.star ?? 0) * 10) / 10}</p>
           </div>
         </div>
 

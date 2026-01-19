@@ -4,8 +4,7 @@ import { useEffect, useRef, useState } from "react";
 
 import Loading from "../loadings/loading";
 
-import { Params, StoryParams } from "@/types/params";
-import SortStories from "../sorts/sort-stories";
+import { Params } from "@/types/params";
 
 import FilterAuthors from "../filters/filter-authors";
 import FilterGenres from "../filters/fiilter-genres";
@@ -28,7 +27,7 @@ export default function HistoryGrid({
   onScrollToEnd,
   className,
 }: {
-  label: string;
+  label: string | React.ReactNode;
 
   className?: string;
   isLoading?: boolean;
@@ -75,7 +74,7 @@ export default function HistoryGrid({
       {/* Main grid with sort */}
       <div className="flex flex-col gap-2 justify-start items-center py-2 w-full">
         {/* Sort and fiter */}
-        <FilterSortHistories className="w-full" onChange={setParams} isResetAll={isResetFilterSort}></FilterSortHistories>
+        {/* <FilterSortHistories className="w-full" onChange={setParams} isResetAll={isResetFilterSort}></FilterSortHistories> */}
 
         <div ref={parentRef}>
           {children && children.length > 0 ? (

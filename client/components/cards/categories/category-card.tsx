@@ -49,7 +49,7 @@ export default function CategoryCard({
            w-full hover:scale-120 hover:z-10 duration-200"
       >
         <p
-          style={{ fontSize: `clamp(16px, ${(parentRef.current?.offsetWidth || 300) * 0.07}px, 30px)` }}
+          style={{ fontSize: `clamp(12px, ${(parentRef.current?.offsetWidth || 300) * 0.07}px, 30px)` }}
           className={` font-bold font-aclonica bg-background-items px-[1.5em] py-[0.5em] w-fit m-auto rounded-full
              [clip-path:polygon(10%_0%,90%_0%,100%_100%,0%_100%)] shadow-md text-center 
              ${labelClassName}

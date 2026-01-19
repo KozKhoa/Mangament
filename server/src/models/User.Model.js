@@ -2,6 +2,8 @@ import db from "../configs/db.js";
 import { RandomPassword } from "../utils/PasswordHandle.js";
 import { GetParentStoryNodeTree } from "./StoryNode.Model.js";
 
+import * as passwordService from "../utils/PasswordHandle.js";
+
 const IsUserExist = async (where = { id, email }) => {
   if (!where.id && !where.email) return false;
 
@@ -10,54 +12,67 @@ const IsUserExist = async (where = { id, email }) => {
   return false;
 };
 
-export const FindAllUser = async (where = {}, orderBy = {}, take, skip) => {
-  try {
-    const result = await db.user.findMany({
-      where: {
-        is_deleted: false,
-        ...where,
-      },
-      orderBy: [orderBy, { updated_at: "desc" }, { id: "desc" }],
-      take: take,
-      skip: skip,
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        gender: true,
-        birthday: true,
-        join_date: true,
-        role: true,
-        avatar: {
-          select: { url: true, width: true, height: true },
-        },
-      },
-    });
-    return { success: true, data: result };
-  } catch (error) {
-    console.error("❌ [User.Model.js] Error finding user:", error);
-    return { success: false, error: error.code };
-  }
-};
+export async function FindAllUser({ gender = [], joinDate, role = [], birthday, page = 1, limit = 10, sort = { updated_at: "desc" } }) {
+  const where = {
+    is_deleted: false,
 
-export const FindUser = async (where = { id, email }) => {
-  try {
-    if (!where.id && !where.email) return { success: false, data: null };
-    const result = await db.user.findFirst({
-      where: {
-        is_deleted: false,
-        ...where,
-      },
-      include: {
-        avatar: true,
-      },
-    });
-    return { success: true, data: result };
-  } catch (error) {
-    console.error("❌ [User.Model.js] Error finding user:", error);
-    return { success: false, error: error.code };
-  }
-};
+    ...(role && role.length > 0 && { role: { in: role } }),
+    ...(birthday && { birthday: birthday }),
+    ...(joinDate && { join_date: joinDate }),
+    ...(gender && gender.length > 0 && { gender: { in: gender } }),
+  };
+
+  const users = await db.user.findMany({
+    where: where,
+
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      gender: true,
+      birthday: true,
+      join_date: true,
+      role: true,
+      avatar: { select: { url: true, width: true, height: true } },
+    },
+
+    take: limit,
+    skip: (page - 1) * limit,
+
+    orderBy: [sort, { id: "asc" }],
+  });
+
+  const totalItems = await db.user.count({ where: where });
+
+  return {
+    success: true,
+    data: users,
+    pagination: {
+      page: page,
+      pageSize: limit,
+      totalPages: Math.ceil(totalItems / limit),
+      totalItems: totalItems,
+    },
+  };
+}
+
+export async function FindUser({ id, email }) {
+  if (!id && !email) throw new Error("Require 'id' or 'email'");
+
+  const user = await db.user.findFirst({
+    where: {
+      is_deleted: false,
+      ...(id && { id: id }),
+      ...(email && { email: email }),
+    },
+
+    include: {
+      avatar: { select: { url: true, width: true, height: true } },
+    },
+  });
+
+  return { success: true, data: user };
+}
 
 export const GetUserPassword = async (where = { id }) => {
   try {
@@ -75,21 +90,44 @@ export const GetUserPassword = async (where = { id }) => {
   }
 };
 
-export const AddUser = async (data = { name, email, password }) => {
-  try {
-    const story = await FindUser({ email: data.email });
-    if (story && story.success && story.data) {
-      // If user exist
-      return { success: false, data: story.data };
-    }
-    // If not exist
-    const result = await db.user.create({ data: data });
-    return { success: true, data: result };
-  } catch (error) {
-    console.error("❌ [User.Model.js] Error adding user: ", error);
-    return { success: false, error: error.code };
-  }
-};
+export async function AddUser({ name, email, password, avatarUrl }) {
+  if (!name || !email || !password) throw new Error("Require 'name', 'email' and 'password'");
+
+  const hashedPassword = await passwordService.HashPassword(password);
+
+  const exist = await db.user.findUnique({ where: { email: email } });
+  if (exist) throw new Error("User already exist");
+
+  const user = await db.user.create({
+    data: {
+      name: name,
+      email: email,
+      password: hashedPassword,
+
+      ...(avatarUrl && {
+        avatar: {
+          connectOrCreate: {
+            where: { url: avatarUrl },
+            create: { url: avatarUrl },
+          },
+        },
+      }),
+    },
+
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      gender: true,
+      birthday: true,
+      join_date: true,
+      role: true,
+      avatar: { select: { url: true, width: true, height: true } },
+    },
+  });
+
+  return { success: true, data: user };
+}
 
 export const HardDeleteUser = async (where = { id, email }) => {
   try {
@@ -135,61 +173,6 @@ export const UpdateUser = async (where = { id, email }, data = {}) => {
     return { success: true, data: result };
   } catch (error) {
     console.error("❌ [User.Model.js] Error updating user data: ", error);
-    return { success: false, error: error.code };
-  }
-};
-
-export const FindRefreshToken = async (where = { user_id, token }) => {
-  try {
-    const result = await db.refreshToken.findUnique({
-      where: {
-        ...(where.user_id && { user_id: where.user_id }),
-        ...(where.token && { token: where.token }),
-      },
-    });
-    return { success: true, data: result };
-  } catch (error) {
-    console.error("❌ [User.Model.js] Error finding refresh token: ", error);
-    return { success: false, error: error.code };
-  }
-};
-
-export const AddRefreshToken = async (where = { user_id, token }) => {
-  try {
-    const result = await db.refreshToken.create({
-      data: {
-        user: {
-          connect: {
-            id: where.user_id,
-          },
-        },
-        ...(where.token && { token: where.token }),
-      },
-    });
-    return { success: true, data: result };
-  } catch (error) {
-    console.error("❌ [User.Model.js] Error adding refresh token: ", error);
-    return { success: false, error: error.code };
-  }
-};
-
-export const HardDeleteRefreshToken = async (where = { user_id, token }) => {
-  try {
-    const result = await db.refreshToken.delete({
-      where: {
-        ...(where.user_id && {
-          user: {
-            connect: {
-              id: user_id,
-            },
-          },
-        }),
-        ...(where.token && { token: where.token }),
-      },
-    });
-    return { success: true, data: result };
-  } catch (error) {
-    console.error("❌ [User.Model.js] Error hard delete refresh token: ", error);
     return { success: false, error: error.code };
   }
 };

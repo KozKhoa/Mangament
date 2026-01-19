@@ -18,7 +18,7 @@ import ButtonDropdown from "@/components/buttons/dropdown/btn-dropdown";
 import genreService from "@/services/genre";
 import { toast } from "sonner";
 import { snakeCaseToCapitalizeWord, snakeCaseToNormal } from "@/utils/string";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import useAuth from "@/contexts/AuthContext";
 
 import SearchStories from "../search/search-stories";
@@ -30,13 +30,17 @@ interface NavBarProps {
 }
 
 function NavBar({ duration = 100, className }: NavBarProps) {
-  const path = usePathname();
+  const pathName = usePathname();
   const router = useRouter();
+
+  const path = pathName.split("/");
+
   const auth = useAuth();
 
   const user = auth?.user;
 
   const [hidden, setHidden] = useState(false);
+  const [genres, setGenres] = useState<string[]>([]);
 
   const [openSidebar, setOpenSidebar] = useState(false);
   const lastScrollY = useRef(0);
@@ -45,8 +49,18 @@ function NavBar({ duration = 100, className }: NavBarProps) {
     setOpenSidebar(!openSidebar);
   }
 
+  async function fetchGenres() {
+    const res = await genreService.get();
+
+    if (!res.success) return toast.warning(res.message);
+
+    setGenres(res.data);
+  }
+
   useEffect(() => {
     const handleNavbarHidden = () => {
+      if (openSidebar) return;
+
       if (window.scrollY < 100) {
         setHidden(false);
         return;
@@ -62,11 +76,16 @@ function NavBar({ duration = 100, className }: NavBarProps) {
     window.addEventListener("scroll", handleNavbarHidden);
 
     return () => window.removeEventListener("scroll", handleNavbarHidden);
+  }, [openSidebar]);
+
+  useEffect(() => {
+    fetchGenres();
   }, []);
 
   useEffect(() => {
     setOpenSidebar(false);
-  }, [path]);
+  }, [pathName]);
+
   return (
     <>
       <div
@@ -77,16 +96,26 @@ function NavBar({ duration = 100, className }: NavBarProps) {
           ${className}
        `}
       >
-        <div className={`flex flex-row justify-center items-center gap-5`}>
+        <div className={`flex flex-row justify-center items-center gap-5 h-10`}>
           <Link href={"/"}>
             <p className={`text-2xl  font-holtwood`}>Mangament</p>
           </Link>
 
           {/* Desktop */}
-          <div className="hidden lg:flex flex-row justify-center items-center gap-5">
-            <ButtonDropdown className="h-full" label="Random" onClick={() => router.push("/story/random")} />
-            <ButtonDropdown className="h-full" label="Lịch phát hành" />
+          <div className="hidden lg:flex flex-row justify-center items-center gap-5 h-full">
+            <ButtonDropdown className="h-full" label="Random" onClick={() => router.push("/stories/random")} />
             <ButtonDropdown className="h-full" label="Xếp hạng" onClick={() => router.push("/ranking")} />
+            <ButtonDropdown className="h-full" label="Thể loại" onClick={() => router.push("/genre")}>
+              <div className="grid grid-cols-2 gap-x-5 gap-y-1 w-[300px] sm:w-[400px] lg:grid-cols-3 lg:w-[600px]">
+                {genres &&
+                  genres.length > 0 &&
+                  genres.map((genre, i) => (
+                    <Link key={genre} href={`/genre/${genre}`} className="w-full text-start p-2 border-b hover:bg-foreground/30 rounded-t-md cursor-pointer">
+                      {snakeCaseToCapitalizeWord(genre)}
+                    </Link>
+                  ))}
+              </div>
+            </ButtonDropdown>
           </div>
         </div>
 
@@ -105,16 +134,18 @@ function NavBar({ duration = 100, className }: NavBarProps) {
               </div>
             }
           >
-            <ButtonExpandable label="Thông tin tài khoản" onClick={() => router.push("/me")}></ButtonExpandable>
-            <ButtonExpandable label="Cài đặt"></ButtonExpandable>
-            <ButtonExpandable label="Truyện yêu thích" onClick={() => router.push("/favourites")}></ButtonExpandable>
-            <ButtonExpandable label="Lịch sử đọc" onClick={() => router.push("/histories")}></ButtonExpandable>
+            <ButtonExpandable className="w-full" label="Cài đặt"></ButtonExpandable>
             {user ? (
-              <ButtonExpandable label="Đăng xuất" onClick={() => auth?.logout()}></ButtonExpandable>
+              <>
+                <ButtonExpandable className="w-full" label="Thông tin tài khoản" onClick={() => router.push("/me")}></ButtonExpandable>
+                <ButtonExpandable className="w-full" label="Truyện yêu thích" onClick={() => router.push("/favourites")}></ButtonExpandable>
+                <ButtonExpandable className="w-full" label="Lịch sử đọc" onClick={() => router.push("/histories")}></ButtonExpandable>
+                <ButtonExpandable className="w-full" label="Đăng xuất" onClick={() => auth?.logout()}></ButtonExpandable>
+              </>
             ) : (
               <>
-                <ButtonExpandable label="Đăng nhập" onClick={() => router.push("/login")}></ButtonExpandable>
-                <ButtonExpandable label="Đăng ký" onClick={() => router.push("/register")}></ButtonExpandable>
+                <ButtonExpandable className="w-full" label="Đăng nhập" onClick={() => router.push("/login")}></ButtonExpandable>
+                <ButtonExpandable className="w-full" label="Đăng ký" onClick={() => router.push("/register")}></ButtonExpandable>
               </>
             )}
           </ButtonDropdown>
@@ -156,43 +187,42 @@ function NavBar({ duration = 100, className }: NavBarProps) {
                 <SearchStories className="w-full"></SearchStories>
 
                 {/* Content in navbar */}
-                <ul className="flex flex-col gap-2.5 overflow-y-auto">
-                  {user && (
-                    <li>
-                      <ButtonExpandable onClick={() => router.push("/me")} label="Thông tin tài khoản" />
-                    </li>
-                  )}
-                  <li>
-                    <ButtonExpandable onClick={() => router.push("/story/random")} label="Random" />
-                  </li>
-                  <li>
-                    <ButtonExpandable onClick={() => router.push("/ranking")} label="Xếp hạng" />
-                  </li>
-                  <li>
-                    <ButtonExpandable label="Lịch phát hành" />
-                  </li>
-                  <li>
-                    <ButtonExpandable label="Cài đặt" />
-                  </li>
-                  <li>
-                    <ButtonExpandable onClick={() => router.push("/favourites")} label="Truyện yêu thích" />
-                  </li>
-                  <li>
-                    <ButtonExpandable onClick={() => router.push("/histories")} label="Lịch sử đọc" />
-                  </li>
+                <div className="flex flex-col gap-2.5 overflow-y-auto">
+                  {user && <ButtonExpandable onClick={() => router.push("/me")} label="Thông tin tài khoản" />}
+                  <ButtonExpandable onClick={() => router.push("/story/random")} label="Random" />
+                  <ButtonExpandable onClick={() => router.push("/ranking")} label="Xếp hạng" />
+                  <ButtonExpandable label="Thể loại" onClick={() => router.push("/genre")}>
+                    <div className="flex flex-col gap-x-5 gap-y-1 w-full pt-1">
+                      {genres &&
+                        genres.length > 0 &&
+                        genres.map((genre, i) => (
+                          <Link
+                            key={genre}
+                            href={`/genre/${genre}`}
+                            className={`w-full text-start p-2 px-5  hover:bg-foreground/30 rounded-t-md cursor-pointer 
+                                ${i === genres.length - 1 ? "" : "border-b"}`}
+                          >
+                            {snakeCaseToCapitalizeWord(genre)}
+                          </Link>
+                        ))}
+                    </div>
+                  </ButtonExpandable>
+
+                  <ButtonExpandable label="Cài đặt" />
+
                   {user ? (
-                    <ButtonExpandable onClick={() => auth.logout()} label="Đăng xuất"></ButtonExpandable>
+                    <>
+                      <ButtonExpandable onClick={() => router.push("/favourites")} label="Truyện yêu thích" />
+                      <ButtonExpandable onClick={() => router.push("/histories")} label="Lịch sử đọc" />
+                      <ButtonExpandable onClick={() => auth.logout()} label="Đăng xuất"></ButtonExpandable>
+                    </>
                   ) : (
                     <>
-                      <li>
-                        <ButtonExpandable onClick={() => router.push("/login")} label="Đăng nhập" />
-                      </li>
-                      <li>
-                        <ButtonExpandable onClick={() => router.push("/register")} label="Đăng ký" />
-                      </li>
+                      <ButtonExpandable onClick={() => router.push("/login")} label="Đăng nhập" />
+                      <ButtonExpandable onClick={() => router.push("/register")} label="Đăng ký" />
                     </>
                   )}
-                </ul>
+                </div>
               </div>
             </motion.div>
           )}
@@ -220,6 +250,28 @@ function NavBar({ duration = 100, className }: NavBarProps) {
             </div>
           </div>
         </div>
+      </div>
+
+      <div className="h-16"></div>
+
+      <div
+        className="flex flex-row flex-wrap m-2 gap-1 text-foreground/80 
+          text-[1em] transition-all duration-300 rounded-md"
+      >
+        {path.map((p, i) => {
+          if (p)
+            return (
+              <Link
+                key={i}
+                href={path.slice(0, i + 1).join("/")}
+                className={`w-fit cursor-pointer p-1 px-4 hover:bg-foreground/20 bg-foreground/10 
+                  ${i === 1 ? "rounded-l-md" : ""}
+                  ${i === path.length - 1 ? "rounded-r-md" : ""}`}
+              >
+                {snakeCaseToCapitalizeWord(decodeURIComponent(p))}
+              </Link>
+            );
+        })}
       </div>
 
       <button

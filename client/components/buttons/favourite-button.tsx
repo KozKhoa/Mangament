@@ -4,8 +4,12 @@ import User from "@/types/user";
 import { useCallback, useEffect, useState } from "react";
 import favouriteService from "@/services/favourite";
 import { toast } from "sonner";
+import useAuth from "@/contexts/AuthContext";
 
 export default function ButtonOfFavouriteStory({ className, story }: { className?: string; story?: Story }) {
+  const auth = useAuth();
+  const user = auth?.user;
+
   const [processing, setProcessing] = useState(false);
   const [favouriteId, setFavouriteId] = useState<string | null>(story?.favourite?.id ?? null);
 
@@ -40,6 +44,11 @@ export default function ButtonOfFavouriteStory({ className, story }: { className
   }, [favouriteId]);
 
   const toggleFavourite = useCallback(() => {
+    if (!user) {
+      toast.warning("Bạn cần đăng nhập trước");
+      return;
+    }
+
     if (favouriteId) {
       removeStoryFromFavouite();
     } else {

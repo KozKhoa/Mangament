@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 export default function SimpleStoryCard({ story, className }: { story: Story; className?: string }) {
   const router = useRouter();
   const handleClickStory = () => {
-    router.push(`/story/${story.type}/${story.id}`);
+    router.push(`/stories/${story.type}/${story.title}`);
   };
   return (
     <div

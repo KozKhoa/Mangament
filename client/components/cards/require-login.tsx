@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import Button from "@/components/buttons/button";
 
-export default function RequireLogin() {
+export default function RequireLogin({ className }: { className?: string }) {
   const router = useRouter();
 
   function gotoLogin() {
@@ -15,9 +15,9 @@ export default function RequireLogin() {
   }
 
   return (
-    <div className="flex flex-col justify-center items-center gap-5 p-5 border-2 rounded-md">
+    <div className={`flex flex-col justify-center items-center gap-5 p-5 border-2 rounded-md ${className}`}>
       <h1 className="w-full text-center font-bold">Vui lòng đăng nhập trước</h1>
-      <h4 className="text-center w-full">Bạn phải đăng nhập để xem nội dung này</h4>
+      <h4 className="text-center w-full text-foreground/60">Bạn phải đăng nhập để xem nội dung này</h4>
 
       <div className="flex flex-row justify-around w-full">
         <div onClick={() => gotoLogin()}>

@@ -15,15 +15,17 @@ import StoryCard from "@/components/cards/stories/story-card";
 import Favourite from "@/types/favourite";
 import DEFAULT from "@/constants/default";
 import CardGrid from "@/components/grids/card-grid";
+import { Pagination } from "@/types/pagination";
+import withAuth from "@/hoc/withAuth";
 
-export default function FavouritePage() {
+export function FavouritePage() {
   const auth = useAuth();
   const user = auth?.user;
-  const router = useRouter();
   const page = useRef(1);
 
   const [params, setParams] = useState<FavoureiteParams>(DEFAULT.params);
   const [favourites, setFavourites] = useState<Favourite[]>([]);
+  const [pagination, setPagination] = useState<Pagination>();
   const [loading, setLoading] = useState<boolean>(false);
 
   async function fetchFavourites() {
@@ -34,6 +36,7 @@ export default function FavouritePage() {
     if (!res.success) return toast.warning(res.message);
 
     setFavourites(res.data ?? []);
+    setPagination(res.pagination);
 
     setLoading(false);
   }
@@ -52,14 +55,18 @@ export default function FavouritePage() {
 
   useEffect(() => {
     page.current = 1;
-    fetchFavourites();
-  }, [params]);
+    if (auth?.user) fetchFavourites();
+  }, [params, auth?.user]);
 
   return (
     <div>
       {user ? (
         <CardGrid
-          label="Truyện Yêu Thích"
+          label={
+            <>
+              Truyện Yêu Thích <span className="text-[0.6em] font-normal text-center h-full">({pagination?.totalItems})</span>
+            </>
+          }
           isLoading={loading}
           onScrollToEnd={() => {
             fetchMoreFavourites(++page.current);
@@ -76,3 +83,5 @@ export default function FavouritePage() {
     </div>
   );
 }
+
+export default withAuth(FavouritePage);

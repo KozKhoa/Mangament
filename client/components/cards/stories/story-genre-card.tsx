@@ -25,21 +25,21 @@ export default function StoryGenreCard({ story, className }: { story: Story; cla
   const [favouriteId, setFavouriteId] = useState<string | null>(story.favourite?.id ?? null);
 
   const saveFavourite = useCallback(async () => {
-    const res = await favouriteService.post({ storyId: story.id });
+    const res = await favouriteService.addNewFavouriteStory(story.id);
 
     if (!res) return toast.warning("Cannot connect with server");
-    if (!res.success) return toast.warning(res.messsage);
+    if (!res.success) return toast.warning(res.message);
 
-    setFavouriteId(res.data.id);
+    setFavouriteId(res.data?.id ?? null);
 
     toast.message(`Added successfully`);
   }, [story.id]);
 
   const removeFavourite = useCallback(async () => {
-    const res = await favouriteService.remove(favouriteId ?? ""); // Error: id must be favourite id
+    const res = await favouriteService.removeFavouriteStory(favouriteId ?? ""); // Error: id must be favourite id
 
     if (!res) return toast.warning("Cannot connect with server");
-    if (!res.success) return toast.warning(res.messsage);
+    if (!res.success) return toast.warning(res.message);
 
     setFavouriteId(null);
 
@@ -53,8 +53,8 @@ export default function StoryGenreCard({ story, className }: { story: Story; cla
   }, [user, favouriteId, story.id, saveFavourite, removeFavourite]);
 
   const handleClickStory = useCallback(() => {
-    router.push(`/story/${story.type}/${story.id}`);
-  }, [router, story.id, story.type]);
+    router.push(`/stories/${story.type}/${story.title}`);
+  }, [router, story.title, story.type]);
 
   useEffect(() => {
     setFavouriteId(story.favourite?.id ?? null);
@@ -62,7 +62,7 @@ export default function StoryGenreCard({ story, className }: { story: Story; cla
 
   return (
     <div
-      className={`flex flex-col bg-background-items text-foreground gap-2.5 p-1.5 rounded-[5] border-transparent 
+      className={`flex flex-col bg-background-items text-foreground gap-1 p-0.5 rounded-[5] border-transparent 
         transition-all duration-100 ease-in-out shadow-lg hover:z-10 max-w-sm w-full h-full
         ${className} `}
     >

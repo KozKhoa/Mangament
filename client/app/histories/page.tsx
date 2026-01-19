@@ -15,23 +15,13 @@ import CardGrid from "@/components/grids/card-grid";
 import HistoryCard from "@/components/cards/history-card";
 import historyService from "@/services/history";
 
-import NoFilterResult from "@/components/cards/no-filter";
-import FilterSort from "@/components/list/filter-sort";
-import Loading from "@/components/loadings/loading";
 import useInView from "@/hooks/useInView";
 
-import FilterAuthors from "@/components/filters/filter-authors";
-import FilterGenres from "@/components/filters/fiilter-genres";
-import FilterRatings from "@/components/filters/filter-ratings";
-import FilterViews from "@/components/filters/filter-views";
-import FilterStoryType from "@/components/filters/filter-story-type";
-import SortTime from "@/components/sorts/sort-time";
-import FilterSortHistories from "@/components/list/filter-sort-histories";
 import HistoryGrid from "@/components/grids/history-grid";
+import { Pagination } from "@/types/pagination";
+import withAuth from "@/hoc/withAuth";
 
-export default function FavouritePage() {
-  const auth = useAuth();
-  const user = auth?.user;
+export function FavouritePage() {
   const router = useRouter();
   const page = useRef(1);
 
@@ -40,27 +30,29 @@ export default function FavouritePage() {
   const [params, setParams] = useState<HistoryParams>(DEFAULT.params);
   const [histories, setHistories] = useState<History[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
+  const [pagination, setPagination] = useState<Pagination>();
 
   async function fetchHistories() {
     setLoading(true);
-    const res = await historyService.get({ ...params, ...{ page: 1 } });
+    const res = await historyService.getHistories({ ...params, ...{ page: 1 } });
 
-    if (!res) return toast.warning("Can not connect with server");
     if (!res.success) return toast.warning(res.message);
 
-    setHistories(res.data);
+    setHistories(res.data ?? []);
+    setPagination(res.pagination);
 
     setLoading(false);
   }
 
   async function fetchMoreHistories(page: number) {
-    setLoading(true);
-    const res = await historyService.get({ ...params, ...{ page: page } });
+    if (!histories || !histories.length) return;
 
-    if (!res) return toast.warning("Can not connect with server");
+    setLoading(true);
+    const res = await historyService.getHistories({ ...params, ...{ page: page } });
+
     if (!res.success) return toast.warning(res.message);
 
-    setHistories((prevHis) => [...prevHis, ...res.data]);
+    setHistories((prevHis) => [...prevHis, ...(res.data ?? [])]);
 
     setLoading(false);
   }
@@ -76,25 +68,23 @@ export default function FavouritePage() {
 
   return (
     <div>
-      {user ? (
-        <>
-          <HistoryGrid
-            label="Lịch sử xem"
-            isLoading={loading}
-            onScrollToEnd={() => {
-              fetchMoreHistories(++page.current);
-            }}
-            onChangeParams={(newParams) => {
-              setParams(newParams as HistoryParams);
-            }}
-          >
-            {histories &&
-              histories.map((history, i) => <HistoryCard key={history.id} history={history} onClickRemove={() => removeHistory(history)}></HistoryCard>)}
-          </HistoryGrid>
-        </>
-      ) : (
-        <RequireLogin></RequireLogin>
-      )}
+      <HistoryGrid
+        label={
+          <>
+            Lịch sử đọc <span className="text-[0.6em] font-normal text-center h-full">({pagination?.totalItems})</span>
+          </>
+        }
+        isLoading={loading}
+        onScrollToEnd={() => fetchMoreHistories(++page.current)}
+        onChangeParams={(newParams) => {
+          setParams(newParams as HistoryParams);
+        }}
+      >
+        {histories &&
+          histories.map((history, i) => <HistoryCard key={history.id} history={history} onClickRemove={() => removeHistory(history)}></HistoryCard>)}
+      </HistoryGrid>
     </div>
   );
 }
+
+export default withAuth(FavouritePage);

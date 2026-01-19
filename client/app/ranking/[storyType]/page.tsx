@@ -6,14 +6,32 @@ import SlidingUnderlineSelection from "@/components/selections/sliding-underline
 import storyService from "@/services/story";
 import Story from "@/types/story";
 import Loading from "@/components/loadings/loading";
-import { useParams, useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 const LIMIT = 50;
 
+const RANK = [
+  {
+    label: "Hot nhất",
+    code: "hottest",
+  },
+  {
+    label: "Hay nhất",
+    code: "rating",
+  },
+  {
+    label: "Mới nhất",
+    code: "latest",
+  },
+];
+
 export default function RankingPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const rankBy = searchParams.get("rankBy")?.toString();
 
   const params = useParams();
   const storyType = params.storyType?.toString();
@@ -59,15 +77,15 @@ export default function RankingPage() {
     setLoading(false);
   }
 
-  useEffect(() => {
-    if (selected === 0) fetchHostestStories();
-    else if (selected === 1) fetchBestRankStories();
-    else if (selected === 2) fetchNewestStories();
-  }, [selected]);
+  function handleNavigate(rankBy: string) {
+    router.replace(`?rankBy=${rankBy}`);
+  }
 
   useEffect(() => {
-    fetchHostestStories();
-  }, []);
+    if (rankBy === "hottest") fetchHostestStories();
+    else if (rankBy === "rating") fetchBestRankStories();
+    else if (rankBy === "latest") fetchNewestStories();
+  }, [rankBy]);
 
   return (
     <>
@@ -86,10 +104,10 @@ export default function RankingPage() {
           </div>
 
           <SlidingUnderlineSelection
-            onSelected={setSelected}
-            defaultSelection={0}
+            onSelected={(index) => handleNavigate(RANK[index].code)}
+            defaultSelection={RANK.findIndex((rank) => rank.code === rankBy)}
             className="w-fit m-auto"
-            labels={["Hot nhất", "Hay nhất", "Mới nhất"]}
+            labels={RANK.map((rank) => rank.label)}
           ></SlidingUnderlineSelection>
 
           {/* Main  */}

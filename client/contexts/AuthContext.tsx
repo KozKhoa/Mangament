@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, use, useContext, useEffect, useState } from "react";
 import * as rememberMe from "@/lib/remember-me";
 import authService from "@/services/auth";
 import { toast } from "sonner";
@@ -12,8 +12,9 @@ import { useRouter } from "next/navigation";
 
 interface AuthContextProps {
   user: User | null;
+  loading: boolean;
+
   setUser: (user: User) => void;
-  getUser: () => User | null;
 
   updateGender: (newGender: string) => void;
   updateUsername: (name: string) => void;
@@ -30,10 +31,7 @@ const AuthContext = createContext<AuthContextProps | null>(null);
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
-
-  function getUser(): User | null {
-    return user;
-  }
+  const [loading, setLoading] = useState<boolean>(false);
 
   async function updateGender(newGender: string) {
     if (!user) return;
@@ -41,9 +39,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const newUser: User = user;
     newUser.gender = newGender;
 
+    setLoading(true);
     const res = await userService.update(newUser);
+    setLoading(false);
 
-    if (!res) return toast.warning("Cannot connect with server");
     if (!res.success) toast.warning(res.message);
 
     toast.message("Update user gender successfully");
@@ -57,7 +56,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const newUser: User = user;
     newUser.name = name;
 
+    setLoading(true);
     const res = await userService.update(newUser);
+    setLoading(false);
 
     if (!res) return toast.warning("Cannot connect with server");
     if (!res.success) toast.warning(res.message);
@@ -73,7 +74,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const newUser: User = user;
     newUser.birthday = date;
 
+    setLoading(true);
     const res = await userService.update(newUser);
+    setLoading(false);
 
     if (!res) return toast.warning("Cannot connect with server");
     if (!res.success) toast.warning(res.message);
@@ -85,41 +88,58 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   async function updateAvatar(avatar: File) {}
 
+  async function me() {
+    setLoading(true);
+    const res = await authService.me();
+    setLoading(false);
+
+    const user = res.data;
+    if (user) {
+      setUser(user);
+
+      toast.message(res.message);
+    }
+  }
+
   async function login(email: string, password: string) {
     if (!validateEmailFormat(email)) return toast.error("Invalid Email");
     if (!validatePasswordFormat(password)) return toast.error("Password must have at least six character");
 
-    const login = await authService.login(email, password);
+    setLoading(true);
+    const res = await authService.login(email, password);
+    setLoading(false);
 
-    if (!login) return toast.warning("Cannot connect with server");
-    if (!login.success) return toast.warning(login.message);
+    if (!res.success) return toast.warning(res.message);
 
-    // save user info to auth context
-    setUser(login?.data?.user);
+    const user = res.data?.user;
+    const accessToken = res.data?.token;
 
-    // save access token
-    token.setAccessToken(login?.data?.token);
+    if (user && accessToken) {
+      setUser(user); // Save user
+      token.setAccessToken(accessToken); // Save access token
 
-    toast.message(login?.message);
+      toast.message(res.message);
 
-    // navigate to home page
-    router.replace("/");
+      // navigate to home page
+      router.replace("/");
+    }
   }
 
   async function register(name: string, email: string, password: string) {
     if (!validateEmailFormat(email)) return toast.error("Invalid Email");
     if (!validatePasswordFormat(password)) return toast.error("Password must have at least six character");
 
-    const register = await authService.register(name, email, password);
+    setLoading(true);
+    const res = await authService.register(name, email, password);
+    setLoading(false);
 
-    if (register && register.success) {
-      // save user info to auth context
-      setUser(register.data.user);
+    const user = res.data?.user;
+    const accessToken = res.data?.token;
+    if (user && accessToken) {
+      setUser(user);
+      token.setAccessToken(accessToken);
 
-      // save access token
-      token.setAccessToken(register.data.token);
-
-      toast.message(register.message);
+      toast.message(res.message);
 
       // navigate to home page
       router.replace("/");
@@ -134,27 +154,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }
 
   useEffect(function () {
-    const getUser = async () => {
-      const res = await authService.me();
-
-      if (res && res.success) {
-        const user = res?.data.user;
-        console.log(user);
-        setUser(user);
-        toast.message("Login with " + user.name);
-      } else {
-        toast.message("Your session has been expired");
-      }
-    };
-
+    console.log("Xin chào");
     const rememer = rememberMe.getStatus();
     if (rememer && token.getAccessToken()) {
-      getUser();
+      me();
     }
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, setUser, getUser, updateGender, updateUsername, updateBirthday, updateAvatar, login, register, logout }}>
+    <AuthContext.Provider value={{ user, loading, setUser, updateGender, updateUsername, updateBirthday, updateAvatar, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   );

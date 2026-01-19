@@ -74,16 +74,8 @@ export async function DeleteReadingHistory(req, res, next) {
 
     if (!historyId) throw CreateError(ErrorCodes.BAD_REQUEST);
 
-    // Make sure history exist
-    const history = await FindReadingHistory({ id: historyId });
-
-    if (!history || !history.success) throw CreateError(ErrorCodes.ASSET_NOT_FOUND);
-
-    // Make sure reading history belong to user
-    if (history.data.user_id !== userId) throw CreateError(ErrorCodes.FORBIDDEN);
-
-    const removing = await SoftDeleteReadingHistory({ id: historyId });
-    if (!removing || !removing.success) throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
+    const removing = await SoftDeleteReadingHistory({ id: historyId, userId: userId });
+    if (!removing) throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
 
     return res.status(200).json({
       success: true,

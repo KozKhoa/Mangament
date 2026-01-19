@@ -10,28 +10,20 @@ type Pagination = {
   totalItems: number;
   totalPages: number;
 };
-type ServiceResult<T> = {
-  success: boolean;
-  data?: T;
-  message?: any;
-  pagination?: Pagination;
-};
+type ServiceResult<T> = { success: boolean; data?: T; message?: string; pagination?: Pagination };
 
-export async function getStoryNode(params: StoryNodeParams): Promise<ServiceResult<StoryNode>> {
+export async function getStoryNodeById(storyNodeId: string, params: StoryNodeParams): Promise<ServiceResult<StoryNode>> {
   try {
-    if (!params.id) throw new Error("Require id");
+    if (!storyNodeId) throw new Error("Require id");
 
-    const res = await api.get(`/story-nodes/${params.id}`, {
+    const res = await api.get(`/story-nodes/${storyNodeId}`, {
       params: params,
       paramsSerializer: (params) => qs.stringify(params, { arrayFormat: "comma" }),
     });
     return res.data;
   } catch (error) {
-    console.log(error);
-    if (axios.isAxiosError(error)) {
-      return { success: false, message: error?.response?.data };
-    }
-    return { success: false, message: error };
+    console.error(error);
+    return { success: false, message: error?.toString() };
   }
 }
 
@@ -42,14 +34,11 @@ export async function addOneView(storyNodeId: string): Promise<ServiceResult<num
     const res = await api.patch(`/story-nodes/${storyNodeId}/view`);
     return res.data;
   } catch (error) {
-    console.log(error);
-    if (axios.isAxiosError(error)) {
-      return { success: false, message: error?.response?.data };
-    }
-    return { success: false, message: error };
+    console.error(error);
+    return { success: false, message: error?.toString() };
   }
 }
 
-const storyNodeService = { getStoryNode, addOneView };
+const storyNodeService = { getStoryNodeById, addOneView };
 
 export default storyNodeService;

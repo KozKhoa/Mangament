@@ -51,8 +51,8 @@ export default function StoryCardAllInfo({ story, className }: StoryCardAllInfoP
                 <div className={labelContainerStyle}>
                   <p className={subLabelStyle}>Đánh giá:</p>
                   <div className="flex justify-center items-center gap-2">
-                    <DisplayStar rating={story?.star || 0}></DisplayStar>
-                    <p className="">{story?.star}</p>
+                    <DisplayStar className="" rating={story?.star || 0}></DisplayStar>
+                    <p className="">{Math.round((story?.star ?? 0) * 10) / 10}</p>
                   </div>
                 </div>
               </div>

@@ -126,6 +126,7 @@ model Story {
   nation             String?
   view               Int         @default(0)
   star               Float       @default(0)
+  rating_count       Int         @default(0) // Number of rating
   type               StoryType
   status             StoryStatus @default(ongoing)
   next_chapter_in    DateTime?
@@ -248,8 +249,9 @@ model Rating {
   id         String   @id @default(uuid()) @db.Uuid
   user_id    String   @db.Uuid
   story_id   String   @db.Uuid
-  star       Int      @default(0) // 0-5
-  message    String?
+  star       Int      @default(0) // 0-5\
+  title      String
+  content    String
   created_at DateTime @default(now())
   updated_at DateTime @default(now())
   is_deleted Boolean  @default(false)
@@ -266,7 +268,8 @@ model Comment {
   story_id      String   @db.Uuid
   story_node_id String?  @db.Uuid
   user_id       String   @db.Uuid
-  message       String
+  title         String
+  content       String
   created_at    DateTime @default(now())
   updated_at    DateTime @default(now())
   is_deleted    Boolean  @default(false)

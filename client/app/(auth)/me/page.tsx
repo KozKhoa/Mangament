@@ -16,10 +16,11 @@ import historyService from "@/services/history";
 import History from "@/types/history";
 import HistoryList from "@/components/list/history-list";
 import { useRouter } from "next/navigation";
+import withAuth from "@/hoc/withAuth";
 
 const limit = 20;
 
-export default function ProfilePage() {
+export function ProfilePage() {
   const auth = useAuth();
   const user = auth?.user;
   const router = useRouter();
@@ -31,28 +32,28 @@ export default function ProfilePage() {
   const [history, setHistory] = useState<History[]>([]);
 
   async function fetchFavourite(page: number, limit: number) {
-    const res = await favouriteService.get({ limit: limit, page: page, sort: "updated_at:desc" });
+    const res = await favouriteService.getFavouriteStories({ limit: limit, page: page, sort: "updated_at:desc" });
 
     if (!res) return toast.warning("Cannot connect with server");
     if (!res.success) return toast.warning(res.message);
 
-    const fav: Favourite[] = res.data;
+    const fav: Favourite[] = res.data ?? [];
 
     if (!fav) return;
     setFavourite((prevFav) => [...prevFav, ...fav.map((item) => item.story)]);
   }
 
   async function fetchHistory(page: number, limit: number) {
-    const res = await historyService.get({ limit: limit, page: page, sort: "updated_at:desc" });
+    const res = await historyService.getHistories({ limit: limit, page: page, sort: "updated_at:desc" });
 
     if (!res) return toast.warning("Cannot connect with server");
     if (!res.success) return toast.warning(res.message);
 
-    const his: History[] = res.data;
+    const his: History[] = res.data ?? [];
     if (!his) return;
     setHistory((prevHis) => [...prevHis, ...his]);
 
-    setHistory(res.data);
+    setHistory(res.data ?? []);
   }
 
   useEffect(() => {
@@ -89,3 +90,5 @@ export default function ProfilePage() {
     </>
   );
 }
+
+export default withAuth(ProfilePage);

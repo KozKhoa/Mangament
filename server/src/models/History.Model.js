@@ -17,11 +17,6 @@ export async function FindAllReadingHistories({
 }) {
   if (!userId) return { success: false, message: "Missing user id" };
 
-  if (storyId) {
-    const story = await db.story.findFirst({ where: { is_deleted: false, id: storyId } });
-    if (!story) throw new Error("Story not found");
-  }
-
   const where = {
     is_deleted: false,
 
@@ -29,13 +24,12 @@ export async function FindAllReadingHistories({
 
     ...(storyId && { story_id: storyId }),
 
-    ...(fromDate ||
-      (toDate && {
-        updated_at: {
-          ...(fromDate && { gte: fromDate }),
-          ...(toDate && { lt: toDate }),
-        },
-      })),
+    ...((fromDate || toDate) && {
+      updated_at: {
+        ...(fromDate && { gte: fromDate }),
+        ...(toDate && { lt: toDate }),
+      },
+    }),
 
     story: {
       ...(type && type.length > 0 && { type: { in: type } }),
@@ -91,7 +85,7 @@ export async function FindAllReadingHistories({
 
   for (const history of histories) {
     delete history.is_deleted;
-    history.story_node = await GetParentStoryNodeTree(history.story_node_id);
+    history.story_node = await GetParentStoryNodeTree(history.story_id, history.story_node_id);
   }
 
   const totalItems = await db.readingHistory.count({ where: where });
@@ -102,7 +96,7 @@ export async function FindAllReadingHistories({
     pagination: {
       page: page,
       pageSize: limit,
-      totalPages: Math.floor(totalItems / limit),
+      totalPages: Math.ceil(totalItems / limit),
       totalItems: totalItems,
     },
   };
@@ -111,21 +105,6 @@ export async function FindAllReadingHistories({
 export async function FindReadingHistory({ id, userId, storyId, storyNodeId }) {
   if (!(id || (userId && storyId && storyNodeId))) {
     throw new Error("Require id or (user id, story id and story node id)");
-  }
-
-  if (userId) {
-    const user = await db.user.findFirst({ where: { is_deleted: false, id: userId } });
-    if (!user) throw new Error("User not found");
-  }
-
-  if (storyId) {
-    const story = await db.story.findFirst({ where: { is_deleted: false, id: storyId } });
-    if (!story) throw new Error("Story not found");
-  }
-
-  if (storyNodeId) {
-    const storyNode = await db.storyNode.findFirst({ where: { is_deleted: false, id: storyNodeId } });
-    if (!storyNode) throw new Error("Story node not found");
   }
 
   const history = await db.readingHistory.findUnique({
@@ -144,7 +123,7 @@ export async function FindReadingHistory({ id, userId, storyId, storyNodeId }) {
     },
   });
 
-  history.story_node = await GetParentStoryNodeTree(history.story_node_id);
+  history.story_node = await GetParentStoryNodeTree(history.story_id, history.story_node_id);
 
   delete history.is_deleted;
 
@@ -152,16 +131,9 @@ export async function FindReadingHistory({ id, userId, storyId, storyNodeId }) {
 }
 
 export async function AddReadingHistory({ userId, storyId, storyNodeId, position }) {
-  // Check if story
-  const story = await db.story.findUnique({ where: { id: storyId } });
-  if (!story) return { success: false, message: "Story does not exist" };
+  if (!userId || !storyId || !storyNodeId) throw new Error("Require user id, story id and story node id");
 
-  // Check if story node exist
-  const storyNode = await db.storyNode.findUnique({ where: { id: storyNodeId } });
-  if (!storyNode) return { success: false, message: "Story node does not exist" };
-
-  // Update status if this history exist
-  const history = await db.readingHistory.findUnique({
+  const history = await db.readingHistory.upsert({
     where: {
       user_id_story_id_story_node_id: {
         user_id: userId,
@@ -169,75 +141,35 @@ export async function AddReadingHistory({ userId, storyId, storyNodeId, position
         story_node_id: storyNodeId,
       },
     },
-  });
-  if (history) {
-    const update = await db.readingHistory.update({ where: { id: history.id }, data: { is_deleted: false, updated_at: new Date() } });
-    return { success: true, data: update };
-  }
-
-  const newHistory = await db.readingHistory.create({
-    data: {
-      user: {
-        connect: {
-          id: userId,
-        },
-      },
-      story: {
-        connect: {
-          id: storyId,
-        },
-      },
-      story_node: {
-        connect: {
-          id: storyNodeId,
-        },
-      },
+    update: {
+      is_deleted: false,
+      updated_at: new Date(),
+    },
+    create: {
+      user: { connect: { id: userId } },
+      story: { connect: { id: storyId } },
+      story_node: { connect: { id: storyNodeId } },
     },
   });
 
-  return { success: true, data: newHistory };
+  return { success: true, data: history };
 }
 
-export const HardDeleteReadingHistory = async (where = { id }) => {
-  try {
-    const result = await db.readingHistory.delete({ where: where });
-    return { success: true, data: result };
-  } catch (error) {
-    console.error("❌ [User.Model.js] Error hard delete reading history: ", error);
-    return { success: false, error: error.code };
-  }
-};
+export async function HardDeleteReadingHistory({ id, userId }) {
+  if (!id || !userId) throw new Error("Require history id and userId");
 
-export async function SoftDeleteReadingHistory({ id }) {
-  try {
-    const readingHistory = await db.readingHistory.findUnique({ where: { id: id } });
-    if (!readingHistory) return { success: false, message: "Cannot find reading history" };
+  const hardRemove = await db.readingHistory.deleteMany({ where: { id: id, user_id: userId } });
 
-    const result = await db.readingHistory.update({
-      where: { id: id },
-      data: { is_deleted: true },
-    });
-    return { success: true, data: result };
-  } catch (error) {
-    console.error("❌ [User.Model.js] Error soft delete reading history: ", error);
-    return { success: false, error: error.code };
-  }
+  return { success: true, message: "Remove permanently" };
 }
 
-export const UpdateReadingHistory = async (where = { id }, data = {}) => {
-  try {
-    const readingHistory = await FindReadingHistory({ id: where.id });
-    if (!readingHistory || !readingHistory.success || !readingHistory.data) {
-      return { success: false, data: null };
-    }
+export async function SoftDeleteReadingHistory({ id, userId }) {
+  if (!id && !userId) throw new Error("Require history id and user id");
 
-    const result = await db.readingHistory.update({
-      where: where,
-      data: data,
-    });
-    return { success: true, data: result };
-  } catch (error) {
-    console.error("❌ [User.Model.js] Error updating reading history: ", error);
-    return { success: false, error: error.code };
-  }
-};
+  const softRemove = await db.readingHistory.update({
+    where: { id: id, user_id: userId },
+    data: { is_deleted: true },
+  });
+
+  return { success: true, data: softRemove };
+}

@@ -36,7 +36,7 @@ function ButtonDropdown({
   const dropdown = useRef<HTMLDivElement>(null);
 
   const { refs, floatingStyles } = useFloating({
-    middleware: [offset(10), flip(), shift()],
+    middleware: [offset(10), flip(), shift({ padding: 10 })],
   });
 
   // Use to catch event clicking outside
@@ -62,13 +62,12 @@ function ButtonDropdown({
 
   return (
     <div
-      className={`flex flex-col relative justify-center items-start p-[1]
-            text-foreground bg-background-items
-        h-fit w-fit ${className}`}
+      className={`flex flex-col relative justify-center items-start p-[1] text-foreground bg-background-items h-fit w-fit 
+        ${className}`}
       ref={dropdown}
     >
       {/* Main button */}
-      <div ref={refs.setReference} className="flex flex-row justify-center items-center gap-2.5 w-full h-fit ">
+      <div ref={refs.setReference} className="flex flex-row justify-center items-center gap-2.5 w-full h-full ">
         {label && (
           <button className="w-fit h-full cursor-pointer" onClick={handleClick}>
             {label}
@@ -76,13 +75,7 @@ function ButtonDropdown({
         )}
         {(children || icon) && (
           <button className="cursor-pointer w-fit h-fit" onClick={toggleOpenDropdown}>
-            {icon ? (
-              icon
-            ) : (
-              <div className="w-[1em]">
-                <TriangleDownIcon className="w-[1em] h-[1em]" />
-              </div>
-            )}
+            {icon ? icon : <TriangleDownIcon className="w-4 h-4" />}
           </button>
         )}
       </div>
@@ -95,17 +88,17 @@ function ButtonDropdown({
             animate={{ height: "fit-content", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: duration / 1000, ease: "linear" }}
-            className={`relative z-10`}
+            className={`relative z-10 w-fit`}
           >
             <div
               ref={refs.setFloating}
               style={floatingStyles}
-              className={`flex absolute bg-background-items flex-col justify-center items-start w-fit h-fit rounded-[5] min-w-64
+              className={`flex absolute bg-background-items flex-col justify-center items-start w-fit h-fit rounded-[4]
                 border-2 border-foreground p-2.5 gap-2.5 shadow-[11px_13px_5px_rgba(0,0,0,0.3)]
               `}
             >
               {/* List */}
-              <div className="flex flex-col gap-2.5 max-h-90 w-full h-full overflow-y-scroll no-scrollbar p-1">{children}</div>
+              <div className="flex flex-col gap-2.5 max-h-[60vh] w-fit h-full overflow-y-scroll no-scrollbar p-1 min-w-64">{children}</div>
 
               <div className="flex flex-row w-full gap-2 justify-around">
                 {/* Accept button */}

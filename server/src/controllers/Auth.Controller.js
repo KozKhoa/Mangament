@@ -1,13 +1,4 @@
-import {
-  AddUser,
-  SoftDeleteUser,
-  UpdateUser,
-  FindUser,
-  HardDeleteRefreshToken,
-  AddRefreshToken,
-  FindRefreshToken,
-  ChangePassword,
-} from "../models/User.Model.js";
+import { AddUser, SoftDeleteUser, UpdateUser, FindUser, ChangePassword } from "../models/User.Model.js";
 import { CheckEmailAndPasswordFormat } from "../utils/Validators.js";
 import { CreateError } from "../utils/ErrorHandle.js";
 import { ComparePassword, HashPassword, RandomPassword } from "../utils/PasswordHandle.js";
@@ -19,6 +10,7 @@ import logger from "../models/LogReport.Model.js";
 
 import * as otpService from "../services/otp.service.js";
 import * as mailService from "../services/mail.service.js";
+import { AddRefreshToken, FindRefreshToken, HardDeleteRefreshToken } from "../models/Token.Model.js";
 
 export const Login = async (req, res, next) => {
   try {
@@ -52,7 +44,7 @@ export const Login = async (req, res, next) => {
     });
 
     // Save refresh token to db
-    await AddRefreshToken({ user_id: user.id, token: refreshToken });
+    await AddRefreshToken({ userId: user.id, token: refreshToken });
 
     // Add refresh token to http only
     SaveTokenOnCookies(res, refreshToken);
@@ -84,30 +76,15 @@ export const Register = async (req, res, next) => {
   try {
     // Get user name, email, password from require
     const { name, email, password } = req?.body;
-    if (!name || !email || !password) throw CreateError(ErrorCodes.MISSING_FIELD);
+    if (!name || !email || !password) throw CreateError({ status: ErrorCodes.MISSING_FIELD.status, message: "Require 'name', 'email' and 'password'" });
 
     CheckEmailAndPasswordFormat(email, password); // Check email and password format
 
-    const checkUserExist = await FindUser({ email: email }); // Check user aldready exist
-    if (checkUserExist.success && checkUserExist.data) {
-      throw CreateError(ErrorCodes.USER_ALREADY_EXIST);
-    }
-
-    // Hash password
-    const hashedPassword = await HashPassword(password);
-
-    // Try to add user to db, if adding is fail with code P2002 => user already existed
-    const addingUser = await AddUser({
-      name: name,
-      email: email,
-      password: hashedPassword,
-    });
-    if (!addingUser.success) {
-      throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
-    }
+    // Add user to database
+    const user = await AddUser({ name: name, email: email, password: password, avatarUrl: "user/avatar/avatar.png" });
+    if (!user) throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
 
     // If adding success =>  gen token
-    const user = addingUser.data;
     const refreshToken = GenRefreshToken({
       id: user.id,
       name: user.name,
@@ -122,28 +99,22 @@ export const Register = async (req, res, next) => {
     });
 
     // Save refresh token to db
-    await AddRefreshToken({ user_id: user.id, token: refreshToken });
+    await AddRefreshToken({ userId: user.data.id, token: refreshToken });
 
     // Save refresh token to http only
     SaveTokenOnCookies(res, refreshToken);
 
+    delete user.data.password;
     // Response to user
-
     res.status(200).json({
       success: true,
       message: "Register success",
       data: {
         accessToken: accessToken,
-        user: {
-          id: user.id,
-          email: user.email || "",
-          name: user.name || "",
-          role: user.role || "user",
-        },
+        user: user.data,
       },
     });
   } catch (error) {
-    if (!error.status) console.error("❌ [Auth.Controller.js] Error register:", error);
     next(error);
   }
 };
@@ -178,7 +149,7 @@ export const Logout = async (req, res, next) => {
 export const Refresh = async (req, res, next) => {
   try {
     const refreshToken = req.cookies[COOKIES_REFRESH_TOKEN_KEY]; // Get refreh token from cookies
-    if (!refreshToken) throw CreateError(ErrorCodes.TOKEN_NOT_FOUND);
+    if (!refreshToken) throw CreateError(ErrorCodes.TOKEN_INVALID);
 
     const { decodedToken, isExpire } = VerifyRefreshToken(refreshToken);
 

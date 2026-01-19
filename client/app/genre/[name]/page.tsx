@@ -9,7 +9,7 @@ import GENRES from "@/constants/genres";
 import useInView from "@/hooks/useInView";
 import genreService from "@/services/genre";
 import storyService from "@/services/story";
-import { StoryParams } from "@/types/params";
+import { Pagination } from "@/types/pagination";
 import Story from "@/types/story";
 import { randomNumerInRange } from "@/utils/number";
 import { snakeCaseToCapitalizeWord } from "@/utils/string";
@@ -34,6 +34,7 @@ export default function StoryGenrePage() {
   const [inViewRef, isInView] = useInView({ rootMargin: "0px 0px 100% 0px", threshold: 0.1 });
 
   const [stories, setStories] = useState<Story[] | null>(null);
+  const [pagination, setPagination] = useState<Pagination>();
   const [feeds, setFeeds] = useState<FeedItem[] | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -66,6 +67,7 @@ export default function StoryGenrePage() {
     if (!res.success) return toast.warning(res.message);
 
     setStories(res.data ?? []);
+    setPagination(res.pagination);
 
     setFeeds(buildFeed(res.data ?? []));
   }
@@ -109,7 +111,9 @@ export default function StoryGenrePage() {
       <h2 className="font-bold text-3xl m-auto w-fit mt-4">Thể loại</h2>
 
       <div className="  px-5 z-10 w-full flex flex-row flex-wrap justify-between items-center gap-2 border-b-2 ">
-        <p className="text-[2em] font-bold cursor-pointer">{snakeCaseToCapitalizeWord(genre ?? "")}</p>
+        <p className="text-[2em] font-bold cursor-pointer">
+          {snakeCaseToCapitalizeWord(genre ?? "")} <span className="text-[0.6em] font-normal text-center h-full">({pagination?.totalItems})</span>
+        </p>
       </div>
 
       {feeds && feeds.length > 0 && (

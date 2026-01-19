@@ -1,16 +1,13 @@
-import ButtonDropdownCheckbox from "../buttons/dropdown/btn-dropdown-checkbox";
-
 import EyeIcon from "@/public/eye/open.svg";
 
-import FilterProps from "@/types/filter";
-import { useEffect } from "react";
+import SharpTriangleDownIcon from "@/public/sharp-triangle-down.svg";
 import Tag from "../tags/tag";
 
-interface FilterViewsProps {
-  onFilter?: (options: FilterProps[]) => void;
-  isReset?: boolean;
-  className?: string;
-}
+import ButtonDropdown from "../buttons/dropdown/btn-dropdown";
+import Checkbox from "../inputs/checkbox";
+import { useEffect, useState } from "react";
+
+export type TargetView = "0-1000" | "1000-10000" | "10000-50000" | "50000-100000" | "100000-500000" | "500000-1000000" | "1000000-2147483647" | null;
 
 const VIEWS = [
   {
@@ -50,36 +47,68 @@ const VIEWS = [
     isChecked: false,
   },
 ];
+interface FilterViewProps {
+  value: TargetView[];
+  onChange?: (value: TargetView[]) => void;
+}
 
-export default function FilterViews({ onFilter, isReset }: { onFilter?: ({}) => void; isReset: boolean }) {
-  const handleFilter = (value: FilterProps[]) => {
-    let filter: string[] = [];
-    value.forEach((v, i) => {
-      if (v.isChecked) {
-        filter.push(v.code || "");
-      }
-    });
-    onFilter?.({ view: filter });
-  };
+export default function FilterViews({ value, onChange }: FilterViewProps) {
+  const [rerender, setRerender] = useState(false); // This only use to force this component re render to update items
 
-  useEffect(() => {
+  function handleFinish() {
+    setRerender(!rerender);
+    onChange?.(VIEWS.filter((view) => view.isChecked).map((view) => view.code as TargetView));
+  }
+
+  function resetAllField() {
     VIEWS.forEach((view) => {
       view.isChecked = false;
     });
-  }, [isReset]);
+    handleFinish();
+  }
+
+  useEffect(() => {
+    VIEWS.forEach((ratings) => {
+      if (value.includes(ratings.code as TargetView)) {
+        ratings.isChecked = true;
+      } else {
+        ratings.isChecked = false;
+      }
+    });
+  }, [value]);
 
   return (
-    <ButtonDropdownCheckbox
-      label={
-        <div className="flex flex-row flex-wrap gap-1.5 justify-center items-center w-fit h-fit">
-          <EyeIcon className="w-5 h-5 text-foreground stroke-0"></EyeIcon>
-          <p className="font-bold">Lượt xem</p>
-          <div className="flex flex-row flex-wrap gap-2">{VIEWS?.map((view, i) => view.isChecked && <Tag key={view.code}>{view.label}</Tag>)}</div>
+    <ButtonDropdown
+      openOnLeft={true}
+      className={`border-foreground border rounded-[5] relative text-foreground`}
+      acceptButtonLabel="Finish"
+      onClickAcceptButton={handleFinish}
+      closeButtonLabel="Reset"
+      onClickCloseButton={resetAllField}
+      icon={
+        <div className={`flex flex-row relative justify-start items-center gap-1.5 p-0.5 cursor-pointer w-fit text-foreground px-2 `}>
+          {
+            <div className="flex flex-row flex-wrap gap-1.5 justify-center items-center w-fit h-fit">
+              <EyeIcon className="w-5 h-5 text-foreground stroke-0"></EyeIcon>
+              <p className="font-bold">Lượt xem</p>
+              <div className="flex flex-row flex-wrap gap-0.5">{VIEWS?.map((view, i) => view.isChecked && <Tag key={view.code}>{view.label}</Tag>)}</div>
+            </div>
+          }
+          <div className="w-[1em] h-[1em]">
+            <SharpTriangleDownIcon className="w-[1em] h-[1em] text-foreground" />
+          </div>
         </div>
       }
-      options={VIEWS}
-      name="filter-sort-author"
-      onFinishCheck={(checked) => handleFilter?.(checked)}
-    ></ButtonDropdownCheckbox>
+    >
+      <div className="flex flex-col justify-start items-center gap-2.5 w-full h-fit">
+        {VIEWS?.map((view, index) => (
+          <div key={index} className="flex w-full h-fit justify-start items-center">
+            <Checkbox defaultChecked={view.isChecked} onChange={(isChecked) => (view.isChecked = isChecked)}>
+              {view.label}
+            </Checkbox>
+          </div>
+        ))}
+      </div>
+    </ButtonDropdown>
   );
 }

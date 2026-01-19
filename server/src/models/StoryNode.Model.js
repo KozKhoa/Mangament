@@ -1,7 +1,7 @@
 import db from "../configs/db.js";
 import { StoryNodeType } from "../configs/db.js";
 
-import { GetStoryTree, UpdateStory } from "./Story.Model.js";
+import { BuildStoryTree, UpdateStory } from "./Story.Model.js";
 
 export function GetAllStoryNodeType() {
   return Object.values(StoryNodeType);
@@ -13,47 +13,52 @@ export function ValidateStoryNodeType(storyNodeType) {
   return storyNodeTypeList.includes(storyNodeType);
 }
 
-export const GetParentStoryNodeTree = async (story_node_id, isGettingContent = false) => {
-  if (!story_node_id) return null;
-  const node = await db.storyNode.findUnique({
-    where: { is_deleted: false, id: story_node_id },
+export const GetParentStoryNodeTree = async (storyId, storyNodeId, isGettingContent = false) => {
+  if (!storyId) throw new Error("Require story id");
+  if (!storyNodeId) throw new Error("Require story node id");
+
+  const nodes = await db.storyNode.findMany({
+    where: {
+      is_deleted: false,
+      story_id: storyId,
+    },
     select: {
       id: true,
+      story_id: true,
       parent_id: true,
-      title: true,
       type: true,
       order_index: true,
+      updated_at: true,
+      created_at: true,
       ...(isGettingContent && { content: true }),
     },
   });
-  if (!node) return null;
 
-  node.parent = await GetParentStoryNodeTree(node.parent_id, isGettingContent);
-  return node;
+  const map = new Map();
+  for (const node of nodes) {
+    map.set(node.id, { ...node, parent: null });
+  }
+
+  let node = map.get(storyNodeId);
+  while (node) {
+    map.get(node.id).parent = map.get(node.parent_id);
+    node = map.get(node.parent_id);
+  }
+
+  return map.get(storyNodeId);
 };
 
 export async function FindAllStoryNodes({ storyId, parentId, sort = { updated_at: "desc" } }, page = 1, limit = 10, isGettingChildren = false) {
-  if (storyId) {
-    const story = await db.story.findFirst({ where: { is_deleted: false, id: storyId } });
-    if (!story) throw new Error("Story not found");
-  }
-
-  if (parentId) {
-    const parent = await db.storyNode.findFirst({ where: { is_deleted: false, id: parentId } });
-    if (!parent) throw new Error("Story node's parent not found");
-  }
-
   const where = {
     is_deleted: false,
-    ...(storyId && { story_id: storyId }),
-    ...(parentId && { parent_id: parentId }),
+
+    ...(storyId && { story: { is_deleted: false, id: storyId } }),
+    ...(parentId && { parent: { is_deleted: false, id: parentId } }),
   };
 
   const storyNodes = await db.storyNode.findMany({
     where: where,
-
     orderBy: [sort, { id: "asc" }],
-
     take: limit,
     skip: (page - 1) * limit,
   });
@@ -62,7 +67,7 @@ export async function FindAllStoryNodes({ storyId, parentId, sort = { updated_at
 
   if (isGettingChildren) {
     for (const node of storyNodes) {
-      node.children = await GetStoryTree(node.story_id, node.id);
+      node.children = await BuildStoryTree(node.story_id, node.id);
     }
   }
 
@@ -72,7 +77,7 @@ export async function FindAllStoryNodes({ storyId, parentId, sort = { updated_at
     pagination: {
       page: page,
       pageSize: limit,
-      totalPages: Math.floor(totalItems / limit),
+      totalPages: Math.ceil(totalItems / limit),
       totalItems: totalItems,
     },
   };
@@ -96,7 +101,7 @@ export async function FindStoryNode({ id, storyId, parentId, storyNodeType, orde
   });
 
   if (isGettingChildren) {
-    storyNode.children = await GetStoryTree(node.story_id, node.id);
+    storyNode.children = await BuildStoryTree(node.story_id, node.id);
   }
 
   return { success: true, data: storyNode };
@@ -131,7 +136,7 @@ export const AddStoryNode = async (data = { title, type, story_id, parent_id, or
         }),
         ...(data.content && { content: data.content }),
         title: data.title,
-        type: data.type || console.log(data.type),
+        type: data.type,
         order_index: data.order_index,
         number_of_children: data.number_of_children,
       },
@@ -189,6 +194,35 @@ export const HardDeleteStoryNode = async (where = { id }) => {
     return { success: false, error: error.code };
   }
 };
+
+export async function IncreaseOneViewForStoryNodeAndItsParents(storyNodeId) {
+  if (!storyNodeId) throw new Error("Require story node id");
+
+  //  Update view for current story node
+  const update = await db.storyNode.update({
+    where: { id: storyNodeId, is_deleted: false },
+    data: { view: { increment: 1 } },
+  });
+
+  // Udpate view for story
+  await db.story.update({
+    where: { is_deleted: false, id: update.story_id },
+    data: { view: { increment: 1 } },
+  });
+
+  // Update for current node's parents
+  let parentId = update.parent_id;
+  while (parentId) {
+    const update = await db.storyNode.update({
+      where: { id: parentId, is_deleted: false },
+      data: { view: { increment: 1 } },
+    });
+
+    parentId = update.parent_id;
+  }
+
+  return { success: true, data: update };
+}
 
 export const UpdateStoryNode = async (where = { id }, data = {}) => {
   try {

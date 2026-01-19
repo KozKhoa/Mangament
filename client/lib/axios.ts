@@ -5,6 +5,7 @@ import * as token from "@/lib/token";
 // Create instance
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
+  validateStatus: (status) => status < 500,
   timeout: 5000,
 });
 
@@ -17,7 +18,7 @@ api.interceptors.request.use(
     }
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => Promise.reject(error),
 );
 
 // If access token is expired
@@ -35,7 +36,7 @@ api.interceptors.response.use(
         const res = await axios.post(
           `${process.env.NEXT_PUBLIC_API_URL}auth/refresh`,
           {},
-          { withCredentials: true } // gửi cookie refresh token
+          { withCredentials: true }, // gửi cookie refresh token
         );
 
         const newAccessToken = res.data.data.token;
@@ -52,7 +53,7 @@ api.interceptors.response.use(
     }
 
     return Promise.reject(error);
-  }
+  },
 );
 
 export default api;

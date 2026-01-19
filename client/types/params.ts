@@ -1,5 +1,6 @@
 export interface StoryParams {
   id?: string;
+  title?: string;
   page?: number;
   limit?: number;
   type?: string;
@@ -8,6 +9,7 @@ export interface StoryParams {
   star?: string[];
   view?: string[];
   genre?: string[];
+  status?: string[];
   sort?: string;
   isGettingChildren?: boolean;
   isGettingContent?: boolean;

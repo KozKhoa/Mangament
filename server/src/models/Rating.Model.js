@@ -1,16 +1,7 @@
 import db from "../configs/db.js";
+import { CreateError } from "../utils/ErrorHandle.js";
 
 export async function FindAllRatings({ storyId, userId, star = [[0, 6]], sort = { updated_at: "desc" }, page = 1, limit = 10 }) {
-  if (storyId) {
-    const story = await db.story.findFirst({ where: { is_deleted: false, id: storyId } });
-    if (!story) throw new Error("Story not found");
-  }
-
-  if (userId) {
-    const user = await db.user.findFirst({ where: { is_deleted: false, id: userId } });
-    if (!user) throw new Error("User not found");
-  }
-
   const where = {
     is_deleted: false,
     ...(storyId && { story_id: storyId }),
@@ -45,7 +36,7 @@ export async function FindAllRatings({ storyId, userId, star = [[0, 6]], sort = 
     pagination: {
       page: page,
       pageSize: limit,
-      totalPages: Math.floor(totalItems / limit),
+      totalPages: Math.ceil(totalItems / limit),
       totalItems: totalItems,
     },
   };
@@ -61,29 +52,61 @@ export async function FindRating({ id, userId, storyId }) {
   return { success: true, data: rating };
 }
 
-export async function AddRatings(data = { user_id, story_id, star, message }) {
-  try {
-    if (!data.user_id && !data.story_id && !data.message) return { success: false, data: null };
+export async function AddRatings({ userId, storyId, star, title, content }) {
+  if (!userId || !storyId) {
+    throw CreateError({ status: 400, message: "Require both story id and user id" });
+  }
+
+  if ((star !== 0 && !star) || !title || !content) {
+    throw CreateError({ status: 400, message: "Require star, title and content" });
+  }
+
+  if (typeof star !== "number" || star < 1 || star > 5) {
+    throw CreateError({ status: 400, message: "star must be a number between 1 and 5" });
+  }
+
+  return db.$transaction(async (db) => {
+    const story = await db.story.findFirst({ where: { id: storyId, is_deleted: false } });
+    if (!story) throw CreateError({ status: 400, message: "Story not found" });
+
+    const user = await db.user.findFirst({ where: { id: userId, is_deleted: false } });
+    if (!user) throw CreateError({ status: 400, message: "User not found" });
+
+    const oldRating = await db.rating.findUnique({ where: { user_id_story_id: { story_id: storyId, user_id: userId } } });
+    if (oldRating) throw CreateError({ status: 400, message: "Rating already exist" });
 
     const newRating = await db.rating.create({
-      data: data,
+      data: {
+        user: {
+          connect: {
+            id: userId,
+          },
+        },
+        story: {
+          connect: {
+            id: storyId,
+          },
+        },
+        star: star,
+        title: title,
+        content: content,
+      },
     });
 
     // Update star for story
-    const count = Number(await db.rating.count({ where: { story_id: data.story_id } }));
-    const currentRating = Number((await db.story.findUnique({ where: { id: data.story_id } })).star);
-    if (count <= 1) {
-      await db.story.update({ where: { id: data.story_id }, data: { star: data.star } });
-    } else {
-      const newStar = currentRating / (count - 1) - currentRating / ((count - 1) * count) + data.star / count;
-      await db.story.update({ where: { id: data.story_id }, data: { star: newStar } });
-    }
+    const newStar = (story.star * story.rating_count + star) / (story.rating_count + 1);
+    await db.story.update({
+      where: { id: storyId },
+      data: {
+        star: newStar,
+        rating_count: story.rating_count + 1,
+      },
+    });
+
+    delete newRating.is_deleted;
 
     return { success: true, data: newRating };
-  } catch (error) {
-    if (error.code !== "P2002") console.error("❌ [Rating.Model.js] Error adding new rating:", error);
-    return { success: false, error: error.code };
-  }
+  });
 }
 
 export async function SoftDeleteRating(where = { id }) {

@@ -39,7 +39,7 @@ export default function DisplayStar({ rating, width = "1em", height = "1em", cla
         ) : (
           // Gray star
           <StarIcon key={i} className={`w-[${width}] h-[${height}] fill-gray-400`}></StarIcon>
-        )
+        ),
       )}
     </div>
   );
