@@ -66,14 +66,7 @@ export async function FindUser({ id, email }) {
       ...(email && { email: email }),
     },
 
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      gender: true,
-      birthday: true,
-      join_date: true,
-      role: true,
+    include: {
       avatar: { select: { url: true, width: true, height: true } },
     },
   });
