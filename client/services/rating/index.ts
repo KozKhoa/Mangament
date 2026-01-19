@@ -19,10 +19,9 @@ export async function getRatings(storyId: string, params: RatingParams): Promise
   }
 }
 
-export async function addNewRating(storyId: string, userId: string, star: number, title: string, content: string): Promise<ServiceResult<Rating>> {
+export async function addNewRating(storyId: string, star: number, title: string, content: string): Promise<ServiceResult<Rating>> {
   try {
     const res = await api.post(`/stories/${storyId ?? ""}/ratings`, {
-      userId: userId,
       star: star,
       title: title,
       content: content,

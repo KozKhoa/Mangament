@@ -17,6 +17,8 @@ interface StoryNodeCommentsGridProps {
   elementPerPage?: number;
 }
 
+const SWITCH_LAYOUT = 4;
+
 export default function CommentMasonryGrid({ className, storyNodeId, storyId, elementPerPage = 8 }: StoryNodeCommentsGridProps) {
   const page = useRef(1);
   const [comments, setComments] = useState<Comment[]>([]);
@@ -92,22 +94,14 @@ export default function CommentMasonryGrid({ className, storyNodeId, storyId, el
 
   let breakpointColumnsObj;
   if (comments.length < elementPerPage) {
+    const size = comments.length;
     breakpointColumnsObj = {
-      default: 4,
-      1400: 4,
-      1100: 3,
-      700: 2,
-      500: 2,
-      300: 2,
-    };
-  } else {
-    breakpointColumnsObj = {
-      default: 6,
-      1400: 5,
-      1100: 4,
-      700: 3,
-      500: 2,
-      300: 1,
+      default: 4 < size ? 4 : size,
+      1400: 4 < size ? 4 : size,
+      1100: 3 < size ? 3 : size,
+      700: 2 < size ? 2 : size,
+      500: 2 < size ? 2 : size,
+      300: 2 < size ? 2 : size,
     };
   }
 
@@ -121,11 +115,21 @@ export default function CommentMasonryGrid({ className, storyNodeId, storyId, el
       </h2>
 
       {comments.length > 0 ? (
-        <MasonryGrid breakpointCols={breakpointColumnsObj}>
-          {comments.map((commment, i) => (
-            <CommentCard key={commment.id} comment={commment}></CommentCard>
-          ))}
-        </MasonryGrid>
+        <>
+          {comments.length > 6 ? (
+            <MasonryGrid breakpointCols={breakpointColumnsObj}>
+              {comments.map((commment, i) => (
+                <CommentCard key={commment.id} comment={commment}></CommentCard>
+              ))}
+            </MasonryGrid>
+          ) : (
+            <div className="flex flex-col gap-2 justify-center items-center">
+              {comments.map((commment, i) => (
+                <CommentCard className="w-full" key={commment.id} comment={commment}></CommentCard>
+              ))}
+            </div>
+          )}
+        </>
       ) : (
         <>
           {!loading && (

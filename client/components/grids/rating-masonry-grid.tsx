@@ -9,12 +9,31 @@ import { Pagination } from "@/types/pagination";
 import Rating from "@/types/ratings";
 
 import ratingService from "@/services/rating";
+import { modal } from "../modal/modal.store";
+import RatingInputForm from "../forms/rating-input-form";
 
 interface RatingGridProps {
   className?: string;
   storyId: string;
   elementPerPage?: number;
 }
+
+function RatingButton({ storyId }: { storyId: string }) {
+  return (
+    <button
+      onClick={() => {
+        modal.open("custom", {
+          content: <RatingInputForm onCancel={modal.close} onSubmit={modal.close} storyId={storyId}></RatingInputForm>,
+        });
+      }}
+      className="px-5 py-1 w-fit h-fit rounded-md select-none bg-foreground/10 text-foreground/80 cursor-pointer hover:bg-foreground/20"
+    >
+      Đánh giá ➤
+    </button>
+  );
+}
+
+const SWITCH_LAYOUT = 4;
 
 export default function RatingMasonryGrid({ className, storyId, elementPerPage = 8 }: RatingGridProps) {
   const page = useRef(1);
@@ -62,48 +81,52 @@ export default function RatingMasonryGrid({ className, storyId, elementPerPage =
 
   let breakpointColumnsObj;
   if (ratings.length < elementPerPage) {
+    const size = ratings.length;
     breakpointColumnsObj = {
-      default: 4,
-      1400: 4,
-      1100: 3,
-      700: 2,
-      500: 2,
-      300: 2,
-    };
-  } else {
-    breakpointColumnsObj = {
-      default: 6,
-      1400: 5,
-      1100: 4,
-      700: 3,
-      500: 2,
-      300: 1,
+      default: 4 < size ? 4 : size,
+      1400: 4 < size ? 4 : size,
+      1100: 3 < size ? 3 : size,
+      700: 2 < size ? 2 : size,
+      500: 2 < size ? 2 : size,
+      300: 2 < size ? 2 : size,
     };
   }
 
   return (
     <div className={`flex flex-col justify-center items-center gap-2 ${className}`}>
-      <h2 className="w-full text-start px-1 font-semibold">
-        Rating{" "}
-        <span className="text-[0.6em] font-normal">
-          ({ratings.length}/{pagination?.totalItems})
-        </span>
-      </h2>
+      <div className="w-full flex flex-row justify-between items-center">
+        <h2 className="text-start px-1 font-semibold">
+          Rating{" "}
+          <span className="text-[0.6em] font-normal">
+            ({ratings.length}/{pagination?.totalItems})
+          </span>
+        </h2>
+
+        <RatingButton storyId={storyId}></RatingButton>
+      </div>
 
       {ratings.length > 0 ? (
-        <MasonryGrid breakpointCols={breakpointColumnsObj}>
-          {ratings.map((commment, i) => (
-            <RatingCard key={commment.id} rating={commment}></RatingCard>
-          ))}
-        </MasonryGrid>
+        <>
+          {ratings.length > SWITCH_LAYOUT ? (
+            <MasonryGrid breakpointCols={breakpointColumnsObj}>
+              {ratings.map((rating, i) => (
+                <RatingCard key={rating.id} rating={rating}></RatingCard>
+              ))}
+            </MasonryGrid>
+          ) : (
+            <div className="flex flex-col gap-2 justify-center items-center">
+              {ratings.map((rating, i) => (
+                <RatingCard className="w-full" key={rating.id} rating={rating}></RatingCard>
+              ))}
+            </div>
+          )}
+        </>
       ) : (
         <>
           {!loading && (
             <div className="flex flex-col justify-center items-center gap-2 md:text-[1.2em]">
               <p className="text-center p-10 py-5">Chưa có đánh giá nào, hãy trở thành người đánh giá đầu tiên</p>
-              <button className="px-5 py-1 w-fit h-fit rounded-md select-none bg-foreground/10 text-foreground/80 cursor-pointer hover:bg-foreground/20">
-                Đánh giá ➤
-              </button>
+              <RatingButton storyId={storyId}></RatingButton>
             </div>
           )}
         </>

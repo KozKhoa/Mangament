@@ -10,7 +10,6 @@ import useApp from "@/contexts/AppContext";
 
 import storyService from "@/services/story";
 import storyNodeService from "@/services/story-node";
-import favouriteService from "@/services/favourite";
 
 import Story from "@/types/story";
 import StoryNode from "@/types/story-node";
@@ -19,7 +18,6 @@ import ArrowLeftIcon from "@/public/arrows/left-v.svg";
 import ArrowRightIcon from "@/public/arrows/right-v.svg";
 
 import Button from "@/components/buttons/button";
-import CommentList from "@/components/list/comment-list";
 import NumberInput from "@/components/inputs/number-input";
 import StoryNodeList from "@/components/list/story-node-list";
 import RecommendStories from "@/components/list/recommend-story";

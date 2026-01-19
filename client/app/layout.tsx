@@ -11,6 +11,7 @@ import "./globals.css";
 
 import NavBar from "@/components/layouts/navbar";
 import Footer from "@/components/layouts/footer";
+import { ModalRoot } from "@/components/modal/modal-root";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -39,6 +40,7 @@ export default function RootLayout({
               <Footer></Footer>
 
               <Toaster position="top-center" />
+              <ModalRoot />
             </ThemeProvider>
           </AuthProvider>
         </AppProvider>

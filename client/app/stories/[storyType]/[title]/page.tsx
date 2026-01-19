@@ -21,9 +21,10 @@ import StoryNodeList from "@/components/list/story-node-list";
 import RecommendStories from "@/components/list/recommend-story";
 import StoryCardAllInfo from "@/components/cards/stories/story-card-all-info";
 import ButtonOfFavouriteStory from "@/components/buttons/favourite-button";
-import StoryNodeCommentsGrid from "@/components/grids/comment-masonry-grid";
 import CommentMasonryGrid from "@/components/grids/comment-masonry-grid";
 import RatingMasonryGrid from "@/components/grids/rating-masonry-grid";
+import { modal } from "@/components/modal/modal.store";
+import RatingInputForm from "@/components/forms/rating-input-form";
 
 export default function StoryDetailPage() {
   const router = useRouter();
@@ -58,6 +59,12 @@ export default function StoryDetailPage() {
     let routeDir = "";
     storyNode.forEach((node, i) => (routeDir = path.join(routeDir, `${node.type} ${node.order_index}`)));
     router.push(path.join(`/stories/${storyType}/${title}/`, routeDir));
+  }
+
+  function handleOpenRatingForm() {
+    modal.open("custom", {
+      content: <RatingInputForm onCancel={modal.close} onSubmit={modal.close} storyId={story?.id ?? ""}></RatingInputForm>,
+    });
   }
 
   useEffect(() => {
@@ -121,6 +128,17 @@ export default function StoryDetailPage() {
             </div>
           ))}
         </div>
+      </div>
+
+      {/* Enter rating */}
+      <div
+        onClick={() => {
+          modal.open("custom", {
+            content: <RatingInputForm onCancel={modal.close} onSubmit={modal.close} storyId={story?.id ?? ""}></RatingInputForm>,
+          });
+        }}
+      >
+        adas
       </div>
 
       {/* Rating */}

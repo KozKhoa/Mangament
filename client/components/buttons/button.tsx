@@ -53,10 +53,10 @@ export default function Button({
       ${bgColorMapping(buttonType)} 
       ${borderColorMapping(buttonType)}  
       ${textColorMapping(buttonType)}
-        ${disable ? " opacity-50 cursor-none" : " cursor-pointer "}
+        ${disable ? " opacity-50" : " cursor-pointer "}
         ${className}`}
     >
-      {isProcessing && <Loading spinnerClassName="w-[24px]"></Loading>}
+      {isProcessing && <Loading spinnerClassName="w-[20px]"></Loading>}
       {children}
     </button>
   );
