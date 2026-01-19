@@ -129,7 +129,7 @@ export default function Home() {
       {/*Genres list */}
       <InfinityScrollHorizontalList
         label="Tag nổi bật"
-        onClickLabel={() => {}}
+        onClickLabel={() => router.push("/genre")}
         numberOfElementInScreen={{
           basic: 1,
           sm: 2,
@@ -184,6 +184,7 @@ export default function Home() {
       {/* Best ranking stories */}
       <InfinityScrollHorizontalList
         label="Đánh giá cao nhất"
+        onClickLabel={() => router.push("/ranking")}
         numberOfElementInScreen={{
           basic: 1,
           sm: 2,
