@@ -130,17 +130,6 @@ export default function StoryDetailPage() {
         </div>
       </div>
 
-      {/* Enter rating */}
-      <div
-        onClick={() => {
-          modal.open("custom", {
-            content: <RatingInputForm onCancel={modal.close} onSubmit={modal.close} storyId={story?.id ?? ""}></RatingInputForm>,
-          });
-        }}
-      >
-        adas
-      </div>
-
       {/* Rating */}
       <RatingMasonryGrid storyId={story?.id ?? ""}></RatingMasonryGrid>
 

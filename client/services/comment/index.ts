@@ -35,12 +35,9 @@ export async function getStoryNodeComments(storyNodeId: string, params?: Comment
   }
 }
 
-export async function postStoryComment(storyId: string, userId: string, message: string): Promise<ServiceResult<Comment>> {
+export async function postStoryComment(storyId: string, title: string, content: string): Promise<ServiceResult<Comment>> {
   try {
-    const res = await api.post(`/stories/${storyId ?? ""}/comments`, {
-      userId: userId,
-      message: message,
-    });
+    const res = await api.post(`/stories/${storyId ?? ""}/comments`, { title, content });
     return res.data;
   } catch (error) {
     console.error(error);
@@ -48,12 +45,9 @@ export async function postStoryComment(storyId: string, userId: string, message:
   }
 }
 
-export async function postStoryNodeComment(storyNodeId: string, userId: string, message: string): Promise<ServiceResult<Comment>> {
+export async function postStoryNodeComment(storyNodeId: string, title: string, content: string): Promise<ServiceResult<Comment>> {
   try {
-    const res = await api.post(`/story-nodes/${storyNodeId ?? ""}/comments`, {
-      userId: userId,
-      message: message,
-    });
+    const res = await api.post(`/story-nodes/${storyNodeId ?? ""}/comments`, { title, content });
     return res.data;
   } catch (error) {
     console.error(error);

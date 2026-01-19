@@ -4,11 +4,13 @@ import { toast } from "sonner";
 import MasonryGrid from "./masonry-grid";
 import Loading from "../loadings/loading";
 import CommentCard from "../cards/comment-card";
+import CommentInputForm from "../forms/comment-input-form";
 
 import commentService from "@/services/comment";
 
 import Comment from "@/types/comment";
 import { Pagination } from "@/types/pagination";
+import { modal } from "../modal/modal.store";
 
 interface StoryNodeCommentsGridProps {
   className?: string;
@@ -18,6 +20,21 @@ interface StoryNodeCommentsGridProps {
 }
 
 const SWITCH_LAYOUT = 4;
+
+function CommentButton({ storyId, storyNodeId }: { storyId?: string; storyNodeId?: string }) {
+  return (
+    <button
+      onClick={() => {
+        modal.open("custom", {
+          content: <CommentInputForm onCancel={modal.close} onSubmit={modal.close} storyId={storyId} storyNodeId={storyNodeId}></CommentInputForm>,
+        });
+      }}
+      className="px-5 py-1 w-fit h-fit rounded-md select-none bg-foreground/10 text-foreground/80 cursor-pointer hover:bg-foreground/20"
+    >
+      Đánh giá ➤
+    </button>
+  );
+}
 
 export default function CommentMasonryGrid({ className, storyNodeId, storyId, elementPerPage = 8 }: StoryNodeCommentsGridProps) {
   const page = useRef(1);
@@ -107,16 +124,20 @@ export default function CommentMasonryGrid({ className, storyNodeId, storyId, el
 
   return (
     <div className={`flex flex-col justify-center items-center gap-2 ${className}`}>
-      <h2 className="w-full text-start px-1 font-semibold">
-        Comment{" "}
-        <span className="text-[0.6em] font-normal">
-          ({comments.length}/{pagination?.totalItems})
-        </span>
-      </h2>
+      <div className="w-full flex flex-row justify-between items-center">
+        <h2 className="text-start px-1 font-semibold">
+          Comment{" "}
+          <span className="text-[0.6em] font-normal">
+            ({comments.length}/{pagination?.totalItems})
+          </span>
+        </h2>
+
+        <CommentButton storyId={storyId}></CommentButton>
+      </div>
 
       {comments.length > 0 ? (
         <>
-          {comments.length > 6 ? (
+          {comments.length > SWITCH_LAYOUT ? (
             <MasonryGrid breakpointCols={breakpointColumnsObj}>
               {comments.map((commment, i) => (
                 <CommentCard key={commment.id} comment={commment}></CommentCard>
@@ -135,9 +156,7 @@ export default function CommentMasonryGrid({ className, storyNodeId, storyId, el
           {!loading && (
             <div className="flex flex-col justify-center items-center gap-2 md:text-[1.2em]">
               <p className="text-center p-10 py-5">Chưa có bình luận nào, hãy trở thành người bình luận đầu tiên</p>
-              <button className="px-5 py-1 w-fit h-fit rounded-md select-none bg-foreground/10 text-foreground/80 cursor-pointer hover:bg-foreground/20">
-                Bình luận ➤
-              </button>
+              <CommentButton storyId={storyId} storyNodeId={storyNodeId}></CommentButton>
             </div>
           )}
         </>
