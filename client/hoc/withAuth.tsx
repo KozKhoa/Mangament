@@ -10,19 +10,17 @@ export default function withAuth<T extends object>(WrappedComponent: React.Compo
     const router = useRouter();
     const auth = useAuth();
 
-    const isLoading = auth?.loading;
+    const loading = auth?.loading;
     const user = auth?.user;
 
-    console.log(user, isLoading);
-
     useEffect(() => {
-      if (!isLoading && !user) {
+      if (!loading && !user) {
         toast.warning("Yêu cầu đăng nhập để tiếp tục");
         router.replace("/login");
       }
-    }, [user, isLoading]);
+    }, [user, loading]);
 
-    if (isLoading) return null;
+    if (loading) return null;
     if (!user) return null;
 
     return <WrappedComponent {...props} />;

@@ -12,6 +12,7 @@ import "./globals.css";
 import NavBar from "@/components/layouts/navbar";
 import Footer from "@/components/layouts/footer";
 import { ModalRoot } from "@/components/modal/modal-root";
+import AdminSidebar from "@/components/layouts/sidebar/sidebar-admin";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -27,7 +28,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body
         className={`${Geist.variable} ${Geist_Mono.variable} ${Afacad.variable} ${Holtwood_One_SC.variable} ${Roboto.variable} ${Aclonica.variable} antialiased
-        px-1 text-size-default font-afacad bg-background relative max-w-[1700] m-auto
+          text-size-default font-afacad bg-background relative
         `}
       >
         <AppProvider>
@@ -35,7 +36,7 @@ export default function RootLayout({
             <ThemeProvider attribute="class" defaultTheme="system" enableSystem={true}>
               <NavBar className="fixed left-2.5 right-2.5"></NavBar>
 
-              <div className="max-w-[1700px] m-auto transition-all duration-300">{children}</div>
+              <div>{children}</div>
 
               <Footer></Footer>
 

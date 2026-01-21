@@ -76,7 +76,7 @@ export default function StoryDetailPage() {
   }, []);
 
   return (
-    <div className="flex flex-col gap-10 p-1">
+    <div className="flex flex-col gap-10 px-2.5">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         {/* Story info */}
         <div className="lg:flex-1 flex flex-col gap-3 ">

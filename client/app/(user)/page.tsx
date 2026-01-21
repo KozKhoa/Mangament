@@ -82,7 +82,7 @@ export default function Home() {
   }, [auth?.user]);
 
   return (
-    <div className="flex flex-col gap-10  ">
+    <div className="flex flex-col gap-10 px-1 ">
       {/* Ranking */}
       <StoriesRankingList label="Xem nhiều nhất" className="m-auto max-w-[1200px]" rankBy="view"></StoriesRankingList>
 
