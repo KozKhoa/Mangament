@@ -34,11 +34,7 @@ export default function RootLayout({
         <AppProvider>
           <AuthProvider>
             <ThemeProvider attribute="class" defaultTheme="system" enableSystem={true}>
-              <NavBar className="fixed left-2.5 right-2.5"></NavBar>
-
               <div>{children}</div>
-
-              <Footer></Footer>
 
               <Toaster position="top-center" />
               <ModalRoot />

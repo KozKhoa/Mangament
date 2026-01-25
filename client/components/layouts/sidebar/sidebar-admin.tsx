@@ -4,7 +4,8 @@ import ButtonExpandable from "@/components/buttons/expandable/btn-expandable";
 import useAuth from "@/contexts/AuthContext";
 import ArrowLeftIcon from "@/public/arrows/left-v.svg";
 import ArrowDownIcon from "@/public/arrows/down-v.svg";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import useResize from "@/hooks/useResize";
 
 interface AdminSidebarProps {
   className?: string;
@@ -17,12 +18,12 @@ export function SidebarButton({ className }: { className?: string }) {
 export function ArrowToggleSidebar({ className, toggleSidebar }: { className?: string; toggleSidebar?: () => void }) {
   return (
     <div
-      className={`absolute transition-all duration-200 flex justify-center w-13 h-13        
+      className={`absolute transition-transform duration-200 flex justify-center w-13 h-13        
           ${className} `}
     >
       <div
         className="relative cursor-pointer aspect-square w-full h-full
-                  bg-foreground [clip-path:polygon(50%_50%,0_0,100%_0)] transition-all duration-200  
+                  bg-foreground [clip-path:polygon(50%_50%,0_0,100%_0)] transition-transform duration-200  
                   rotate-180
                   md:-rotate-90"
         onClick={toggleSidebar}
@@ -40,6 +41,8 @@ export function ArrowToggleSidebar({ className, toggleSidebar }: { className?: s
 
 export default function AdminSidebar({ className }: AdminSidebarProps) {
   const auth = useAuth();
+
+  const resizeRef = useResize({ resizeRight: true, minWidth: 200 });
 
   const [open, setOpen] = useState(true);
 
@@ -68,16 +71,21 @@ export default function AdminSidebar({ className }: AdminSidebarProps) {
 
   return (
     <>
-      <div className={`relative transition-all duration-200 shrink-0 ${open ? "md:w-[350px] " : "md:w-0"}`}>
+      <div
+        className={`relative transition-transform duration-200 
+          md:sticky md:h-screen md:top-0 w-fit
+          ${open ? "md:w-fit" : "md:w-0"}`}
+      >
         <div
+          ref={resizeRef as any}
           className={`
-            fixed transition-all duration-200 
+            transition-transform duration-200 fixed
 
             /* ===== Mobile ===== */
             bottom-0 left-1/2 -translate-x-1/2 w-[90vw]
 
             /* ===== Desktop ===== */
-            md:left-0 md:bottom-auto md:top-28 md:w-[350px] md:h-full
+            md:relative md:left-0 md:top-16 md:bottom-auto md:w-[280px] md:h-full
 
             drop-shadow-[10px_8px_4px_var(--foreground)]/30
 
@@ -85,8 +93,8 @@ export default function AdminSidebar({ className }: AdminSidebarProps) {
           `}
         >
           <div
-            className={`flex flex-col gap-2.5  bg-background-items px-2.5 py-4 shadow-[10px_13px_5px_rgba(0,0,0,0.3)
-              border-foreground overflow-y-scroll no-scrollbar
+            className={`flex flex-col bg-background-items px-2.5 py-4 shadow-[10px_13px_5px_rgba(0,0,0,0.3)
+              border-foreground 
 
               /* ===== Mobile ===== */
               w-full h-[70vh] border-x-2 border-t-2 rounded-t-lg 
@@ -100,14 +108,22 @@ export default function AdminSidebar({ className }: AdminSidebarProps) {
               <ArrowDownIcon className="w-5 h-5 md:rotate-90"></ArrowDownIcon>
             </div>
 
-            <ButtonExpandable label="Dashboard"></ButtonExpandable>
-            <ButtonExpandable label="Quản lý User"></ButtonExpandable>
-            <ButtonExpandable label="Quản lý Story">
-              <div className="flex flex-col gap-1 w-full rounded-bl-md pt-1">
-                <ButtonExpandable label="Manga"></ButtonExpandable>
-                <ButtonExpandable className="border-b-0" label="Light Novel"></ButtonExpandable>
+            <div className="overflow-y-scroll no-scrollbar">
+              <div className="flex flex-col gap-2.5 h-fit ">
+                <ButtonExpandable label="Dashboard"></ButtonExpandable>
+
+                <ButtonExpandable label="Quản lý User"></ButtonExpandable>
+
+                <ButtonExpandable label="Quản lý Story">
+                  <div className="flex flex-col gap-1 w-full rounded-bl-md pt-1">
+                    <ButtonExpandable label="Manga"></ButtonExpandable>
+                    <ButtonExpandable className="border-b-0" label="Light Novel"></ButtonExpandable>
+                  </div>
+                </ButtonExpandable>
+
+                <div className="h-32"></div>
               </div>
-            </ButtonExpandable>
+            </div>
           </div>
 
           {/* Mobile */}

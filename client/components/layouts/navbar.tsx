@@ -27,9 +27,10 @@ import { usePathname } from "next/navigation";
 interface NavBarProps {
   duration?: number;
   className?: string;
+  autoHide?: boolean;
 }
 
-function NavBar({ duration = 100, className }: NavBarProps) {
+function NavBar({ duration = 100, autoHide = true, className }: NavBarProps) {
   const pathName = usePathname();
   const router = useRouter();
 
@@ -56,6 +57,8 @@ function NavBar({ duration = 100, className }: NavBarProps) {
   }
 
   useEffect(() => {
+    if (!autoHide) return;
+
     const handleNavbarHidden = () => {
       if (openSidebar) return;
 
@@ -78,7 +81,7 @@ function NavBar({ duration = 100, className }: NavBarProps) {
       window.removeEventListener("scroll", handleNavbarHidden);
       document.body.style.overflow = "";
     };
-  }, [openSidebar]);
+  }, [openSidebar, autoHide]);
 
   useEffect(() => {
     fetchGenres();
