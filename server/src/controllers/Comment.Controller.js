@@ -1,7 +1,6 @@
 import ErrorCodes from "../constants/Error.js";
 import { AddComment, Count, FindAllComments, SoftDeleteComment, UpdateComment } from "../models/Comment.Model.js";
-import { FindStory } from "../models/Story.Model.js";
-import { FindStoryNode } from "../models/StoryNode.Model.js";
+
 import { CreateError } from "../utils/ErrorHandle.js";
 import { ConvertQuery } from "../utils/QueryConvert.js";
 
@@ -9,13 +8,13 @@ export async function GetAllComments(req, res, next) {
   try {
     const storyId = req.params?.storyId;
     const storyNodeId = req.params?.storyNodeId;
-    if (!storyId && !storyNodeId) throw CreateError(ErrorCodes.BAD_REQUEST);
+    if (!storyId && !storyNodeId) throw CreateError(400, "'storyId' or 'storyNodeId' is required");
 
     const { limit, page, sort } = ConvertQuery(req?.query);
 
     const comments = await FindAllComments({ storyId: storyId, storyNodeId: storyNodeId, sort: sort, page: page, limit: limit });
 
-    if (!comments) throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
+    if (!comments) throw CreateError();
 
     return res.status(200).json({
       success: true,
@@ -37,15 +36,15 @@ export async function PostComment(req, res, next) {
     const content = req.body?.content ?? "";
     const title = req.body.title ?? "";
 
-    if (title) if (!storyId && !storyNodeId) throw CreateError(ErrorCodes.BAD_REQUEST);
+    if (!title || !content) throw CreateError(400, "Both 'title' and 'content' are required");
 
-    if (!title || !content) throw CreateError(ErrorCodes.MISSING_FIELD);
+    if (!storyId && !storyNodeId) throw CreateError(400, "Require at least 'storyId' or 'storyNodeId");
 
-    if (title.length > 100) throw CreateError({ status: ErrorCodes.INVALID_INPUT.status, message: "Title must less than 100 character" });
+    if (title.length > 100) throw CreateError(400, "Title must less than 100 character");
 
     const comment = await AddComment({ userId, storyId, storyNodeId, title, content });
 
-    if (!comment.success) throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
+    if (!comment) throw CreateError();
 
     return res.status(200).json({
       success: true,
@@ -62,8 +61,9 @@ export async function PutComment(req, res, next) {
     const userId = req.user.id;
     const commentId = req.params?.id;
     const message = req.body?.message;
-    if (!commentId) throw CreateError(ErrorCodes.BAD_REQUEST);
-    if (!message) throw CreateError(ErrorCodes.MISSING_FIELD);
+
+    if (!commentId) throw CreateError(400, "'id' for comment is required");
+    if (!message) throw CreateError(400, "'message");
 
     // Make sure this comment exist and belong to user;
 
@@ -90,11 +90,11 @@ export async function DeleteComment(req, res, next) {
   try {
     const userId = req.user.id;
     const commentId = req.params?.id;
-    if (!commentId) throw CreateError(ErrorCodes.BAD_REQUEST);
+    if (!commentId) throw CreateError(400, "'id' for comment is required");
 
     // Soft delete
     const removing = await SoftDeleteComment({ id: commentId });
-    if (!removing || !removing.success) throw CreateError(INTERNAL_SERVER_ERROR);
+    if (!removing || !removing.success) throw CreateError();
 
     return res.status(200).json({
       success: true,
@@ -109,11 +109,11 @@ export async function GetCountComment(req, res, next) {
   try {
     const storyId = req.params?.storyId;
     const storyNodeId = req.params?.storyNodeId;
-    if (!storyId && !storyNodeId) throw CreateError(ErrorCodes.BAD_REQUEST);
+    if (!storyId && !storyNodeId) throw CreateError(400, "Require at least 'storyId' or 'storyNodeId'");
 
     const count = await Count({ storyId: storyId, storyNodeId: storyNodeId });
 
-    if (!count || !count.success) throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
+    if (!count || !count.success) throw CreateError();
 
     return res.status(200).json({
       success: true,

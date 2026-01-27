@@ -24,7 +24,7 @@ export async function GetAllFavouriteStories(req, res, next) {
       genres: genres,
     });
 
-    if (!favouriteStories || !favouriteStories.success) throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
+    if (!favouriteStories || !favouriteStories.success) throw CreateError();
 
     favouriteStories.data.forEach((fav) => {
       fav.story.favourite = { id: fav.id };
@@ -47,10 +47,10 @@ export async function PostFavouriteStory(req, res, next) {
     const userId = req.user?.id;
     const storyId = req.body?.storyId;
 
-    if (!storyId) throw CreateError(ErrorCodes.MISSING_FIELD);
+    if (!storyId) throw CreateError(400, "'storyId' is required");
 
     const favouriteStory = await AddFavouriteStory({ userId: userId, storyId: storyId });
-    if (!favouriteStory || !favouriteStory.success) throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
+    if (!favouriteStory || !favouriteStory.success) throw CreateError();
 
     delete favouriteStory.data.is_deleted;
 
@@ -72,10 +72,11 @@ export async function DeleteFavouriteStory(req, res, next) {
 
     const favouriteId = req.params?.id;
 
-    if (!favouriteId) throw CreateError(ErrorCodes.BAD_REQUEST);
+    if (!favouriteId) throw CreateError(400, "'id' for favourite story is required");
 
     const removing = await SoftDeleteFavouriteStory({ id: favouriteId, userId: userId });
-    if (!removing || !removing.success) throw CreateError(removing.message || ErrorCodes.INTERNAL_SERVER_ERROR);
+
+    if (!removing) throw CreateError();
 
     return res.status(200).json({
       success: true,

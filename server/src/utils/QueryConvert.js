@@ -6,6 +6,8 @@ export function ConvertQuery(query) {
   const isGettingNewestChapter = query.isGettingNewestChapter == "true" ? true : false;
   const isGettingSummary = query.isGettingSummary == "true" ? true : false;
 
+  const isBanned = query.isBanned && (query.isBanned == "true" ? true : query.isBanned == "false" ? false : undefined);
+
   const limit = query.limit ? Number(query.limit) : 100;
 
   const page = query.page ? Number(query.page) : 1;
@@ -19,6 +21,10 @@ export function ConvertQuery(query) {
   const nations = query.nation ? query.nation.split(",") : null;
 
   const status = query.status ? query.status.split(",") : null;
+
+  const genders = query?.gender ? query.gender.split(",") : null;
+
+  const roles = query.role ? query.role.split(",") : null;
 
   // rating = [[1,2], [4,5]]
   const star = query.star ? query.star.split(",").map((range) => range.split("-").map((number) => parseFloat(number))) : [[0, 6]];
@@ -57,6 +63,9 @@ export function ConvertQuery(query) {
     sort,
     fromDate,
     toDate,
+    genders,
+    roles,
+    isBanned,
     keyword,
   };
 }

@@ -20,13 +20,13 @@ export const Login = async (req, res, next) => {
 
     const result = await FindUser({ email: email }); // Check if user exist in db
     if (!result.success || !result.data) {
-      throw CreateError(ErrorCodes.USER_NOT_FOUND);
+      throw CreateError(404, "User not found");
     }
     const user = result.data; // Get user from the result
 
     if (!(await ComparePassword(password, user.password))) {
       // Compare password
-      throw CreateError(ErrorCodes.INVALID_LOGIN);
+      throw CreateError(401, "Email or password is not correct");
     }
 
     // If password is correct => Generate refresh token
@@ -76,13 +76,13 @@ export const Register = async (req, res, next) => {
   try {
     // Get user name, email, password from require
     const { name, email, password } = req?.body;
-    if (!name || !email || !password) throw CreateError({ status: ErrorCodes.MISSING_FIELD.status, message: "Require 'name', 'email' and 'password'" });
+    if (!name || !email || !password) throw CreateError(400, "Require 'name', 'email' and 'password'");
 
     CheckEmailAndPasswordFormat(email, password); // Check email and password format
 
     // Add user to database
     const user = await AddUser({ name: name, email: email, password: password, avatarUrl: "user/avatar/avatar.png" });
-    if (!user) throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
+    if (!user) throw CreateError();
 
     // If adding success =>  gen token
     const refreshToken = GenRefreshToken({
@@ -149,15 +149,15 @@ export const Logout = async (req, res, next) => {
 export const Refresh = async (req, res, next) => {
   try {
     const refreshToken = req.cookies[COOKIES_REFRESH_TOKEN_KEY]; // Get refreh token from cookies
-    if (!refreshToken) throw CreateError(ErrorCodes.TOKEN_INVALID);
+    if (!refreshToken) throw CreateError(401, "Token is invalid");
 
     const { decodedToken, isExpire } = VerifyRefreshToken(refreshToken);
 
     // Token is expired
     if (isExpire) {
-      throw CreateError(ErrorCodes.TOKEN_EXPIRED);
+      throw CreateError(401, "Token has been expired");
     } else if (!decodedToken || !decodedToken.id) {
-      throw CreateError(ErrorCodes.TOKEN_INVALID);
+      throw CreateError(401, "Token is invalid");
     }
 
     const user = decodedToken; // Get user
@@ -168,7 +168,7 @@ export const Refresh = async (req, res, next) => {
     });
     // If token is not found in db
     if (!result.success || !result.data) {
-      throw CreateError(ErrorCodes.TOKEN_INVALID);
+      throw CreateError(401, "Token is invalid");
     }
 
     // Generate new access token
@@ -202,7 +202,7 @@ export const Refresh = async (req, res, next) => {
 export async function ForgotPassword(req, res, next) {
   try {
     const email = req?.body?.email;
-    if (!email) throw CreateError(ErrorCodes.MISSING_FIELD);
+    if (!email) throw CreateError(400, "'email' is required");
 
     // const cooldownTime = await otpService.cooldownTimeLeft(email);
     // if (cooldownTime > 0) {
@@ -227,7 +227,7 @@ export async function ResetPassword(req, res, next) {
   try {
     const otp = req?.body?.otp;
     const email = req?.body?.email;
-    if (!otp || !email) throw CreateError(ErrorCodes.MISSING_FIELD);
+    if (!otp || !email) throw CreateError(400, "Both 'otp' and 'email' is require");
 
     const verify = await otpService.verifyOtp(email, otp);
 

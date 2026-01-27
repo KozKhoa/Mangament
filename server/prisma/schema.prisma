@@ -108,6 +108,7 @@ model User {
   role       Role      @default(user)
   avatar_id  String?   @db.Uuid
   is_deleted Boolean   @default(false)
+  is_banned  Boolean   @default(false)
 
   avatar Image? @relation(fields: [avatar_id], references: [id], onDelete: SetNull)
 

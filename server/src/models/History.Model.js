@@ -1,4 +1,5 @@
 import db from "../configs/db.js";
+import { CreateError } from "../utils/ErrorHandle.js";
 import { GetParentStoryNodeTree } from "./StoryNode.Model.js";
 
 export async function FindAllReadingHistories({
@@ -95,7 +96,7 @@ export async function FindAllReadingHistories({
     data: histories,
     pagination: {
       page: page,
-      pageSize: limit,
+      pageSize: histories.length,
       totalPages: Math.ceil(totalItems / limit),
       totalItems: totalItems,
     },
@@ -131,7 +132,7 @@ export async function FindReadingHistory({ id, userId, storyId, storyNodeId }) {
 }
 
 export async function AddReadingHistory({ userId, storyId, storyNodeId, position }) {
-  if (!userId || !storyId || !storyNodeId) throw new Error("Require user id, story id and story node id");
+  if (!userId || !storyId || !storyNodeId) throw CreateError(400, "Require user id, story id and story node id");
 
   const history = await db.readingHistory.upsert({
     where: {
@@ -172,4 +173,13 @@ export async function SoftDeleteReadingHistory({ id, userId }) {
   });
 
   return { success: true, data: softRemove };
+}
+
+export async function CountHistories({ isDeleted }) {
+  const count = await db.readingHistory.count({
+    where: {
+      ...(isDeleted !== undefined && typeof isDeleted === "boolean" && { is_deleted: isDeleted }),
+    },
+  });
+  return { success: true, data: count };
 }

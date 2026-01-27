@@ -72,7 +72,7 @@ export async function FindAllFavouriteStories({
     data: favourites,
     pagination: {
       page: page,
-      pageSize: limit,
+      pageSize: favourites.length,
       totalPages: Math.ceil(totalItems / limit),
       totalItems: totalItems,
     },

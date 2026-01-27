@@ -76,7 +76,7 @@ export async function FindAllStoryNodes({ storyId, parentId, sort = { updated_at
     data: storyNodes,
     pagination: {
       page: page,
-      pageSize: limit,
+      pageSize: storyNodes.length,
       totalPages: Math.ceil(totalItems / limit),
       totalItems: totalItems,
     },

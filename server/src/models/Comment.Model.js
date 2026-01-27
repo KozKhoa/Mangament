@@ -34,7 +34,7 @@ export async function FindAllComments({ userId, storyId, storyNodeId, sort = { u
     data: comments,
     pagination: {
       page: page,
-      pageSize: limit,
+      pageSize: comments.length,
       totalPages: Math.ceil(totalItems / limit),
       totalItems: totalItems,
     },

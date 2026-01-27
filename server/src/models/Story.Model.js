@@ -1,4 +1,5 @@
 import db from "../configs/db.js";
+import { CreateError } from "../utils/ErrorHandle.js";
 import { randomInt } from "../utils/Number.js";
 import { ValidateStoryType } from "./Enum.Model.js";
 import { ValidateGenre } from "./Genre.Model.js";
@@ -186,7 +187,7 @@ export async function FindAllStories({
     data: stories,
     pagination: {
       page: page,
-      pageSize: limit,
+      pageSize: stories.length,
       totalPages: Math.ceil(totalItems / limit),
       totalItems: totalItems,
     },
@@ -223,7 +224,7 @@ export async function FindStory({ id, title, isGettingChildren = false, isGettin
   return { success: true, data: story };
 }
 
-export const AddStory = async ({ title, type, nation, genres, authorsId, status, posterId, summary, coverArtId }) => {
+export async function AddStory({ title, type, nation, genres, authorsId, status, posterId, summary, coverArtId }) {
   // Check if story exist or not;
   const story = await db.story.findUnique({ where: { title: title } });
   if (story) {
@@ -246,36 +247,42 @@ export const AddStory = async ({ title, type, nation, genres, authorsId, status,
   });
 
   return { success: true, data: newStory };
-};
+}
 
 export async function SoftDeleteStory({ id, title }) {
   if (!(id || title)) throw new Error("Require at least id or title");
 
-  const softRemove = await db.story.upsert({
-    where: {
-      ...(id && { id: id }),
-      ...(title && { title: title }),
-    },
-    update: {
-      is_deleted: true,
-    },
-    create: {},
-  });
+  const where = {
+    ...(id && { id: id }),
+    ...(title && { title: title }),
+  };
 
-  return { success: true, data: softRemove };
+  return await db.$transaction(async (db) => {
+    const story = await db.story.findFirst({ where: where });
+    if (!story) throw CreateError(404, "Story not found");
+
+    const softDelete = await db.story.update({ where: where, data: { is_deleted: true } });
+
+    return { success: true, data: softDelete };
+  });
 }
 
 export async function HardDeleteStory({ id, title }) {
   if (!(id || title)) throw new Error("Require at least id or title");
 
-  const hardRemove = await db.story.deleteMany({
-    where: {
-      ...(id && { id: id }),
-      ...(title && { title: title }),
-    },
-  });
+  const where = {
+    ...(id && { id: id }),
+    ...(title && { title: title }),
+  };
 
-  return { success: true, message: "Remove permanently" };
+  return await db.$transaction(async (db) => {
+    const story = await db.story.findFirst({ where: where });
+    if (!story) throw CreateError(404, "Story not found");
+
+    const hardRemove = await db.story.delete({ where: where });
+
+    return { success: true, data: hardRemove };
+  });
 }
 
 export async function UpdateStory(id, { title, type, view, summary, posterId, nation, status, genres = [], coverArtUrl, nextChapterIn, authorIds = [] }) {
@@ -379,14 +386,9 @@ export async function AddOneViewForStory(storyId) {
   return { success: true, data: story };
 }
 
-export async function CountStory(where = {}) {
-  try {
-    const count = await db.story.count({ where: { is_deleted: false, ...where } });
-    return { success: true, data: count };
-  } catch (error) {
-    if (error.code !== "P2025") console.error("❌ [Rating.Model.js] Error updating rating:", error);
-    return { success: false, error: error.code };
-  }
+export async function CountStory() {
+  const count = await db.story.count({ where: { is_deleted: false } });
+  return { success: true, data: count };
 }
 
 export async function FindRandomStory() {

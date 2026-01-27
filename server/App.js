@@ -16,8 +16,9 @@ import storyNodeRoute from "./src/routes/StoryNode.Route.js";
 import authorRoute from "./src/routes/Author.Route.js";
 import genreRoute from "./src/routes/Genre.Route.js";
 import { initRedis } from "./src/configs/redis.js";
+import adminRoute from "./src/routes/Admin.Route.js";
 
-// initRedis();
+initRedis();
 
 console.log("App is running with NODE ENV =", process.env.NODE_ENV);
 
@@ -36,6 +37,7 @@ app.use("/stories", storyRoute);
 app.use("/story-nodes", storyNodeRoute);
 app.use("/authors", authorRoute);
 app.use("/genres", genreRoute);
+app.use("/admin", adminRoute);
 
 //api for getting story image
 app.use("/uploads", express.static("./../uploads"));

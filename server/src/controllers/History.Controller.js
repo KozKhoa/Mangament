@@ -26,7 +26,7 @@ export async function GetAllReadingHistories(req, res, next) {
       toDate: toDate,
     });
 
-    if (!readingHistory) throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
+    if (!readingHistory) throw CreateError();
 
     return res.status(200).json({
       success: true,
@@ -48,7 +48,8 @@ export async function PostReadingHistory(req, res, next) {
     // Position will be added later
 
     const histories = await AddReadingHistory({ userId: userId, storyId: storyId, storyNodeId: storyNodeId });
-    if (!histories || !histories.success) throw CreateError(histories.message || ErrorCodes.INTERNAL_SERVER_ERROR);
+
+    if (!histories) throw CreateError();
 
     return res.status(200).json({
       success: true,
@@ -72,10 +73,10 @@ export async function DeleteReadingHistory(req, res, next) {
     const userId = req.user?.id;
     const historyId = req.params?.historyId;
 
-    if (!historyId) throw CreateError(ErrorCodes.BAD_REQUEST);
+    if (!historyId) throw CreateError(400, "'historyId' is required");
 
     const removing = await SoftDeleteReadingHistory({ id: historyId, userId: userId });
-    if (!removing) throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
+    if (!removing) throw CreateError();
 
     return res.status(200).json({
       success: true,

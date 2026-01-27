@@ -3,23 +3,23 @@ import { RandomPassword } from "../utils/PasswordHandle.js";
 import { GetParentStoryNodeTree } from "./StoryNode.Model.js";
 
 import * as passwordService from "../utils/PasswordHandle.js";
+import { CreateError } from "../utils/ErrorHandle.js";
 
-const IsUserExist = async (where = { id, email }) => {
-  if (!where.id && !where.email) return false;
-
-  const story = await FindUser(where);
-  if (story && story.success && story.data) return true;
-  return false;
-};
-
-export async function FindAllUser({ gender = [], joinDate, role = [], birthday, page = 1, limit = 10, sort = { updated_at: "desc" } }) {
+export async function FindAllUser({ genders = [], fromDate, toDate, roles = [], birthday, page = 1, limit = 10, sort = { join_date: "desc" }, isBanned }) {
   const where = {
     is_deleted: false,
 
-    ...(role && role.length > 0 && { role: { in: role } }),
+    ...(roles && roles.length > 0 && { role: { in: roles } }),
     ...(birthday && { birthday: birthday }),
-    ...(joinDate && { join_date: joinDate }),
-    ...(gender && gender.length > 0 && { gender: { in: gender } }),
+    ...(genders && genders.length > 0 && { gender: { in: genders } }),
+    ...(isBanned !== undefined && { is_banned: isBanned }),
+
+    ...((fromDate || toDate) && {
+      join_date: {
+        ...(fromDate && { gte: fromDate }),
+        ...(toDate && { lt: toDate }),
+      },
+    }),
   };
 
   const users = await db.user.findMany({
@@ -33,6 +33,7 @@ export async function FindAllUser({ gender = [], joinDate, role = [], birthday, 
       birthday: true,
       join_date: true,
       role: true,
+      is_banned: true,
       avatar: { select: { url: true, width: true, height: true } },
     },
 
@@ -49,7 +50,7 @@ export async function FindAllUser({ gender = [], joinDate, role = [], birthday, 
     data: users,
     pagination: {
       page: page,
-      pageSize: limit,
+      pageSize: users.length,
       totalPages: Math.ceil(totalItems / limit),
       totalItems: totalItems,
     },
@@ -71,24 +72,51 @@ export async function FindUser({ id, email }) {
     },
   });
 
+  if (!user) throw CreateError(404, "User not found");
+
   return { success: true, data: user };
 }
 
-export const GetUserPassword = async (where = { id }) => {
-  try {
-    if (!where.id) return { success: false, data: null };
-    const password = await db.user.findFirst({
-      where: where,
-      select: {
-        password: true,
-      },
-    });
-    return { success: true, data: password };
-  } catch (error) {
-    console.error("❌ [User.Model.js] Error getting user password:", error);
-    return { success: false, error: error.code };
+export async function BannedUser({ id, email }) {
+  if (!id && !email) throw CreateError(400, "'id' or 'email' is required");
+
+  const where = {
+    is_deleted: false,
+
+    ...(id && { id: id }),
+    ...(email && { email: email }),
+  };
+
+  const bannedUser = await db.user.updateMany({ where: where, data: { is_banned: true } });
+
+  if (bannedUser.count === 0) {
+    const user = await db.user.findFirst({ where: where });
+    if (!user) throw CreateError(404, "User not found");
   }
-};
+
+  return { success: true, data: bannedUser };
+}
+
+export async function UpdateUser({ id, email, data }) {
+  if (!id && !email) throw CreateError(400, "'id' or 'email' is required");
+
+  const where = {
+    is_deleted: false,
+    ...(id && { id: id }),
+    ...(email && { email: email }),
+  };
+
+  return await db.$transaction(async (db) => {
+    const user = await db.user.findFirst({ where: where });
+    if (!user) throw CreateError(404, "User not found");
+
+    const update = await db.user.update({ where: where, data: data });
+
+    delete update?.password;
+
+    return { success: true, data: update };
+  });
+}
 
 export async function AddUser({ name, email, password, avatarUrl }) {
   if (!name || !email || !password) throw new Error("Require 'name', 'email' and 'password'");
@@ -129,50 +157,53 @@ export async function AddUser({ name, email, password, avatarUrl }) {
   return { success: true, data: user };
 }
 
+export async function SoftDeleteUser({ id, email }) {
+  if (!id && !email) throw CreateError(400, "'id' or 'email' is required");
+
+  const where = {
+    ...(id && { id: id }),
+    ...(email && { email: email }),
+  };
+
+  return await db.$transaction(async (db) => {
+    const user = await db.user.findFirst({ where: where });
+    if (!user) throw CreateError(404, "User not found");
+
+    const softDelete = await db.user.update({ where: where, data: { is_deleted: true } });
+
+    delete softDelete.password;
+
+    return { success: true, data: softDelete };
+  });
+}
+
+export async function CountUsers() {
+  const count = await db.user.count({ where: { is_deleted: false } });
+  return { success: true, data: count };
+}
+
+export const GetUserPassword = async (where = { id }) => {
+  try {
+    if (!where.id) return { success: false, data: null };
+    const password = await db.user.findFirst({
+      where: where,
+      select: {
+        password: true,
+      },
+    });
+    return { success: true, data: password };
+  } catch (error) {
+    console.error("❌ [User.Model.js] Error getting user password:", error);
+    return { success: false, error: error.code };
+  }
+};
+
 export const HardDeleteUser = async (where = { id, email }) => {
   try {
     const result = await db.user.delete({ where: where });
     return { success: true, data: result };
   } catch (error) {
     console.error("❌ [User.Model.js] Error hard delete user: ", error);
-    return { success: false, error: error.code };
-  }
-};
-
-export const SoftDeleteUser = async (where = { id, email }) => {
-  try {
-    const user = await FindUser(where);
-    // If user does not exist
-    if (!user || !user.success || !user.data) {
-      return { success: false, data: null };
-    }
-    // If user exist
-    const result = await db.user.update({
-      where: where,
-      data: {
-        is_deleted: true,
-      },
-    });
-
-    return { success: true, data: result };
-  } catch (error) {
-    console.error("❌ [User.Model.js] Error soft delete user: ", error);
-    return { success: false, error: error.code };
-  }
-};
-
-export const UpdateUser = async (where = { id, email }, data = {}) => {
-  try {
-    if (IsUserExist(where) === false) return { success: false, data: null };
-
-    const update = await db.user.update({ where: where, data: data });
-    const result = {
-      ...update,
-      ...{ password: "" },
-    };
-    return { success: true, data: result };
-  } catch (error) {
-    console.error("❌ [User.Model.js] Error updating user data: ", error);
     return { success: false, error: error.code };
   }
 };

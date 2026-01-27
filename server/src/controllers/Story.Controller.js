@@ -21,7 +21,7 @@ export async function GetStory(req, res, next) {
     const title = req.params?.title;
 
     // Check user request
-    if (!storyId && !title) throw CreateError(ErrorCodes.BAD_REQUEST);
+    if (!storyId && !title) throw CreateError(400, '"id" or "title" is required');
 
     const { type, isGettingChildren, isGettingContent, isGettingSummary, isGettingNewestChapter } = ConvertQuery(req.query);
 
@@ -34,9 +34,9 @@ export async function GetStory(req, res, next) {
     });
 
     // If server not return anything or return success = false => fail to find story
-    if (!story || !story.success) throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
+    if (!story) throw CreateError();
 
-    if (!story.data) throw CreateError(ErrorCodes.STORY_NOT_FOUND);
+    if (!story.data) throw CreateError(404, "Story not found");
 
     // Is story in user favourites list
     if (userId) {
@@ -68,7 +68,7 @@ export async function GetStoryReview(req, res, next) {
   try {
     const storyId = req.params?.id;
 
-    if (!storyId) throw CreateError(ErrorCodes.BAD_REQUEST);
+    if (!storyId) throw CreateError(400, "'id' is required");
 
     const review = await GetReview(storyId, 4);
 
@@ -87,7 +87,7 @@ export async function GetCountStories(req, res, next) {
     const authors = query.author ? query.author.split(",") : null;
 
     const genres = query.genre ? query.genre.split(",") : null;
-    if (!ValidateGenre(genres)) throw CreateError(ErrorCodes.BAD_REQUEST);
+    if (!ValidateGenre(genres)) throw CreateError(400, "Invalid genre");
 
     // rating = [[1,2], [4,5]]
     const rating = query.star ? query.star.split(",").map((range) => range.split("-").map((number) => parseFloat(number))) : [[0, 5]];
@@ -164,7 +164,7 @@ export async function GetAllStories(req, res, next) {
     });
 
     if (!stories || !stories.success) {
-      throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
+      throw CreateError();
     }
 
     if (userId) {
@@ -201,11 +201,10 @@ export async function GetAllStories(req, res, next) {
 export async function AddOneViewForStory(req, res, next) {
   try {
     const storyId = req?.params?.id;
-    if (!storyId) throw CreateError(ErrorCodes.BAD_REQUEST);
+    if (!storyId) throw CreateError(400, "'id' is required");
 
     const update = await UpdateStory(storyId, { view: { increment: 1 } });
-    if (!update) throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
-    if (!update.success) throw CreateError({ status: 400, message: update.message });
+    if (!update) throw CreateError();
 
     return res.status(200).json({
       success: true,
@@ -229,15 +228,15 @@ export async function PostStory(req, res, next) {
     const type = req.body?.type;
 
     // Check valid title and story type
-    if (!title || !type) throw CreateError(ErrorCodes.MISSING_FIELD);
-    if (!ValidateStoryType(type)) throw CreateError(ErrorCodes.BAD_REQUEST);
+    if (!title || !type) throw CreateError(400, "'title' and 'type' are required");
+    if (!ValidateStoryType(type)) throw CreateError(400, "Invalid story type");
 
     const { nation, status } = req.body;
     const genre = req?.body?.genre ? req.body.genre.split(",") : null;
-    if (!ValidateStoryStatus(status) || !ValidateGenre(genre)) throw CreateError(ErrorCodes.BAD_REQUEST);
+    if (!ValidateStoryStatus(status) || !ValidateGenre(genre)) throw CreateError(400, "Invalid status or genre");
 
     const isStoryExist = await FindStory({ title: title });
-    if (isStoryExist.data) throw CreateError(ErrorCodes.ASSET_ALREADY_EXIST);
+    if (isStoryExist.data) throw CreateError(400, "Story title already exists");
 
     // Create and add cover art for story
     if (req.file) {
@@ -253,7 +252,7 @@ export async function PostStory(req, res, next) {
     // Add new story
     const story = await AddStory({ title: title, type: type, nation: nation, status: status, posterId: userId, genres: genre, coverArtId: image.data.id });
 
-    if (!story || !story.success || !story.data) throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
+    if (!story || !story.success || !story.data) throw CreateError();
 
     return res.status(200).json({
       success: true,
@@ -297,10 +296,10 @@ export async function DeleteStory(req, res, next) {
   try {
     const userId = req.user.id;
     const storyId = req.params?.id;
-    if (!storyId) throw CreateError(ErrorCodes.BAD_REQUEST);
+    if (!storyId) throw CreateError(400, "'id' is required");
 
     const removing = await SoftDeleteStory({ id: storyId });
-    if (!removing) throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
+    if (!removing) throw CreateError();
 
     return res.status(200).json({
       success: true,

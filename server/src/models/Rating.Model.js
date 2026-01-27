@@ -35,7 +35,7 @@ export async function FindAllRatings({ storyId, userId, star = [[0, 6]], sort = 
     data: ratings,
     pagination: {
       page: page,
-      pageSize: limit,
+      pageSize: ratings.length,
       totalPages: Math.ceil(totalItems / limit),
       totalItems: totalItems,
     },
@@ -54,26 +54,26 @@ export async function FindRating({ id, userId, storyId }) {
 
 export async function AddRatings({ userId, storyId, star, title, content }) {
   if (!userId || !storyId) {
-    throw CreateError({ status: 400, message: "Require both story id and user id" });
+    throw CreateError(400, "Require both story id and user id");
   }
 
   if ((star !== 0 && !star) || !title || !content) {
-    throw CreateError({ status: 400, message: "Require star, title and content" });
+    throw CreateError(400, "Require star, title and content");
   }
 
   if (typeof star !== "number" || star < 1 || star > 5) {
-    throw CreateError({ status: 400, message: "star must be a number between 1 and 5" });
+    throw CreateError(400, "star must be a number between 1 and 5");
   }
 
   return db.$transaction(async (db) => {
     const story = await db.story.findFirst({ where: { id: storyId, is_deleted: false } });
-    if (!story) throw CreateError({ status: 400, message: "Story not found" });
+    if (!story) throw CreateError(400, "Story not found");
 
     const user = await db.user.findFirst({ where: { id: userId, is_deleted: false } });
-    if (!user) throw CreateError({ status: 400, message: "User not found" });
+    if (!user) throw CreateError(400, "User not found");
 
     const oldRating = await db.rating.findUnique({ where: { user_id_story_id: { story_id: storyId, user_id: userId } } });
-    if (oldRating) throw CreateError({ status: 400, message: "Rating already exist" });
+    if (oldRating) throw CreateError(400, "Rating already exist");
 
     const newRating = await db.rating.create({
       data: {
