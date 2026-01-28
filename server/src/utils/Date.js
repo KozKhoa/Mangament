@@ -10,3 +10,19 @@ export function forEachDate(fromDate, toDate, callback = (date = new Date()) => 
     callback(new Date(current));
   }
 }
+
+export function setToEndDate(date = new Date()) {
+  return date.setUTCHours(23, 59, 59, 999);
+}
+
+export function setToStartDate(date = new Date()) {
+  return date.setUTCHours(0, 0, 0, 0);
+}
+
+export function setToStartHour(date = new Date()) {
+  return date.setUTCMinutes(0, 0, 0);
+}
+
+export function setToEndHour(date = new Date()) {
+  return date.setUTCMinutes(59, 59, 999);
+}

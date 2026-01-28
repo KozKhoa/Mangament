@@ -219,8 +219,6 @@ model ReadingHistory {
   user       User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
   story      Story     @relation(fields: [story_id], references: [id], onDelete: Cascade)
   story_node StoryNode @relation(fields: [story_node_id], references: [id], onDelete: Cascade)
-
-  @@unique([user_id, story_id, story_node_id])
 }
 
 model FavouriteStory {

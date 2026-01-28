@@ -103,50 +103,11 @@ export async function FindAllReadingHistories({
   };
 }
 
-export async function FindReadingHistory({ id, userId, storyId, storyNodeId }) {
-  if (!(id || (userId && storyId && storyNodeId))) {
-    throw new Error("Require id or (user id, story id and story node id)");
-  }
-
-  const history = await db.readingHistory.findUnique({
-    where: {
-      is_deleted: false,
-      ...(id && { id: id }),
-      ...(userId &&
-        storyId &&
-        storyNodeId && {
-          user_id_story_id_story_node_id: {
-            user_id: userId,
-            story_id: storyId,
-            story_node_id: storyNodeId,
-          },
-        }),
-    },
-  });
-
-  history.story_node = await GetParentStoryNodeTree(history.story_id, history.story_node_id);
-
-  delete history.is_deleted;
-
-  return { success: true, data: history };
-}
-
 export async function AddReadingHistory({ userId, storyId, storyNodeId, position }) {
   if (!userId || !storyId || !storyNodeId) throw CreateError(400, "Require user id, story id and story node id");
 
-  const history = await db.readingHistory.upsert({
-    where: {
-      user_id_story_id_story_node_id: {
-        user_id: userId,
-        story_id: storyId,
-        story_node_id: storyNodeId,
-      },
-    },
-    update: {
-      is_deleted: false,
-      updated_at: new Date(),
-    },
-    create: {
+  const history = await db.readingHistory.create({
+    data: {
       user: { connect: { id: userId } },
       story: { connect: { id: storyId } },
       story_node: { connect: { id: storyNodeId } },

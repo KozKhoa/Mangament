@@ -28,7 +28,7 @@ export async function GetDashboardOverview(req, res, next) {
 // GET /admin/dashboard/stats/views
 export async function GetDashboardViewInRange(req, res, next) {
   try {
-    let { fromDate, toDate } = ConvertQuery(req.query);
+    let { fromDate, toDate, groupBy } = ConvertQuery(req.query);
 
     const storyId = req.query?.storyId;
 
@@ -39,10 +39,10 @@ export async function GetDashboardViewInRange(req, res, next) {
       fromDate.setDate(fromDate.getDate() - 7);
     }
 
-    fromDate?.setHours(0, 0, 0, 0);
-    toDate?.setHours(0, 0, 0, 0);
+    fromDate?.setUTCHours(0, 0, 0, 0);
+    toDate?.setUTCHours(23, 59, 59, 999);
 
-    const viewByDate = await adminModel.GetDashboardViewByDate({ storyId: storyId, fromDate: fromDate, toDate: toDate });
+    const viewByDate = await adminModel.GetDashboardViews({ storyId: storyId, fromDate: fromDate, toDate: toDate, groupBy: groupBy });
 
     return res.json({ success: true, data: viewByDate.data });
   } catch (error) {
@@ -61,9 +61,12 @@ export async function GetDashboardNewUsers(req, res, next) {
       fromDate = new Date();
       fromDate.setDate(fromDate.getDate() - 7);
     }
+    fromDate?.setUTCHours(0, 0, 0, 0);
+    toDate?.setUTCHours(23, 59, 59, 999);
 
-    fromDate?.setHours(0, 0, 0, 0);
-    toDate?.setHours(0, 0, 0, 0);
+    const newUsersByDate = adminModel.GetDashboardNewUsers({ fromDate, toDate });
+
+    return res.json({ success: true, data: (await newUsersByDate).data });
   } catch (error) {
     next(error);
   }

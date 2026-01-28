@@ -22,6 +22,7 @@ adminRoute.patch("/users/:id/ban", adminController.BanUser);
 
 adminRoute.get("/dashboard/overview", adminController.GetDashboardOverview);
 adminRoute.get("/dashboard/stats/views", adminController.GetDashboardViewInRange);
+adminRoute.get("/dashboard/stats/new-users", adminController.GetDashboardNewUsers);
 
 adminRoute;
 

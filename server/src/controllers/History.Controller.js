@@ -1,4 +1,4 @@
-import { FindAllReadingHistories, AddReadingHistory, SoftDeleteReadingHistory, FindReadingHistory } from "../models/History.Model.js";
+import { FindAllReadingHistories, AddReadingHistory, SoftDeleteReadingHistory } from "../models/History.Model.js";
 
 import { CreateError } from "../utils/ErrorHandle.js";
 import { ConvertQuery } from "../utils/QueryConvert.js";

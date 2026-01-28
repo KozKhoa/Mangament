@@ -26,6 +26,8 @@ export function ConvertQuery(query) {
 
   const roles = query.role ? query.role.split(",") : null;
 
+  const groupBy = query.groupBy;
+
   // rating = [[1,2], [4,5]]
   const star = query.star ? query.star.split(",").map((range) => range.split("-").map((number) => parseFloat(number))) : [[0, 6]];
   // view = [[0, 100], [1000, 100000]]
@@ -66,6 +68,7 @@ export function ConvertQuery(query) {
     genders,
     roles,
     isBanned,
+    groupBy,
     keyword,
   };
 }
