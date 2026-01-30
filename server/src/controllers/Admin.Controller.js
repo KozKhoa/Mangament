@@ -31,6 +31,7 @@ export async function GetDashboardViewInRange(req, res, next) {
     let { fromDate, toDate, groupBy } = ConvertQuery(req.query);
 
     const storyId = req.query?.storyId;
+    const storyNodeId = req.query?.storyNodeId;
 
     if (!fromDate && !toDate) {
       toDate = new Date();
@@ -42,7 +43,13 @@ export async function GetDashboardViewInRange(req, res, next) {
     fromDate?.setUTCHours(0, 0, 0, 0);
     toDate?.setUTCHours(23, 59, 59, 999);
 
-    const viewByDate = await adminModel.GetDashboardViews({ storyId: storyId, fromDate: fromDate, toDate: toDate, groupBy: groupBy });
+    const viewByDate = await adminModel.GetDashboardViews({
+      storyId: storyId,
+      storyNodeId: storyNodeId,
+      fromDate: fromDate,
+      toDate: toDate,
+      groupBy: groupBy,
+    });
 
     return res.json({ success: true, data: viewByDate.data });
   } catch (error) {
