@@ -1,4 +1,3 @@
-import { del } from "framer-motion/client";
 import { useEffect, useRef, useState } from "react";
 
 export default function SlidingUnderlineSelection({

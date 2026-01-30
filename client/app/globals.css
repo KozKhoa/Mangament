@@ -372,3 +372,25 @@ h4 {
     1% 1%
   );
 }
+
+.line-animate {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: draw-line 1.2s ease-in-out forwards;
+}
+
+@keyframes draw-line {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.dot-animate {
+  animation-fill-mode: forwards;
+}
+
+@keyframes rise {
+  to {
+    cy: attr(data-y number);
+  }
+}

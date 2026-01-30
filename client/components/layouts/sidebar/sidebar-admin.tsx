@@ -11,10 +11,6 @@ interface AdminSidebarProps {
   className?: string;
 }
 
-export function SidebarButton({ className }: { className?: string }) {
-  return <div></div>;
-}
-
 export function ArrowToggleSidebar({ className, toggleSidebar }: { className?: string; toggleSidebar?: () => void }) {
   return (
     <div
@@ -73,7 +69,7 @@ export default function AdminSidebar({ className }: AdminSidebarProps) {
     <>
       <div
         className={`relative transition-transform duration-200 
-          md:sticky md:h-screen md:top-0 w-fit
+          md:sticky md:h-screen md:top-0 w-fit z-30
           ${open ? "md:w-fit" : "md:w-0"}`}
       >
         <div
@@ -87,14 +83,15 @@ export default function AdminSidebar({ className }: AdminSidebarProps) {
             /* ===== Desktop ===== */
             md:relative md:left-0 md:top-16 md:bottom-auto md:w-[280px] md:h-full
 
-            drop-shadow-[10px_8px_4px_var(--foreground)]/30
+            drop-shadow-[2px_-4px_4px_rgba(0,0,0,0.3)]
+            md:drop-shadow-[10px_8px_4px_rgba(0,0,0,0.3)]
 
             ${open ? "translate-y-0 md:translate-x-0" : "translate-y-full md:-translate-x-full md:translate-y-0"}
           `}
         >
           <div
             className={`flex flex-col bg-background-items px-2.5 py-4 shadow-[10px_13px_5px_rgba(0,0,0,0.3)
-              border-foreground 
+              border-foreground/50 
 
               /* ===== Mobile ===== */
               w-full h-[70vh] border-x-2 border-t-2 rounded-t-lg 
