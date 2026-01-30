@@ -43,9 +43,14 @@ export function ConvertQuery(query) {
 
   const keyword = query.keyword ? query.keyword : null;
 
-  let fromDate = query.fromDate ? dayjs(query.fromDate).startOf("day").toDate() : null;
+  // let fromDate = query.fromDate ? dayjs(query.fromDate).startOf("day").toDate() : null;
+  // if (fromDate == "Invalid Date") fromDate = null;
+  // let toDate = query.toDate ? dayjs(query.toDate).endOf("day").toDate() : null;
+  // if (toDate == "Invalid Date") toDate = null;
+
+  let fromDate = query.fromDate ? new Date(query.fromDate) : null;
   if (fromDate == "Invalid Date") fromDate = null;
-  let toDate = query.toDate ? dayjs(query.toDate).endOf("day").toDate() : null;
+  let toDate = query.toDate ? new Date(query.toDate) : null;
   if (toDate == "Invalid Date") toDate = null;
 
   return {

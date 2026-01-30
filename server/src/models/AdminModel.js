@@ -55,7 +55,7 @@ export async function GetDashboardOverview() {
 
 export async function GetDashboardViews({ storyId, storyNodeId, fromDate, toDate, groupBy = "day" }) {
   const cached = await redis.get([REDIS_CACHE_DASHBOARD_VIEW_KEY, storyId, storyNodeId, fromDate, toDate, groupBy].join(":"));
-  if (false) {
+  if (cached) {
     return { success: true, data: await JSON.parse(cached) };
   } else {
     const from = new Date(fromDate);
