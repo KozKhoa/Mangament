@@ -41,7 +41,7 @@ export default function SortStories({ onSort }: { onSort?: ({ sort }: { sort: st
       label: string;
       code?: string;
       isChecked: boolean;
-    }[]
+    }[],
   ) {
     value.forEach((v, i) => {
       if (v.isChecked) {

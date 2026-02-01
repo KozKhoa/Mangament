@@ -376,7 +376,7 @@ h4 {
 .line-animate {
   stroke-dasharray: 1;
   stroke-dashoffset: 1;
-  animation: draw-line 1.2s ease-in-out forwards;
+  animation: draw-line 1s ease-in-out forwards;
 }
 
 @keyframes draw-line {

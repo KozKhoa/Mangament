@@ -7,7 +7,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     <div className="flex flex-row w-full h-full ">
       <NavBar className="fixed left-2.5 right-2.5" autoHide={false}></NavBar>
 
-      <AdminSidebar className=""></AdminSidebar>
+      <AdminSidebar></AdminSidebar>
 
       <div className="max-w-[2000px] m-auto mt-16 px-2 md:px-10 w-full bg-background ">{children}</div>
     </div>

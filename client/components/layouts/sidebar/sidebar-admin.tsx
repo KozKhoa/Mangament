@@ -69,13 +69,13 @@ export default function AdminSidebar({ className }: AdminSidebarProps) {
     <>
       <div
         className={`relative transition-transform duration-200 
-          md:sticky md:h-screen md:top-0 w-fit z-30
+          md:sticky md:h-screen md:top-0 w-fit
           ${open ? "md:w-fit" : "md:w-0"}`}
       >
         <div
           ref={resizeRef as any}
           className={`
-            transition-transform duration-200 fixed
+            transition-transform duration-200 fixed z-30
 
             /* ===== Mobile ===== */
             bottom-0 left-1/2 -translate-x-1/2 w-[90vw]

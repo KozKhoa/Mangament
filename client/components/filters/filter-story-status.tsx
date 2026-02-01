@@ -66,7 +66,7 @@ export default function FilterStoryStatus({ value, onChange }: FilterStoryStatus
   return (
     <ButtonDropdown
       openOnLeft={true}
-      className={`border-foreground border rounded-[5] relative text-foreground`}
+      className={`border-foreground/50 border rounded-[5] relative text-foreground`}
       acceptButtonLabel="Finish"
       onClickAcceptButton={handleFinish}
       closeButtonLabel="Reset"

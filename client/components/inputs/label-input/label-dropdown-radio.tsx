@@ -1,12 +1,7 @@
 "use client";
 
-import { use, useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
-import EditIcon from "@/public/edit/edit.svg";
-import ConfirmIcon from "@/public/edit/confirm.svg";
-
-import ButtonDropdownRadio from "@/components/buttons/dropdown/btn-drop-down-radio";
-import FilterProps from "@/types/filter";
 import ButtonDropdown from "@/components/buttons/dropdown/btn-dropdown";
 
 import Radio from "../radio";
