@@ -167,7 +167,7 @@ export default function PieChart({ className, values, strokeWidth = 12, colorsSe
             {hoverPieIndex !== null ? (
               <>
                 <p className="font-semibold text-xl">{values?.at(hoverPieIndex)?.value}</p>
-                <p className="text-foreground/70">({Math.round(((values?.at(hoverPieIndex)?.value ?? 0) / total) * 100) + "%"})</p>
+                <p className="text-foreground/70">({(((values?.at(hoverPieIndex)?.value ?? 0) / total) * 100).toFixed(1) + "%"})</p>
               </>
             ) : (
               <p className="font-semibold text-xl">{total}</p>

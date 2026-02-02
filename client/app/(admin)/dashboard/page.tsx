@@ -17,18 +17,8 @@ import FilterDate from "@/components/filters/filter-date";
 import ButtonDropdownRadio from "@/components/buttons/dropdown/btn-drop-down-radio";
 import { capitalizeWords } from "@/utils/string";
 import PieChart from "@/components/chart/pie-chart";
-
-const testValue = [
-  { key: "fasd", value: 12 },
-  { key: "dfa 231 2", value: 44 },
-  { key: "xfgd   e", value: 13 },
-  { key: "df sdszf", value: 32 },
-  { key: "12 dsfs", value: 19 },
-  { key: "xfgd   e", value: 13 },
-  { key: "df sdszf", value: 6 },
-  { key: "12 dsfs", value: 19 },
-  { key: "xfgd   e", value: 53 },
-];
+import ColumnChart from "@/components/chart/colum-chart";
+import { data } from "framer-motion/client";
 
 const USER_PIE_CHART_COLORS = [
   "#405D5D",
@@ -84,6 +74,24 @@ const STORIES_PIE_CHART_COLORS = [
   "#E1DDD8",
 ];
 
+const testValue = {
+  labels: ["A", "B", "C"],
+  keys: ["a", "b", "c", "d", "e", "f"],
+  datasets: [
+    {
+      data: [12, 5, 4, 12, 34, 55],
+      color: "#32533d",
+    },
+    {
+      data: [14, 25, 41, 24, 4, 15],
+      color: "#ff6c37",
+    },
+    {
+      data: [22, 9, 11, 33, 14, 45],
+      color: "#3d4d5c",
+    },
+  ],
+};
 type DateRange = "1week" | "1month" | "3month" | "6month" | "1year" | "custom";
 type GroupBy = "day" | "week" | "month" | "year";
 
@@ -235,6 +243,12 @@ export default function Dashboard() {
             <StatsCard label="Views" value={overview?.totalView} icon={<img src="reading.png"></img>} subLabel={`${overview?.totalRating} ratings`}></StatsCard>
           </div>
 
+          {/* Column chart */}
+          <div>
+            <ColumnChart data={testValue} className="h-[400px]"></ColumnChart>
+          </div>
+
+          {/* Pie chart of user and stories */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 items-center">
             <div>
               <h2 className="w-full text-center">User</h2>
@@ -250,7 +264,7 @@ export default function Dashboard() {
             </div>
 
             <div>
-              <h2 className="w-full text-center">Stories Status</h2>
+              <h2 className="w-full text-center">Stories</h2>
               <PieChart
                 className="w-[400px] shrink-0 flex-wrap"
                 values={Object.keys(overview?.totalStoriesBaseOnStatus ?? []).map((value) => ({

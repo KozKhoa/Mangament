@@ -3,7 +3,6 @@ import { HTMLAttributes, useEffect, useRef, useState } from "react";
 export interface LineChartProps {
   className?: string;
 
-  label?: string;
   lineColor?: string;
   value?: { key: string; value: number }[];
   unit?: string;
