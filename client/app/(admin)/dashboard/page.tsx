@@ -74,24 +74,36 @@ const STORIES_PIE_CHART_COLORS = [
   "#E1DDD8",
 ];
 
+// const testValue = {
+//   labels: ["A", "B", "C"],
+//   keys: ["a3 1231 312 as da sda 1231 312 123adsda 123ad", "b", "c", "d", "e", "f"],
+//   datasets: [
+//     {
+//       data: [12, 5, 4, 12, 34, 55],
+//       color: "#32533d",
+//     },
+//     {
+//       data: [14, 25, 41, 24, 4, 15],
+//       color: "#ff6c37",
+//     },
+//     {
+//       data: [22, 9, 11, 33, 14, 45],
+//       color: "#3d4d5c",
+//     },
+//   ],
+// };
+
 const testValue = {
   labels: ["A", "B", "C"],
-  keys: ["a", "b", "c", "d", "e", "f"],
+  keys: ["a3 1231 123ad", "b", "c", "d", "e", "f"],
   datasets: [
     {
       data: [12, 5, 4, 12, 34, 55],
       color: "#32533d",
     },
-    {
-      data: [14, 25, 41, 24, 4, 15],
-      color: "#ff6c37",
-    },
-    {
-      data: [22, 9, 11, 33, 14, 45],
-      color: "#3d4d5c",
-    },
   ],
 };
+
 type DateRange = "1week" | "1month" | "3month" | "6month" | "1year" | "custom";
 type GroupBy = "day" | "week" | "month" | "year";
 
@@ -244,9 +256,8 @@ export default function Dashboard() {
           </div>
 
           {/* Column chart */}
-          <div>
-            <ColumnChart data={testValue} className="h-[400px]"></ColumnChart>
-          </div>
+
+          <ColumnChart data={testValue} height={500}></ColumnChart>
 
           {/* Pie chart of user and stories */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 items-center">
