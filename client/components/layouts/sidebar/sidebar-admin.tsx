@@ -11,6 +11,13 @@ interface AdminSidebarProps {
   className?: string;
 }
 
+const ROUTES = {
+  dashboard: "/admin/dashboard",
+  usersManagement: "/admin/users",
+  mangaManagement: "/admin/stories/manga",
+  lightNovelManagement: "/admin/stories/light_novel",
+};
+
 export function ArrowToggleSidebar({ className, toggleSidebar }: { className?: string; toggleSidebar?: () => void }) {
   return (
     <div
@@ -69,7 +76,7 @@ export default function AdminSidebar({ className }: AdminSidebarProps) {
     <>
       <div
         className={`relative transition-transform duration-200 
-          md:sticky md:h-screen md:top-0 w-fit
+          md:sticky md:h-screen md:top-0 w-fit z-10
           ${open ? "md:w-fit" : "md:w-0"}`}
       >
         <div

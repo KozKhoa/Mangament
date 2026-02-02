@@ -144,7 +144,7 @@ function NavBar({ duration = 100, autoHide = true, className }: NavBarProps) {
               <>
                 <ButtonExpandable className="w-full" label="Thông tin tài khoản" onClick={() => router.push("/me")}></ButtonExpandable>
                 {user.role === "admin" && (
-                  <ButtonExpandable className="w-full" label="Quản lý Web" onClick={() => router.push("/dashboard")}></ButtonExpandable>
+                  <ButtonExpandable className="w-full" label="Quản lý Web" onClick={() => router.push("/admin/dashboard")}></ButtonExpandable>
                 )}
                 <ButtonExpandable className="w-full" label="Truyện yêu thích" onClick={() => router.push("/favourites")}></ButtonExpandable>
                 <ButtonExpandable className="w-full" label="Lịch sử đọc" onClick={() => router.push("/histories")}></ButtonExpandable>
@@ -200,7 +200,7 @@ function NavBar({ duration = 100, autoHide = true, className }: NavBarProps) {
                 <div className="flex flex-col gap-2.5 ">
                   {user && <ButtonExpandable onClick={() => router.push("/me")} label="Thông tin tài khoản" />}
                   {user && user.role === "admin" && (
-                    <ButtonExpandable className="w-full" label="Quản lý Web" onClick={() => router.push("/dashboard")}></ButtonExpandable>
+                    <ButtonExpandable className="w-full" label="Quản lý Web" onClick={() => router.push("/admin/dashboard")}></ButtonExpandable>
                   )}
                   <ButtonExpandable onClick={() => router.push("/stories/random")} label="Random" />
                   <ButtonExpandable onClick={() => router.push("/ranking")} label="Xếp hạng" />
