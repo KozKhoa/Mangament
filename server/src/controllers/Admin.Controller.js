@@ -81,19 +81,29 @@ export async function GetDashboardNewUsers(req, res, next) {
 
 export async function GetAllUsers(req, res, next) {
   try {
-    const { page, limit, genders, fromDate, toDate, roles, isBanned } = ConvertQuery(req.query);
+    const query = req.query;
+    const { page, limit, genders, fromDate, toDate, roles, isBanned } = ConvertQuery(query);
+
+    const sort = {};
+    if (query?.sort) {
+      const [field, direction] = query.sort.split(":");
+      sort[field.toLowerCase()] = direction.toLowerCase();
+    } else {
+      sort["join_date"] = "desc";
+    }
 
     throwErrorIfInvalidGenders(genders);
     throwErrorIfInvalidRoles(roles);
 
     const users = await usersModel.FindAllUser({
       roles: roles,
-      genders: ValidateGenre(genders),
+      genders: genders,
       page: page,
       limit: limit,
       fromDate: fromDate,
       toDate: toDate,
       isBanned: isBanned,
+      sort: sort,
     });
 
     if (!users) throw CreateError();

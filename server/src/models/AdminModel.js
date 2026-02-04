@@ -13,6 +13,14 @@ const REDIS_CACHE_DASHBOARD_NEW_USERS_KEY = "admin:dashboard:stats:new-users";
 
 const TTL = 60;
 
+const intervalMap = {
+  hour: "1 hour",
+  day: "1 day",
+  week: "1 week",
+  month: "1 month",
+  year: "1 year",
+};
+
 export async function GetDashboardOverview() {
   const cached = await redis.get(REDIS_CACHE_DASHBOARD_OVERVIEW_KEY);
 
@@ -64,14 +72,7 @@ export async function GetDashboardViews({ storyId, storyNodeId, fromDate, toDate
     setToStartDate(from);
     setToEndDate(to);
 
-    const intervalMap = {
-      hour: "1 hour",
-      day: "1 day",
-      week: "1 week",
-      month: "1 month",
-    };
-
-    const interval = intervalMap[groupBy];
+    const interval = intervalMap[groupBy] ?? "1 day";
 
     const views = await db.$queryRaw`
         SELECT
@@ -109,28 +110,21 @@ export async function GetDashboardNewUsers({ fromDate, toDate, groupBy = "day" }
     setToStartDate(from);
     setToEndDate(to);
 
-    const intervalMap = {
-      hour: "1 hour",
-      day: "1 day",
-      week: "1 week",
-      month: "1 month",
-    };
-
-    const interval = intervalMap[groupBy];
+    const interval = intervalMap[groupBy] ?? "1 day";
 
     const newUsers = await db.$queryRaw`
         SELECT
           series.date,
-          COALESCE(COUNT(user.id), 0)::int AS view
+          COALESCE(COUNT(u.id), 0)::int AS count
         FROM generate_series(
           DATE_TRUNC(${groupBy}, ${from}::timestamptz),
           DATE_TRUNC(${groupBy}, ${to}::timestamptz),
           ${Prisma.raw(`INTERVAL '${interval}'`)}
         ) AS series(date)
-        LEFT JOIN "User" user
-          ON DATE_TRUNC(${groupBy}, user.join_date) = series.date
-          AND user.join_date >= ${from}
-          AND user.join_date <= ${to}
+        LEFT JOIN "User" u
+          ON DATE_TRUNC(${groupBy}, u.join_date) = series.date
+          AND u.join_date >= ${from}
+          AND u.join_date <= ${to}
         GROUP BY series.date
         ORDER BY series.date;
       `;

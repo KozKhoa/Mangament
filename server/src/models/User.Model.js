@@ -77,8 +77,10 @@ export async function FindUser({ id, email }) {
   return { success: true, data: user };
 }
 
-export async function BannedUser({ id, email }) {
+export async function BannedUser({ id, email, isBanned }) {
   if (!id && !email) throw CreateError(400, "'id' or 'email' is required");
+  if (!isBanned && typeof isBanned !== "boolean") throw CreateError(400, "'isBanned' is required");
+  if (typeof isBanned !== "boolean") throw CreateError(400, "'isBanned' must be boolean");
 
   const where = {
     is_deleted: false,
@@ -87,7 +89,7 @@ export async function BannedUser({ id, email }) {
     ...(email && { email: email }),
   };
 
-  const bannedUser = await db.user.updateMany({ where: where, data: { is_banned: true } });
+  const bannedUser = await db.user.updateMany({ where: where, data: { is_banned: isBanned } });
 
   if (bannedUser.count === 0) {
     const user = await db.user.findFirst({ where: where });

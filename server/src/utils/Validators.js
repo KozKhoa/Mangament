@@ -40,6 +40,8 @@ export function isUUID(str) {
 }
 
 export function throwErrorIfInvalidGenres(genres = []) {
+  if (!genres) return true;
+
   let inputGenres;
   if (Array.isArray(genres)) {
     inputGenres = genres;
@@ -65,6 +67,8 @@ export function throwErrorIfInvalidGenres(genres = []) {
 }
 
 export function throwErrorIfInvalidGenders(genders = []) {
+  if (!genders) return true;
+
   let inputGenders;
   if (Array.isArray(genders)) {
     inputGenders = genders;
@@ -90,6 +94,8 @@ export function throwErrorIfInvalidGenders(genders = []) {
 }
 
 export function throwErrorIfInvalidRoles(roles = []) {
+  if (!roles) return true;
+
   let inputRoles;
   if (Array.isArray(roles)) {
     inputRoles = roles;
