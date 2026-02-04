@@ -1,4 +1,5 @@
 import api from "@/lib/axios";
+import qs from "qs";
 import axios from "axios";
 import { Pagination } from "@/types/pagination";
 import User from "@/types/user";
@@ -55,6 +56,54 @@ export async function getStatsNewUsers({
     return { success: false, message: error?.toString() };
   }
 }
-const adminService = { getOverview, getStatsView, getStatsNewUsers };
+
+export async function getUsers({
+  page = 1,
+  limit = 10,
+  joinDate,
+  genders,
+  roles,
+  isBanned,
+}: {
+  page?: number;
+  limit?: number;
+  joinDate?: { from?: Date; to?: Date };
+  genders?: string[];
+  roles?: string[];
+  isBanned?: boolean;
+}): Promise<ServiceResult<User[]>> {
+  try {
+    const res = await api.get(`/admin/users`, {
+      params: {
+        page: page,
+        limit: limit,
+        fromDate: joinDate?.from,
+        toDate: joinDate?.to,
+        gender: genders,
+        role: roles,
+        isBanned: isBanned,
+      },
+      paramsSerializer: (params) => qs.stringify(params, { arrayFormat: "comma" }),
+    });
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return { success: false, message: error?.toString() };
+  }
+}
+
+export async function banUser({ userId, isBanned }: { userId: string; isBanned: boolean }): Promise<ServiceResult<null>> {
+  try {
+    const res = await api.patch(`/admin/users/${userId}/ban`, {
+      isBanned: isBanned,
+    });
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return { success: false, message: error?.toString() };
+  }
+}
+
+const adminService = { getOverview, getStatsView, getStatsNewUsers, getUsers, banUser };
 
 export default adminService;

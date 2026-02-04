@@ -6,6 +6,9 @@ import ArrowLeftIcon from "@/public/arrows/left-v.svg";
 import ArrowDownIcon from "@/public/arrows/down-v.svg";
 import { useEffect, useRef, useState } from "react";
 import useResize from "@/hooks/useResize";
+import Link from "next/link";
+
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 
 interface AdminSidebarProps {
   className?: string;
@@ -44,6 +47,7 @@ export function ArrowToggleSidebar({ className, toggleSidebar }: { className?: s
 
 export default function AdminSidebar({ className }: AdminSidebarProps) {
   const auth = useAuth();
+  const router = useRouter();
 
   const resizeRef = useResize({ resizeRight: true, minWidth: 200 });
 
@@ -98,7 +102,7 @@ export default function AdminSidebar({ className }: AdminSidebarProps) {
         >
           <div
             className={`flex flex-col bg-background-items px-2.5 py-4 shadow-[10px_13px_5px_rgba(0,0,0,0.3)
-              border-foreground/50 
+              border-foreground/50 gap-2
 
               /* ===== Mobile ===== */
               w-full h-[70vh] border-x-2 border-t-2 rounded-t-lg 
@@ -114,9 +118,13 @@ export default function AdminSidebar({ className }: AdminSidebarProps) {
 
             <div className="overflow-y-scroll no-scrollbar">
               <div className="flex flex-col gap-2.5 h-fit ">
-                <ButtonExpandable label="Dashboard"></ButtonExpandable>
+                <Link href={"/admin/dashboard"}>
+                  <ButtonExpandable label="Dashboard"></ButtonExpandable>
+                </Link>
 
-                <ButtonExpandable label="Quản lý User"></ButtonExpandable>
+                <Link href={"/admin/user-management"}>
+                  <ButtonExpandable label="Quản lý User"></ButtonExpandable>
+                </Link>
 
                 <ButtonExpandable label="Quản lý Story">
                   <div className="flex flex-col gap-1 w-full rounded-bl-md pt-1">

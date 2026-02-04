@@ -19,6 +19,7 @@ import { capitalizeWords } from "@/utils/string";
 import PieChart from "@/components/chart/pie-chart";
 import ColumnChart from "@/components/chart/colum-chart";
 import { data } from "framer-motion/client";
+import useAdmin from "@/contexts/AdminContext";
 
 const USER_PIE_CHART_COLORS = [
   "#405D5D",
@@ -87,13 +88,14 @@ const RANGES: { id: DateRange; value: string }[] = [
 ];
 
 export default function Dashboard() {
-  const [loading, setLoading] = useState(true);
+  const admin = useAdmin();
+  const overview = admin?.overview;
 
-  const [overview, setOverview] = useState<DashboardOverview>();
+  // const [overview, setOverview] = useState<DashboardOverview>();
 
+  const [statsView, setStatsView] = useState<{ key: string; value: number }[]>([]);
   const [viewStartDate, setViewStartDate] = useState<Date>(new Date(subWeeks(new Date(), 1).toUTCString()));
   const [viewEndDate, setViewEndDate] = useState<Date>(new Date());
-  const [statsView, setStatsView] = useState<{ key: string; value: number }[]>([]);
   const [viewGroupBy, setViewGroupBy] = useState<GroupBy>("day");
   const [viewStatsSelection, setViewStatsSelection] = useState<DateRange>("1week");
 
@@ -186,23 +188,9 @@ export default function Dashboard() {
     fetchStatsNewUsers();
   }, [newUsersStartDate, newUsersEndDate, newUsersGroup]);
 
-  useEffect(() => {
-    async function fetchOveriew() {
-      setLoading(true);
-      const res = await adminService.getOverview();
-      setLoading(false);
-
-      if (!res.success) return toast.warning(res.message);
-
-      setOverview(res.data);
-    }
-
-    fetchOveriew();
-  }, []);
-
   return (
     <div className="relative mt-5">
-      {loading ? (
+      {admin?.loading ? (
         <Loading className=" h-[80vh]"></Loading>
       ) : (
         <div className=" flex flex-col gap-8">
@@ -212,21 +200,26 @@ export default function Dashboard() {
               label="Stories"
               value={overview?.totalStories}
               subLabel={`${overview?.totalStoriesBaseOnStatus["ongoing"]} ongoing`}
-              icon={<img src="book.png"></img>}
+              icon={<img src="/book.png"></img>}
             ></StatsCard>
 
             <StatsCard
               label="Users"
               value={overview?.totalUsers}
               subLabel={`${overview?.totalBannedUsers} banned users`}
-              icon={<img src="user.png"></img>}
+              icon={<img src="/user.png"></img>}
             ></StatsCard>
 
-            <StatsCard label="Views" value={overview?.totalView} icon={<img src="reading.png"></img>} subLabel={`${overview?.totalRating} ratings`}></StatsCard>
+            <StatsCard
+              label="Views"
+              value={overview?.totalView}
+              icon={<img src="/reading.png"></img>}
+              subLabel={`${overview?.totalRating} ratings`}
+            ></StatsCard>
           </div>
 
           {/* Pie chart of user and stories */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 items-start justify-center">
             <div>
               <h2 className="w-full text-center">User</h2>
               <PieChart
@@ -307,7 +300,9 @@ export default function Dashboard() {
                 </div>
               )}
 
-              <LineChart value={statsView} unit="views" lineColor="#1f3eb6" className="h-[500px]"></LineChart>
+              <div className="shadow-md">
+                <LineChart value={statsView} unit="views" lineColor="#1f3eb6" className="h-[500px]"></LineChart>
+              </div>
             </div>
           </div>
 
@@ -364,7 +359,9 @@ export default function Dashboard() {
                 </div>
               )}
 
-              <LineChart value={newUsersStats} unit="người" lineColor="#F41400" className="h-[500px]"></LineChart>
+              <div className="shadow-md">
+                <LineChart value={newUsersStats} unit="người" lineColor="#F41400" className="h-[500px]"></LineChart>
+              </div>
             </div>
           </div>
 

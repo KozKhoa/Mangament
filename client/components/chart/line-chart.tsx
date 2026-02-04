@@ -112,9 +112,9 @@ export default function LineChart({ className, value, lineColor = "#1f3eb6", uni
   }, [value]);
 
   return (
-    <div className="bg-background-items px-1 md:px-2 lg:px-5 py-1">
+    <div className="bg-background-items px-1 md:px-2 lg:px-5 py-1 rounded-md">
       {/* Toàn bộ biểu đồ */}
-      <div className="flex flex-row gap-8">
+      <div className="flex flex-row gap-8 ">
         {/* Range value in left */}
         <div className="flex flex-col justify-between items-center">
           {arrRef.current.map((v, i) => (
@@ -160,7 +160,7 @@ export default function LineChart({ className, value, lineColor = "#1f3eb6", uni
           </div>
 
           {/* Background */}
-          <div className="absolute top-0 -left-5 w-full h-full flex flex-col items-end">
+          <div className="absolute top-0 -left-5 w-full h-full flex flex-col items-end ">
             {arrRef.current.map((v, i) => (
               <div key={i} className="text-start w-full border-b border-foreground/10 h-full hover:border-foreground/30"></div>
             ))}
