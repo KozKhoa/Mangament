@@ -36,7 +36,7 @@ export function ModalRoot() {
           <Modal key={m.id} zIndex={50 + index} onClose={modal.close}>
             {m.type === "confirm" && (
               <ConfirmModal
-                title="Title"
+                title={m.props?.title ?? ""}
                 onCancel={() => {
                   m.props?.onCancel?.();
                   modal.close();

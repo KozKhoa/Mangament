@@ -104,6 +104,16 @@ export async function banUser({ userId, isBanned }: { userId: string; isBanned: 
   }
 }
 
-const adminService = { getOverview, getStatsView, getStatsNewUsers, getUsers, banUser };
+export async function deleteUser(userId: string): Promise<ServiceResult<null>> {
+  try {
+    const res = await api.delete(`/admin/users/${userId}`);
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return { success: false, message: error?.toString() };
+  }
+}
+
+const adminService = { getOverview, getStatsView, getStatsNewUsers, getUsers, banUser, deleteUser };
 
 export default adminService;

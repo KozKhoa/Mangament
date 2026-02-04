@@ -16,7 +16,7 @@ export default function ConfirmModal({
 
   return (
     <div className="flex flex-col gap-2 pb-2">
-      <p className="text-[1.5em] md:text-[1.8em] font-semibold">{title}</p>
+      <p className="text-[1.2em] md:text-[1.4em] font-semibold">{title}</p>
 
       <div>{children}</div>
 

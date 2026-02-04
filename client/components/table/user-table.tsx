@@ -12,6 +12,11 @@ import { toast } from "sonner";
 import GenderTag from "../tags/gender-tag";
 import RoleTag from "../tags/role-tag";
 
+import LockIcon from "@/public/lock/lock.svg";
+import UnlockIcon from "@/public/lock/unlock.svg";
+import Loading from "../loadings/loading";
+import { modal } from "../modal/modal.store";
+
 export interface UserTableProps {
   className?: string;
 
@@ -41,10 +46,13 @@ function TD({ className, children, style }: { className?: string; children?: Rea
 
 export default function UserTable({ className, data }: UserTableProps) {
   const [processedBanningUsers, setPocessedBanningUsers] = useState(new Set<User>());
+  const [processDeleteUsers, setProcessingDeleteUsers] = useState(new Set<User>());
 
   const [users, setUsers] = useState<User[]>(data);
 
   async function toggleBanUser(user: User, isBanned: boolean) {
+    if (user.role === "admin") return toast.message("Không thể ban admin");
+
     setPocessedBanningUsers((prev) => {
       const next = new Set(prev);
       next.add(user);
@@ -72,12 +80,46 @@ export default function UserTable({ className, data }: UserTableProps) {
     else return toast.message(`Hủy banned ${user.name} thành công`);
   }
 
+  async function deleteUser(user: User) {
+    if (user.role === "admin") return toast.message("Không thể xóa admin");
+
+    modal.open("confirm", {
+      title: `Xác nhận xóa ?`,
+      content: (
+        <div>
+          <p>
+            <span className="font-semibold">Name:</span> {user.name}
+          </p>
+          <p>
+            <span className="font-semibold">Email:</span> {user.email}
+          </p>
+        </div>
+      ),
+      onConfirm: async () => {
+        setProcessingDeleteUsers((prev) => {
+          const next = new Set(prev);
+          next.add(user);
+          return next;
+        });
+        const res = await adminService.deleteUser(user.id);
+        setProcessingDeleteUsers((prev) => {
+          const next = new Set(prev);
+          next.delete(user);
+          return next;
+        });
+        if (!res.success) return toast.warning(res.message);
+        toast.message(`Xóa "${user.name}" thành công`);
+        setUsers((prevUsers) => prevUsers.filter((prevUser) => prevUser !== user));
+      },
+    });
+  }
+
   useEffect(() => {
     setUsers(data);
   }, [data]);
 
   return (
-    <div className="bg-background-items rounded-lg  overflow-hidden">
+    <div className={`bg-background-items rounded-lg  overflow-hidden ${className}`}>
       <table className="w-full">
         <colgroup className=" ">
           <col className="border-r border-foreground/10" />
@@ -121,22 +163,38 @@ export default function UserTable({ className, data }: UserTableProps) {
                 <RoleTag role={user.role}></RoleTag>
               </TD>
               <TD>
-                <Switch
-                  className="m-auto"
-                  loading={processedBanningUsers.has(user)}
-                  disable={user.role === "admin"}
-                  borderWeight={0}
-                  roundHeight={22}
-                  width={40}
-                  height={18}
-                  duration={200}
-                  defaultValue={user.is_banned}
-                  onToggle={(isOn) => toggleBanUser(user, isOn)}
-                ></Switch>
+                <div className="flex flex-row gap-2 justify-center items-center w-fit m-auto">
+                  <Switch
+                    loading={processedBanningUsers.has(user)}
+                    disable={user.role === "admin"}
+                    borderWeight={0}
+                    roundHeight={22}
+                    width={40}
+                    height={18}
+                    bgColorOn={"#F06449"}
+                    duration={200}
+                    defaultValue={user.is_banned}
+                    onToggle={(isOn) => toggleBanUser(user, isOn)}
+                  ></Switch>
+                  <div className="p-0.5">
+                    {user.is_banned ? <LockIcon className="w-5 h-5 text-red-600"></LockIcon> : <UnlockIcon className="w-5 h-5 text-blue-500"></UnlockIcon>}
+                  </div>
+                </div>
               </TD>
-              <TD className="flex flex-row w-full justify-around items-center">
-                <EditIcon className="w-5.5 h-5.5 cursor-pointer text-foreground/90"></EditIcon>
-                <DeleteIcon className="w-6 h-6 text-red-600 cursor-pointer"></DeleteIcon>
+              <TD>
+                <div className="flex flex-row w-full justify-around items-center">
+                  <EditIcon className="w-5.5 h-5.5 cursor-pointer text-foreground/90"></EditIcon>
+                  {/* Delete user */}
+                  <div className={`w-6 h-6 ${user.role === "admin" ? "opacity-60" : "cursor-pointer"}`}>
+                    {processDeleteUsers.has(user) ? (
+                      <Loading className="w-full h-full"></Loading>
+                    ) : (
+                      <button disabled={user.role === "admin"} onClick={() => deleteUser(user)}>
+                        <DeleteIcon className="w-full h-full text-red-600 "></DeleteIcon>
+                      </button>
+                    )}
+                  </div>
+                </div>
               </TD>
             </tr>
           ))}

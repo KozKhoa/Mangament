@@ -64,7 +64,7 @@ export default function FilterSortHistories({
       <FilterStoryType onFilter={updateParams} isReset={isResetAll}></FilterStoryType>
 
       {/* Create date */}
-      <FilterDate onFilter={updateParams} isReset={isResetAll}></FilterDate>
+      {/* <FilterDate onFilter={updateParams} isReset={isResetAll}></FilterDate> */}
     </div>
   );
 }

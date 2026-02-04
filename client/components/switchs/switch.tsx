@@ -21,6 +21,9 @@ interface SwithProps {
   borderWeight?: number;
   borderColor?: string;
   defaultValue?: boolean;
+
+  children?: React.ReactNode | React.ReactNode[];
+
   className?: string;
 }
 
@@ -42,6 +45,9 @@ function Switch({
   borderWeight = 1,
   borderColor = "black",
   defaultValue = false,
+
+  children,
+
   className = "",
 }: SwithProps) {
   const [stage, setStage] = useState(defaultValue);
@@ -97,7 +103,7 @@ function Switch({
           backgroundPosition: "center",
         }}
       >
-        {loading && <Loading className="m-px"></Loading>}
+        {loading ? <Loading className="m-px"></Loading> : <>{children}</>}
       </div>
     </button>
   );
