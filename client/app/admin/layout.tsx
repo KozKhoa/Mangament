@@ -11,7 +11,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
         <AdminSidebar></AdminSidebar>
 
-        <div className="max-w-[2000px] m-auto mt-16 px-2 md:px-10 w-full bg-background ">{children}</div>
+        <div className="max-w-[2000px] m-auto mt-16 px-2 md:px-10 w-full bg-background ">
+          {children}
+
+          {/* Footer */}
+          <div className="w-full h-64"></div>
+        </div>
       </div>
     </AdminProvider>
   );

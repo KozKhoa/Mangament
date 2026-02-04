@@ -16,6 +16,7 @@ import LockIcon from "@/public/lock/lock.svg";
 import UnlockIcon from "@/public/lock/unlock.svg";
 import Loading from "../loadings/loading";
 import { modal } from "../modal/modal.store";
+import NoContent from "../cards/no-content";
 
 export interface UserTableProps {
   className?: string;
@@ -76,8 +77,8 @@ export default function UserTable({ className, data }: UserTableProps) {
       return next;
     });
 
-    if (isBanned) return toast.message(`Banned ${user.name} thành công`);
-    else return toast.message(`Hủy banned ${user.name} thành công`);
+    if (isBanned) return toast.message(`Ban ${user.name} thành công`);
+    else return toast.message(`Hủy ban ${user.name} thành công`);
   }
 
   async function deleteUser(user: User) {
@@ -120,86 +121,90 @@ export default function UserTable({ className, data }: UserTableProps) {
 
   return (
     <div className={`bg-background-items rounded-lg  overflow-hidden ${className}`}>
-      <table className="w-full">
-        <colgroup className=" ">
-          <col className="border-r border-foreground/10" />
-          <col className="border-r border-l border-foreground/10" />
-          <col className="border-r border-l border-foreground/10" />
-          <col className="border-r border-l border-foreground/10" />
-          <col className="border-r border-l border-foreground/10" />
-          <col className="border-r border-l border-foreground/10" />
-          <col className="border-r border-l border-foreground/10" />
-          <col className="border-r border-l border-foreground/10" />
-          <col className="border-l border-foreground/10" />
-        </colgroup>
-        <thead className="bg-black/10 text-[1.2em] text-foreground/80 ">
-          <tr>
-            <TH>Avatar</TH>
-            <TH>Name</TH>
-            <TH>Email</TH>
-            <TH>Gender</TH>
-            <TH>Join date</TH>
-            <TH>Birthday</TH>
-            <TH>Role</TH>
-            <TH>Banned</TH>
-            <TH>Action</TH>
-          </tr>
-        </thead>
-        <tbody>
-          {users.map((user, i) => (
-            <tr key={user.id} className={`hover:bg-foreground/10 ${i % 2 === 0 ? "" : "bg-foreground/2"}`}>
-              {/* Avatar */}
-              <TD>
-                <img className="w-8 aspect-square m-auto" src={process.env.NEXT_PUBLIC_API_URL + "uploads/" + user?.avatar?.url}></img>
-              </TD>
-              <TD>{user.name}</TD>
-              <TD>{user.email}</TD>
-              <TD>
-                <GenderTag gender={user.gender ?? "other"}></GenderTag>
-              </TD>
-              <TD>{user.join_date && new Date(user.join_date ?? "").toLocaleDateString("vi")}</TD>
-              <TD>{user.birthday && new Date(user.birthday).toLocaleDateString("vi")}</TD>
-              <TD>
-                <RoleTag role={user.role}></RoleTag>
-              </TD>
-              <TD>
-                <div className="flex flex-row gap-2 justify-center items-center w-fit m-auto">
-                  <Switch
-                    loading={processedBanningUsers.has(user)}
-                    disable={user.role === "admin"}
-                    borderWeight={0}
-                    roundHeight={22}
-                    width={40}
-                    height={18}
-                    bgColorOn={"#F06449"}
-                    duration={200}
-                    defaultValue={user.is_banned}
-                    onToggle={(isOn) => toggleBanUser(user, isOn)}
-                  ></Switch>
-                  <div className="p-0.5">
-                    {user.is_banned ? <LockIcon className="w-5 h-5 text-red-600"></LockIcon> : <UnlockIcon className="w-5 h-5 text-blue-500"></UnlockIcon>}
-                  </div>
-                </div>
-              </TD>
-              <TD>
-                <div className="flex flex-row w-full justify-around items-center">
-                  <EditIcon className="w-5.5 h-5.5 cursor-pointer text-foreground/90"></EditIcon>
-                  {/* Delete user */}
-                  <div className={`w-6 h-6 ${user.role === "admin" ? "opacity-60" : "cursor-pointer"}`}>
-                    {processDeleteUsers.has(user) ? (
-                      <Loading className="w-full h-full"></Loading>
-                    ) : (
-                      <button disabled={user.role === "admin"} onClick={() => deleteUser(user)}>
-                        <DeleteIcon className="w-full h-full text-red-600 "></DeleteIcon>
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </TD>
+      {users.length > 0 ? (
+        <table className="w-full">
+          <colgroup className=" ">
+            <col className="border-r border-foreground/10" />
+            <col className="border-r border-l border-foreground/10" />
+            <col className="border-r border-l border-foreground/10" />
+            <col className="border-r border-l border-foreground/10" />
+            <col className="border-r border-l border-foreground/10" />
+            <col className="border-r border-l border-foreground/10" />
+            <col className="border-r border-l border-foreground/10" />
+            <col className="border-r border-l border-foreground/10" />
+            <col className="border-l border-foreground/10" />
+          </colgroup>
+          <thead className="bg-black/10 text-[1.2em] text-foreground/80 ">
+            <tr>
+              <TH>Avatar</TH>
+              <TH>Name</TH>
+              <TH>Email</TH>
+              <TH>Gender</TH>
+              <TH>Join date</TH>
+              <TH>Birthday</TH>
+              <TH>Role</TH>
+              <TH>Banned</TH>
+              <TH>Action</TH>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {users.map((user, i) => (
+              <tr key={user.id} className={`hover:bg-foreground/10 ${i % 2 === 0 ? "" : "bg-foreground/2"}`}>
+                {/* Avatar */}
+                <TD>
+                  <img className="w-8 aspect-square m-auto" src={process.env.NEXT_PUBLIC_API_URL + "uploads/" + user?.avatar?.url}></img>
+                </TD>
+                <TD>{user.name}</TD>
+                <TD>{user.email}</TD>
+                <TD>
+                  <GenderTag gender={user.gender ?? "other"}></GenderTag>
+                </TD>
+                <TD>{user.join_date && new Date(user.join_date ?? "").toLocaleDateString("vi")}</TD>
+                <TD>{user.birthday && new Date(user.birthday).toLocaleDateString("vi")}</TD>
+                <TD>
+                  <RoleTag role={user.role}></RoleTag>
+                </TD>
+                <TD>
+                  <div className="flex flex-row gap-2 justify-center items-center w-fit m-auto">
+                    <Switch
+                      loading={processedBanningUsers.has(user)}
+                      disable={user.role === "admin"}
+                      borderWeight={0}
+                      roundHeight={22}
+                      width={40}
+                      height={18}
+                      bgColorOn={"#F06449"}
+                      duration={200}
+                      defaultValue={user.is_banned}
+                      onToggle={(isOn) => toggleBanUser(user, isOn)}
+                    ></Switch>
+                    <div className="p-0.5">
+                      {user.is_banned ? <LockIcon className="w-5 h-5 text-red-600"></LockIcon> : <UnlockIcon className="w-5 h-5 text-blue-500"></UnlockIcon>}
+                    </div>
+                  </div>
+                </TD>
+                <TD>
+                  <div className="flex flex-row w-full justify-around items-center">
+                    <EditIcon className="w-5.5 h-5.5 cursor-pointer text-foreground/90"></EditIcon>
+                    {/* Delete user */}
+                    <div className={`w-6 h-6 ${user.role === "admin" ? "opacity-60" : "cursor-pointer"}`}>
+                      {processDeleteUsers.has(user) ? (
+                        <Loading className="w-full h-full"></Loading>
+                      ) : (
+                        <button disabled={user.role === "admin"} onClick={() => deleteUser(user)}>
+                          <DeleteIcon className="w-full h-full text-red-600 "></DeleteIcon>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </TD>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      ) : (
+        <NoContent></NoContent>
+      )}
     </div>
   );
 }

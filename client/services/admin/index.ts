@@ -64,6 +64,7 @@ export async function getUsers({
   genders,
   roles,
   isBanned,
+  sort,
 }: {
   page?: number;
   limit?: number;
@@ -71,6 +72,7 @@ export async function getUsers({
   genders?: string[];
   roles?: string[];
   isBanned?: boolean;
+  sort?: string;
 }): Promise<ServiceResult<User[]>> {
   try {
     const res = await api.get(`/admin/users`, {
@@ -82,6 +84,7 @@ export async function getUsers({
         gender: genders,
         role: roles,
         isBanned: isBanned,
+        sort: sort,
       },
       paramsSerializer: (params) => qs.stringify(params, { arrayFormat: "comma" }),
     });

@@ -21,8 +21,16 @@ export function proxy(req: NextRequest) {
       return NextResponse.redirect(url);
     }
   }
+
+  if (pathname.startsWith("/admin/user-management")) {
+    if (!url.searchParams.has("page")) {
+      url.searchParams.set("page", "1");
+
+      return NextResponse.redirect(url);
+    }
+  }
 }
 
 export const config = {
-  matcher: ["/stories/:type", "/ranking/:storyType"],
+  matcher: ["/stories/:type", "/ranking/:storyType", "/admin/user-management"],
 };
