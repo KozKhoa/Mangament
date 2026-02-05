@@ -5,10 +5,22 @@ import { GetParentStoryNodeTree } from "./StoryNode.Model.js";
 import * as passwordService from "../utils/PasswordHandle.js";
 import { CreateError } from "../utils/ErrorHandle.js";
 
-export async function FindAllUser({ genders = [], fromDate, toDate, roles = [], birthday, page = 1, limit = 10, sort = { join_date: "desc" }, isBanned }) {
+export async function FindAllUser({
+  genders = [],
+  fromDate,
+  toDate,
+  roles = [],
+  birthday,
+  page = 1,
+  limit = 10,
+  sort = { join_date: "desc" },
+  isBanned,
+  search,
+}) {
   const where = {
     is_deleted: false,
 
+    ...(search && { OR: [{ email: { contains: search, mode: "insensitive" } }, { name: { contains: search, mode: "insensitive" } }] }),
     ...(roles && roles.length > 0 && { role: { in: roles } }),
     ...(birthday && { birthday: birthday }),
     ...(genders && genders.length > 0 && { gender: { in: genders } }),

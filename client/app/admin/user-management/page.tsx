@@ -30,6 +30,8 @@ export default function UserManagement() {
   const admin = useAdmin();
   const overview = admin.overview;
 
+  const [searchUsers, setSearchUsers] = useState<string>("");
+
   const page = Number(searchParams.get("page") ?? 1);
   const sort = searchParams.get("sort") ?? "join_date:desc";
   const isBanned = searchParams.get("isBanned") === "true" ? true : searchParams.get("isBanned") == "false" ? false : undefined;
@@ -64,7 +66,7 @@ export default function UserManagement() {
   useEffect(() => {
     async function fetchUsers() {
       setLoadingUsers(true);
-      const res = await adminService.getUsers({ page: page, limit: LIMIT, genders: gender, isBanned: isBanned, roles: role, sort: sort });
+      const res = await adminService.getUsers({ page: page, limit: LIMIT, genders: gender, isBanned: isBanned, roles: role, sort: sort, search: searchUsers });
       setLoadingUsers(false);
 
       if (!res.success) return toast.warning(res.message);
@@ -74,7 +76,7 @@ export default function UserManagement() {
     }
 
     fetchUsers();
-  }, [searchParams]);
+  }, [searchParams, searchUsers]);
 
   return (
     <div>
@@ -99,7 +101,7 @@ export default function UserManagement() {
 
             <div className="flex flex-row flex-wrap w-full justify-between">
               {/* Filter */}
-              <div className="flex flex-row gap-2 justify-start items-center">
+              <div className="flex flex-row gap-2 justify-start items-center h-full">
                 <FilterGenders value={(gender as TargetGender[]) ?? []} onChange={(genders) => handleNavigate("gender", genders?.join(","))}></FilterGenders>
                 <FilterRoles value={(role as TargetRole[]) ?? []} onChange={(roles) => handleNavigate("role", roles?.join(","))}></FilterRoles>
                 <FilterBanned
@@ -117,7 +119,7 @@ export default function UserManagement() {
                 )}
               </div>
               {/* Search */}
-              <SearchBar className="border-foreground/30" placeHolder="Tìm theo tên hoặc email"></SearchBar>
+              <SearchBar className="border-foreground/30" placeHolder="Tìm theo tên hoặc email" onSearch={setSearchUsers}></SearchBar>
             </div>
             {loadingUsers ? (
               <Loading className="h-64"></Loading>

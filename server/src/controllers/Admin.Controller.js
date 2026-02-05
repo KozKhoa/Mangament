@@ -60,7 +60,7 @@ export async function GetDashboardViewInRange(req, res, next) {
 // GET /admin/dashboard/stats/new-users
 export async function GetDashboardNewUsers(req, res, next) {
   try {
-    let { fromDate, toDate } = ConvertQuery(req.query);
+    let { fromDate, toDate, groupBy } = ConvertQuery(req.query);
 
     if (!fromDate && !toDate) {
       toDate = new Date();
@@ -71,7 +71,7 @@ export async function GetDashboardNewUsers(req, res, next) {
     fromDate?.setUTCHours(0, 0, 0, 0);
     toDate?.setUTCHours(23, 59, 59, 999);
 
-    const newUsersByDate = adminModel.GetDashboardNewUsers({ fromDate, toDate });
+    const newUsersByDate = adminModel.GetDashboardNewUsers({ fromDate, toDate, groupBy: groupBy });
 
     return res.json({ success: true, data: (await newUsersByDate).data });
   } catch (error) {
@@ -79,10 +79,13 @@ export async function GetDashboardNewUsers(req, res, next) {
   }
 }
 
+// GET /admin/users
 export async function GetAllUsers(req, res, next) {
   try {
     const query = req.query;
     const { page, limit, genders, fromDate, toDate, roles, isBanned } = ConvertQuery(query);
+
+    const search = query.search ?? "";
 
     const sort = {};
     if (query?.sort) {
@@ -96,6 +99,7 @@ export async function GetAllUsers(req, res, next) {
     throwErrorIfInvalidRoles(roles);
 
     const users = await usersModel.FindAllUser({
+      search: search,
       roles: roles,
       genders: genders,
       page: page,
@@ -136,9 +140,11 @@ export async function BanUser(req, res, next) {
   try {
     const userId = req.params?.id;
 
+    const isBanned = req.body?.isBanned;
+
     if (!userId) throw CreateError(400, "'id' is required");
 
-    await usersModel.BannedUser({ id: userId });
+    await usersModel.BannedUser({ id: userId, isBanned: isBanned });
 
     return res.json({ success: true, message: `Banned ${userId}` });
   } catch (error) {

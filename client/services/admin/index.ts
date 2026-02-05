@@ -64,6 +64,7 @@ export async function getStatsNewUsers({
 }
 
 export async function getUsers({
+  search,
   page = 1,
   limit = 10,
   joinDate,
@@ -74,6 +75,7 @@ export async function getUsers({
 }: {
   page?: number;
   limit?: number;
+  search?: string;
   joinDate?: { from?: Date; to?: Date };
   genders?: string[];
   roles?: string[];
@@ -85,6 +87,7 @@ export async function getUsers({
       params: {
         page: page,
         limit: limit,
+        search: search,
         fromDate: joinDate?.from,
         toDate: joinDate?.to,
         gender: genders,
