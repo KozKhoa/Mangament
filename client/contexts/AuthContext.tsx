@@ -112,7 +112,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     if (!res.success) return toast.warning(res.message);
 
     const user = res.data?.user;
-    const accessToken = res.data?.token;
+    const accessToken = res.data?.accessToken;
 
     if (user && accessToken) {
       setUser(user); // Save user
@@ -133,16 +133,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const res = await authService.register(name, email, password);
     setLoading(false);
 
+    if (!res.success) return toast.warning(res.message);
+
     const user = res.data?.user;
-    const accessToken = res.data?.token;
+    const accessToken = res.data?.accessToken;
+
     if (user && accessToken) {
       setUser(user);
       token.setAccessToken(accessToken);
 
-      toast.message(res.message);
+      toast.message("Đăng ký thành công! Vui lòng đăng nhập lại với tài khoản đã đang ký");
 
       // navigate to home page
-      router.replace("/");
+      router.replace("/login");
     }
   }
 

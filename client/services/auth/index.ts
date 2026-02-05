@@ -15,10 +15,10 @@ export async function me(): Promise<ServiceResult<User>> {
   }
 }
 
-export async function register(name: string, email: string, password: string): Promise<ServiceResult<{ token: string; user: User }>> {
+export async function register(name: string, email: string, password: string): Promise<ServiceResult<{ accessToken: string; user: User }>> {
   try {
     const res = await api.post("/auth/register", { name, email, password });
-    console.log(res);
+
     return res.data;
   } catch (error) {
     console.error(error);
@@ -26,7 +26,7 @@ export async function register(name: string, email: string, password: string): P
   }
 }
 
-export async function login(email: string, password: string): Promise<ServiceResult<{ token: string; user: User }>> {
+export async function login(email: string, password: string): Promise<ServiceResult<{ accessToken: string; user: User }>> {
   try {
     const res = await api.post("/auth/login", { email, password });
     return res.data;
@@ -51,7 +51,7 @@ export async function refresh(): Promise<ServiceResult<{ token: string; user: Us
     const res = await axios.post(
       `${process.env.NEXT_PUBLIC_API_URL}/auth/refresh`,
       {},
-      { withCredentials: true } // gửi cookie refresh token
+      { withCredentials: true }, // gửi cookie refresh token
     );
     return res.data;
   } catch (error) {

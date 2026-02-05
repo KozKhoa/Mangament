@@ -1,25 +1,26 @@
 "use client";
 
-import StatsCard from "@/components/cards/admin/stats-card";
-import PieChart from "@/components/chart/pie-chart";
-import FilterBanned from "@/components/filters/filter-banned";
-import FilterGenders, { TargetGender } from "@/components/filters/filter-genders";
-import FilterRoles, { TargetRole } from "@/components/filters/filter-roles";
-import Loading from "@/components/loadings/loading";
-import SwitchPageBig from "@/components/switch-page/big";
-import UserTable from "@/components/table/user-table";
-
-import useAdmin from "@/contexts/AdminContext";
-import adminService from "@/services/admin";
-import { Pagination } from "@/types/pagination";
-import User from "@/types/user";
-import { capitalizeWords } from "@/utils/string";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 
-import XIcon from "@/public/x-icon.svg";
 import SearchBar from "@/components/search/search";
+import PieChart from "@/components/chart/pie-chart";
+import Loading from "@/components/loadings/loading";
+import UserTable from "@/components/table/user-table";
+import SwitchPageBig from "@/components/switch-page/big";
+import FilterBanned from "@/components/filters/filter-banned";
+import FilterRoles, { TargetRole } from "@/components/filters/filter-roles";
+import FilterGenders, { TargetGender } from "@/components/filters/filter-genders";
+
+import User from "@/types/user";
+import { Pagination } from "@/types/pagination";
+
+import useAdmin from "@/contexts/AdminContext";
+import adminService from "@/services/admin";
+import { capitalizeWords } from "@/utils/string";
+
+import XIcon from "@/public/x-icon.svg";
 
 const LIMIT = 20;
 
@@ -119,7 +120,15 @@ export default function UserManagement() {
                 )}
               </div>
               {/* Search */}
-              <SearchBar className="border-foreground/30" placeHolder="Tìm theo tên hoặc email" onSearch={setSearchUsers}></SearchBar>
+              <SearchBar
+                className="border-foreground/30 w-[300px]"
+                placeHolder="Tìm theo tên hoặc email"
+                onSearch={(text) => {
+                  handleNavigate("page", "1");
+                  handleNavigate("sort", "join_date:desc");
+                  setSearchUsers(text);
+                }}
+              ></SearchBar>
             </div>
             {loadingUsers ? (
               <Loading className="h-64"></Loading>
