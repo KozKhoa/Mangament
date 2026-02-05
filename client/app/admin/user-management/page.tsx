@@ -18,6 +18,9 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 
+import XIcon from "@/public/x-icon.svg";
+import SearchBar from "@/components/search/search";
+
 const LIMIT = 20;
 
 export default function UserManagement() {
@@ -33,19 +36,19 @@ export default function UserManagement() {
   const gender = searchParams.get("gender")?.split(",");
   const role = searchParams.get("role")?.split(",");
 
-  console.log(isBanned);
-
   const [users, setUsers] = useState<User[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
   const [usersPagination, setUsersPagination] = useState<Pagination>();
+
+  const handleResetSearchParams = useCallback(() => {
+    router.push(`?page=1&sort=join_date:desc`);
+  }, []);
 
   const handleNavigate = useCallback(
     (key: string, value: string) => {
       const params = new URLSearchParams(searchParams);
 
       params.set("page", "1");
-
-      console.log(key, value);
 
       if (!value) {
         params.delete(key);
@@ -93,14 +96,28 @@ export default function UserManagement() {
 
           <div className="flex flex-col gap-4 justify-center items-center ">
             <h2 className="w-full px-2">Users</h2>
-            {/* Filter */}
-            <div className="flex flex-row gap-2 justify-start items-center w-full ">
-              <FilterGenders value={(gender as TargetGender[]) ?? []} onChange={(genders) => handleNavigate("gender", genders?.join(","))}></FilterGenders>
-              <FilterRoles value={(role as TargetRole[]) ?? []} onChange={(roles) => handleNavigate("role", roles?.join(","))}></FilterRoles>
-              <FilterBanned
-                value={isBanned as null | boolean}
-                onChange={(value) => handleNavigate("isBanned", value === null ? "" : value.toString())}
-              ></FilterBanned>
+
+            <div className="flex flex-row flex-wrap w-full justify-between">
+              {/* Filter */}
+              <div className="flex flex-row gap-2 justify-start items-center">
+                <FilterGenders value={(gender as TargetGender[]) ?? []} onChange={(genders) => handleNavigate("gender", genders?.join(","))}></FilterGenders>
+                <FilterRoles value={(role as TargetRole[]) ?? []} onChange={(roles) => handleNavigate("role", roles?.join(","))}></FilterRoles>
+                <FilterBanned
+                  value={isBanned as null | boolean}
+                  onChange={(value) => handleNavigate("isBanned", value === null ? "" : value.toString())}
+                ></FilterBanned>
+
+                {searchParams.size > 2 && (
+                  <div
+                    onClick={handleResetSearchParams}
+                    className="h-full my-auto w-fit flex justify-center items-center font-semibold gap-1 text-error cursor-pointer"
+                  >
+                    <XIcon className="w-5 h-5 text-error"></XIcon> Xóa bộ lọc
+                  </div>
+                )}
+              </div>
+              {/* Search */}
+              <SearchBar className="border-foreground/30" placeHolder="Tìm theo tên hoặc email"></SearchBar>
             </div>
             {loadingUsers ? (
               <Loading className="h-64"></Loading>

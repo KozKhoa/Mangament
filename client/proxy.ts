@@ -25,6 +25,7 @@ export function proxy(req: NextRequest) {
   if (pathname.startsWith("/admin/user-management")) {
     if (!url.searchParams.has("page")) {
       url.searchParams.set("page", "1");
+      url.searchParams.set("sort", "join_date:desc");
 
       return NextResponse.redirect(url);
     }

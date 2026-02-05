@@ -49,7 +49,13 @@ export async function getStatsNewUsers({
   groupBy?: string;
 }): Promise<ServiceResult<DashboardStatsNewUsers[]>> {
   try {
-    const res = await api.get(`/admin/dashboard/stats/new-users?fromDate=${from.toISOString()}&toDate=${to.toISOString()}&groupBy=${groupBy}`);
+    const res = await api.get(`/admin/dashboard/stats/new-users`, {
+      params: {
+        fromDate: from.toISOString(),
+        toDate: to.toISOString(),
+        groupBy: groupBy,
+      },
+    });
     return res.data;
   } catch (error) {
     console.error(error);

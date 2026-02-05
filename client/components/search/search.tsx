@@ -32,10 +32,10 @@ function SearchBar<T>({ onSearch, onType, children, placeHolder = "Tìm kiếm",
   }
 
   return (
-    <div onFocus={() => setIsFocus(true)} onBlur={() => setIsFocus(false)} className={`${className}`}>
+    <div onFocus={() => setIsFocus(true)} onBlur={() => setIsFocus(false)}>
       <div
         className={`flex flex-row justify-center items-center text-black w-full
-        h-10 px-2.5 border border-foreground rounded-md bg-white relative `}
+        h-10 px-2.5 border border-foreground rounded-md bg-white relative ${className}`}
         style={styles}
       >
         {/* Input field */}

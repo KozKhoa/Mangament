@@ -10,7 +10,7 @@ export type TargetGender = "male" | "female" | "other" | null;
 
 const GENDERS = [
   {
-    label: "Name",
+    label: "Nam",
     code: "male",
     isChecked: false,
   },
