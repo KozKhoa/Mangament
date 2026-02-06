@@ -1,8 +1,8 @@
 "use client";
 
+import { toast } from "sonner";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { toast } from "sonner";
 
 import SearchBar from "@/components/search/search";
 import PieChart from "@/components/chart/pie-chart";
@@ -16,13 +16,14 @@ import FilterGenders, { TargetGender } from "@/components/filters/filter-genders
 import User from "@/types/user";
 import { Pagination } from "@/types/pagination";
 
-import useAdmin from "@/contexts/AdminContext";
 import adminService from "@/services/admin";
+import useAdmin from "@/contexts/AdminContext";
 import { capitalizeWords } from "@/utils/string";
 
 import XIcon from "@/public/x-icon.svg";
+import SortUsers from "@/components/sorts/sort-users";
 
-const LIMIT = 20;
+const LIMIT = 15;
 
 export default function UserManagement() {
   const searchParams = useSearchParams();
@@ -35,7 +36,7 @@ export default function UserManagement() {
 
   const page = Number(searchParams.get("page") ?? 1);
   const sort = searchParams.get("sort") ?? "join_date:desc";
-  const isBanned = searchParams.get("isBanned") === "true" ? true : searchParams.get("isBanned") == "false" ? false : undefined;
+  const isBanned = searchParams.get("isBanned") == "true" ? true : searchParams.get("isBanned") == "false" ? false : undefined;
   const gender = searchParams.get("gender")?.split(",");
   const role = searchParams.get("role")?.split(",");
 
@@ -44,7 +45,7 @@ export default function UserManagement() {
   const [usersPagination, setUsersPagination] = useState<Pagination>();
 
   const handleResetSearchParams = useCallback(() => {
-    router.push(`?page=1&sort=join_date:desc`);
+    router.push(`?page=1&sort=join_date:desc`, { scroll: false });
   }, []);
 
   const handleNavigate = useCallback(
@@ -59,7 +60,7 @@ export default function UserManagement() {
         params.set(key, value);
       }
 
-      router.push(`?${params.toString()}`);
+      router.push(`?${params.toString()}`, { scroll: false });
     },
     [searchParams],
   );
@@ -103,6 +104,7 @@ export default function UserManagement() {
             <div className="flex flex-row flex-wrap w-full justify-between">
               {/* Filter */}
               <div className="flex flex-row gap-2 justify-start items-center h-full">
+                <SortUsers value={sort} onSort={(value) => handleNavigate("sort", value)}></SortUsers>
                 <FilterGenders value={(gender as TargetGender[]) ?? []} onChange={(genders) => handleNavigate("gender", genders?.join(","))}></FilterGenders>
                 <FilterRoles value={(role as TargetRole[]) ?? []} onChange={(roles) => handleNavigate("role", roles?.join(","))}></FilterRoles>
                 <FilterBanned

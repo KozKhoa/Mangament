@@ -37,11 +37,15 @@ export default function FilterBanned({ value, onChange }: FilterGendersProps) {
   }, [selectedIndex]);
 
   useEffect(() => {
-    BANNED.forEach((ban, i) => {
-      if (value == ban.code) {
-        setSelectedIndex(i);
-      }
-    });
+    if (value === null || value === undefined) setSelectedIndex(null);
+    else {
+      BANNED.forEach((ban, i) => {
+        if (value == ban.code) {
+          console.log(value);
+          setSelectedIndex(i);
+        }
+      });
+    }
   }, [value]);
 
   return (

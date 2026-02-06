@@ -15,7 +15,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           {children}
 
           {/* Footer */}
-          <div className="w-full h-64"></div>
+          <div className="w-full h-96"></div>
         </div>
       </div>
     </AdminProvider>
