@@ -107,14 +107,14 @@ export default function RatingMasonryGrid({ className, storyId, elementPerPage =
 
       {ratings.length > 0 ? (
         <>
-          {ratings.length > SWITCH_LAYOUT ? (
+          {ratings.length > elementPerPage ? (
             <MasonryGrid breakpointCols={breakpointColumnsObj}>
               {ratings.map((rating, i) => (
                 <RatingCard key={rating.id} rating={rating}></RatingCard>
               ))}
             </MasonryGrid>
           ) : (
-            <div className="flex flex-col gap-2 justify-center items-center">
+            <div className="grid grid-cols-2 gap-2">
               {ratings.map((rating, i) => (
                 <RatingCard className="w-full" key={rating.id} rating={rating}></RatingCard>
               ))}
