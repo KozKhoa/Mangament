@@ -182,7 +182,7 @@ export async function UpdateUserInfo(req, res, next) {
 
     delete update?.data?.password;
 
-    return res.json({ success: true, message: "Update user successfully", data: update });
+    return res.json({ success: true, message: "Update user successfully", data: update.data });
   } catch (error) {
     next(error);
   }

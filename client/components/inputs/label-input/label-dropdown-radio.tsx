@@ -33,7 +33,7 @@ export default function LabelDropDownRadio({
   return (
     <div className={`p-2.5 w-full ${className}`}>
       {/* Label */}
-      <p className="text-[0.9em] font-semibold">{label}</p>
+      <p className="font-semibold">{label}</p>
       <div className="flex flex-row gap-3 justify-between items-center  w-full border-b px-5 py-0.5">
         <p>{capitalizeWords(options?.at(selected) ?? "")}</p>
         <ButtonDropdown>

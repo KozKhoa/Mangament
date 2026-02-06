@@ -104,6 +104,16 @@ export async function getUsers({
   }
 }
 
+export async function updateUser({ userId, name, role }: { userId: string; name?: string; role?: string }): Promise<ServiceResult<User>> {
+  try {
+    const res = await api.put(`/admin/users/${userId}`, { name, role });
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return { success: false, message: error?.toString() };
+  }
+}
+
 export async function banUser({ userId, isBanned }: { userId: string; isBanned: boolean }): Promise<ServiceResult<null>> {
   try {
     const res = await api.patch(`/admin/users/${userId}/ban`, {
@@ -126,6 +136,6 @@ export async function deleteUser(userId: string): Promise<ServiceResult<null>> {
   }
 }
 
-const adminService = { getOverview, getStatsView, getStatsNewUsers, getUsers, banUser, deleteUser };
+const adminService = { getOverview, getStatsView, getStatsNewUsers, getUsers, banUser, deleteUser, updateUser };
 
 export default adminService;

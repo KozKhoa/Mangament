@@ -35,7 +35,7 @@ export default function Input({
   };
   return (
     <label className={`flex flex-col gap-1 text-foreground   ${className}`}>
-      <p className="text-[1.2em] block">{label}</p>
+      <p className="font-semibold">{label}</p>
 
       {error && (
         <div className="flex gap-2.5 items-center text-error ">

@@ -124,7 +124,11 @@ export async function UpdateUser({ id, email, data }) {
     const user = await db.user.findFirst({ where: where });
     if (!user) throw CreateError(404, "User not found");
 
-    const update = await db.user.update({ where: where, data: data });
+    const update = await db.user.update({
+      where: where,
+      data: data,
+      include: { avatar: { select: { url: true, height: true, width: true } } },
+    });
 
     delete update?.password;
 

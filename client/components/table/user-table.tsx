@@ -17,6 +17,7 @@ import UnlockIcon from "@/public/lock/unlock.svg";
 import Loading from "../loadings/loading";
 import { modal } from "../modal/modal.store";
 import NoContent from "../cards/no-content";
+import AdjustUserInfoForm from "../forms/adjust-user-info";
 
 export interface UserTableProps {
   className?: string;
@@ -50,6 +51,26 @@ export default function UserTable({ className, data }: UserTableProps) {
   const [processDeleteUsers, setProcessingDeleteUsers] = useState(new Set<User>());
 
   const [users, setUsers] = useState<User[]>(data);
+
+  function updateUserInfo(user: User) {
+    modal.open("custom", {
+      content: (
+        <AdjustUserInfoForm
+          user={user}
+          className="min-w-[350px]"
+          onCancel={modal.close}
+          onConfirm={(newUser) => {
+            setUsers((prev) => {
+              const next = [...prev];
+              next[next.findIndex((user) => user.id === newUser.id)] = newUser;
+              return next;
+            });
+            modal.close();
+          }}
+        ></AdjustUserInfoForm>
+      ),
+    });
+  }
 
   async function toggleBanUser(user: User, isBanned: boolean) {
     if (user.role === "admin") return toast.message("Không thể ban admin");
@@ -185,7 +206,14 @@ export default function UserTable({ className, data }: UserTableProps) {
                 </TD>
                 <TD>
                   <div className="flex flex-row w-full justify-around items-center">
-                    <EditIcon className="w-5.5 h-5.5 cursor-pointer text-foreground/90"></EditIcon>
+                    {/* Adjust user info */}
+                    <button
+                      onClick={() => updateUserInfo(user)}
+                      disabled={user.role === "admin"}
+                      className={`w-5.5 h-5.5 ${user.role === "admin" ? "opacity-60" : "cursor-pointer"}`}
+                    >
+                      <EditIcon className="w-full h-full text-foreground/90"></EditIcon>
+                    </button>
                     {/* Delete user */}
                     <div className={`w-6 h-6 ${user.role === "admin" ? "opacity-60" : "cursor-pointer"}`}>
                       {processDeleteUsers.has(user) ? (
