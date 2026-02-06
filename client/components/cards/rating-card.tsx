@@ -5,17 +5,18 @@ import DisplayStar from "../displays/ratings/display-star";
 
 export default function RatingCard({ className, rating }: { rating: Rating; className?: string }) {
   return (
-    <div className={`flex flex-col gap-2 p-4 rounded-md shadow-lg bg-background-items w-fit ${className}`}>
-      <div className="flex flex-row flex-wrap justify-between items-center gap-2">
-        <p className="text-[1.4em] sm:text-[1.6em]">{rating.title}</p>
+    <div className={`flex flex-col gap-2 justify-between p-4 rounded-md shadow-lg bg-background-items w-fit ${className}`}>
+      <div className="flex flex-col gap-2">
+        <div className="flex flex-row flex-wrap justify-between items-center gap-2">
+          <p className="text-[1.4em] sm:text-[1.6em]">{rating.title}</p>
 
-        <div className="flex flex-row justify-center items-center gap-1">
-          <DisplayStar rating={rating.star}></DisplayStar>
-          <p>{rating.star}</p>
+          <div className="flex flex-row justify-center items-center gap-1">
+            <DisplayStar rating={rating.star}></DisplayStar>
+            <p>{rating.star}</p>
+          </div>
         </div>
+        <p className="text-foreground/70 text-[0.85em] sm:text-[1em]">{rating.content}</p>
       </div>
-
-      <p className="text-foreground/70 text-[0.85em] sm:text-[1em]">{rating.content}</p>
 
       <div className="flex flex-row flex-wrap gap-2 justify-between items-center">
         <div className="flex flex-row justify-center items-center gap-3">
