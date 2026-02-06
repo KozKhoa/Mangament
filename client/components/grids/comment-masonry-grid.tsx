@@ -31,7 +31,7 @@ function CommentButton({ storyId, storyNodeId }: { storyId: string; storyNodeId?
       }}
       className="px-5 py-1 w-fit h-fit rounded-md select-none bg-foreground/10 text-foreground/80 cursor-pointer hover:bg-foreground/20"
     >
-      Đánh giá ➤
+      Bình luận ➤
     </button>
   );
 }
@@ -137,18 +137,28 @@ export default function CommentMasonryGrid({ className, storyNodeId, storyId, el
 
       {comments.length > 0 ? (
         <>
-          {comments.length > SWITCH_LAYOUT ? (
-            <MasonryGrid breakpointCols={breakpointColumnsObj}>
-              {comments.map((commment, i) => (
-                <CommentCard key={commment.id} comment={commment}></CommentCard>
-              ))}
-            </MasonryGrid>
-          ) : (
-            <div className="flex flex-col gap-2 justify-center items-center">
+          {comments.length < elementPerPage ? (
+            <div className="flex flex-col gap-2">
               {comments.map((commment, i) => (
                 <CommentCard className="w-full" key={commment.id} comment={commment}></CommentCard>
               ))}
             </div>
+          ) : (
+            <>
+              {comments.length > SWITCH_LAYOUT ? (
+                <MasonryGrid breakpointCols={breakpointColumnsObj}>
+                  {comments.map((commment, i) => (
+                    <CommentCard className="w-full" key={commment.id} comment={commment}></CommentCard>
+                  ))}
+                </MasonryGrid>
+              ) : (
+                <div className="flex flex-col gap-2 justify-center items-center">
+                  {comments.map((commment, i) => (
+                    <CommentCard className="w-full" key={commment.id} comment={commment}></CommentCard>
+                  ))}
+                </div>
+              )}
+            </>
           )}
         </>
       ) : (
