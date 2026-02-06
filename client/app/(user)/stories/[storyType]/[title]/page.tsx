@@ -134,7 +134,7 @@ export default function StoryDetailPage() {
       <RatingMasonryGrid storyId={story?.id ?? ""}></RatingMasonryGrid>
 
       {/* Comment */}
-      <CommentMasonryGrid storyId={story?.id}></CommentMasonryGrid>
+      <CommentMasonryGrid storyId={story?.id ?? ""}></CommentMasonryGrid>
 
       <RecommendStories className="max-w-[1800] mx-auto"></RecommendStories>
     </div>

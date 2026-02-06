@@ -33,10 +33,4 @@ storyNodeRoute.patch("/:id/content", AuthenticationToken, AuthorizationRole, upl
 storyNodeRoute.delete("/:id", AuthenticationToken, AuthorizationRole, DeleteStoryNode);
 storyNodeRoute.patch("/:id/view", IncreaseOneViewForStoryNode);
 
-// Comment
-storyNodeRoute.get("/:storyNodeId/comments", GetAllComments);
-storyNodeRoute.get("/:storyNodeId/comments/count", GetCountComment);
-storyNodeRoute.post("/:storyNodeId/comments", AuthenticationToken, PostComment);
-storyNodeRoute.put("/comments/:id", AuthenticationToken, PutComment);
-storyNodeRoute.delete("/comments/:id", AuthenticationToken, DeleteComment);
 export default storyNodeRoute;

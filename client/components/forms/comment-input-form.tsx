@@ -10,7 +10,7 @@ import commentService from "@/services/comment";
 export interface CommentInputForm {
   onSubmit?: () => void;
   onCancel?: () => void;
-  storyId?: string;
+  storyId: string;
   storyNodeId?: string;
   className?: string;
 }
@@ -26,12 +26,13 @@ export default function CommentInputForm({ storyId, storyNodeId, className, onSu
 
     if (title.length > 100) return toast.warning("Chủ đề không được quá 100 chữ");
 
+    console.log(storyId, storyNodeId);
     setIsProcessing(true);
     let res;
     if (storyNodeId) {
-      res = await commentService.postStoryNodeComment(storyNodeId, title, content);
+      res = await commentService.postStoryNodeComment(storyId, storyNodeId, title, content);
     } else {
-      res = await commentService.postStoryComment(storyId ?? "", title, content);
+      res = await commentService.postStoryComment(storyId, title, content);
     }
     setIsProcessing(false);
 

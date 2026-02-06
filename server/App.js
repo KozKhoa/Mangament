@@ -17,6 +17,7 @@ import authorRoute from "./src/routes/Author.Route.js";
 import genreRoute from "./src/routes/Genre.Route.js";
 import { initRedis } from "./src/configs/redis.js";
 import adminRoute from "./src/routes/Admin.Route.js";
+import commentRoute from "./src/routes/Comment.Route.js";
 
 initRedis();
 
@@ -37,6 +38,7 @@ app.use("/stories", storyRoute);
 app.use("/story-nodes", storyNodeRoute);
 app.use("/authors", authorRoute);
 app.use("/genres", genreRoute);
+app.use("/comments", commentRoute);
 app.use("/admin", adminRoute);
 
 //api for getting story image

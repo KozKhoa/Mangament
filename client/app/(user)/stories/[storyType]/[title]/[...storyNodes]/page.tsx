@@ -341,7 +341,7 @@ export default function StoryNodeReading() {
       </div>
 
       {/* Comment */}
-      <CommentMasonryGrid className="my-2 mx-2.5" storyNodeId={storyNodeId}></CommentMasonryGrid>
+      <CommentMasonryGrid className="my-2 mx-2.5" storyId={storyId} storyNodeId={storyNodeId}></CommentMasonryGrid>
 
       {/* Recommend */}
       <div>

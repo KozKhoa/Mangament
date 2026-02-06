@@ -1,12 +1,13 @@
 import db from "../configs/db.js";
+import { CreateError } from "../utils/ErrorHandle.js";
 
 export async function FindAllComments({ userId, storyId, storyNodeId, sort = { updated_at: "desc" }, page = 1, limit = 10 }) {
   const where = {
     is_deleted: false,
 
-    ...(userId && { user_id: userId }),
-    ...(storyId && { story_id: storyId }),
-    ...(storyNodeId && { story_node_id: storyNodeId }),
+    user_id: userId,
+    story_id: storyId,
+    story_node_id: storyNodeId,
   };
 
   const comments = await db.comment.findMany({
@@ -51,26 +52,26 @@ export async function FindComment({ id }) {
 
 export async function AddComment({ userId, storyId, storyNodeId, title, content }) {
   if (!userId || !storyId) {
-    throw new Error("Require user id and story id");
+    throw CreateError(400, "Require user id and story id");
   }
 
   if (!title || !content) {
-    throw new Error("Require both title and content");
+    throw CreateError(400, "Require both title and content");
   }
 
   if (storyId) {
     const story = await db.story.findFirst({ where: { is_deleted: false, id: storyId } });
-    if (!story) throw new Error("Story not found");
+    if (!story) throw CreateError(400, "Story not found");
   }
 
   if (userId) {
     const user = await db.user.findFirst({ where: { is_deleted: false, id: userId } });
-    if (!user) throw new Error("User not found");
+    if (!user) throw CreateError(400, "User not found");
   }
 
   if (storyNodeId) {
     const storyNode = await db.storyNode.findFirst({ where: { is_deleted: false, id: storyNodeId } });
-    if (!storyNode) throw new Error("Story node not found");
+    if (!storyNode) throw CreateError(400, "Story node not found");
   }
 
   const newComment = await db.comment.create({

@@ -7,7 +7,8 @@ import { ConvertQuery } from "../utils/QueryConvert.js";
 export async function GetAllComments(req, res, next) {
   try {
     const storyId = req.params?.storyId;
-    const storyNodeId = req.params?.storyNodeId;
+    const storyNodeId = req.params?.storyNodeId ?? null;
+
     if (!storyId && !storyNodeId) throw CreateError(400, "'storyId' or 'storyNodeId' is required");
 
     const { limit, page, sort } = ConvertQuery(req?.query);
@@ -30,8 +31,9 @@ export async function GetAllComments(req, res, next) {
 export async function PostComment(req, res, next) {
   try {
     const userId = req.user.id;
+
     const storyId = req.params?.storyId;
-    const storyNodeId = req.params?.storyNodeId;
+    const storyNodeId = req.params?.storyNodeId ?? null;
 
     const content = req.body?.content ?? "";
     const title = req.body.title ?? "";

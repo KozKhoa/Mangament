@@ -15,13 +15,13 @@ import { modal } from "../modal/modal.store";
 interface StoryNodeCommentsGridProps {
   className?: string;
   storyNodeId?: string;
-  storyId?: string;
+  storyId: string;
   elementPerPage?: number;
 }
 
 const SWITCH_LAYOUT = 4;
 
-function CommentButton({ storyId, storyNodeId }: { storyId?: string; storyNodeId?: string }) {
+function CommentButton({ storyId, storyNodeId }: { storyId: string; storyNodeId?: string }) {
   return (
     <button
       onClick={() => {
@@ -60,7 +60,7 @@ export default function CommentMasonryGrid({ className, storyNodeId, storyId, el
     if (!storyNodeId) return;
 
     setLoading(true);
-    const res = await commentService.getStoryNodeComments(storyNodeId, { limit: elementPerPage, page: page.current });
+    const res = await commentService.getStoryNodeComments(storyId, storyNodeId, { limit: elementPerPage, page: page.current });
     setLoading(false);
 
     if (!res.success) return toast.warning(res.message);
@@ -80,7 +80,7 @@ export default function CommentMasonryGrid({ className, storyNodeId, storyId, el
       if (!storyNodeId) return;
 
       setLoading(true);
-      const res = await commentService.getStoryNodeComments(storyNodeId, { limit: elementPerPage, page: 1 });
+      const res = await commentService.getStoryNodeComments(storyId, storyNodeId, { limit: elementPerPage, page: 1 });
       setLoading(false);
 
       if (!res.success) return toast.warning(res.message);
@@ -132,7 +132,7 @@ export default function CommentMasonryGrid({ className, storyNodeId, storyId, el
           </span>
         </h2>
 
-        <CommentButton storyId={storyId}></CommentButton>
+        <CommentButton storyId={storyId} storyNodeId={storyNodeId}></CommentButton>
       </div>
 
       {comments.length > 0 ? (
