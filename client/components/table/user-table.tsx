@@ -65,6 +65,7 @@ export default function UserTable({ className, data }: UserTableProps) {
               next[next.findIndex((user) => user.id === newUser.id)] = newUser;
               return next;
             });
+            toast.message("Cập nhật thông tin thành công");
             modal.close();
           }}
         ></AdjustUserInfoForm>

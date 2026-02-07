@@ -55,6 +55,7 @@ export default function SortUsers({ value, onSort }: { value: string; onSort?: (
   }
 
   useEffect(() => {
+    console.log(value);
     if (value === null || value === undefined) setSelectedIndex(null);
     else {
       SORTS.forEach((sort, i) => {

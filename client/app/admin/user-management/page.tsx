@@ -32,13 +32,14 @@ export default function UserManagement() {
   const admin = useAdmin();
   const overview = admin.overview;
 
-  const [searchUsers, setSearchUsers] = useState<string>("");
+  // const [searchUsers, setSearchUsers] = useState<string>("");
 
   const page = Number(searchParams.get("page") ?? 1);
   const sort = searchParams.get("sort") ?? "join_date:desc";
   const isBanned = searchParams.get("isBanned") == "true" ? true : searchParams.get("isBanned") == "false" ? false : undefined;
   const gender = searchParams.get("gender")?.split(",");
   const role = searchParams.get("role")?.split(",");
+  const searchUsers = searchParams.get("search") ?? "";
 
   const [users, setUsers] = useState<User[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
@@ -78,7 +79,7 @@ export default function UserManagement() {
     }
 
     fetchUsers();
-  }, [searchParams, searchUsers]);
+  }, [searchParams]);
 
   return (
     <div>
@@ -126,9 +127,7 @@ export default function UserManagement() {
                 className="border-foreground/30 w-[300px]"
                 placeHolder="Tìm theo tên hoặc email"
                 onSearch={(text) => {
-                  handleNavigate("page", "1");
-                  handleNavigate("sort", "join_date:desc");
-                  setSearchUsers(text);
+                  handleNavigate("search", text);
                 }}
               ></SearchBar>
             </div>
