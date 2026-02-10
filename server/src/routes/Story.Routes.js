@@ -43,13 +43,6 @@ storyRoute.post("/", AuthenticationToken, AuthorizationRole, upload.single("cove
 storyRoute.put("/:id", AuthenticationToken, AuthorizationRole, PutStory);
 storyRoute.delete("/:id", AuthenticationToken, AuthorizationRole, DeleteStory);
 
-// Comment
-storyRoute.post("/:storyId/comments", AuthenticationToken, PostComment);
-storyRoute.get("/:storyId/comments/count", GetCountComment);
-storyRoute.get("/:storyId/comments", GetAllComments);
-storyRoute.put("/comments/:id", AuthenticationToken, PutComment);
-storyRoute.delete("/comments/:id", AuthenticationToken, DeleteComment);
-
 // Rating
 storyRoute.post("/:id/ratings", AuthenticationToken, PostRating);
 storyRoute.get("/:id/ratings/count", GetCountRating);

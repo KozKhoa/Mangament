@@ -34,7 +34,7 @@ export default function RankingPage() {
   const rankBy = searchParams.get("rankBy")?.toString();
 
   const params = useParams();
-  const storyType = params.storyType?.toString();
+  const storyType = params.storyType?.toString().split(",");
 
   const listRef = useRef<HTMLDivElement>(null);
   const listItemsRef = useRef<Array<HTMLDivElement | null>>([]);

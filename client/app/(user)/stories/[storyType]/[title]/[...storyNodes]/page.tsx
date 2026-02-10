@@ -264,7 +264,7 @@ export default function StoryNodeReading() {
                 className="shadow-2xs"
                 onClickItem={(nodeList) => handleNavigateStoryNode(nodeList)}
                 storyNodes={story?.children}
-                size={story?.number_of_chidren}
+                size={story?.number_of_children}
               ></StoryNodeList>
             </motion.div>
           )}
@@ -311,7 +311,11 @@ export default function StoryNodeReading() {
           {content?.map((con, i) => (
             <div key={i} className="flex flex-col justify-center items-center gap-1 w-full">
               {con.type === "image" ? (
-                <img className="object-cover rounded-sm w-full" src={process.env.NEXT_PUBLIC_API_URL + "uploads/story/" + con.image_url} alt="Cover Art"></img>
+                <img
+                  className="object-cover rounded-sm w-full"
+                  src={con.image_url.includes("https") ? con.image_url : process.env.NEXT_PUBLIC_API_URL + "uploads/story/" + con.image_url}
+                  alt="Cover Art"
+                ></img>
               ) : con.type === "title" ? (
                 <p className="w-full text-center font-bold text-[1.8em]">{con.content}</p>
               ) : con.type === "header" ? (

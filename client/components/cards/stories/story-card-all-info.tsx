@@ -4,7 +4,7 @@ import { beautifulView } from "@/utils/beautiful";
 import { capitalizeWords, capitalizeFirstChar, snakeCaseToCapitalizeWord } from "@/utils/string";
 
 import DisplayStar from "@/components/displays/ratings/display-star";
-import StatusTag from "@/components/tags/status-tag";
+import StoryStatusTag from "@/components/tags/story-status-tag";
 import Tag from "@/components/tags/tag";
 import Loading from "@/components/loadings/loading";
 import Line from "@/components/lines/line";
@@ -36,7 +36,11 @@ export default function StoryCardAllInfo({ story, className }: StoryCardAllInfoP
         >
           {/* Cover art */}
           <div className="w-full min-w-[100] md:row-span-2 flex justify-center">
-            <img className="object-cover rounded-[5]" src={process.env.NEXT_PUBLIC_API_URL + "uploads/story/" + story?.cover_art?.url} alt="Cover Art"></img>
+            <img
+              className="object-cover rounded-[5]"
+              src={story?.cover_art?.url.includes("https") ? story?.cover_art?.url : process.env.NEXT_PUBLIC_API_URL + "uploads/story/" + story?.cover_art?.url}
+              alt="Cover Art"
+            ></img>
           </div>
 
           <div className="flex flex-col gap-1 justify-start items-start">
@@ -66,7 +70,7 @@ export default function StoryCardAllInfo({ story, className }: StoryCardAllInfoP
               {/* Status */}
               <div className={labelContainerStyle}>
                 <p className={subLabelStyle}>Tình trạng:</p>
-                <StatusTag status={story?.status}>{capitalizeFirstChar(story?.status || "")}</StatusTag>
+                <StoryStatusTag status={story?.status}>{capitalizeFirstChar(story?.status || "")}</StoryStatusTag>
               </div>
 
               {/* Author */}

@@ -8,7 +8,7 @@ import { useEffect, useRef, useState } from "react";
 import useResize from "@/hooks/useResize";
 import Link from "next/link";
 
-import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useParams, usePathname, useRouter, useSearchParams } from "next/navigation";
 
 interface AdminSidebarProps {
   className?: string;
@@ -47,7 +47,8 @@ export function ArrowToggleSidebar({ className, toggleSidebar }: { className?: s
 
 export default function AdminSidebar({ className }: AdminSidebarProps) {
   const auth = useAuth();
-  const router = useRouter();
+
+  const pathname = usePathname();
 
   const resizeRef = useResize({ resizeRight: true, minWidth: 200 });
 
@@ -117,21 +118,33 @@ export default function AdminSidebar({ className }: AdminSidebarProps) {
             </div>
 
             <div className="overflow-y-scroll no-scrollbar">
-              <div className="flex flex-col gap-2.5 h-fit ">
+              <div className="flex flex-col gap-2.5 h-fit">
                 <Link href={"/admin/dashboard"}>
-                  <ButtonExpandable label="Dashboard"></ButtonExpandable>
+                  <ButtonExpandable
+                    className={
+                      pathname.includes("dashboard") ? "bg-foreground/95 text-background-items hover:bg-foreground/95 hover:text-background-items" : ""
+                    }
+                    label="Dashboard"
+                  ></ButtonExpandable>
                 </Link>
 
                 <Link href={"/admin/user-management"}>
-                  <ButtonExpandable label="Quản lý User"></ButtonExpandable>
+                  <ButtonExpandable
+                    className={
+                      pathname.includes("user-management") ? "bg-foreground/95 text-background-items hover:bg-foreground/95 hover:text-background-items" : ""
+                    }
+                    label="Quản lý User"
+                  ></ButtonExpandable>
                 </Link>
 
-                <ButtonExpandable label="Quản lý Story">
-                  <div className="flex flex-col gap-1 w-full rounded-bl-md pt-1">
-                    <ButtonExpandable label="Manga"></ButtonExpandable>
-                    <ButtonExpandable className="border-b-0" label="Light Novel"></ButtonExpandable>
-                  </div>
-                </ButtonExpandable>
+                <Link href={"/admin/stories-management"}>
+                  <ButtonExpandable
+                    className={
+                      pathname.includes("stories-management") ? "bg-foreground/95 text-background-items hover:bg-foreground/95 hover:text-background-items" : ""
+                    }
+                    label="Quản lý Story"
+                  ></ButtonExpandable>
+                </Link>
 
                 <div className="h-32"></div>
               </div>

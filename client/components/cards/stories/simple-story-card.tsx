@@ -21,7 +21,7 @@ export default function SimpleStoryCard({ story, className }: { story: Story; cl
         <img
           onClick={() => handleClickStory()}
           className="object-cover rounded-[5]"
-          src={process.env.NEXT_PUBLIC_API_URL + "uploads/story/" + story?.cover_art?.url}
+          src={story?.cover_art?.url.includes("https") ? story?.cover_art?.url : process.env.NEXT_PUBLIC_API_URL + "uploads/story/" + story?.cover_art?.url}
           alt="Cover Art"
         ></img>
       </div>

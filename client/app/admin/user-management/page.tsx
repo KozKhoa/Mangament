@@ -2,12 +2,12 @@
 
 import { toast } from "sonner";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { Suspense, useCallback, useEffect, useState } from "react";
 
 import SearchBar from "@/components/search/search";
 import PieChart from "@/components/chart/pie-chart";
 import Loading from "@/components/loadings/loading";
-import UserTable from "@/components/table/user-table";
+import UserTable from "@/components/table/users-table";
 import SwitchPageBig from "@/components/switch-page/big";
 import FilterBanned from "@/components/filters/filter-banned";
 import FilterRoles, { TargetRole } from "@/components/filters/filter-roles";
@@ -22,17 +22,16 @@ import { capitalizeWords } from "@/utils/string";
 
 import XIcon from "@/public/x-icon.svg";
 import SortUsers from "@/components/sorts/sort-users";
+import SwitchPageSmall from "@/components/switch-page/small";
 
 const LIMIT = 15;
 
 export default function UserManagement() {
-  const searchParams = useSearchParams();
-  const router = useRouter();
-
   const admin = useAdmin();
   const overview = admin.overview;
 
-  // const [searchUsers, setSearchUsers] = useState<string>("");
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
   const page = Number(searchParams.get("page") ?? 1);
   const sort = searchParams.get("sort") ?? "join_date:desc";
@@ -102,9 +101,9 @@ export default function UserManagement() {
           <div className="flex flex-col gap-4 justify-center items-center ">
             <h2 className="w-full px-2">Users</h2>
 
-            <div className="flex flex-row flex-wrap w-full justify-between">
+            <div className="flex flex-row flex-wrap gap-2 w-full justify-between">
               {/* Filter */}
-              <div className="flex flex-row gap-2 justify-start items-center h-full">
+              <div className="flex flex-row flex-wrap gap-2 justify-start items-center h-full">
                 <SortUsers value={sort} onSort={(value) => handleNavigate("sort", value)}></SortUsers>
                 <FilterGenders value={(gender as TargetGender[]) ?? []} onChange={(genders) => handleNavigate("gender", genders?.join(","))}></FilterGenders>
                 <FilterRoles value={(role as TargetRole[]) ?? []} onChange={(roles) => handleNavigate("role", roles?.join(","))}></FilterRoles>
@@ -122,14 +121,21 @@ export default function UserManagement() {
                   </div>
                 )}
               </div>
-              {/* Search */}
-              <SearchBar
-                className="border-foreground/30 w-[300px]"
-                placeHolder="Tìm theo tên hoặc email"
-                onSearch={(text) => {
-                  handleNavigate("search", text);
-                }}
-              ></SearchBar>
+              <div className="flex flex-row flex-wrap gap-2">
+                <SwitchPageSmall
+                  maxPage={usersPagination?.totalPages ?? 0}
+                  page={page}
+                  onChange={(page) => handleNavigate("page", page.toString())}
+                ></SwitchPageSmall>
+                {/* Search */}
+                <SearchBar
+                  className="border-foreground/30 w-[300px]"
+                  placeHolder="Tìm theo tên hoặc email"
+                  onSearch={(text) => {
+                    handleNavigate("search", text);
+                  }}
+                ></SearchBar>
+              </div>
             </div>
             {loadingUsers ? (
               <Loading className="h-64"></Loading>

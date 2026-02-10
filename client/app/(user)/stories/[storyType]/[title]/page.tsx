@@ -30,7 +30,7 @@ export default function StoryDetailPage() {
   const router = useRouter();
   const params = useParams();
 
-  const storyType = params.storyType?.toString();
+  const storyType = params.storyType?.toString().split(",");
   const title = params.title?.toString();
 
   const [story, setStory] = useState<Story>();
@@ -108,7 +108,7 @@ export default function StoryDetailPage() {
           onClickItem={handleNavigateStoryNode}
           className="lg:flex-1 bg-background-items shadow-[2px_2px_12px_4px_var(--foreground)]/25 "
           storyNodes={story?.children}
-          size={story?.number_of_chidren}
+          size={story?.number_of_children}
         ></StoryNodeList>
       </div>
 
@@ -124,7 +124,7 @@ export default function StoryDetailPage() {
         >
           {review?.map((url, i) => (
             <div key={i} className="border rounded-sm overflow-hidden">
-              <img src={process.env.NEXT_PUBLIC_API_URL + "uploads/story/" + url} alt={`review ${i}`}></img>
+              <img src={url.includes("https") ? url : process.env.NEXT_PUBLIC_API_URL + "uploads/story/" + url} alt={`review ${i}`}></img>
             </div>
           ))}
         </div>

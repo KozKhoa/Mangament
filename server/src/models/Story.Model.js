@@ -131,11 +131,13 @@ export async function FindAllStories({
   page = 1,
   limit = 10,
   sort = { updated_at: "desc" },
+  isActived,
   isGettingChildren = false,
   isGettingNewestChapter = false,
 }) {
   const where = {
     is_deleted: false,
+    is_actived: isActived,
     ...(keyword && { title: { contains: keyword, mode: "insensitive" } }),
     ...(type && type.length > 0 && { type: { in: type } }),
     ...(genres && genres.length > 0 && { genres: { some: { genre: { in: genres } } } }),
@@ -196,7 +198,7 @@ export async function FindAllStories({
 
 export async function FindStory({ id, title, isGettingChildren = false, isGettingContent = false, isGettingNewestChapter = false }) {
   const story = await db.story.findUnique({
-    where: { ...(id && { id: id }), ...(title && { title: title }), is_deleted: false },
+    where: { ...(id && { id: id }), ...(title && { title: title }), is_deleted: false, is_actived: true },
     include: {
       authors: { select: { author: { select: { id: true, name: true } } } },
       genres: { select: { genre: true } },
@@ -224,29 +226,43 @@ export async function FindStory({ id, title, isGettingChildren = false, isGettin
   return { success: true, data: story };
 }
 
-export async function AddStory({ title, type, nation, genres, authorsId, status, posterId, summary, coverArtId }) {
-  // Check if story exist or not;
-  const story = await db.story.findUnique({ where: { title: title } });
-  if (story) {
-    throw new Error("Story already exist");
-  }
+export async function AddStory({ title, type, nation, genres, authorIds, status, posterId, summary, coverArtUrl }) {
+  if (!title || !type) throw CreateError(400, "'title' and 'type' are required");
 
-  // If not exist
-  const newStory = await db.story.create({
-    data: {
-      ...(title && { title: title }),
-      ...(type && { type: type }),
-      ...(nation && { nation: nation }),
-      ...(genres && { genres: genres }),
-      ...(status && { status: status }),
-      ...(summary && { summary: summary }),
-      ...(posterId && { poster: { connect: { id: posterId } } }),
-      ...(authorsId && { authors: { connectOrCreate: authorsId.map((authorId) => ({ author_id: authorId })) } }),
-      ...(coverArtId && { cover_art: { connect: { id: coverArtId } } }),
-    },
+  return db.$transaction(async (db) => {
+    // Check if story exist or not;
+    const story = await db.story.findUnique({ where: { title: title } });
+    if (story) throw CreateError(409, "Story already exist");
+
+    if (authorIds) {
+      const authors = await db.author.findMany();
+      const authorsSet = new Set(authors.map((author) => author.id));
+
+      const invalidAuthors = [];
+      for (const author of authorIds) {
+        if (!authorsSet.has(author)) invalidAuthors.push(author);
+      }
+
+      if (invalidAuthors.length > 0) throw CreateError(400, `${invalidAuthors.join(",")} ${invalidAuthors.length > 1 ? "are" : "is"} not exist`);
+    }
+
+    // If not exist
+    const newStory = await db.story.create({
+      data: {
+        ...(title && { title: title }),
+        ...(type && { type: type }),
+        ...(nation && { nation: nation }),
+        ...(genres && { genres: genres }),
+        ...(status && { status: status }),
+        ...(summary && { summary: summary }),
+        ...(posterId && { poster: { connect: { id: posterId } } }),
+        ...(authorIds && { authors: { connectOrCreate: authorIds.map((authorId) => ({ author_id: authorId })) } }),
+        ...(coverArtUrl && { cover_art: { connectOrCreate: { where: { url: coverArtUrl }, create: { url: coverArtUrl } } } }),
+      },
+    });
+
+    return { success: true, data: newStory };
   });
-
-  return { success: true, data: newStory };
 }
 
 export async function SoftDeleteStory({ id, title }) {
@@ -285,6 +301,22 @@ export async function HardDeleteStory({ id, title }) {
   });
 }
 
+export async function ActiveStory({ storyId, isActived }) {
+  if (typeof isActived !== "boolean") throw CreateError(400, "'isActived' must be boolean");
+
+  const story = await db.story.findFirst({ where: { id: storyId, is_deleted: false } });
+
+  if (!story) throw CreateError(400, "Story not found");
+
+  const active = await db.story.update({
+    where: { id: storyId, is_deleted: false },
+    data: { is_actived: isActived },
+    include: { cover_art: { select: { url: true, height: true, width: true } } },
+  });
+
+  return { success: true, data: active };
+}
+
 export async function UpdateStory(id, { title, type, view, summary, posterId, nation, status, genres = [], coverArtUrl, nextChapterIn, authorIds = [] }) {
   return await db.$transaction(async function (tx) {
     const story = await tx.story.findFirst({ where: { id: id, is_deleted: false } });
@@ -293,7 +325,7 @@ export async function UpdateStory(id, { title, type, view, summary, posterId, na
     }
 
     if (title && title !== story.title) {
-      const isTitleExist = await tx.story.findFirst({ where: { title: title, is_deleted: false, NOT: { id: id } } });
+      const isTitleExist = await tx.story.findFirst({ where: { title: title, NOT: { id: id } } });
       if (isTitleExist) {
         throw new Error("Title already exist");
       }
@@ -387,13 +419,13 @@ export async function AddOneViewForStory(storyId) {
 }
 
 export async function CountStory() {
-  const count = await db.story.count({ where: { is_deleted: false } });
+  const count = await db.story.count({ where: { is_deleted: false, is_actived: true } });
   return { success: true, data: count };
 }
 
 export async function FindRandomStory() {
   const stories = await db.story.findMany({
-    where: { is_deleted: false },
+    where: { is_deleted: false, is_actived: true },
     select: { id: true, title: true, type: true },
   });
 

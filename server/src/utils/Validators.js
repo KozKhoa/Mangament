@@ -1,7 +1,7 @@
 import { CreateError } from "../utils/ErrorHandle.js";
 import ErrorCodes from "../constants/Error.js";
 
-import { Gender, Genre, Role } from "../configs/db.js";
+import { Gender, Genre, Role, StoryStatus, StoryType } from "../configs/db.js";
 
 export const IsValidEmail = (email) => {
   const regex = new RegExp("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$");
@@ -115,6 +115,60 @@ export function throwErrorIfInvalidRoles(roles = []) {
 
   if (invalidRoles && invalidRoles.length > 0) {
     throw CreateError(400, invalidRoles.join(", ") + ` ${invalidRoles.length > 1 ? "are" : "is"} not valid role`);
+  }
+
+  return true;
+}
+
+export function throwErrorIfInvalidStoryStatus(storyStatus = []) {
+  if (!storyStatus) return true;
+
+  let inputStoryStatus;
+  if (Array.isArray(storyStatus)) {
+    inputStoryStatus = storyStatus;
+  } else {
+    inputStoryStatus = [storyStatus];
+  }
+
+  const allStoryStatus = Object.values(StoryStatus);
+  const storyStatusSet = new Set(allStoryStatus);
+
+  const invalidStoryStatus = [];
+  for (const status of inputStoryStatus) {
+    if (!storyStatusSet.has(status)) {
+      invalidStoryStatus.push(status);
+    }
+  }
+
+  if (invalidStoryStatus && invalidStoryStatus.length > 0) {
+    throw CreateError(400, invalidStoryStatus.join(", ") + ` ${invalidStoryStatus.length > 1 ? "are" : "is"} not valid story status`);
+  }
+
+  return true;
+}
+
+export function throwErrorIfInvalidStoryType(storyType = []) {
+  if (!storyType) return true;
+
+  let inputStoryType;
+  if (Array.isArray(storyType)) {
+    inputStoryType = storyType;
+  } else {
+    inputStoryType = [storyType];
+  }
+
+  const allStoryType = Object.values(StoryType);
+  const storyTypeSet = new Set(allStoryType);
+
+  const invalidStoryType = [];
+  for (const type of inputStoryType) {
+    if (!storyTypeSet.has(type)) {
+      invalidStoryType.push(type);
+    }
+  }
+
+  if (invalidStoryType && invalidStoryType.length > 0) {
+    throw CreateError(400, invalidStoryType.join(", ") + ` ${invalidStoryType.length > 1 ? "are" : "is"} not valid story type`);
   }
 
   return true;

@@ -26,18 +26,7 @@ export interface UserTableProps {
   pagination?: Pagination;
 }
 
-function TH({ className, children, ...props }: { className?: string; children?: React.ReactNode | React.ReactNode[] }) {
-  return (
-    <th
-      className={`
-          ${className}`}
-      {...props}
-    >
-      {children}
-    </th>
-  );
-}
-
+// This is tag <td/> of <table/> in html
 function TD({ className, children, style }: { className?: string; children?: React.ReactNode | React.ReactNode[]; style?: CSSProperties }) {
   return (
     <td style={style} className={`text-start px-5 py-1 ${className}`}>
@@ -47,11 +36,13 @@ function TD({ className, children, style }: { className?: string; children?: Rea
 }
 
 export default function UserTable({ className, data }: UserTableProps) {
+  // Use to prevent duplicate press when banning or deleting user
   const [processedBanningUsers, setPocessedBanningUsers] = useState(new Set<User>());
   const [processDeleteUsers, setProcessingDeleteUsers] = useState(new Set<User>());
 
   const [users, setUsers] = useState<User[]>(data);
 
+  // Call api for update user info, a modal will appear for you to update. Can only update name and role
   function updateUserInfo(user: User) {
     modal.open("custom", {
       content: (
@@ -73,6 +64,7 @@ export default function UserTable({ className, data }: UserTableProps) {
     });
   }
 
+  // Call api for ban/unban user
   async function toggleBanUser(user: User, isBanned: boolean) {
     if (user.role === "admin") return toast.message("Không thể ban admin");
 
@@ -103,6 +95,7 @@ export default function UserTable({ className, data }: UserTableProps) {
     else return toast.message(`Hủy ban ${user.name} thành công`);
   }
 
+  // call api for delete user, a modal will appear to reconfirm your decision
   async function deleteUser(user: User) {
     if (user.role === "admin") return toast.message("Không thể xóa admin");
 
@@ -158,15 +151,15 @@ export default function UserTable({ className, data }: UserTableProps) {
           </colgroup>
           <thead className="bg-black/10 text-[1.2em] text-foreground/80 ">
             <tr>
-              <TH>Avatar</TH>
-              <TH>Name</TH>
-              <TH>Email</TH>
-              <TH>Gender</TH>
-              <TH>Join date</TH>
-              <TH>Birthday</TH>
-              <TH>Role</TH>
-              <TH>Banned</TH>
-              <TH>Action</TH>
+              <th>Avatar</th>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Gender</th>
+              <th>Join date</th>
+              <th>Birthday</th>
+              <th>Role</th>
+              <th>Banned</th>
+              <th>Action</th>
             </tr>
           </thead>
           <tbody>
@@ -174,7 +167,10 @@ export default function UserTable({ className, data }: UserTableProps) {
               <tr key={user.id} className={`hover:bg-foreground/10 ${i % 2 === 0 ? "" : "bg-foreground/2"}`}>
                 {/* Avatar */}
                 <TD>
-                  <img className="w-8 aspect-square m-auto" src={process.env.NEXT_PUBLIC_API_URL + "uploads/" + user?.avatar?.url}></img>
+                  <img
+                    className="w-8 aspect-square m-auto"
+                    src={user?.avatar?.url.includes("https") ? user?.avatar?.url : process.env.NEXT_PUBLIC_API_URL + "uploads/" + user?.avatar?.url}
+                  ></img>
                 </TD>
                 <TD>{user.name}</TD>
                 <TD>{user.email}</TD>
@@ -188,7 +184,7 @@ export default function UserTable({ className, data }: UserTableProps) {
                 </TD>
                 <TD>
                   <div className="flex flex-row gap-2 justify-center items-center w-fit m-auto">
-                    <Switch
+                    <Switch // Toggle for banning user
                       loading={processedBanningUsers.has(user)}
                       disable={user.role === "admin"}
                       borderWeight={0}
@@ -210,7 +206,7 @@ export default function UserTable({ className, data }: UserTableProps) {
                     {/* Adjust user info */}
                     <button
                       onClick={() => updateUserInfo(user)}
-                      disabled={user.role === "admin"}
+                      disabled={user.role === "admin"} // Cannot ban, delete or adjust admin information
                       className={`w-5.5 h-5.5 ${user.role === "admin" ? "opacity-60" : "cursor-pointer"}`}
                     >
                       <EditIcon className="w-full h-full text-foreground/90"></EditIcon>

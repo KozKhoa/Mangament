@@ -134,6 +134,7 @@ model Story {
   number_of_children Int         @default(0)
   cover_art_id       String?     @db.Uuid
   is_deleted         Boolean     @default(false)
+  is_actived         Boolean     @default(true)
   poster_id          String?     @db.Uuid // Admin who post this story on
   created_at         DateTime    @default(now())
   updated_at         DateTime    @default(now())

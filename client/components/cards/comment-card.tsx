@@ -11,7 +11,13 @@ export default function CommentCard({ comment, className }: { comment: Comment; 
 
       <div className="flex flex-row flex-wrap gap-2 justify-between items-center">
         <div className="flex flex-row justify-center items-center gap-3">
-          <img className="rounded-full w-8 aspect-square" src={process.env.NEXT_PUBLIC_API_URL + "uploads/" + comment.user?.avatar?.url} alt="Avatar"></img>
+          <img
+            className="rounded-full w-8 aspect-square"
+            src={
+              comment.user?.avatar?.url.includes("https") ? comment.user?.avatar?.url : process.env.NEXT_PUBLIC_API_URL + "uploads/" + comment.user?.avatar?.url
+            }
+            alt="Avatar"
+          ></img>
           <p className="text-[0.9em] line-clamp-2">{comment.user?.name}</p>
         </div>
         <p className="text-foreground/60 text-[0.8em] italic text-end">{convertDateTo_yyyMMddHHmm(new Date(comment.created_at ?? ""))}</p>

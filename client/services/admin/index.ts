@@ -4,6 +4,8 @@ import axios from "axios";
 import { Pagination } from "@/types/pagination";
 import User from "@/types/user";
 import { DashboardOverview, DashboardStatsNewUsers, DashboardStatsView } from "@/types/dashboard";
+import Story from "@/types/story";
+import { StoryParams } from "@/types/params";
 
 type ServiceResult<T> = { success: boolean; data?: T; message?: string; pagination?: Pagination };
 
@@ -136,6 +138,39 @@ export async function deleteUser(userId: string): Promise<ServiceResult<null>> {
   }
 }
 
-const adminService = { getOverview, getStatsView, getStatsNewUsers, getUsers, banUser, deleteUser, updateUser };
+export async function getStories(params?: StoryParams): Promise<ServiceResult<Story[]>> {
+  try {
+    const res = await api.get(`/admin/stories`, {
+      params: params,
+      paramsSerializer: (params) => qs.stringify(params, { arrayFormat: "comma" }),
+    });
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return { success: false, message: error?.toString() };
+  }
+}
+
+export async function activeStory({ storyId, isActived }: { storyId: string; isActived: boolean }): Promise<ServiceResult<Story>> {
+  try {
+    const res = await api.patch(`/admin/stories/${storyId}/active`, { isActived: isActived });
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return { success: false, message: error?.toString() };
+  }
+}
+
+export async function deleteStory(storyId: string): Promise<ServiceResult<null>> {
+  try {
+    const res = await api.delete(`/admin/stories/${storyId}`);
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return { success: false, message: error?.toString() };
+  }
+}
+
+const adminService = { getOverview, getStatsView, getStatsNewUsers, getUsers, banUser, deleteUser, updateUser, getStories, activeStory, deleteStory };
 
 export default adminService;

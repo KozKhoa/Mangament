@@ -13,7 +13,7 @@ export default interface Story {
   type: string;
   status: string;
   next_chapter_in?: Date;
-  number_of_chidren?: number;
+  number_of_children?: number;
   author?: Author[];
   genres?: string[];
   cover_art?: Image;
@@ -21,6 +21,8 @@ export default interface Story {
   updated_at?: Date;
   summary?: string;
   review?: string;
+
+  is_actived?: boolean;
 
   favourite?: {
     id: string;

@@ -4,5 +4,5 @@ interface TagProps {
 }
 
 export default function Tag({ children, className }: TagProps) {
-  return <p className={`rounded-sm px-1 bg-foreground/25   text-foreground ${className}`}>{children}</p>;
+  return <p className={`rounded-sm px-1 bg-foreground/25  text-foreground ${className}`}>{children}</p>;
 }

@@ -148,6 +148,7 @@ export async function GetAllStories(req, res, next) {
     const { isGettingChildren, authors, keyword, isGettingNewestChapter, limit, status, page, type, genres, star, view, sort } = ConvertQuery(req.query);
 
     const stories = await FindAllStories({
+      isActived: true,
       keyword: keyword,
       type: type,
       view: view,

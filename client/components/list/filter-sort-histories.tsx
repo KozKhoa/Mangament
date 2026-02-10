@@ -61,7 +61,7 @@ export default function FilterSortHistories({
       {/* <FilterViews onFilter={updateP  arams} isReset={isResetAll}></FilterViews> */}
 
       {/* Story type */}
-      <FilterStoryType onFilter={updateParams} isReset={isResetAll}></FilterStoryType>
+      {/* <FilterStoryType onFilter={updateParams} isReset={isResetAll}></FilterStoryType> */}
 
       {/* Create date */}
       {/* <FilterDate onFilter={updateParams} isReset={isResetAll}></FilterDate> */}

@@ -1,8 +1,6 @@
 import express from "express";
 
-import { ForgotPassword, Login, Logout, Refresh, Register, ResetPassword } from "../controllers/Auth.Controller.js";
-
-import { GetUser } from "../controllers/User.Controller.js";
+import uploadMulter from "../configs/multer.js";
 
 import { AuthenticationToken, AuthorizationRole } from "../middlewares/Auth.Middleware.js";
 
@@ -24,6 +22,9 @@ adminRoute.get("/dashboard/overview", adminController.GetDashboardOverview);
 adminRoute.get("/dashboard/stats/views", adminController.GetDashboardViewInRange);
 adminRoute.get("/dashboard/stats/new-users", adminController.GetDashboardNewUsers);
 
-adminRoute;
+adminRoute.get("/stories", adminController.GetAllStories);
+adminRoute.post("/stories", uploadMulter.single("coverArt"), adminController.PostNewStory);
+adminRoute.patch("/stories/:id/active", adminController.ToggleActiveStory);
+adminRoute.delete("/stories/:id", adminController.DeleteStory);
 
 export default adminRoute;

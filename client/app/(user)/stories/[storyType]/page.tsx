@@ -57,7 +57,7 @@ export default function StoriesPage() {
       ...DEFAULT.params,
       page: page,
       limit: LIMIT,
-      type: storyType,
+      type: [storyType],
       isGettingNewestChapter: true,
       isGettingSummary: true,
 

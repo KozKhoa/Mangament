@@ -19,7 +19,11 @@ export default function StorySearchCard({ story, className }: { story: Story; cl
     >
       <div className={`relative aspect-2/3 rounded-[5] h-full`}>
         {/* Cover art */}
-        <img className="object-cover rounded-[5]" src={process.env.NEXT_PUBLIC_API_URL + "uploads/story/" + story?.cover_art?.url} alt="Cover Art"></img>
+        <img
+          className="object-cover rounded-[5]"
+          src={story?.cover_art?.url.includes("https") ? story?.cover_art?.url : process.env.NEXT_PUBLIC_API_URL + "uploads/story/" + story?.cover_art?.url}
+          alt="Cover Art"
+        ></img>
       </div>
 
       <div className="flex flex-col gap-1 w-full h-full">

@@ -30,8 +30,17 @@ export function proxy(req: NextRequest) {
       return NextResponse.redirect(url);
     }
   }
+
+  if (pathname.startsWith("/admin/stories-management")) {
+    if (!url.searchParams.has("page")) {
+      url.searchParams.set("page", "1");
+      url.searchParams.set("sort", "updated_at:desc");
+
+      return NextResponse.redirect(url);
+    }
+  }
 }
 
 export const config = {
-  matcher: ["/stories/:type", "/ranking/:storyType", "/admin/user-management"],
+  matcher: ["/stories/:type", "/ranking/:storyType", "/admin/user-management", "/admin/stories-management"],
 };
