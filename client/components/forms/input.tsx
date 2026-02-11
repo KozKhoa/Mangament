@@ -1,12 +1,15 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import ErrorExclamationIcon from "@/public/error-exclamation.svg";
 import OpenEyeIcon from "@/public/eye/open.svg";
 import CloseEyeIcon from "@/public/eye/close.svg";
+import ReloadIcon from "@/public/reload.svg";
 
 interface InputProps {
   onChange?: (text: string) => void;
+  onReset?: (text: string) => void;
   label?: string;
+  defaultValue?: string;
   error?: string | null;
   name?: string;
   placeHolder?: string;
@@ -21,21 +24,43 @@ export default function Input({
   label,
   error,
   name,
+  defaultValue,
   placeHolder,
   type = "text",
   onChange,
+  onReset,
   showPassword = false,
   className,
   require = false,
   tabIndex,
 }: InputProps) {
   const [isShowPassword, setIsShowPassword] = useState<boolean>(showPassword);
+
+  const [value, setValue] = useState<string>(defaultValue ?? "");
+
   const handleChange = (text: string) => {
+    setValue(text);
     onChange?.(text);
   };
+
+  function handleReset() {
+    if (defaultValue) {
+      setValue(defaultValue);
+      onReset?.(defaultValue);
+    }
+  }
+
+  useEffect(() => {
+    if (defaultValue) setValue(defaultValue);
+  }, [defaultValue]);
+
   return (
     <label className={`flex flex-col gap-1 text-foreground   ${className}`}>
-      <p className="font-semibold">{label}</p>
+      <div className="flex flex-row flex-wrap items-center justify-between gap-1 px-1">
+        <p className="font-semibold">{label}</p>
+
+        {onReset && <ReloadIcon onClick={handleReset} className="w-5 h-5 fill-foreground cursor-pointer hover:animate-spin"></ReloadIcon>}
+      </div>
 
       {error && (
         <div className="flex gap-2.5 items-center text-error ">
@@ -44,12 +69,13 @@ export default function Input({
         </div>
       )}
 
-      <div className={`flex gap-0.5 items-center px-3 py-2 border ${error ? "border-error" : "border-foreground"} rounded-[5] `}>
+      <div className={`flex gap-0.5 items-center px-3 py-2 border bg-background-items ${error ? "border-error" : "border-foreground"} rounded-[5] `}>
         <input
           className="w-full outline-none bg-none"
           type={isShowPassword ? "text" : type}
           placeholder={placeHolder}
           name={name}
+          value={value}
           onChange={(event) => handleChange(event.target.value)}
           tabIndex={tabIndex}
           required={require}

@@ -11,7 +11,6 @@ function mapStatus(status: string) {
   if (status === "finished") return "bg-[#0C7C59]! text-white!";
   if (status === "postpone") return "bg-[#FFCB77]! text-black!";
   if (status === "upcoming") return "bg-[#D3EFBD]! text-black!";
-  return "red";
 }
 
 export default function StoryStatusTag({ children, status, className }: StatusTagProps) {

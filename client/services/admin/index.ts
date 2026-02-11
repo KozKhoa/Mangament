@@ -138,6 +138,16 @@ export async function deleteUser(userId: string): Promise<ServiceResult<null>> {
   }
 }
 
+export async function getStory(storyId: string): Promise<ServiceResult<Story>> {
+  try {
+    const res = await api.get(`/admin/stories/${storyId}`);
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return { success: false, message: error?.toString() };
+  }
+}
+
 export async function getStories(params?: StoryParams): Promise<ServiceResult<Story[]>> {
   try {
     const res = await api.get(`/admin/stories`, {
@@ -171,6 +181,6 @@ export async function deleteStory(storyId: string): Promise<ServiceResult<null>>
   }
 }
 
-const adminService = { getOverview, getStatsView, getStatsNewUsers, getUsers, banUser, deleteUser, updateUser, getStories, activeStory, deleteStory };
+const adminService = { getOverview, getStatsView, getStatsNewUsers, getUsers, banUser, deleteUser, updateUser, getStory, getStories, activeStory, deleteStory };
 
 export default adminService;

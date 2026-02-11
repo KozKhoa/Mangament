@@ -33,6 +33,7 @@ import FilterViews, { TargetView } from "@/components/filters/filter-views";
 import FilterStoryStatus, { TargetStoryStatus } from "@/components/filters/filter-story-status";
 import FilterRatings, { TargetRating } from "@/components/filters/filter-ratings";
 import FilterStoryType, { TargetStoryType } from "@/components/filters/filter-story-type";
+import { modal } from "@/components/modal/modal.store";
 
 const STORIES_PIE_CHART_COLORS = [
   "#6A4E42", // warm brown
