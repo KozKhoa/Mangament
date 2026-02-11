@@ -18,6 +18,7 @@ import StoryStatusTag from "../tags/story-status-tag";
 import StoryTypeTag from "../tags/story-type-tag";
 import { roundTo } from "@/utils/math";
 import Link from "next/link";
+import Image from "next/image";
 
 export interface StoriesTableProps {
   className?: string;
@@ -49,10 +50,14 @@ export default function StoriesTable({ className, data, pagination }: StoriesTab
           <p>
             <span className="font-semibold">Title:</span> {story.title}
           </p>
-          <img
+          <Image
             className="w-64 m-auto my-1 rounded-sm"
             src={story?.cover_art?.url.includes("https") ? story?.cover_art?.url : process.env.NEXT_PUBLIC_API_URL + "uploads/story/" + story?.cover_art?.url}
-          ></img>
+            alt="Cover art"
+            width={300}
+            height={300}
+            unoptimized
+          ></Image>
         </div>
       ),
 
@@ -143,14 +148,17 @@ export default function StoriesTable({ className, data, pagination }: StoriesTab
               <tr key={story.id} className={`hover:bg-foreground/5 ${i % 2 === 0 ? "" : "bg-foreground/2"}`}>
                 <TD>
                   <Link href={`/stories/${story.type}/${story.title}`}>
-                    <img
+                    <Image
                       className="w-24 m-auto my-1 hover:w-48 duration-200 rounded-sm"
                       src={
                         story.cover_art?.url.includes("https")
                           ? story.cover_art.url
-                          : process.env.NEXT_PUBLIC_API_URL + "uploads/story/" + story?.cover_art?.url
+                          : `/api/image?url=${encodeURIComponent(process.env.NEXT_PUBLIC_API_URL + "uploads/story/" + story?.cover_art?.url)}`
                       }
-                    ></img>
+                      alt={story.title}
+                      width={500}
+                      height={500}
+                    ></Image>
                   </Link>
                 </TD>
                 <TD>{story.title}</TD>

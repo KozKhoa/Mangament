@@ -7,6 +7,7 @@ import StarIcon from "@/public/star.svg";
 
 import { snakeCaseToCapitalizeWord } from "@/utils/string";
 import { beautifulView } from "@/utils/beautiful";
+import Image from "next/image";
 
 export default function StorySearchCard({ story, className }: { story: Story; className?: string }) {
   return (
@@ -19,11 +20,13 @@ export default function StorySearchCard({ story, className }: { story: Story; cl
     >
       <div className={`relative aspect-2/3 rounded-[5] h-full`}>
         {/* Cover art */}
-        <img
-          className="object-cover rounded-[5]"
+        <Image
           src={story?.cover_art?.url.includes("https") ? story?.cover_art?.url : process.env.NEXT_PUBLIC_API_URL + "uploads/story/" + story?.cover_art?.url}
           alt="Cover Art"
-        ></img>
+          width={100}
+          height={100}
+          unoptimized
+        ></Image>
       </div>
 
       <div className="flex flex-col gap-1 w-full h-full">

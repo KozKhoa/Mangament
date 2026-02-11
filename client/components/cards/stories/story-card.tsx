@@ -17,6 +17,7 @@ import useAuth from "@/contexts/AuthContext";
 
 import favouriteService from "@/services/favourite";
 import { convertNewestChapter } from "@/utils/convert";
+import Image from "next/image";
 
 interface StoryCardProps {
   data: Story;
@@ -83,12 +84,16 @@ export default function StoryCard({ data, className }: StoryCardProps) {
     >
       <div className={`relative rounded-[5] w-full h-fit cursor-pointer`}>
         {/* Cover art */}
-        <img
-          onClick={() => handleClickStory()}
-          className="h-full aspect-2/3 rounded-[5]"
-          src={story?.cover_art?.url.includes("https") ? story?.cover_art?.url : process.env.NEXT_PUBLIC_API_URL + "uploads/story/" + story?.cover_art?.url}
-          alt="Cover Art"
-        ></img>
+        <div className="h-full aspect-2/3 rounded-[5]">
+          <Image
+            onClick={() => handleClickStory()}
+            src={story?.cover_art?.url.includes("https") ? story?.cover_art?.url : process.env.NEXT_PUBLIC_API_URL + "uploads/story/" + story?.cover_art?.url}
+            alt="Cover Art"
+            width={500}
+            height={500}
+            unoptimized
+          ></Image>
+        </div>
 
         {/* View */}
         <div

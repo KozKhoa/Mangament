@@ -4,6 +4,8 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import useAuth from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import RequireLogin from "@/components/cards/require-login";
+import Loading from "@/components/loadings/loading";
 
 export default function withAuth<T extends object>(WrappedComponent: React.ComponentType<T>) {
   return function AuthGuard(props: T) {
@@ -20,8 +22,8 @@ export default function withAuth<T extends object>(WrappedComponent: React.Compo
       }
     }, [user, loading]);
 
-    if (loading) return null;
-    if (!user) return null;
+    if (loading) return <Loading className="h-screen"></Loading>;
+    if (!user) return <RequireLogin></RequireLogin>;
 
     return <WrappedComponent {...props} />;
   };

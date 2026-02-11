@@ -2,6 +2,7 @@ import Rating from "@/types/ratings";
 import { convertDateTo_yyyMMddHHmm } from "@/utils/convert";
 import StarIcon from "@/public/star.svg";
 import DisplayStar from "../displays/ratings/display-star";
+import Image from "next/image";
 
 export default function RatingCard({ className, rating }: { rating: Rating; className?: string }) {
   return (
@@ -20,13 +21,16 @@ export default function RatingCard({ className, rating }: { rating: Rating; clas
 
       <div className="flex flex-row flex-wrap gap-2 justify-between items-center">
         <div className="flex flex-row justify-center items-center gap-3">
-          <img
-            className="rounded-full w-8 aspect-square"
+          <Image
+            className="rounded-full"
             src={
               rating.user?.avatar?.url.includes("https") ? rating.user?.avatar?.url : process.env.NEXT_PUBLIC_API_URL + "uploads/" + rating.user?.avatar?.url
             }
             alt="Avatar"
-          ></img>
+            width={32}
+            height={32}
+            unoptimized
+          ></Image>
           <p className="text-[0.9em] line-clamp-2">{rating.user?.name}</p>
         </div>
         <p className="text-foreground/60 text-[0.8em] italic text-end">{convertDateTo_yyyMMddHHmm(new Date(rating.created_at ?? ""))}</p>

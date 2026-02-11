@@ -25,6 +25,7 @@ import CommentMasonryGrid from "@/components/grids/comment-masonry-grid";
 import RatingMasonryGrid from "@/components/grids/rating-masonry-grid";
 import { modal } from "@/components/modal/modal.store";
 import RatingInputForm from "@/components/forms/rating-input-form";
+import Image from "next/image";
 
 export default function StoryDetailPage() {
   const router = useRouter();
@@ -123,8 +124,14 @@ export default function StoryDetailPage() {
             gap-5"
         >
           {review?.map((url, i) => (
-            <div key={i} className="border rounded-sm overflow-hidden">
-              <img src={url.includes("https") ? url : process.env.NEXT_PUBLIC_API_URL + "uploads/story/" + url} alt={`review ${i}`}></img>
+            <div key={i} className="border border-foreground/30 rounded-sm overflow-hidden">
+              <Image
+                src={url?.includes("https") ? url : `/api/image?url=${encodeURIComponent(process.env.NEXT_PUBLIC_API_URL + "uploads/story/" + url)}`}
+                alt={`review ${i}`}
+                width={10000}
+                height={10000}
+                style={{ width: "100%", height: "auto" }}
+              ></Image>
             </div>
           ))}
         </div>

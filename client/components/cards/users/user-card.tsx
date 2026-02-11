@@ -6,6 +6,7 @@ import LabelInput from "@/components/inputs/label-input/label-input";
 import LabelDropDownRadio from "@/components/inputs/label-input/label-dropdown-radio";
 
 import { convertDateTo_yyyMMdd } from "@/utils/convert";
+import Image from "next/image";
 
 const GENDER = ["male", "female", "other"];
 
@@ -21,11 +22,13 @@ export default function UserCard({ className }: { className?: string }) {
         shadow-[11px_13px_4px_0px_rgba(0,0,0,0.3)] ${className}`}
       >
         <div className="flex flex-1 h-full min-w-xs aspect-square overflow-hidden p-3 border-2 rounded-full">
-          <img
-            className="object-s rounded-full"
+          <Image
             src={user?.avatar?.url.includes("https") ? user?.avatar?.url : process.env.NEXT_PUBLIC_API_URL + "uploads/" + user?.avatar?.url}
             alt="Avatar"
-          ></img>
+            width={300}
+            height={300}
+            unoptimized
+          ></Image>
         </div>
         <div className="flex flex-5 flex-col items-start">
           {/* User name */}

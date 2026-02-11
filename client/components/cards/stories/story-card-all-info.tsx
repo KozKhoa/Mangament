@@ -9,6 +9,7 @@ import Tag from "@/components/tags/tag";
 import Loading from "@/components/loadings/loading";
 import Line from "@/components/lines/line";
 import GenreTag from "@/components/tags/genre-tag";
+import Image from "next/image";
 
 interface StoryCardAllInfoProps {
   story?: Story;
@@ -36,11 +37,14 @@ export default function StoryCardAllInfo({ story, className }: StoryCardAllInfoP
         >
           {/* Cover art */}
           <div className="w-full min-w-[100] md:row-span-2 flex justify-center">
-            <img
+            <Image
               className="object-cover rounded-[5]"
               src={story?.cover_art?.url.includes("https") ? story?.cover_art?.url : process.env.NEXT_PUBLIC_API_URL + "uploads/story/" + story?.cover_art?.url}
               alt="Cover Art"
-            ></img>
+              width={500}
+              height={500}
+              unoptimized
+            ></Image>
           </div>
 
           <div className="flex flex-col gap-1 justify-start items-start">

@@ -31,7 +31,7 @@ const AuthContext = createContext<AuthContextProps | null>(null);
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
 
   async function updateGender(newGender: string) {
     if (!user) return;
@@ -91,7 +91,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   async function me() {
     setLoading(true);
     const res = await authService.me();
-    setLoading(false);
 
     const user = res.data;
     if (user) {
@@ -99,6 +98,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       toast.message(res.message);
     }
+    setLoading(false);
   }
 
   async function login(email: string, password: string) {

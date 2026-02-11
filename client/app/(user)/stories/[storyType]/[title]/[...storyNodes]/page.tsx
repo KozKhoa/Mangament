@@ -28,6 +28,7 @@ import historyService from "@/services/history";
 import ButtonOfFavouriteStory from "@/components/buttons/favourite-button";
 import useAuth from "@/contexts/AuthContext";
 import CommentMasonryGrid from "@/components/grids/comment-masonry-grid";
+import Image from "next/image";
 
 function buildStoryNodeParent(tree: StoryNode[], targetNodeId: string) {
   const parentList: StoryNode[] = [];
@@ -311,11 +312,17 @@ export default function StoryNodeReading() {
           {content?.map((con, i) => (
             <div key={i} className="flex flex-col justify-center items-center gap-1 w-full">
               {con.type === "image" ? (
-                <img
-                  className="object-cover rounded-sm w-full"
-                  src={con.image_url.includes("https") ? con.image_url : process.env.NEXT_PUBLIC_API_URL + "uploads/story/" + con.image_url}
+                <Image
+                  src={
+                    con.image_url.includes("https")
+                      ? con.image_url
+                      : `/api/image?url=${encodeURIComponent(process.env.NEXT_PUBLIC_API_URL + "uploads/story/" + con.image_url)}`
+                  }
                   alt="Cover Art"
-                ></img>
+                  width={10000}
+                  height={10000}
+                  style={{ width: "100%", height: "auto" }}
+                ></Image>
               ) : con.type === "title" ? (
                 <p className="w-full text-center font-bold text-[1.8em]">{con.content}</p>
               ) : con.type === "header" ? (

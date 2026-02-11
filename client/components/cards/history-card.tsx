@@ -11,6 +11,7 @@ import Button from "@/components/buttons/button";
 
 import EyeIcon from "@/public/eye/open.svg";
 import { beautifulView } from "@/utils/beautiful";
+import Image from "next/image";
 
 async function removeHistory(historId: string) {
   const res = await historyService.removeHistory(historId);
@@ -60,16 +61,15 @@ export default function HistoryCard({ history, onClickRemove, className }: { his
         ${className} `}
     >
       {/* Cover art */}
-      <div
-        className={`relative aspect-2/3 rounded-[5] w-full cursor-pointer
-          w-[${story?.cover_art?.width}] h-[${story?.cover_art?.height}]`}
-      >
-        <img
+      <div className={`aspect-2/3 rounded-[5] w-full cursor-pointer`}>
+        <Image
           onClick={() => navigateToStoryNode()}
-          className="h-full rounded-[5]"
           src={story?.cover_art?.url.includes("https") ? story?.cover_art?.url : process.env.NEXT_PUBLIC_API_URL + "uploads/story/" + story?.cover_art?.url}
           alt="Cover Art"
-        ></img>
+          width={500}
+          height={500}
+          unoptimized
+        ></Image>
 
         {/* View */}
         <div

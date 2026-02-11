@@ -121,7 +121,7 @@ export default function StoryGenrePage() {
           {feeds.map((feed, i) => (
             <div className="" key={i}>
               {feed.type === "story" ? (
-                <StoryGenreCard key={feed.data.id} story={feed.data} className="border-4 hover:border-foreground bg-background-items" />
+                <StoryGenreCard key={feed.data.id} story={feed.data} className="bg-background-items" />
               ) : (
                 feed.type === "genre_suggestion" && (
                   <div className="flex flex-col gap-2 justify-center items-center" key={i}>

@@ -18,6 +18,7 @@ import Loading from "../loadings/loading";
 import { modal } from "../modal/modal.store";
 import NoContent from "../cards/no-content";
 import AdjustUserInfoForm from "../forms/adjust-user-info";
+import Image from "next/image";
 
 export interface UserTableProps {
   className?: string;
@@ -167,10 +168,15 @@ export default function UserTable({ className, data }: UserTableProps) {
               <tr key={user.id} className={`hover:bg-foreground/10 ${i % 2 === 0 ? "" : "bg-foreground/2"}`}>
                 {/* Avatar */}
                 <TD>
-                  <img
-                    className="w-8 aspect-square m-auto"
-                    src={user?.avatar?.url.includes("https") ? user?.avatar?.url : process.env.NEXT_PUBLIC_API_URL + "uploads/" + user?.avatar?.url}
-                  ></img>
+                  <div className="w-8 aspect-square m-auto">
+                    <Image
+                      src={user?.avatar?.url.includes("https") ? user?.avatar?.url : process.env.NEXT_PUBLIC_API_URL + "uploads/" + user?.avatar?.url}
+                      alt="Avatar"
+                      width={100}
+                      height={100}
+                      unoptimized
+                    ></Image>
+                  </div>
                 </TD>
                 <TD>{user.name}</TD>
                 <TD>{user.email}</TD>
