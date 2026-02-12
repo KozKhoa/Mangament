@@ -70,7 +70,6 @@ export default function MultiSelection({ className, defaultIndexs, label, option
   }, []);
 
   useEffect(() => {
-    console.log(defaultIndexs);
     if (defaultIndexs) setSelectedIndex(new Set(defaultIndexs));
   }, [defaultIndexs]);
 

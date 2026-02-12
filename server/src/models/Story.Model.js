@@ -196,9 +196,9 @@ export async function FindAllStories({
   };
 }
 
-export async function FindStory({ id, title, isGettingChildren = false, isGettingContent = false, isGettingNewestChapter = false }) {
+export async function FindStory({ id, title, isGettingChildren = false, isGettingContent = false, isGettingNewestChapter = false, isActived }) {
   const story = await db.story.findUnique({
-    where: { ...(id && { id: id }), ...(title && { title: title }), is_deleted: false, is_actived: true },
+    where: { ...(id && { id: id }), ...(title && { title: title }), is_deleted: false, is_actived: isActived },
     include: {
       authors: { select: { author: { select: { id: true, name: true } } } },
       genres: { select: { genre: true } },

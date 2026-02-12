@@ -22,6 +22,7 @@ adminRoute.get("/dashboard/overview", adminController.GetDashboardOverview);
 adminRoute.get("/dashboard/stats/views", adminController.GetDashboardViewInRange);
 adminRoute.get("/dashboard/stats/new-users", adminController.GetDashboardNewUsers);
 
+adminRoute.get("/stories/:id", adminController.GetStory);
 adminRoute.get("/stories", adminController.GetAllStories);
 adminRoute.post("/stories", uploadMulter.single("coverArt"), adminController.PostNewStory);
 adminRoute.patch("/stories/:id/active", adminController.ToggleActiveStory);

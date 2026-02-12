@@ -198,6 +198,21 @@ export async function UpdateUserInfo(req, res, next) {
   }
 }
 
+// GET /admin/stories/:id
+export async function GetStory(req, res, next) {
+  try {
+    const storyId = req.params?.id;
+
+    const story = await storiesModel.FindStory({ id: storyId });
+
+    if (!story) throw CreateError();
+
+    return res.json({ success: true, data: story.data });
+  } catch (error) {
+    next(error);
+  }
+}
+
 // GET /admin/stories
 export async function GetAllStories(req, res, next) {
   try {
