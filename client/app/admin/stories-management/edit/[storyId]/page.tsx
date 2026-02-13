@@ -1,7 +1,8 @@
 "use client";
 
 import { TargetStoryStatus } from "@/components/filters/filter-story-status";
-import Input from "@/components/forms/input";
+import Input from "@/components/inputs/input";
+import ImagePicker from "@/components/inputs/image-picker";
 import Loading from "@/components/loadings/loading";
 import StoryGenreMultiSelection from "@/components/selections/story-genres-multi-selection";
 import StoryStatusSelection from "@/components/selections/story-status-selection";
@@ -10,6 +11,7 @@ import Story from "@/types/story";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import TextArea from "@/components/inputs/text-area";
 
 export default function EditStory() {
   const params = useParams();
@@ -83,13 +85,21 @@ export default function EditStory() {
         <div className="flex flex-col gap-5 w-full">
           <h2 className="font-semibold m-auto">{story?.title}</h2>
 
-          <Input label="Title" placeHolder={story?.title} defaultValue={story?.title} onChange={setTitle} onReset={setTitle}></Input>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 ">
+            <ImagePicker className="col-span-1" defaultValue={story?.cover_art.url} onReset={() => {}}></ImagePicker>
 
-          <Input label="Nation" placeHolder={story?.nation} defaultValue={story?.nation} onChange={setNation} onReset={setNation}></Input>
+            <div className="flex flex-col gap-2 w-full lg:col-span-2">
+              <Input label="Title" placeHolder={story?.title} defaultValue={story?.title} onChange={setTitle} onReset={setTitle}></Input>
+              <Input label="Nation" placeHolder={story?.nation} defaultValue={story?.nation} onChange={setNation} onReset={setNation}></Input>
+              <StoryStatusSelection
+                defaultValue={story?.status as TargetStoryStatus}
+                onChange={(status) => setStoryStatus(status ?? "")}
+              ></StoryStatusSelection>
+              <StoryGenreMultiSelection defaultValue={story?.genres} onChange={setGenres}></StoryGenreMultiSelection>
+            </div>
+          </div>
 
-          <StoryStatusSelection defaultValue={story?.status as TargetStoryStatus} onChange={(status) => setStoryStatus(status ?? "")}></StoryStatusSelection>
-
-          <StoryGenreMultiSelection defaultValue={story?.genres} onChange={setGenres}></StoryGenreMultiSelection>
+          <TextArea label="Tóm tắt / Mô tả truyện" placeHolder={story?.summary} defaultValue={story?.summary}></TextArea>
         </div>
       )}
     </div>

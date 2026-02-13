@@ -43,7 +43,6 @@ export default function StoryCardAllInfo({ story, className }: StoryCardAllInfoP
               alt="Cover Art"
               width={500}
               height={500}
-              unoptimized
             ></Image>
           </div>
 

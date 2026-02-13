@@ -10,8 +10,16 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum StoryNodeContentType {
+  image
+  text
+  header
+  title
 }
 
 enum Role {
@@ -163,20 +171,34 @@ model StoryNode {
   number_of_children Int                      @default(0)
   updated_at         DateTime                 @default(now())
   created_at         DateTime                 @default(now())
-  content            Json?
   plain_text         String?
   search_vector      Unsupported("tsvector")? // Prisma chưa hỗ trợ tsvector
   is_deleted         Boolean                  @default(false)
   poster_id          String?                  @db.Uuid // Which admin post it
 
-  story           Story?           @relation(fields: [story_id], references: [id], onDelete: Cascade)
-  parent          StoryNode?       @relation("StoryNodeToStoryNode", fields: [parent_id], references: [id], onDelete: Cascade)
-  children        StoryNode[]      @relation("StoryNodeToStoryNode")
-  poster          User?            @relation(fields: [poster_id], references: [id], onDelete: SetNull)
+  story           Story?             @relation(fields: [story_id], references: [id], onDelete: Cascade)
+  parent          StoryNode?         @relation("StoryNodeToStoryNode", fields: [parent_id], references: [id], onDelete: Cascade)
+  children        StoryNode[]        @relation("StoryNodeToStoryNode")
+  poster          User?              @relation(fields: [poster_id], references: [id], onDelete: SetNull)
+  content         StoryNodeContent[]
   reading_history ReadingHistory[]
   comment         Comment[]
 
   @@unique([story_id, parent_id, type, order_index])
+}
+
+model StoryNodeContent {
+  id            String               @id @default(uuid()) @db.Uuid
+  story_node_id String               @db.Uuid()
+  type          StoryNodeContentType @default(text)
+  order_index   Int
+  content       String?
+  image_id      String?              @db.Uuid()
+
+  story_node StoryNode @relation(fields: [story_node_id], references: [id], onDelete: Cascade)
+  image      Image?    @relation(fields: [image_id], references: [id], onDelete: Cascade)
+
+  @@unique([story_node_id, order_index])
 }
 
 model Image {
@@ -186,8 +208,9 @@ model Image {
   height     Int?
   is_deleted Boolean @default(false)
 
-  user  User[]
-  story Story[]
+  user               User[]
+  story              Story[]
+  story_node_content StoryNodeContent[]
 }
 
 model Author {

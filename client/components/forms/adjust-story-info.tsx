@@ -1,6 +1,6 @@
 import Story from "@/types/story";
 import { useEffect, useState } from "react";
-import Input from "./input";
+import Input from "../inputs/input";
 
 export interface AdjustStoryInfoProp {
   className?: string;

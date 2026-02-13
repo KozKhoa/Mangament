@@ -1,6 +1,6 @@
 import User from "@/types/user";
 import LabelDropDownRadio from "../inputs/label-input/label-dropdown-radio";
-import Input from "./input";
+import Input from "../inputs/input";
 import Button from "../buttons/button";
 import { useState } from "react";
 import adminService from "@/services/admin";

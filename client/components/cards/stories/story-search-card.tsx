@@ -25,7 +25,6 @@ export default function StorySearchCard({ story, className }: { story: Story; cl
           alt="Cover Art"
           width={100}
           height={100}
-          unoptimized
         ></Image>
       </div>
 

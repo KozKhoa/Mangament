@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { toast } from "sonner";
 
-import Input from "./input";
+import Input from "../inputs/input";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
