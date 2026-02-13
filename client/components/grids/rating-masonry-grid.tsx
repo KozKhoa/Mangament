@@ -93,7 +93,7 @@ export default function RatingMasonryGrid({ className, storyId, elementPerPage =
   }
 
   return (
-    <div className={`flex flex-col justify-center items-center gap-2 ${className}`}>
+    <div className={`flex flex-col justify-center items-center gap-2 w-full ${className}`}>
       <div className="w-full flex flex-row justify-between items-center">
         <h2 className="text-start px-1 font-semibold">
           Rating{" "}
@@ -114,7 +114,7 @@ export default function RatingMasonryGrid({ className, storyId, elementPerPage =
               ))}
             </MasonryGrid>
           ) : (
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-2 gap-2 w-full">
               {ratings.map((rating, i) => (
                 <RatingCard className="w-full" key={rating.id} rating={rating}></RatingCard>
               ))}

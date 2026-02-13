@@ -56,7 +56,6 @@ export default function StoriesTable({ className, data, pagination }: StoriesTab
             alt="Cover art"
             width={300}
             height={300}
-            unoptimized
           ></Image>
         </div>
       ),

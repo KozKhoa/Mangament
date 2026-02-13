@@ -85,14 +85,7 @@ export default function StoryCard({ data, className }: StoryCardProps) {
       <div className={`relative rounded-[5] w-full h-fit cursor-pointer`}>
         {/* Cover art */}
         <div className="h-full aspect-2/3 rounded-[5]">
-          <Image
-            onClick={() => handleClickStory()}
-            src={story?.cover_art?.url.includes("https") ? story?.cover_art?.url : process.env.NEXT_PUBLIC_API_URL + "uploads/story/" + story?.cover_art?.url}
-            alt="Cover Art"
-            width={500}
-            height={500}
-            unoptimized
-          ></Image>
+          <Image onClick={() => handleClickStory()} src={story.cover_art?.url} alt="Cover Art" width={300} height={300}></Image>
         </div>
 
         {/* View */}

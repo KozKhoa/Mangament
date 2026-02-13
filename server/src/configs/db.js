@@ -9,4 +9,14 @@ export { StoryStatus };
 export { StoryType };
 export { StoryNodeType };
 
+async function main() {
+  await db.$connect();
+  console.log("Connected database successfully");
+  await db.$disconnect();
+}
+
+main().catch((e) => {
+  console.error("Database connection failed:", e);
+});
+
 export default db;

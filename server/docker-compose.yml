@@ -22,7 +22,7 @@ services:
     ports:
       - "${DB_PORT}:5432" # Maps host port 5431 to container port 5432
     volumes:
-      - pgdata:/var/lib/postgresql/data # Persists database data
+      - pgdata:/var/lib/postgresql # Persists database data
 
   pgadmin:
     image: dpage/pgadmin4

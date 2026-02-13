@@ -2,7 +2,7 @@ import { validateEmailFormat } from "@/lib/validation";
 
 import { useState } from "react";
 import { toast } from "sonner";
-import Input from "./input";
+import Input from "../inputs/input";
 import Button from "../buttons/button";
 
 export default function ForgotPasswordForm({ onSubmit }: { onSubmit?: (email: string, event?: React.FormEvent<HTMLFormElement>) => void }) {

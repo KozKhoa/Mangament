@@ -2,7 +2,7 @@ import useAuth from "@/contexts/AuthContext";
 import ratingService from "@/services/rating";
 import { useState } from "react";
 import { toast } from "sonner";
-import Input from "./input";
+import Input from "../inputs/input";
 import StarPicker from "../inputs/star-picker";
 import Button from "../buttons/button";
 
