@@ -28,6 +28,7 @@ export async function GetStory(req, res, next) {
     const story = await FindStory({
       id: storyId,
       title: title,
+      isActived: true,
       isGettingChildren: isGettingChildren,
       isGettingContent: isGettingContent,
       isGettingNewestChapter: isGettingNewestChapter,
