@@ -149,11 +149,7 @@ export default function StoriesTable({ className, data, pagination }: StoriesTab
                   <Link href={`/stories/${story.type}/${story.title}`}>
                     <Image
                       className="w-24 m-auto my-1 hover:w-48 duration-200 rounded-sm"
-                      src={
-                        story.cover_art?.url.includes("https")
-                          ? story.cover_art.url
-                          : `/api/image?url=${encodeURIComponent(process.env.NEXT_PUBLIC_API_URL + "uploads/story/" + story?.cover_art?.url)}`
-                      }
+                      src={story.cover_art?.url}
                       alt={story.title}
                       width={500}
                       height={500}

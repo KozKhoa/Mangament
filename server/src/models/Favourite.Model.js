@@ -1,9 +1,28 @@
 import db from "../configs/db.js";
+import { redis } from "../configs/redis.js";
+
+// Đây là hàm lấy version redis của FindAllFavouriteStories. Khi user thêm mới story vào fav list của user thì sẽ update version lên
+async function getFavVersion(userId) {
+  const versionKey = `user:${userId}:favoriteVersion`;
+  let version = await redis.get(versionKey);
+
+  if (!version) {
+    version = 1;
+    await redis.set(versionKey, version);
+  }
+
+  return version;
+}
+
+// Đây là hàm dùng để tăng version cho việc lấy fav list của user
+async function incrFavVersion(userId) {
+  await redis.incr(`user:${userId}:favoriteVersion`);
+}
 
 export async function FindAllFavouriteStories({
-  userId,
   limit = 10,
   page = 1,
+  userId,
   storyType = [],
   authorsId = [],
   genres = [],
@@ -11,6 +30,27 @@ export async function FindAllFavouriteStories({
   view = [],
   sort = { updated_at: "desc" },
 }) {
+  const version = await getFavVersion(userId);
+
+  const REDIS_KEY = [
+    "FindAllFavouriteStories",
+    "v=" + version,
+    "page=" + page,
+    "limit=" + limit,
+    "userId=" + userId,
+    "storyType=" + storyType,
+    "authorsId=" + authorsId,
+    "genres=" + genres,
+    "star=" + star,
+    "view=" + view,
+    "sort=" + JSON.stringify(sort),
+  ].join(":");
+
+  const REDIS_TTL = 60 * 10; // 10 minutes
+
+  const cached = await redis.get(REDIS_KEY);
+  if (cached) return JSON.parse(cached);
+
   const where = {
     is_deleted: false,
     user_id: userId,
@@ -67,7 +107,7 @@ export async function FindAllFavouriteStories({
 
   const totalItems = await db.favouriteStory.count({ where: where });
 
-  return {
+  const result = {
     success: true,
     data: favourites,
     pagination: {
@@ -77,9 +117,21 @@ export async function FindAllFavouriteStories({
       totalItems: totalItems,
     },
   };
+
+  await redis.setex(REDIS_KEY, REDIS_TTL, JSON.stringify(result));
+
+  return result;
 }
 
 export async function FindFavouriteStory({ id, userId, storyId }) {
+  const version = await getFavVersion(userId);
+
+  const REDIS_KEY = ["FindFavouriteStory", "v=" + version, "id=" + id, "userId=" + userId, "storyId=" + storyId].join(":");
+  const REDIS_TTL = 60 * 10; // 10 minutes
+
+  const cached = await redis.get(REDIS_KEY);
+  if (cached) return JSON.parse(cached);
+
   const favourite = await db.favouriteStory.findUnique({
     where: {
       is_deleted: false,
@@ -93,7 +145,12 @@ export async function FindFavouriteStory({ id, userId, storyId }) {
         }),
     },
   });
-  return { success: true, data: favourite };
+
+  const result = { success: true, data: favourite };
+
+  await redis.setex(REDIS_KEY, REDIS_TTL, JSON.stringify(result));
+
+  return result;
 }
 
 export async function AddFavouriteStory({ userId, storyId }) {
@@ -107,6 +164,8 @@ export async function AddFavouriteStory({ userId, storyId }) {
     update: { is_deleted: false, updated_at: new Date() },
   });
 
+  incrFavVersion(userId);
+
   return { success: true, data: favourite };
 }
 
@@ -115,6 +174,8 @@ export async function HardDeleteFavouriteStory({ id }) {
 
   const hardRemove = await db.favouriteStory.deleteMany({ where: { id: id } });
 
+  incrFavVersion(userId);
+
   return { success: true, message: "Remove permanently" };
 }
 
@@ -122,6 +183,8 @@ export async function SoftDeleteFavouriteStory({ id, userId }) {
   if (!id || !userId) throw new Error("Require favourite id and user id");
 
   const softRemove = await db.favouriteStory.update({ where: { id: id, user_id: userId }, data: { is_deleted: true } });
+
+  incrFavVersion(userId);
 
   return { success: true, data: softRemove };
 }

@@ -10,6 +10,7 @@ import authRouter from "./src/routes/Auth.Route.js";
 import userRoute from "./src/routes/User.Route.js";
 import ErrorMiddleware from "./src/middlewares/Error.Middleware.js";
 import RequestLogger from "./src/middlewares/LogReport.Middleware.js";
+import * as PerformanceMiddleware from "./src/middlewares/Performance.Middleware.js";
 
 import storyRoute from "./src/routes/Story.Routes.js";
 import storyNodeRoute from "./src/routes/StoryNode.Route.js";
@@ -30,6 +31,9 @@ app.use(cors(corsOptions));
 app.use(cookieParser());
 app.use(express.json());
 app.use(RequestLogger);
+
+// Dùng để đo thời gian thực hiện request
+app.use(PerformanceMiddleware.MeasureRequestTime);
 
 // Main routes
 app.use("/auth", authRouter);

@@ -102,6 +102,8 @@ export default function StoriesPage() {
     fetchStories();
   }, [searchParams]);
 
+  console.log(stories);
+
   return (
     <div className="w-full h-full flex flex-col font-afacad gap-12">
       <div className={`w-full flex flex-row justify-center items-start gap-5 `}>

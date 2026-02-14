@@ -23,14 +23,13 @@ export async function GetStory(req, res, next) {
     // Check user request
     if (!storyId && !title) throw CreateError(400, '"id" or "title" is required');
 
-    const { type, isGettingChildren, isGettingContent, isGettingSummary, isGettingNewestChapter } = ConvertQuery(req.query);
+    const { type, isGettingChildren, isGettingSummary, isGettingNewestChapter } = ConvertQuery(req.query);
 
     const story = await FindStory({
       id: storyId,
       title: title,
       isActived: true,
       isGettingChildren: isGettingChildren,
-      isGettingContent: isGettingContent,
       isGettingNewestChapter: isGettingNewestChapter,
     });
 

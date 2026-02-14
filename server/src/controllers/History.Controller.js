@@ -3,8 +3,6 @@ import { FindAllReadingHistories, AddReadingHistory, SoftDeleteReadingHistory } 
 import { CreateError } from "../utils/ErrorHandle.js";
 import { ConvertQuery } from "../utils/QueryConvert.js";
 
-import ErrorCodes from "../constants/Error.js";
-
 export async function GetAllReadingHistories(req, res, next) {
   try {
     // It is not neccessary to check user exist because authentication already did it

@@ -125,13 +125,7 @@ export default function StoryDetailPage() {
         >
           {review?.map((url, i) => (
             <div key={i} className="border border-foreground/30 rounded-sm overflow-hidden">
-              <Image
-                src={url?.includes("https") ? url : `/api/image?url=${encodeURIComponent(process.env.NEXT_PUBLIC_API_URL + "uploads/story/" + url)}`}
-                alt={`review ${i}`}
-                width={10000}
-                height={10000}
-                style={{ width: "100%", height: "auto" }}
-              ></Image>
+              {url && <Image src={url} alt={`review ${i}`} width={400} height={800}></Image>}
             </div>
           ))}
         </div>

@@ -1,4 +1,5 @@
 import db from "../configs/db.js";
+import { redis } from "../configs/redis.js";
 import { CreateError } from "../utils/ErrorHandle.js";
 import { randomInt } from "../utils/Number.js";
 import { ValidateStoryType } from "./Enum.Model.js";
@@ -6,7 +7,36 @@ import { ValidateGenre } from "./Genre.Model.js";
 
 import { validate as isUUID } from "uuid";
 
-export async function BuildStoryTree(storyId, storyNodeId, isGettingContent = false) {
+const REDIS_TTL = 60 * 10; // 30 minutes
+
+// Đây là hàm lấy version redis. Khi adim thêm mới story thì sẽ update version lên
+async function getRedisStoriesVersion() {
+  const versionKey = `stories:version`;
+  let version = await redis.get(versionKey);
+
+  if (!version) {
+    version = 1;
+    await redis.set(versionKey, version);
+  }
+
+  return version;
+}
+
+// Đây là hàm dùng để tăng version cho việc lấy và build story
+async function incrRedisStoriesVersion() {
+  await redis.incr(`stories:version`);
+}
+
+export async function BuildStoryTree(storyId, storyNodeId) {
+  const version = await getRedisStoriesVersion();
+
+  const REDIS_KEY = ["BuildStoryTree", "v=" + version, storyId, storyNodeId].join(":");
+  const REDIS_TTL = 60 * 30; // 10 minutes
+
+  const cached = await redis.get(REDIS_KEY);
+
+  if (cached) return JSON.parse(cached);
+
   const storyNodes = await db.storyNode.findMany({
     where: {
       is_deleted: false,
@@ -32,10 +62,19 @@ export async function BuildStoryTree(storyId, storyNodeId, isGettingContent = fa
     }
   }
 
+  await redis.setex(REDIS_KEY, REDIS_TTL, JSON.stringify(tree));
+
   return tree;
 }
 
 export async function GetNewestChapter(storyId, number) {
+  const version = await getRedisStoriesVersion();
+
+  const REDIS_KEY = ["GetNewestChapter", "v=" + version, "storyId=" + storyId, "number=" + number].join(":");
+
+  const cached = await redis.get(REDIS_KEY);
+  if (cached) return JSON.parse(cached);
+
   let count = 0;
   const dfs = async (parentId) => {
     const nodes = await db.storyNode.findMany({
@@ -76,10 +115,19 @@ export async function GetNewestChapter(storyId, number) {
 
   const result = await dfs(null);
 
+  await redis.setex(REDIS_KEY, REDIS_TTL, JSON.stringify(result));
+
   return result;
 }
 
 export async function GetReview(storyId, number = 1) {
+  const version = await getRedisStoriesVersion();
+
+  const REDIS_KEY = ["GetReview:", "v=" + version, storyId, number].join(";");
+
+  const cached = await redis.get(REDIS_KEY);
+  if (cached) return JSON.parse(cached);
+
   const imageUrl = [];
 
   const dfs = async (parentId) => {
@@ -117,10 +165,17 @@ export async function GetReview(storyId, number = 1) {
 
   await dfs(null);
 
-  return imageUrl.slice(0, 4);
+  const result = imageUrl.slice(0, 4);
+
+  await redis.setex(REDIS_KEY, REDIS_TTL, JSON.stringify(result));
+
+  return result;
 }
 
 export async function FindAllStories({
+  page = 1,
+  limit = 10,
+  sort = { updated_at: "desc" },
   keyword,
   type = [],
   view = [[0, 2147483647]],
@@ -128,13 +183,33 @@ export async function FindAllStories({
   genres = [],
   authorsId = [],
   status = [],
-  page = 1,
-  limit = 10,
-  sort = { updated_at: "desc" },
   isActived,
   isGettingChildren = false,
   isGettingNewestChapter = false,
 }) {
+  const version = await getRedisStoriesVersion();
+
+  const REDIS_KEY = [
+    "FindAllStories",
+    "v=" + version,
+    "page=" + page,
+    "limit=" + limit,
+    "sort=" + JSON.stringify(sort),
+    "isActived=" + isActived,
+    "keyword=" + keyword,
+    "type=" + type,
+    "view=" + view,
+    "star=" + star,
+    "genre=" + genres,
+    "authorsId=" + authorsId,
+    "status=" + status,
+    "isGettingChildren=" + isGettingChildren,
+    "isGettingNewestChapter=" + isGettingNewestChapter,
+  ].join(":");
+
+  const cached = await redis.get(REDIS_KEY);
+  if (cached) return JSON.parse(cached);
+
   const where = {
     is_deleted: false,
     is_actived: isActived,
@@ -158,10 +233,16 @@ export async function FindAllStories({
 
     include: {
       authors: {
-        select: { author: { select: { id: true, name: true } } },
+        select: {
+          author: { select: { id: true, name: true } },
+        },
       },
       cover_art: {
-        select: { url: true, height: true, width: true },
+        select: {
+          url: true,
+          height: true,
+          width: true,
+        },
       },
       genres: { select: { genre: true } },
     },
@@ -175,7 +256,9 @@ export async function FindAllStories({
   for (const story of stories) {
     story.authors = story.authors.map((author) => author.author);
     story.genres = story.genres.map((genre) => genre.genre);
-    if (isGettingChildren) story.children = await BuildStoryTree(story.id, null, false);
+
+    if (story.favourite && story.favourite.length > 0) story.favourite = story.favourite[0];
+    if (isGettingChildren) story.children = await BuildStoryTree(story.id, null);
     if (isGettingNewestChapter) {
       story.newest_chapter = await GetNewestChapter(story.id, 5);
     }
@@ -184,7 +267,7 @@ export async function FindAllStories({
     delete story.poster_id;
   }
 
-  return {
+  const result = {
     success: true,
     data: stories,
     pagination: {
@@ -194,9 +277,28 @@ export async function FindAllStories({
       totalItems: totalItems,
     },
   };
+
+  await redis.setex(REDIS_KEY, REDIS_TTL, JSON.stringify(result));
+
+  return result;
 }
 
-export async function FindStory({ id, title, isGettingChildren = false, isGettingContent = false, isGettingNewestChapter = false, isActived }) {
+export async function FindStory({ id, title, isGettingChildren = false, isGettingNewestChapter = false, isActived }) {
+  const version = await getRedisStoriesVersion();
+
+  const REDIS_KEY = [
+    "FindStory",
+    "v=" + version,
+    "id=" + id,
+    "title=" + title,
+    "isGettingChildren=" + isGettingChildren,
+    "isGettingNewestChapter=" + isGettingNewestChapter,
+    "isActived=" + isActived,
+  ].join(":");
+
+  const cached = await redis.get(REDIS_KEY);
+  if (cached) return JSON.parse(cached);
+
   const story = await db.story.findUnique({
     where: { ...(id && { id: id }), ...(title && { title: title }), is_deleted: false, is_actived: isActived },
     include: {
@@ -216,14 +318,18 @@ export async function FindStory({ id, title, isGettingChildren = false, isGettin
   story.genres = story.genres.map((genre) => genre.genre);
 
   if (isGettingChildren) {
-    story.children = await BuildStoryTree(story.id, null, isGettingContent);
+    story.children = await BuildStoryTree(story.id, null);
   }
 
   if (isGettingNewestChapter) {
     story.newest_chapter = await GetNewestChapter(story.id, 5);
   }
 
-  return { success: true, data: story };
+  const result = { success: true, data: story };
+
+  redis.setex(REDIS_KEY, REDIS_TTL, JSON.stringify(result));
+
+  return result;
 }
 
 export async function AddStory({ title, type, nation, genres, authorIds, status, posterId, summary, coverArtUrl }) {
@@ -261,6 +367,8 @@ export async function AddStory({ title, type, nation, genres, authorIds, status,
       },
     });
 
+    incrRedisStoriesVersion();
+
     return { success: true, data: newStory };
   });
 }
@@ -278,6 +386,8 @@ export async function SoftDeleteStory({ id, title }) {
     if (!story) throw CreateError(404, "Story not found");
 
     const softDelete = await db.story.update({ where: where, data: { is_deleted: true } });
+
+    incrRedisStoriesVersion();
 
     return { success: true, data: softDelete };
   });
@@ -297,6 +407,8 @@ export async function HardDeleteStory({ id, title }) {
 
     const hardRemove = await db.story.delete({ where: where });
 
+    incrRedisStoriesVersion();
+
     return { success: true, data: hardRemove };
   });
 }
@@ -313,6 +425,8 @@ export async function ActiveStory({ storyId, isActived }) {
     data: { is_actived: isActived },
     include: { cover_art: { select: { url: true, height: true, width: true } } },
   });
+
+  incrRedisStoriesVersion();
 
   return { success: true, data: active };
 }
@@ -402,6 +516,8 @@ export async function UpdateStory(id, { title, type, view, summary, posterId, na
         skipDuplicates: true,
       });
     }
+
+    incrRedisStoriesVersion();
 
     return { success: true, data: result };
   });
