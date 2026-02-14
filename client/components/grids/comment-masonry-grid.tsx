@@ -11,6 +11,7 @@ import commentService from "@/services/comment";
 import Comment from "@/types/comment";
 import { Pagination } from "@/types/pagination";
 import { modal } from "../modal/modal.store";
+import useAuth from "@/contexts/AuthContext";
 
 interface StoryNodeCommentsGridProps {
   className?: string;
@@ -21,12 +22,22 @@ interface StoryNodeCommentsGridProps {
 
 const SWITCH_LAYOUT = 4;
 
-function CommentButton({ storyId, storyNodeId }: { storyId: string; storyNodeId?: string }) {
+function CommentButton({ storyId, storyNodeId, onSubmit }: { storyId: string; storyNodeId?: string; onSubmit?: (newComment?: Comment) => void }) {
   return (
     <button
       onClick={() => {
         modal.open("custom", {
-          content: <CommentInputForm onCancel={modal.close} onSubmit={modal.close} storyId={storyId} storyNodeId={storyNodeId}></CommentInputForm>,
+          content: (
+            <CommentInputForm
+              onCancel={modal.close}
+              onSubmit={(newComment) => {
+                onSubmit?.(newComment);
+                modal.close();
+              }}
+              storyId={storyId}
+              storyNodeId={storyNodeId}
+            ></CommentInputForm>
+          ),
         });
       }}
       className="px-5 py-1 w-fit h-fit rounded-md select-none bg-foreground/10 text-foreground/80 cursor-pointer hover:bg-foreground/20"
@@ -37,6 +48,9 @@ function CommentButton({ storyId, storyNodeId }: { storyId: string; storyNodeId?
 }
 
 export default function CommentMasonryGrid({ className, storyNodeId, storyId, elementPerPage = 8 }: StoryNodeCommentsGridProps) {
+  const auth = useAuth();
+  const user = auth?.user;
+
   const page = useRef(1);
   const [comments, setComments] = useState<Comment[]>([]);
   const [pagination, setPagination] = useState<Pagination>();
@@ -70,9 +84,14 @@ export default function CommentMasonryGrid({ className, storyNodeId, storyId, el
     setComments((prevComments) => [...prevComments, ...newComment]);
   }
 
-  function handleGetMoreComments() {
+  async function handleGetMoreComments() {
     if (storyNodeId) fetchMoreStoryNodeComments();
     else if (storyId) fetchMoreStoryComments();
+  }
+
+  function updateUiWithNewComment(newComment: Comment) {
+    console.log(newComment);
+    setComments((prev) => [newComment, ...prev]);
   }
 
   useEffect(() => {
@@ -132,7 +151,13 @@ export default function CommentMasonryGrid({ className, storyNodeId, storyId, el
           </span>
         </h2>
 
-        <CommentButton storyId={storyId} storyNodeId={storyNodeId}></CommentButton>
+        <CommentButton
+          storyId={storyId}
+          storyNodeId={storyNodeId}
+          onSubmit={(neComment) => {
+            neComment && updateUiWithNewComment(neComment);
+          }}
+        ></CommentButton>
       </div>
 
       {comments.length > 0 ? (
@@ -156,7 +181,13 @@ export default function CommentMasonryGrid({ className, storyNodeId, storyId, el
           {!loading && (
             <div className="flex flex-col justify-center items-center gap-2 md:text-[1.2em]">
               <p className="text-center p-10 py-5">Chưa có bình luận nào, hãy trở thành người bình luận đầu tiên</p>
-              <CommentButton storyId={storyId} storyNodeId={storyNodeId}></CommentButton>
+              <CommentButton
+                storyId={storyId}
+                storyNodeId={storyNodeId}
+                onSubmit={(neComment) => {
+                  neComment && updateUiWithNewComment(neComment);
+                }}
+              ></CommentButton>
             </div>
           )}
         </>

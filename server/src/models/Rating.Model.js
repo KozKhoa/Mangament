@@ -91,6 +91,8 @@ export async function AddRatings({ userId, storyId, star, title, content }) {
         title: title,
         content: content,
       },
+
+      include: { user: { select: { id: true, name: true, avatar: { select: { url: true, height: true, width: true } } } } },
     });
 
     // Update star for story

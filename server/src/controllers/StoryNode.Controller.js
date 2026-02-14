@@ -31,11 +31,10 @@ export async function GetStoryNode(req, res, next) {
     const storyNode = await FindStoryNode({
       id: storyNodeId,
       isGettingChildren: isGettingChildren,
+      isGettingContent: isGettingContent,
     });
 
     if (!storyNode) throw CreateError();
-
-    if (!isGettingContent) delete storyNode.data.content;
 
     return res.status(200).json({
       success: true,

@@ -311,28 +311,18 @@ export default function StoryNodeReading() {
         >
           {content?.map((con, i) => (
             <div key={i} className="flex flex-col justify-center items-center gap-1 w-full">
-              {con.type === "image" ? (
+              {con.type === "image" && con?.image?.url ? (
                 <Image
-                  src={
-                    con.image_url.includes("https")
-                      ? con.image_url
-                      : `/api/image?url=${encodeURIComponent(process.env.NEXT_PUBLIC_API_URL + "uploads/story/" + con.image_url)}`
-                  }
+                  className="max-w-[1500px]"
+                  src={con.image?.url}
                   alt="Cover Art"
-                  width={10000}
-                  height={10000}
-                  style={{ width: "100%", height: "auto" }}
+                  width={con.image.width ?? 1500}
+                  height={con.image.height ?? 3000}
                 ></Image>
               ) : con.type === "title" ? (
                 <p className="w-full text-center font-bold text-[1.8em]">{con.content}</p>
               ) : con.type === "header" ? (
-                con.level == 1 ? (
-                  <p className="w-full text-start font-semibold text-[1.5em]">{con.content}</p>
-                ) : con.level == 2 ? (
-                  <p className="w-full text-start font-semibold text-[1.2em]">{con.content}</p>
-                ) : (
-                  con.level == 3 && <p className="w-full text-start italic text-[1em]">{con.content}</p>
-                )
+                <p className="w-full text-start font-semibold text-[1.2em]">{con.content}</p>
               ) : (
                 con.type === "text" && <p className="w-full text-start">{con.content}</p>
               )}

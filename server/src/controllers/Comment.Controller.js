@@ -51,7 +51,7 @@ export async function PostComment(req, res, next) {
     return res.status(200).json({
       success: true,
       message: "Add new comment successfully",
-      data: comment,
+      data: comment.data,
     });
   } catch (error) {
     next(error);

@@ -83,7 +83,7 @@ export async function FindAllStoryNodes({ storyId, parentId, sort = { updated_at
   };
 }
 
-export async function FindStoryNode({ id, storyId, parentId, storyNodeType, orderIndex, isGettingChildren = false }) {
+export async function FindStoryNode({ id, storyId, parentId, storyNodeType, orderIndex, isGettingChildren = false, isGettingContent = false }) {
   if (!(id || (storyId && storyNodeType && orderIndex && parentId))) {
     throw new Error("Require id or (story id, story node type, story node's parent id and order index)");
   }
@@ -98,6 +98,8 @@ export async function FindStoryNode({ id, storyId, parentId, storyNodeType, orde
       ...(storyNodeType && { type: storyNodeType }),
       ...(orderIndex && { order_index: orderIndex }),
     },
+
+    ...(isGettingContent && { include: { content: { select: { type: true, image: true }, orderBy: { order_index: "asc" } } } }),
   });
 
   if (isGettingChildren) {

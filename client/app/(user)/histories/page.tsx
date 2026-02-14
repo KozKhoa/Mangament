@@ -29,7 +29,7 @@ export function FavouritePage() {
 
   const [params, setParams] = useState<HistoryParams>(DEFAULT.params);
   const [histories, setHistories] = useState<History[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
   const [pagination, setPagination] = useState<Pagination>();
 
   async function fetchHistories() {

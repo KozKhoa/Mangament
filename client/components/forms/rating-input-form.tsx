@@ -5,9 +5,10 @@ import { toast } from "sonner";
 import Input from "../inputs/input";
 import StarPicker from "../inputs/star-picker";
 import Button from "../buttons/button";
+import Rating from "@/types/ratings";
 
 export interface RatingInputFromProps {
-  onSubmit?: () => void;
+  onSubmit?: (newRating?: Rating) => void;
   onCancel?: () => void;
   storyId: string;
   className?: string;
@@ -32,13 +33,13 @@ export default function RatingInputForm({ storyId, className, onSubmit, onCancel
 
     if (!res.success) return toast.warning(res.message);
 
-    onSubmit?.();
+    onSubmit?.(res.data);
 
     toast.message("Đánh giá thành công! Tải lại trang để nhìn thấy đánh giá của bạn");
   }
 
   return (
-    <div className="flex flex-col gap-2 min-w-[80vw] w-full">
+    <div className={`flex flex-col gap-2 min-w-[80vw] w-full ${className}`}>
       <h2>Đánh giá</h2>
 
       <div className="flex flex-col gap-1">

@@ -6,9 +6,10 @@ import Input from "../inputs/input";
 import StarPicker from "../inputs/star-picker";
 import Button from "../buttons/button";
 import commentService from "@/services/comment";
+import Comment from "@/types/comment";
 
 export interface CommentInputForm {
-  onSubmit?: () => void;
+  onSubmit?: (newComment?: Comment) => void;
   onCancel?: () => void;
   storyId: string;
   storyNodeId?: string;
@@ -38,9 +39,9 @@ export default function CommentInputForm({ storyId, storyNodeId, className, onSu
 
     if (!res.success) return toast.warning(res.message);
 
-    onSubmit?.();
+    onSubmit?.(res.data);
 
-    toast.message("Bình luận của bạn đã được ghị nhận! Tải lại trang để nhìn thấy đánh giá của bạn");
+    toast.message("Bình luận của bạn đã được ghi nhận!");
   }
 
   return (

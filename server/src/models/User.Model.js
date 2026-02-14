@@ -150,14 +150,18 @@ export async function AddUser({ name, email, password, avatarUrl }) {
       email: email,
       password: hashedPassword,
 
-      ...(avatarUrl && {
-        avatar: {
-          connectOrCreate: {
-            where: { url: avatarUrl },
-            create: { url: avatarUrl },
-          },
-        },
-      }),
+      avatar: {
+        connect: { id: "001139d8-972f-4863-9609-154be6d4f120" },
+      },
+
+      // ...(avatarUrl && {
+      //   avatar: {
+      //     connectOrCreate: {
+      //       where: { url: avatarUrl },
+      //       create: { url: avatarUrl },
+      //     },
+      //   },
+      // }),
     },
 
     select: {

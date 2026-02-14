@@ -46,7 +46,7 @@ export default function StoriesPage() {
   const view = searchParams.get("view")?.split(",");
   const status = searchParams.get("status")?.split(",");
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [hoverStoryIndex, setHoverStoryIndex] = useState<number>(0);
   const [stories, setStories] = useState<Story[] | null>(null);
   const [pagination, setPagination] = useState<Pagination>();
@@ -187,8 +187,6 @@ export default function StoriesPage() {
           <StoryInfoCard story={stories[hoverStoryIndex ?? 0]} className="hidden md:flex sticky top-16 bg-background-items"></StoryInfoCard>
         )}
       </div>
-
-      <RecommendStories className="max-w-[1800] mx-auto"></RecommendStories>
     </div>
   );
 }

@@ -27,7 +27,7 @@ export default function StoryCardAllInfo({ story, className }: StoryCardAllInfoP
         ${className} `}
     >
       {!story ? (
-        <Loading className="w-full"></Loading>
+        <Loading className="w-full h-64"></Loading>
       ) : (
         <div
           className="grid grid-cols-1 grid-rows-[auto_auto_auto]

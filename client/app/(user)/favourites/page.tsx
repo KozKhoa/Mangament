@@ -26,7 +26,7 @@ export function FavouritePage() {
   const [params, setParams] = useState<FavoureiteParams>(DEFAULT.params);
   const [favourites, setFavourites] = useState<Favourite[]>([]);
   const [pagination, setPagination] = useState<Pagination>();
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
 
   async function fetchFavourites() {
     setLoading(true);

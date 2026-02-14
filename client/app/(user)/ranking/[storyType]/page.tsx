@@ -122,8 +122,8 @@ export default function RankingPage() {
                         border-b-2 border-foreground pb-2 place-items-center"
                 >
                   {stories.map((story, i) => (
-                    <div key={story.id} className="w-fit h-full">
-                      <RankingVerticalCard className="h-full" top={i + 1} story={story}></RankingVerticalCard>
+                    <div key={story.id} className="w-full h-full">
+                      <RankingVerticalCard className="h-full w-full" top={i + 1} story={story}></RankingVerticalCard>
                     </div>
                   ))}
                 </div>

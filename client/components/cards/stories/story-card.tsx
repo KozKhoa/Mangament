@@ -18,6 +18,7 @@ import useAuth from "@/contexts/AuthContext";
 import favouriteService from "@/services/favourite";
 import { convertNewestChapter } from "@/utils/convert";
 import Image from "next/image";
+import Loading from "@/components/loadings/loading";
 
 interface StoryCardProps {
   data: Story;
@@ -32,30 +33,35 @@ export default function StoryCard({ data, className }: StoryCardProps) {
 
   const [favouriteId, setFavouriteId] = useState<string | null>(story.favourite?.id ?? null);
   const [newestChapter, setNewestChapter] = useState<NewestChapter[]>([]);
+  const [processingToggleFav, setProcessingToggleFav] = useState(false);
 
   const handleClickFavourite = () => {
     const saveFavourite = async () => {
+      setProcessingToggleFav(true);
       const res = await favouriteService.addNewFavouriteStory(story.id);
+      setProcessingToggleFav(false);
 
       if (!res.success) return toast.warning(res.message);
 
       setFavouriteId(res.data?.id ?? null);
 
-      toast.message(`Added successfully`);
+      toast.message(`Đã thêm ${story.title} vào danh sách yêu thích`);
     };
 
     const removeFavourite = async () => {
+      setProcessingToggleFav(true);
       const res = await favouriteService.removeFavouriteStory(favouriteId ?? ""); // Error: id must be favourite id
+      setProcessingToggleFav(false);
 
       if (!res.success) return toast.warning(res.message);
 
       setFavouriteId(null);
 
-      toast.message(`Removed successfully`);
+      toast.message(`Đã xóa ${story.title} khỏi danh sách yêu thích`);
     };
 
     if (!user) {
-      return toast.warning("Please login to add to favourite ");
+      return toast.warning("Bạn phải đăng nhập để thêm và danh sách yêu thích");
     } else if (!favouriteId) {
       saveFavourite();
     } else if (favouriteId) {
@@ -85,7 +91,7 @@ export default function StoryCard({ data, className }: StoryCardProps) {
       <div className={`relative rounded-[5] w-full h-fit cursor-pointer`}>
         {/* Cover art */}
         <div className="h-full aspect-2/3 rounded-[5]">
-          <Image onClick={() => handleClickStory()} src={story.cover_art?.url} alt="Cover Art" width={300} height={300}></Image>
+          {story.cover_art?.url && <Image onClick={() => handleClickStory()} src={story.cover_art?.url} alt="Cover Art" width={300} height={300}></Image>}
         </div>
 
         {/* View */}
@@ -98,8 +104,16 @@ export default function StoryCard({ data, className }: StoryCardProps) {
         </div>
 
         {/* Save favourite */}
-        <button className=" absolute top-0 right-0 rounded-b-4xl bg-background-items" onClick={() => handleClickFavourite()}>
-          <HeartIcon className={`w-8 h-8 stroke-1 ${favouriteId ? " fill-red-400 text-red-400" : " fill-background-items text-foreground"}`}></HeartIcon>
+        <button
+          disabled={processingToggleFav}
+          className={` absolute top-0 right-0 rounded-b-4xl bg-background-items ${processingToggleFav ? "" : "cursor-pointer"}`}
+          onClick={() => handleClickFavourite()}
+        >
+          {processingToggleFav ? (
+            <Loading spinnerClassName="w-[24px] m-1" />
+          ) : (
+            <HeartIcon className={`w-8 h-8 stroke-1 ${favouriteId ? " fill-red-400 text-red-400" : " fill-background-items text-foreground"}`}></HeartIcon>
+          )}
         </button>
       </div>
 
