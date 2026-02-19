@@ -8,7 +8,6 @@ import React, { useEffect, useRef, useState } from "react";
 import MultiSelection from "./multi-selection/multi-selection";
 import genreService from "@/services/genre";
 import { capitalizeWords, snakeCaseToCapitalizeWord } from "@/utils/string";
-import GenreTag from "../tags/genre-tag";
 
 interface StoryStatusSelectionProps {
   className?: string;
@@ -31,8 +30,14 @@ export default function StoryGenreMultiSelection({ className, defaultValue, onCh
   useEffect(() => {
     const arr: number[] = [];
 
-    defaultValue?.forEach((value, i) => {
-      if (genres.has(value)) arr.push(i);
+    const defaultValueSet = new Set(defaultValue);
+
+    let i = 0;
+    genres.forEach((genre) => {
+      if (defaultValueSet.has(genre)) {
+        arr.push(i);
+      }
+      i++;
     });
 
     setDefaultIndexs(arr);

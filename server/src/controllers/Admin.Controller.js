@@ -249,6 +249,45 @@ export async function GetAllStories(req, res, next) {
   }
 }
 
+// PUT /admin/stories/:id
+export async function UpdateStory(req, res, next) {
+  try {
+    const storyId = req?.params?.id;
+
+    const body = req?.body;
+
+    const title = body?.title;
+    const nation = body?.nation;
+    const type = body?.type;
+    const status = body?.status;
+    const genre = body?.genre;
+    const authorIds = body?.authorIds;
+    const summary = body?.summary;
+    const coverArtUrl = body?.coverArtUrl;
+    const publicId = body?.publicId; // This is a public id for image in cloudinary
+
+    throwErrorIfInvalidGenres(genre);
+    throwErrorIfInvalidStoryStatus(status);
+    throwErrorIfInvalidStoryType(type);
+
+    const update = await storiesModel.UpdateStory(storyId, {
+      title: title,
+      type: type,
+      summary: summary,
+      nation: nation,
+      status: status,
+      genres: genre,
+      authorIds: authorIds,
+      coverArtUrl: coverArtUrl,
+      publicId: publicId,
+    });
+
+    return res.json({ success: true, message: "Update story successfully", data: update.data });
+  } catch (error) {
+    next(error);
+  }
+}
+
 // PATCH /admin/stories/:id/active
 export async function ToggleActiveStory(req, res, next) {
   try {

@@ -2,17 +2,7 @@ import express from "express";
 import multer from "multer";
 import path from "path";
 
-import {
-  AddOneViewForStory,
-  DeleteStory,
-  GetAllStories,
-  GetCountStories,
-  GetRandomStory,
-  GetStory,
-  GetStoryReview,
-  PostStory,
-  PutStory,
-} from "../controllers/Story.Controller.js";
+import { AddOneViewForStory, GetAllStories, GetCountStories, GetRandomStory, GetStory, GetStoryReview, PostStory } from "../controllers/Story.Controller.js";
 
 import { AuthenticationToken, AuthorizationRole, OptionalAuth } from "../middlewares/Auth.Middleware.js";
 import { DeleteComment, GetAllComments, GetCountComment, PostComment, PutComment } from "../controllers/Comment.Controller.js";
@@ -40,8 +30,6 @@ storyRoute.get("/title/:title", OptionalAuth, GetStory);
 storyRoute.get("/", OptionalAuth, GetAllStories);
 storyRoute.patch("/:id/view", AddOneViewForStory);
 storyRoute.post("/", AuthenticationToken, AuthorizationRole, upload.single("coverArt"), PostStory); // coverArt is the image for the cover art of the story
-storyRoute.put("/:id", AuthenticationToken, AuthorizationRole, PutStory);
-storyRoute.delete("/:id", AuthenticationToken, AuthorizationRole, DeleteStory);
 
 // Rating
 storyRoute.post("/:id/ratings", AuthenticationToken, PostRating);

@@ -3,7 +3,7 @@ import { redis } from "../configs/redis.js";
 
 // Đây là hàm lấy version redis của FindAllFavouriteStories. Khi user thêm mới story vào fav list của user thì sẽ update version lên
 async function getFavVersion(userId) {
-  const versionKey = `user:${userId}:favoriteVersion`;
+  const versionKey = `version:favouriteStories:${userId}`;
   let version = await redis.get(versionKey);
 
   if (!version) {
@@ -16,7 +16,7 @@ async function getFavVersion(userId) {
 
 // Đây là hàm dùng để tăng version cho việc lấy fav list của user
 async function incrFavVersion(userId) {
-  await redis.incr(`user:${userId}:favoriteVersion`);
+  await redis.incr(`version:favouriteStories:${userId}`);
 }
 
 export async function FindAllFavouriteStories({

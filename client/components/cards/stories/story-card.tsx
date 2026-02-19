@@ -86,10 +86,10 @@ export default function StoryCard({ data, className }: StoryCardProps) {
     >
       <div className={`relative rounded-[5] w-full h-fit cursor-pointer`}>
         {/* Cover art */}
-        <div className="h-full aspect-2/3 rounded-[5]">
+        <div className="rounded-sm overflow-hidden">
           {story.cover_art?.url && (
             <Link href={hrefStory}>
-              <Image src={story.cover_art?.url} alt="Cover Art" width={300} height={300}></Image>
+              <Image className="aspect-7/10" src={story.cover_art?.url} alt="Cover Art" width={300} height={300}></Image>
             </Link>
           )}
         </div>
@@ -117,33 +117,35 @@ export default function StoryCard({ data, className }: StoryCardProps) {
         </button>
       </div>
 
-      <div className="flex flex-col gap-1 w-full h-full">
+      <div className="flex flex-col justify-between gap-1 w-full h-full">
         {/* Tittle */}
         <Link href={hrefStory} className="text-[1.2em] text-start font-bold leading-tight cursor-pointer line-clamp-2">
           {"[" + snakeCaseToCapitalizeWord(story?.type ?? "") + "] " + story?.title}
         </Link>
 
-        {/* Rating */}
-        <div className="flex flex-wrap gap-x-2.5 justify-start items-center">
-          <div className="flex  justify-center items-center gap-1">
-            <div className="flex justify-center items-center">
-              <DisplayStar rating={story?.star || 0}></DisplayStar>
+        <div className="flex flex-col gap-1 w-full">
+          {/* Rating */}
+          <div className="flex flex-wrap gap-x-2.5 justify-start items-center">
+            <div className="flex  justify-center items-center gap-1">
+              <div className="flex justify-center items-center">
+                <DisplayStar rating={story?.star || 0}></DisplayStar>
+              </div>
+              <p>{Math.round((story?.star ?? 0) * 10) / 10}</p>
             </div>
-            <p>{Math.round((story?.star ?? 0) * 10) / 10}</p>
           </div>
+
+          {/* Newest chapter */}
+          {newestChapter && newestChapter.length > 0 && (
+            <div className="flex flex-col justify-center items-start gap-x-2.5-2.5 opacity-90">
+              <p className="text-[0.8em] italic ">Chap mới nhất:</p>
+
+              <Link href={hrefNewestChapter} className="flex flex-wrap items-center justify-between cursor-pointer gap-x-2">
+                <p>{newestChapter?.[0].dir}</p>
+                <p className="text-[0.8em] italic">{newestChapter?.[0].dayPass} ngày trước</p>
+              </Link>
+            </div>
+          )}
         </div>
-
-        {/* Newest chapter */}
-        {newestChapter && newestChapter.length > 0 && (
-          <div className="flex flex-col justify-center items-start gap-x-2.5-2.5 opacity-90">
-            <p className="text-[0.8em] italic ">Chap mới nhất:</p>
-
-            <Link href={hrefNewestChapter} className="flex flex-wrap items-center justify-between cursor-pointer gap-x-2">
-              <p>{newestChapter?.[0].dir}</p>
-              <p className="text-[0.8em] italic">{newestChapter?.[0].dayPass} ngày trước</p>
-            </Link>
-          </div>
-        )}
       </div>
     </div>
   );

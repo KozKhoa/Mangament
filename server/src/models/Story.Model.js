@@ -7,11 +7,11 @@ import { ValidateGenre } from "./Genre.Model.js";
 
 import { validate as isUUID } from "uuid";
 
-const REDIS_TTL = 60 * 10; // 30 minutes
+const REDIS_TTL = 60 * 30; // 30 minutes
 
 // Đây là hàm lấy version redis. Khi adim thêm mới story thì sẽ update version lên
 async function getRedisStoriesVersion() {
-  const versionKey = `stories:version`;
+  const versionKey = `version:stories`;
   let version = await redis.get(versionKey);
 
   if (!version) {
@@ -24,7 +24,7 @@ async function getRedisStoriesVersion() {
 
 // Đây là hàm dùng để tăng version cho việc lấy và build story
 async function incrRedisStoriesVersion() {
-  await redis.incr(`stories:version`);
+  await redis.incr(`version:stories`);
 }
 
 export async function BuildStoryTree(storyId, storyNodeId) {
@@ -431,7 +431,10 @@ export async function ActiveStory({ storyId, isActived }) {
   return { success: true, data: active };
 }
 
-export async function UpdateStory(id, { title, type, view, summary, posterId, nation, status, genres = [], coverArtUrl, nextChapterIn, authorIds = [] }) {
+export async function UpdateStory(
+  id,
+  { title, type, view, summary, posterId, nation, status, genres = [], coverArtUrl, publicId, nextChapterIn, authorIds = [] },
+) {
   return await db.$transaction(async function (tx) {
     const story = await tx.story.findFirst({ where: { id: id, is_deleted: false } });
     if (!story) {
@@ -443,10 +446,6 @@ export async function UpdateStory(id, { title, type, view, summary, posterId, na
       if (isTitleExist) {
         throw new Error("Title already exist");
       }
-    }
-
-    if (type && !ValidateStoryType(type)) {
-      throw new Error("Invalid story type");
     }
 
     if (authorIds && authorIds.length > 0) {
@@ -475,12 +474,7 @@ export async function UpdateStory(id, { title, type, view, summary, posterId, na
         ...(nextChapterIn && { next_chapter_in: nextChapterIn }),
 
         ...(coverArtUrl && {
-          cover_art: {
-            connectOrCreate: {
-              where: { url: coverArtUrl },
-              create: { url: coverArtUrl },
-            },
-          },
+          cover_art: { connectOrCreate: { where: { url: coverArtUrl, public_id: publicId }, create: { url: coverArtUrl, public_id: publicId } } },
         }),
 
         ...(posterId && {
@@ -491,6 +485,8 @@ export async function UpdateStory(id, { title, type, view, summary, posterId, na
           },
         }),
       },
+
+      include: { cover_art: { select: { url: true, width: true, height: true } } },
     });
 
     if (genres && genres.length > 0) {

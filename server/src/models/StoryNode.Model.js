@@ -1,19 +1,43 @@
 import db from "../configs/db.js";
 import { StoryNodeType } from "../configs/db.js";
+import { redis } from "../configs/redis.js";
 
 import { BuildStoryTree, UpdateStory } from "./Story.Model.js";
+
+const REDIS_TTL = 60 * 30; // 30 minutes
+
+// Đây là hàm lấy version redis. Khi adim thêm mới story thì sẽ update version lên
+async function getRedisStoryNodesVersion() {
+  const versionKey = `version:storyNodes`;
+  let version = await redis.get(versionKey);
+
+  if (!version) {
+    version = 1;
+    await redis.set(versionKey, version);
+  }
+
+  return version;
+}
+
+// Đây là hàm dùng để tăng version cho việc lấy và build story
+async function incrRedisStoryNodesVersion() {
+  await redis.incr(`version:storyNodes`);
+}
 
 export function GetAllStoryNodeType() {
   return Object.values(StoryNodeType);
 }
 
-export function ValidateStoryNodeType(storyNodeType) {
-  if (!storyNodeType) return true;
-  const storyNodeTypeList = GetAllStoryNodeType();
-  return storyNodeTypeList.includes(storyNodeType);
-}
-
 export const GetParentStoryNodeTree = async (storyId, storyNodeId, isGettingContent = false) => {
+  const version = await getRedisStoryNodesVersion();
+
+  const REDIS_KEY = ["GetParentStoryNodeTree", "v=" + version, "storyId=" + storyId, "storyNodeId=" + storyNodeId, "isGettingContent=" + isGettingContent].join(
+    ":",
+  );
+
+  const cached = await redis.get(REDIS_KEY);
+  if (cached) return JSON.parse(cached);
+
   if (!storyId) throw new Error("Require story id");
   if (!storyNodeId) throw new Error("Require story node id");
 
@@ -45,10 +69,21 @@ export const GetParentStoryNodeTree = async (storyId, storyNodeId, isGettingCont
     node = map.get(node.parent_id);
   }
 
-  return map.get(storyNodeId);
+  const result = map.get(storyNodeId);
+
+  redis.setex(REDIS_KEY, REDIS_TTL, JSON.stringify(result));
+
+  return result;
 };
 
 export async function FindAllStoryNodes({ storyId, parentId, sort = { updated_at: "desc" } }, page = 1, limit = 10, isGettingChildren = false) {
+  const version = await getRedisStoryNodesVersion();
+
+  const REDIS_KEY = ["FindAllStoryNodes", version, page, limit, storyId, parentId, JSON.stringify(sort), isGettingChildren].join(":");
+
+  const cached = await redis.get(REDIS_KEY);
+  if (cached) return JSON.parse(cached);
+
   const where = {
     is_deleted: false,
 
@@ -71,7 +106,7 @@ export async function FindAllStoryNodes({ storyId, parentId, sort = { updated_at
     }
   }
 
-  return {
+  const result = {
     success: true,
     data: storyNodes,
     pagination: {
@@ -81,9 +116,20 @@ export async function FindAllStoryNodes({ storyId, parentId, sort = { updated_at
       totalItems: totalItems,
     },
   };
+
+  redis.setex(REDIS_KEY, REDIS_TTL, JSON.stringify(result));
+
+  return result;
 }
 
 export async function FindStoryNode({ id, storyId, parentId, storyNodeType, orderIndex, isGettingChildren = false, isGettingContent = false }) {
+  const version = await getRedisStoryNodesVersion();
+
+  const REDIS_KEY = ["FindStoryNode", version, storyId, parentId, storyNodeType, orderIndex, isGettingChildren, isGettingContent].join(":");
+
+  const cached = await redis.get(REDIS_KEY);
+  if (cached) return JSON.parse(cached);
+
   if (!(id || (storyId && storyNodeType && orderIndex && parentId))) {
     throw new Error("Require id or (story id, story node type, story node's parent id and order index)");
   }
@@ -106,7 +152,11 @@ export async function FindStoryNode({ id, storyId, parentId, storyNodeType, orde
     storyNode.children = await BuildStoryTree(node.story_id, node.id);
   }
 
-  return { success: true, data: storyNode };
+  const result = { success: true, data: storyNode };
+
+  redis.setex(REDIS_KEY, REDIS_TTL, JSON.stringify(result));
+
+  return result;
 }
 
 export const AddStoryNode = async (data = { title, type, story_id, parent_id, order_index, poster_id, content }) => {

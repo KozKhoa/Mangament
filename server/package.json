@@ -6,10 +6,15 @@
   "author": "",
   "type": "module",
   "main": "App.js",
+  "prisma": {
+    "seed": "node prisma/seeds/index.js"
+  },
   "scripts": {
     "dev": "cross-env NODE_ENV=development nodemon App.js",
     "start": "cross-env NODE_ENV=production node App.js",
-    "build": "npm i && npx prisma generate"
+    "build": "npm i && npx prisma generate",
+    "migrate": "npx prisma migrate dev && npx prisma generate dev",
+    "seed": "npx prisma db seed"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^6.16.2",

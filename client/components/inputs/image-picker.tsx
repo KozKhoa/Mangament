@@ -72,7 +72,7 @@ export default function ImagePicker({ className, defaultValue, onChange, onReset
         <input type="file" accept="image/*" onChange={handleChangeImage} className="hidden"></input>
 
         {image && (
-          <div className="relative">
+          <div className="relative cursor-pointer">
             <img src={image} className="rounded-sm"></img>
           </div>
         )}

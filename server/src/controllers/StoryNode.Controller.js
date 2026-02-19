@@ -8,7 +8,6 @@ import {
   FindAllStoryNodes,
   FindStoryNode,
   UpdateStoryNode,
-  ValidateStoryNodeType,
   GetParentStoryNodeTree,
   SoftDeleteStoryNode,
   IncreaseOneViewForStoryNodeAndItsParents,
@@ -53,9 +52,6 @@ export async function PostStoryNode(req, res, next) {
 
     if (!storyId || !type || !orderIndex) throw CreateError(400, "Missing required fields");
 
-    // Validate type of story node
-    if (!ValidateStoryNodeType(type)) throw CreateError(400, "Invalid story node type");
-
     // Make sure story exist
     const story = await FindStory({ id: storyId });
     if (!story || !story.success || !story.data) throw CreateError(404, "Story not found");
@@ -90,7 +86,7 @@ export async function PutStoryNode(req, res, next) {
     if (!storyNodeId) throw CreateError(400, "'id' is required");
 
     const { storyId, parentId, title, type, orderIndex, view } = req?.body;
-    if (!ValidateStoryNodeType(type)) throw CreateError(400, "Invalid story node type");
+
     if (!storyId) throw CreateError(400, "Missing required fields");
     // Updating
     const updating = await UpdateStoryNode(

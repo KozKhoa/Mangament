@@ -114,11 +114,13 @@ model User {
   birthday   DateTime?
   join_date  DateTime  @default(now())
   role       Role      @default(user)
+  nation_id  String?   @db.Uuid
   avatar_id  String?   @db.Uuid
   is_deleted Boolean   @default(false)
   is_banned  Boolean   @default(false)
 
-  avatar Image? @relation(fields: [avatar_id], references: [id], onDelete: SetNull)
+  avatar Image?  @relation(fields: [avatar_id], references: [id], onDelete: SetNull)
+  nation Nation? @relation(fields: [nation_id], references: [id], onDelete: SetNull)
 
   reading_history   ReadingHistory[]
   favourite_story   FavouriteStory[]
@@ -132,7 +134,6 @@ model User {
 model Story {
   id                 String      @id @default(uuid()) @db.Uuid
   title              String      @unique
-  nation             String?
   view               Int         @default(0)
   star               Float       @default(0)
   rating_count       Int         @default(0) // Number of rating
@@ -141,6 +142,7 @@ model Story {
   next_chapter_in    DateTime?
   number_of_children Int         @default(0)
   cover_art_id       String?     @db.Uuid
+  nation_id          String?     @db.Uuid()
   is_deleted         Boolean     @default(false)
   is_actived         Boolean     @default(true)
   poster_id          String?     @db.Uuid // Admin who post this story on
@@ -148,8 +150,9 @@ model Story {
   updated_at         DateTime    @default(now())
   summary            String?
 
-  cover_art Image? @relation(fields: [cover_art_id], references: [id], onDelete: SetNull)
-  poster    User?  @relation(fields: [poster_id], references: [id], onDelete: SetNull) // admin who post this story on
+  cover_art Image?  @relation(fields: [cover_art_id], references: [id], onDelete: SetNull)
+  poster    User?   @relation(fields: [poster_id], references: [id], onDelete: SetNull) // admin who post this story on
+  nation    Nation? @relation(fields: [nation_id], references: [id], onDelete: SetNull)
 
   children        StoryNode[]
   reading_history ReadingHistory[]
@@ -204,20 +207,24 @@ model StoryNodeContent {
 model Image {
   id         String  @id @default(uuid()) @db.Uuid
   url        String  @unique
+  public_id  String? @unique //  This contain public id of cloudinary
   width      Int?
   height     Int?
   is_deleted Boolean @default(false)
 
   user               User[]
   story              Story[]
+  nation             Nation[]
   story_node_content StoryNodeContent[]
 }
 
 model Author {
-  id   String @id @default(uuid()) @db.Uuid
-  name String
+  id        String  @id @default(uuid()) @db.Uuid
+  name      String
+  nation_id String? @db.Uuid()
 
-  story Story_Author[]
+  nation Nation?        @relation(fields: [nation_id], references: [id], onDelete: SetNull)
+  story  Story_Author[]
 }
 
 model Story_Author {
@@ -257,6 +264,21 @@ model FavouriteStory {
   story Story @relation(fields: [story_id], references: [id], onDelete: Cascade)
 
   @@unique([user_id, story_id])
+}
+
+model Nation {
+  id            String  @id @default(uuid()) @db.Uuid
+  flag_image_id String? @db.Uuid
+  flag_icon     String?
+  name          String
+
+  flag_image Image? @relation(fields: [flag_image_id], references: [id], onDelete: SetNull)
+
+  user   User[]
+  story  Story[]
+  author Author[]
+
+  @@unique([name])
 }
 
 model Story_Genre {

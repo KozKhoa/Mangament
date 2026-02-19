@@ -11,7 +11,6 @@ import Rating from "@/types/ratings";
 import ratingService from "@/services/rating";
 import { modal } from "../modal/modal.store";
 import RatingInputForm from "../forms/rating-input-form";
-
 interface RatingGridProps {
   className?: string;
   storyId: string;
@@ -41,8 +40,6 @@ function RatingButton({ storyId, onSubmit }: { storyId: string; onSubmit?: (newR
     </button>
   );
 }
-
-const SWITCH_LAYOUT = 4;
 
 export default function RatingMasonryGrid({ className, storyId, elementPerPage = 8 }: RatingGridProps) {
   const page = useRef(1);

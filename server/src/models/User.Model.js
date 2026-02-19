@@ -4,6 +4,27 @@ import { GetParentStoryNodeTree } from "./StoryNode.Model.js";
 
 import * as passwordService from "../utils/PasswordHandle.js";
 import { CreateError } from "../utils/ErrorHandle.js";
+import { redis } from "../configs/redis.js";
+
+const REDIS_TTL = 60 * 30; // 30 minutes
+
+// Đây là hàm lấy version redis. Khi adim thêm mới story thì sẽ update version lên
+async function getRedisUsersVersion() {
+  const versionKey = `version:users`;
+  let version = await redis.get(versionKey);
+
+  if (!version) {
+    version = 1;
+    await redis.set(versionKey, version);
+  }
+
+  return version;
+}
+
+// Đây là hàm dùng để tăng version cho việc lấy và build story
+async function incrRedisUsersVersion() {
+  await redis.incr(`version:users`);
+}
 
 export async function FindAllUser({
   genders = [],
@@ -17,6 +38,13 @@ export async function FindAllUser({
   isBanned,
   search,
 }) {
+  const version = await getRedisUsersVersion();
+
+  const REDIS_KEY = ["FindAllUser", version, page, limit, genders, fromDate, toDate, roles, birthday, JSON.stringify(sort), isBanned, search].join(";");
+
+  const cached = await redis.get(REDIS_KEY);
+  if (cached) return JSON.parse(cached);
+
   const where = {
     is_deleted: false,
 
@@ -57,7 +85,7 @@ export async function FindAllUser({
 
   const totalItems = await db.user.count({ where: where });
 
-  return {
+  const result = {
     success: true,
     data: users,
     pagination: {
@@ -67,10 +95,21 @@ export async function FindAllUser({
       totalItems: totalItems,
     },
   };
+
+  redis.setex(REDIS_KEY, REDIS_TTL, JSON.stringify(result));
+
+  return result;
 }
 
 export async function FindUser({ id, email }) {
-  if (!id && !email) throw new Error("Require 'id' or 'email'");
+  const version = await getRedisUsersVersion();
+
+  const REDIS_KEY = ["FindUser", version, id, email].join(";");
+
+  const cached = await redis.get(REDIS_KEY);
+  if (cached) return JSON.parse(cached);
+
+  if (!id && !email) throw CreateError(400, "Require 'id' or 'email'");
 
   const user = await db.user.findFirst({
     where: {
@@ -86,7 +125,11 @@ export async function FindUser({ id, email }) {
 
   if (!user) throw CreateError(404, "User not found");
 
-  return { success: true, data: user };
+  const result = { success: true, data: user };
+
+  redis.setex(REDIS_KEY, REDIS_TTL, JSON.stringify(result));
+
+  return result;
 }
 
 export async function BannedUser({ id, email, isBanned }) {
@@ -107,6 +150,8 @@ export async function BannedUser({ id, email, isBanned }) {
     const user = await db.user.findFirst({ where: where });
     if (!user) throw CreateError(404, "User not found");
   }
+
+  incrRedisUsersVersion();
 
   return { success: true, data: bannedUser };
 }
@@ -153,15 +198,6 @@ export async function AddUser({ name, email, password, avatarUrl }) {
       avatar: {
         connect: { id: "001139d8-972f-4863-9609-154be6d4f120" },
       },
-
-      // ...(avatarUrl && {
-      //   avatar: {
-      //     connectOrCreate: {
-      //       where: { url: avatarUrl },
-      //       create: { url: avatarUrl },
-      //     },
-      //   },
-      // }),
     },
 
     select: {
@@ -175,6 +211,8 @@ export async function AddUser({ name, email, password, avatarUrl }) {
       avatar: { select: { url: true, width: true, height: true } },
     },
   });
+
+  incrRedisUsersVersion();
 
   return { success: true, data: user };
 }
@@ -194,6 +232,8 @@ export async function SoftDeleteUser({ id, email }) {
     const softDelete = await db.user.update({ where: where, data: { is_deleted: true } });
 
     delete softDelete.password;
+
+    incrRedisUsersVersion();
 
     return { success: true, data: softDelete };
   });
@@ -223,6 +263,8 @@ export const GetUserPassword = async (where = { id }) => {
 export const HardDeleteUser = async (where = { id, email }) => {
   try {
     const result = await db.user.delete({ where: where });
+
+    incrRedisUsersVersion();
     return { success: true, data: result };
   } catch (error) {
     console.error("❌ [User.Model.js] Error hard delete user: ", error);

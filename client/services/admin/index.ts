@@ -161,6 +161,44 @@ export async function getStories(params?: StoryParams): Promise<ServiceResult<St
   }
 }
 
+export async function updateStory(story: Story, coverArtFile?: File): Promise<ServiceResult<Story[]>> {
+  try {
+    let coverArtUrl;
+    let publicId;
+    if (coverArtFile) {
+      const sigRes = await api.get(`/cloudinary/signature/${story.id}/cover-art`);
+      const { timestamp, signature, apiKey, cloudName, folder, publicId } = sigRes.data;
+
+      const formData = new FormData();
+
+      formData.append("file", coverArtFile);
+      formData.append("api_key", apiKey);
+      formData.append("timestamp", timestamp);
+      formData.append("signature", signature);
+      formData.append("folder", folder);
+      formData.append("public_id", publicId);
+
+      const cloudinaryAxios = axios.create({ baseURL: `https://api.cloudinary.com/v1_1/${cloudName}` });
+      const coverArtUpload = await cloudinaryAxios.post(`/image/upload`, formData);
+
+      coverArtUrl = coverArtUpload.data.secure_url;
+    }
+
+    const res = await api.put(`/admin/stories/${story.id}`, {
+      title: story.title,
+      nation: story.nation,
+      type: story.type,
+      status: story.status,
+      genre: story.genres,
+      ...(coverArtUrl && { coverArtUrl: coverArtUrl, publicId: publicId }),
+    });
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return { success: false, message: error?.toString() };
+  }
+}
+
 export async function activeStory({ storyId, isActived }: { storyId: string; isActived: boolean }): Promise<ServiceResult<Story>> {
   try {
     const res = await api.patch(`/admin/stories/${storyId}/active`, { isActived: isActived });
@@ -181,6 +219,19 @@ export async function deleteStory(storyId: string): Promise<ServiceResult<null>>
   }
 }
 
-const adminService = { getOverview, getStatsView, getStatsNewUsers, getUsers, banUser, deleteUser, updateUser, getStory, getStories, activeStory, deleteStory };
+const adminService = {
+  getOverview,
+  getStatsView,
+  getStatsNewUsers,
+  getUsers,
+  banUser,
+  deleteUser,
+  updateUser,
+  getStory,
+  getStories,
+  updateStory,
+  activeStory,
+  deleteStory,
+};
 
 export default adminService;

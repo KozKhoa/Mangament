@@ -24,6 +24,7 @@ adminRoute.get("/dashboard/stats/new-users", adminController.GetDashboardNewUser
 
 adminRoute.get("/stories/:id", adminController.GetStory);
 adminRoute.get("/stories", adminController.GetAllStories);
+adminRoute.put("/stories/:id", adminController.UpdateStory);
 adminRoute.post("/stories", uploadMulter.single("coverArt"), adminController.PostNewStory);
 adminRoute.patch("/stories/:id/active", adminController.ToggleActiveStory);
 adminRoute.delete("/stories/:id", adminController.DeleteStory);

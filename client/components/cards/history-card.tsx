@@ -61,15 +61,17 @@ export default function HistoryCard({ history, onClickRemove, className }: { his
         ${className} `}
     >
       {/* Cover art */}
-      <div className={`aspect-2/3 rounded-[5] w-full cursor-pointer`}>
-        <Image
-          onClick={() => navigateToStoryNode()}
-          src={story?.cover_art?.url.includes("https") ? story?.cover_art?.url : process.env.NEXT_PUBLIC_API_URL + "uploads/story/" + story?.cover_art?.url}
-          alt="Cover Art"
-          width={500}
-          height={500}
-          unoptimized
-        ></Image>
+      <div className={`w-full cursor-pointer`}>
+        {story?.cover_art?.url && (
+          <Image
+            className="aspect-7/10 rounded-sm overflow-hidden"
+            onClick={() => navigateToStoryNode()}
+            src={story?.cover_art?.url}
+            alt="Cover Art"
+            width={500}
+            height={500}
+          ></Image>
+        )}
 
         {/* View */}
         <div

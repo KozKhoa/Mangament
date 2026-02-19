@@ -10,7 +10,7 @@ export function MeasureRequestTime(req, res, next) {
       case "DELETE":
         return "\x1b[31m"; // đỏ
       case "PUT":
-        return "\x1b[34m"; // xanh nuớc
+        return "\x1b[35m"; // magenta
       case "PATCH":
         return "\x1b[36m"; // cyan
     }

@@ -19,6 +19,7 @@ import genreRoute from "./src/routes/Genre.Route.js";
 import { initRedis } from "./src/configs/redis.js";
 import adminRoute from "./src/routes/Admin.Route.js";
 import commentRoute from "./src/routes/Comment.Route.js";
+import cloudinaryRoute from "./src/routes/Cloudinary.Route.js";
 
 initRedis();
 
@@ -44,9 +45,7 @@ app.use("/authors", authorRoute);
 app.use("/genres", genreRoute);
 app.use("/comments", commentRoute);
 app.use("/admin", adminRoute);
-
-//api for getting story image
-app.use("/uploads", express.static("./../uploads"));
+app.use("/cloudinary", cloudinaryRoute);
 
 // Middlewares
 app.use(ErrorMiddleware);

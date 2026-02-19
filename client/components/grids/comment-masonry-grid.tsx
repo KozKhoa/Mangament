@@ -11,7 +11,6 @@ import commentService from "@/services/comment";
 import Comment from "@/types/comment";
 import { Pagination } from "@/types/pagination";
 import { modal } from "../modal/modal.store";
-import useAuth from "@/contexts/AuthContext";
 
 interface StoryNodeCommentsGridProps {
   className?: string;
@@ -48,9 +47,6 @@ function CommentButton({ storyId, storyNodeId, onSubmit }: { storyId: string; st
 }
 
 export default function CommentMasonryGrid({ className, storyNodeId, storyId, elementPerPage = 8 }: StoryNodeCommentsGridProps) {
-  const auth = useAuth();
-  const user = auth?.user;
-
   const page = useRef(1);
   const [comments, setComments] = useState<Comment[]>([]);
   const [pagination, setPagination] = useState<Pagination>();
@@ -90,7 +86,6 @@ export default function CommentMasonryGrid({ className, storyNodeId, storyId, el
   }
 
   function updateUiWithNewComment(newComment: Comment) {
-    console.log(newComment);
     setComments((prev) => [newComment, ...prev]);
   }
 

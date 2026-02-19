@@ -19,6 +19,7 @@ export const Login = async (req, res, next) => {
     CheckEmailAndPasswordFormat(email, password); // Check email and email format
 
     const result = await FindUser({ email: email }); // Check if user exist in db
+
     if (!result.success || !result.data) {
       throw CreateError(404, "User not found");
     }
