@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import MultiSelection from "./multi-selection/multi-selection";
+import Selection from "./selection";
 
 export interface NationMultiSelectionProps {
   className?: string;
 
-  defaultValue?: string[];
+  defaultValue: string | null;
 
-  onChange?: (nations: string[]) => void;
+  onChange?: (nation: string | null) => void;
 }
 
 const NATIONS = [
@@ -206,32 +207,19 @@ const NATIONS = [
   "🇿🇼 Zimbabwe",
 ];
 
-export default function NationMultiSelection({ className, defaultValue, onChange }: NationMultiSelectionProps) {
-  const [defaultIndexs, setDefaultIndexs] = useState<number[]>([]);
-
-  function handleChange(indexs: number[]) {
-    console.log(indexs);
-
-    console.log(indexs.map((index) => NATIONS[index].slice(5).toLowerCase().split(" ").join("_")));
-
-    // onChange?.(defaultIndexs.map((index) => NATIONS.at(index)?.slice(2, -1)));
+export default function NationSelection({ className, defaultValue = null, onChange }: NationMultiSelectionProps) {
+  function handleChange(index: number | null) {
+    onChange?.(index === null ? null : NATIONS[index].slice(5));
   }
 
-  useEffect(() => {
-    const indexs: number[] = [];
-
-    const defaultValueSet = new Set(defaultValue);
-
-    NATIONS.forEach((nation, i) => {
-      if (defaultValueSet.has(nation)) {
-        indexs.push(i);
-      }
-    });
-
-    setDefaultIndexs(indexs);
-  }, [defaultValue]);
-
   return (
-    <MultiSelection className={className} label="Quốc gia" options={NATIONS} defaultIndexs={defaultIndexs} onChange={handleChange} onReset={handleChange} />
+    <Selection
+      className={className}
+      label="Quốc gia "
+      options={NATIONS}
+      defaultIndex={defaultValue === null ? null : NATIONS.findIndex((nation) => nation.includes(defaultValue))}
+      onChange={handleChange}
+      onReset={handleChange}
+    ></Selection>
   );
 }

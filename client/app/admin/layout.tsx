@@ -3,7 +3,7 @@ import AdminSidebar from "@/components/layouts/sidebar/sidebar-admin";
 import { AdminProvider } from "@/contexts/AdminContext";
 import { Suspense } from "react";
 
-// app/(auth)/layout.tsx
+// app/(admin)/layout.tsx
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
     <Suspense>

@@ -181,6 +181,7 @@ export async function FindAllStories({
   view = [[0, 2147483647]],
   star = [[0, 6]],
   genres = [],
+  nation = [],
   authorsId = [],
   status = [],
   isActived,
@@ -201,6 +202,7 @@ export async function FindAllStories({
     "view=" + view,
     "star=" + star,
     "genre=" + genres,
+    "nation=" + nation,
     "authorsId=" + authorsId,
     "status=" + status,
     "isGettingChildren=" + isGettingChildren,
@@ -218,6 +220,7 @@ export async function FindAllStories({
     ...(genres && genres.length > 0 && { genres: { some: { genre: { in: genres } } } }),
     ...(authorsId && authorsId.length > 0 && { authors: { some: { author_id: { in: authorsId } } } }),
     ...(status && status.length > 0 && { status: { in: status } }),
+    ...(nation && nation.length > 0 && { nation: { name: { in: nation } } }),
     AND: [
       {
         OR: [...star.map(([min, max]) => ({ star: { gte: min, lte: max } }))],
@@ -232,18 +235,9 @@ export async function FindAllStories({
     where: where,
 
     include: {
-      authors: {
-        select: {
-          author: { select: { id: true, name: true } },
-        },
-      },
-      cover_art: {
-        select: {
-          url: true,
-          height: true,
-          width: true,
-        },
-      },
+      authors: { select: { author: { select: { id: true, name: true } } } },
+      cover_art: { select: { url: true, height: true, width: true } },
+      nation: { select: { name: true, flag_icon: true, flag_image: { select: { url: true, height: true, width: true } } } },
       genres: { select: { genre: true } },
     },
     orderBy: [sort, { updated_at: "desc" }, { id: "desc" }],
@@ -304,9 +298,8 @@ export async function FindStory({ id, title, isGettingChildren = false, isGettin
     include: {
       authors: { select: { author: { select: { id: true, name: true } } } },
       genres: { select: { genre: true } },
-      cover_art: {
-        select: { url: true, height: true, width: true },
-      },
+      cover_art: { select: { url: true, height: true, width: true } },
+      nation: { select: { name: true, flag_icon: true, flag_image: { select: { url: true, height: true, width: true } } } },
     },
   });
 
@@ -462,6 +455,8 @@ export async function UpdateStory(
       genres = ValidateGenre(genres);
     }
 
+    console.log(summary);
+
     const result = await tx.story.update({
       where: { id: id },
       data: {
@@ -469,9 +464,9 @@ export async function UpdateStory(
         ...(type && { type: type }),
         ...(view !== undefined && { view: view }),
         ...(summary && { summary: summary }),
-        ...(nation && { nation: nation }),
         ...(status && { status: status }),
         ...(nextChapterIn && { next_chapter_in: nextChapterIn }),
+        ...(nation && { nation: { connect: { name: nation } } }),
 
         ...(coverArtUrl && {
           cover_art: { connectOrCreate: { where: { url: coverArtUrl, public_id: publicId }, create: { url: coverArtUrl, public_id: publicId } } },

@@ -7,7 +7,11 @@ import StoryNode from "./story-node";
 export default interface Story {
   id: string;
   title: string;
-  nation?: string;
+  nation?: {
+    name: string;
+    flag_icon?: string;
+    flag_image?: Image;
+  };
   view?: number;
   star?: number;
   type: string;

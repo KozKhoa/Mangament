@@ -10,6 +10,7 @@ export interface StoryParams {
   view?: string[];
   genre?: string[];
   status?: string[];
+  nation?: string[];
   sort?: string;
   isGettingChildren?: boolean;
   isGettingContent?: boolean;

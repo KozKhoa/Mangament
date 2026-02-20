@@ -145,7 +145,9 @@ export async function GetAllStories(req, res, next) {
   try {
     const userId = req?.user?.id;
 
-    const { isGettingChildren, authors, keyword, isGettingNewestChapter, limit, status, page, type, genres, star, view, sort } = ConvertQuery(req.query);
+    const { isGettingChildren, authors, keyword, isGettingNewestChapter, limit, status, page, type, genres, star, view, sort, nations } = ConvertQuery(
+      req.query,
+    );
 
     const stories = await FindAllStories({
       isActived: true,
@@ -159,6 +161,7 @@ export async function GetAllStories(req, res, next) {
       sort: sort,
       page: page,
       limit: limit,
+      nation: nations,
       status: status,
       isGettingChildren: isGettingChildren,
       isGettingNewestChapter: isGettingNewestChapter,

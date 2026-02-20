@@ -190,6 +190,7 @@ export async function updateStory(story: Story, coverArtFile?: File): Promise<Se
       type: story.type,
       status: story.status,
       genre: story.genres,
+      summary: story.summary,
       ...(coverArtUrl && { coverArtUrl: coverArtUrl, publicId: publicId }),
     });
     return res.data;

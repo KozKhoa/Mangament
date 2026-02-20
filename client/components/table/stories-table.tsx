@@ -127,6 +127,7 @@ export default function StoriesTable({ className, data, pagination }: StoriesTab
             <col className="border-r border-l border-foreground/10" />
             <col className="border-r border-l border-foreground/10" />
             <col className="border-r border-l border-foreground/10" />
+            <col className="border-r border-l border-foreground/10" />
             <col className="border-l border-foreground/10" />
           </colgroup>
           <thead className="bg-black/10 text-[1.2em] text-foreground/80 rounded-lg overflow-hidden">
@@ -138,6 +139,7 @@ export default function StoriesTable({ className, data, pagination }: StoriesTab
               <th>Status</th>
               <th>No. Children</th>
               <th>Type</th>
+              <th>Nation</th>
               <th>Active</th>
               <th>Action</th>
             </tr>
@@ -178,6 +180,8 @@ export default function StoriesTable({ className, data, pagination }: StoriesTab
                 <TD>
                   <StoryTypeTag storyType={story.type}></StoryTypeTag>
                 </TD>
+
+                <TD>{[story.nation?.flag_icon, story.nation?.name].join(" ")}</TD>
                 <TD>
                   <Switch
                     defaultValue={story.is_actived}

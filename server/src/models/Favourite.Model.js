@@ -154,10 +154,6 @@ export async function FindFavouriteStory({ id, userId, storyId }) {
 }
 
 export async function AddFavouriteStory({ userId, storyId }) {
-  // Is story exist
-  const isStoryExist = await db.story.findFirst({ where: { is_deleted: false, id: storyId } });
-  if (!isStoryExist) throw new Error("Story not found");
-
   const favourite = await db.favouriteStory.upsert({
     where: { user_id_story_id: { user_id: userId, story_id: storyId } },
     create: { user: { connect: { id: userId } }, story: { connect: { id: storyId } } },

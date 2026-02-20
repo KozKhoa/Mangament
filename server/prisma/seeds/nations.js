@@ -1,7 +1,5 @@
 import db from "../../src/configs/db.js";
 
-import { execSync } from "child_process";
-
 const NATIONS = [
   "Afghanistan",
   "Albania",

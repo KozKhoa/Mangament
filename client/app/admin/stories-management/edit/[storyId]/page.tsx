@@ -17,7 +17,7 @@ import { modal } from "@/components/modal/modal.store";
 import { snakeCaseToCapitalizeWord } from "@/utils/string";
 import Link from "next/link";
 import FullScreenLoading from "@/components/loadings/full-screen-loading";
-import NationMultiSelection from "@/components/selections/nation-multi-selection";
+import NationSelection from "@/components/selections/nation-selection";
 
 export default function EditStory() {
   const params = useParams();
@@ -57,7 +57,7 @@ export default function EditStory() {
           </p>
           <p>
             <span className="font-semibold">Quốc gia : </span>
-            {story?.nation} ➜ {editedStory?.nation}
+            {[story?.nation?.flag_icon, story?.nation?.name].join(" ")} ➜ {[editedStory?.nation?.flag_icon, editedStory?.nation?.name].join(" ")}
           </p>
           <p>
             <span className="font-semibold">Trạng thái : </span>
@@ -73,6 +73,11 @@ export default function EditStory() {
               </p>
             ))}
           </div>
+
+          <p>
+            <span className="font-semibold">Tóm tắt / Mô tả : </span>
+            {story?.summary} ➜ {editedStory?.summary}
+          </p>
         </div>
       ),
       onConfirm: async () => {
@@ -103,8 +108,7 @@ export default function EditStory() {
   function setNation(nation: string) {
     setEditedStory((prev) => {
       if (!prev) return prev;
-      const next = { ...prev };
-      next.nation = nation;
+      const next: Story = { ...prev, nation: { name: nation } };
       return next;
     });
   }
@@ -123,6 +127,14 @@ export default function EditStory() {
       if (!prev) return prev;
       const next = { ...prev };
       next.genres = genres;
+      return next;
+    });
+  }
+
+  function setSummary(summary: string) {
+    setEditedStory((prev) => {
+      if (!prev) return prev;
+      const next: Story = { ...prev, summary: summary };
       return next;
     });
   }
@@ -150,14 +162,17 @@ export default function EditStory() {
 
             <div className="flex flex-col gap-2 w-full lg:col-span-2">
               <Input label="Title" placeHolder={story?.title} defaultValue={story?.title} onChange={setTitle} onReset={setTitle}></Input>
-              <NationMultiSelection></NationMultiSelection>
+              <NationSelection
+                defaultValue={story?.nation ? [story?.nation?.flag_icon, story?.nation?.name].join(" ") : null}
+                onChange={(nation) => setNation(nation ?? "")}
+              ></NationSelection>
               <StoryStatusSelection
                 defaultValue={story?.status as TargetStoryStatus}
                 onChange={(status) => setStoryStatus(status ?? "")}
               ></StoryStatusSelection>
               <StoryGenreMultiSelection defaultValue={story?.genres} onChange={setGenres}></StoryGenreMultiSelection>
 
-              <TextArea label="Tóm tắt / Mô tả truyện" placeHolder={story?.summary} defaultValue={story?.summary}></TextArea>
+              <TextArea label="Tóm tắt / Mô tả truyện" placeHolder={story?.summary} defaultValue={story?.summary} onChange={setSummary}></TextArea>
             </div>
           </div>
 

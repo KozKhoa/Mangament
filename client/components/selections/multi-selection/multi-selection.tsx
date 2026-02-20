@@ -129,39 +129,38 @@ export default function MultiSelection({ className, defaultIndexs, label, option
           <ArrowDownIcon className={`w-4 h-4 shrink-0 fill-foreground duration-100 ${open ? "rotate-180" : "rotate-0"}`}></ArrowDownIcon>
         </div>
 
-        {/* <AnimatePresence>
-          {true && (
+        <AnimatePresence>
+          {open && (
             <motion.div
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: "fit-content", opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
               transition={{ duration: 0.1, ease: "linear" }}
-              className={`relative z-10 w-full ${open ? "h-full" : "h-0"}`}
-            > */}
-        <div
-          ref={refs.setFloating}
-          style={floatingStyles}
-          className={`flex absolute bottom-0 left-0 bg-background-items flex-col justify-center items-start w-full h-fit rounded-[4]
+              className={`relative z-10 w-full`}
+            >
+              <div
+                ref={refs.setFloating}
+                style={floatingStyles}
+                className={`flex absolute bg-background-items flex-col justify-center items-start w-full h-fit rounded-[4]
                 border-2 border-foreground gap-2.5 pb-1 px-0.5 shadow-[11px_13px_5px_rgba(0,0,0,0.3)] z-10 duration-100
-                ${open ? "scale-100" : "scale-0"}
               `}
-        >
-          <div className={`flex flex-col md:grid md:grid-cols-2 gap-2 max-h-[60vh] w-full h-full overflow-y-scroll no-scrollbar p-1 min-w-64`}>
-            {options?.map((op, i) => (
-              <Item key={i} index={i} isOn={selectedIndex.has(op)} toggleCheckbox={toggleCheckbox}>
-                {op}
-              </Item>
-            ))}
-          </div>
-          {onConfirm && (
-            <Button onClick={handleConfirmSelection} className="w-full mx-2 my-1">
-              Xác nhận
-            </Button>
+              >
+                <div className={`flex flex-col md:grid md:grid-cols-2 gap-2 max-h-[60vh] w-full h-full overflow-y-scroll no-scrollbar p-1 min-w-64`}>
+                  {options?.map((op, i) => (
+                    <Item key={i} index={i} isOn={selectedIndex.has(i)} toggleCheckbox={toggleCheckbox}>
+                      {op}
+                    </Item>
+                  ))}
+                </div>
+                {onConfirm && (
+                  <Button onClick={handleConfirmSelection} className="w-full mx-2 my-1">
+                    Xác nhận
+                  </Button>
+                )}
+              </div>
+            </motion.div>
           )}
-        </div>
-        {/* </motion.div>
-          )}
-        </AnimatePresence> */}
+        </AnimatePresence>
       </div>
     </div>
   );

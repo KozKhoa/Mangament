@@ -28,6 +28,7 @@ import FilterGenres from "@/components/filters/fiilter-genres";
 import FilterAuthors from "@/components/filters/filter-authors";
 import FilterViews, { TargetView } from "@/components/filters/filter-views";
 import FilterStoryStatus, { TargetStoryStatus } from "@/components/filters/filter-story-status";
+import FilterNation from "@/components/filters/filter-nations";
 
 const LIMIT = 30;
 
@@ -45,6 +46,7 @@ export default function StoriesPage() {
   const star = searchParams.get("star")?.split(",");
   const view = searchParams.get("view")?.split(",");
   const status = searchParams.get("status")?.split(",");
+  const nation = searchParams.get("nation")?.split(",");
 
   const [loading, setLoading] = useState(true);
   const [hoverStoryIndex, setHoverStoryIndex] = useState<number>(0);
@@ -58,6 +60,7 @@ export default function StoriesPage() {
       page: page,
       limit: LIMIT,
       type: [storyType],
+      nation: nation,
       isGettingNewestChapter: true,
       isGettingSummary: true,
 
@@ -102,8 +105,6 @@ export default function StoriesPage() {
     fetchStories();
   }, [searchParams]);
 
-  console.log(stories);
-
   return (
     <div className="w-full h-full flex flex-col font-afacad gap-12">
       <div className={`w-full flex flex-row justify-center items-start gap-5 `}>
@@ -135,6 +136,8 @@ export default function StoriesPage() {
                 <FilterAuthors value={author ?? []} onChange={(authors) => handleNavigate("author", authors.join(","))}></FilterAuthors>
 
                 <FilterViews value={(view ?? []) as TargetView[]} onChange={(view) => handleNavigate("view", view.join(","))}></FilterViews>
+
+                <FilterNation value={nation ?? []} onChange={(nations) => handleNavigate("nation", nations.join(","))}></FilterNation>
 
                 <FilterStoryStatus
                   value={(status ?? []) as TargetStoryStatus[]}

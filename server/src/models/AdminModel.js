@@ -11,7 +11,7 @@ const REDIS_CACHE_DASHBOARD_VIEW_KEY = "admin:dashboard:stats:views";
 
 const REDIS_CACHE_DASHBOARD_NEW_USERS_KEY = "admin:dashboard:stats:new-users";
 
-const TTL = 60;
+const TTL = 60 * 60;
 
 const intervalMap = {
   hour: "1 hour",

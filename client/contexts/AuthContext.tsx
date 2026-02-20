@@ -21,9 +21,9 @@ interface AuthContextProps {
   updateBirthday: (date: Date) => void;
   updateAvatar: (avatar: File) => void;
 
-  login: (email: string, password: string) => void;
-  register: (name: string, email: string, password: string) => void;
-  logout: () => void;
+  login: (email: string, password: string) => Promise<any>;
+  register: (name: string, email: string, password: string) => Promise<any>;
+  logout: () => Promise<any>;
 }
 
 const AuthContext = createContext<AuthContextProps | null>(null);
@@ -101,7 +101,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setLoading(false);
   }
 
-  async function login(email: string, password: string) {
+  async function login(email: string, password: string): Promise<any> {
     if (!validateEmailFormat(email)) return toast.error("Invalid Email");
     if (!validatePasswordFormat(password)) return toast.error("Password must have at least six character");
 

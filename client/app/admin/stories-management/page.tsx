@@ -34,6 +34,7 @@ import FilterStoryStatus, { TargetStoryStatus } from "@/components/filters/filte
 import FilterRatings, { TargetRating } from "@/components/filters/filter-ratings";
 import FilterStoryType, { TargetStoryType } from "@/components/filters/filter-story-type";
 import { modal } from "@/components/modal/modal.store";
+import FilterNation from "@/components/filters/filter-nations";
 
 const STORIES_PIE_CHART_COLORS = [
   "#6A4E42", // warm brown
@@ -86,6 +87,7 @@ export default function StoriesManagementPage() {
   const view = searchParams.get("view")?.split(",");
   const status = searchParams.get("status")?.split(",");
   const storyType = searchParams.get("type")?.split(",");
+  const nation = searchParams.get("nation")?.split(",");
 
   const handleNavigate = useCallback(
     (key: string, value: string) => {
@@ -122,6 +124,7 @@ export default function StoriesManagementPage() {
         star: star,
         view: view,
         status: status,
+        nation: nation,
       });
       setLoadingStories(false);
 
@@ -170,6 +173,8 @@ export default function StoriesManagementPage() {
                     value={(status ?? []) as TargetStoryStatus[]}
                     onChange={(status) => handleNavigate("status", status.join(","))}
                   ></FilterStoryStatus>
+
+                  <FilterNation value={nation ?? []} onChange={(nations) => handleNavigate("nation", nations.join(","))}></FilterNation>
                 </div>
 
                 {/* Sort story and reset params */}

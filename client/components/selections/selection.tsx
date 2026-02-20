@@ -21,7 +21,7 @@ interface StoryStatusSelectionProps {
 
   label?: string | React.ReactNode;
 
-  defaultIndex?: number;
+  defaultIndex: number | null;
 
   options: any[];
 
@@ -30,7 +30,7 @@ interface StoryStatusSelectionProps {
   onReset?: (index: number | null) => void;
 }
 
-export default function Selection({ className, defaultIndex, label, options, onChange, onReset }: StoryStatusSelectionProps) {
+export default function Selection({ className, defaultIndex = null, label, options, onChange, onReset }: StoryStatusSelectionProps) {
   const dropdown = useRef<HTMLDivElement>(null);
 
   const { refs, floatingStyles } = useFloating({

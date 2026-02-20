@@ -216,7 +216,9 @@ export async function GetStory(req, res, next) {
 // GET /admin/stories
 export async function GetAllStories(req, res, next) {
   try {
-    const { isGettingChildren, authors, keyword, isGettingNewestChapter, limit, status, page, type, genres, star, view, sort } = ConvertQuery(req.query);
+    const { isGettingChildren, authors, keyword, isGettingNewestChapter, limit, status, page, type, genres, star, view, sort, nations } = ConvertQuery(
+      req.query,
+    );
 
     const stories = await storiesModel.FindAllStories({
       keyword: keyword,
@@ -228,6 +230,7 @@ export async function GetAllStories(req, res, next) {
       authorsId: authors,
       sort: sort,
       page: page,
+      nation: nations,
       limit: limit,
       status: status,
       isGettingChildren: isGettingChildren,
@@ -257,7 +260,7 @@ export async function UpdateStory(req, res, next) {
     const body = req?.body;
 
     const title = body?.title;
-    const nation = body?.nation;
+    const nation = body?.nation?.name;
     const type = body?.type;
     const status = body?.status;
     const genre = body?.genre;
