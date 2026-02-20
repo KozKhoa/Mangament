@@ -6,11 +6,11 @@ import { AuthenticationToken } from "../middlewares/Auth.Middleware.js";
 
 const commentRoute = express.Router();
 
-commentRoute.get("/:storyId", GetAllComments);
-commentRoute.get("/:storyId/:storyNodeId", GetAllComments);
+commentRoute.get("/story/:storyId", GetAllComments);
+commentRoute.get("/story/:storyId/story-node/:storyNodeId", GetAllComments);
 
-commentRoute.post("/:storyId", AuthenticationToken, PostComment);
-commentRoute.post("/:storyId/:storyNodeId", AuthenticationToken, PostComment);
+commentRoute.post("/story/:storyId", AuthenticationToken, PostComment);
+commentRoute.post("/story/:storyId/story-node/:storyNodeId", AuthenticationToken, PostComment);
 
 commentRoute.put("/:id", AuthenticationToken, PutComment);
 

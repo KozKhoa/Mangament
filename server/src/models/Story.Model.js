@@ -7,7 +7,7 @@ import { ValidateGenre } from "./Genre.Model.js";
 
 import { validate as isUUID } from "uuid";
 
-const REDIS_TTL = 60 * 30; // 30 minutes
+const REDIS_TTL = 60 * 60; // 60 minutes
 
 // Đây là hàm lấy version redis. Khi adim thêm mới story thì sẽ update version lên
 async function getRedisStoriesVersion() {
@@ -31,7 +31,6 @@ export async function BuildStoryTree(storyId, storyNodeId) {
   const version = await getRedisStoriesVersion();
 
   const REDIS_KEY = ["BuildStoryTree", "v=" + version, storyId, storyNodeId].join(":");
-  const REDIS_TTL = 60 * 30; // 10 minutes
 
   const cached = await redis.get(REDIS_KEY);
 
@@ -291,6 +290,7 @@ export async function FindStory({ id, title, isGettingChildren = false, isGettin
   ].join(":");
 
   const cached = await redis.get(REDIS_KEY);
+
   if (cached) return JSON.parse(cached);
 
   const story = await db.story.findUnique({

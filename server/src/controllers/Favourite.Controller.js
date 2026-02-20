@@ -1,4 +1,4 @@
-import { FindAllFavouriteStories, AddFavouriteStory, SoftDeleteFavouriteStory } from "../models/Favourite.Model.js";
+import { FindAllFavouriteStories, AddFavouriteStory, RemoveFavouriteStory } from "../models/Favourite.Model.js";
 
 import { CreateError } from "../utils/ErrorHandle.js";
 import ErrorCodes from "../constants/Error.js";
@@ -74,7 +74,7 @@ export async function DeleteFavouriteStory(req, res, next) {
 
     if (!favouriteId) throw CreateError(400, "'id' for favourite story is required");
 
-    const removing = await SoftDeleteFavouriteStory({ id: favouriteId, userId: userId });
+    const removing = await RemoveFavouriteStory(favouriteId);
 
     if (!removing) throw CreateError();
 

@@ -1,7 +1,44 @@
 import db from "../configs/db.js";
 import { CreateError } from "../utils/ErrorHandle.js";
+import { redis } from "../configs/redis.js";
+
+const REDIS_TTL = 60 * 60; // 60 minutes
+
+// Đây là hàm lấy version redis của comment.
+async function getCommentVersion(storyId, storyNodeId) {
+  const versionKey = `version:comment:${storyId}:${storyNodeId}`;
+  let version = await redis.get(versionKey);
+
+  if (!version) {
+    version = 1;
+    await redis.set(versionKey, version);
+  }
+
+  return version;
+}
+
+// Đây là hàm dùng để tăng version cho việc lấy comment list
+async function incrCommentVersion(storyId, storyNodeId) {
+  await redis.incr(`version:comment:${storyId}:${storyNodeId}`);
+}
 
 export async function FindAllComments({ userId, storyId, storyNodeId, sort = { updated_at: "desc" }, page = 1, limit = 10 }) {
+  const version = await getCommentVersion(storyId, storyNodeId);
+
+  const REDIS_KEY = [
+    "FindAllComments",
+    "v=" + version,
+    "userId=" + userId,
+    "storyId=" + storyId,
+    "storyNodeId=" + storyNodeId,
+    "page=" + page,
+    "limit=" + limit,
+    "sort=" + JSON.stringify(sort),
+  ].join(":");
+
+  const cached = await redis.get(REDIS_KEY);
+  if (cached) return JSON.parse(cached);
+
   const where = {
     is_deleted: false,
 
@@ -30,7 +67,7 @@ export async function FindAllComments({ userId, storyId, storyNodeId, sort = { u
 
   const totalItems = await db.comment.count({ where: where });
 
-  return {
+  const result = {
     success: true,
     data: comments,
     pagination: {
@@ -40,14 +77,27 @@ export async function FindAllComments({ userId, storyId, storyNodeId, sort = { u
       totalItems: totalItems,
     },
   };
+
+  redis.setex(REDIS_KEY, REDIS_TTL, JSON.stringify(result));
+
+  return result;
 }
 
 export async function FindComment({ id }) {
+  const REDIS_KEY = ["FindComment", "commentId=" + id].join(":");
+
+  const cached = await redis.get(REDIS_KEY);
+  if (cached) return JSON.parse(cached);
+
   if (!id) throw new Error("Require id");
 
   const comment = await db.comment.findFirst({ where: { is_deleted: false, id: id } });
 
-  return { success: false, data: comment };
+  const result = { success: false, data: comment };
+
+  redis.setex(REDIS_KEY, REDIS_TTL, JSON.stringify(result));
+
+  return result;
 }
 
 export async function AddComment({ userId, storyId, storyNodeId, title, content }) {
@@ -59,56 +109,62 @@ export async function AddComment({ userId, storyId, storyNodeId, title, content 
     throw CreateError(400, "Require both title and content");
   }
 
-  if (storyId) {
-    const story = await db.story.findFirst({ where: { is_deleted: false, id: storyId } });
-    if (!story) throw CreateError(400, "Story not found");
-  }
-
-  if (userId) {
-    const user = await db.user.findFirst({ where: { is_deleted: false, id: userId } });
-    if (!user) throw CreateError(400, "User not found");
-  }
-
-  if (storyNodeId) {
-    const storyNode = await db.storyNode.findFirst({ where: { is_deleted: false, id: storyNodeId } });
-    if (!storyNode) throw CreateError(400, "Story node not found");
-  }
-
-  const newComment = await db.comment.create({
-    data: {
-      user: {
-        connect: {
-          id: userId,
-        },
-      },
-      story: {
-        connect: {
-          id: storyId,
-        },
-      },
-      ...(storyNodeId && {
-        story_node: {
+  const newComment = await db.comment
+    .create({
+      data: {
+        user: {
           connect: {
-            id: storyNodeId,
+            id: userId,
           },
         },
-      }),
-      title: title,
-      content: content,
-    },
+        story: {
+          connect: {
+            id: storyId,
+          },
+        },
+        ...(storyNodeId && {
+          story_node: {
+            connect: {
+              id: storyNodeId,
+            },
+          },
+        }),
+        title: title,
+        content: content,
+      },
 
-    include: {
-      user: {
-        select: {
-          id: true,
-          name: true,
-          avatar: { select: { url: true, height: true, width: true } },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            avatar: { select: { url: true, height: true, width: true } },
+          },
         },
       },
-    },
-  });
+    })
+    .catch(async (error) => {
+      console.log(error);
+
+      if (storyId) {
+        const story = await db.story.findFirst({ where: { is_deleted: false, id: storyId } });
+        if (!story) throw CreateError(400, "Story not found");
+      }
+
+      if (userId) {
+        const user = await db.user.findFirst({ where: { is_deleted: false, id: userId } });
+        if (!user) throw CreateError(400, "User not found");
+      }
+
+      if (storyNodeId) {
+        const storyNode = await db.storyNode.findFirst({ where: { is_deleted: false, id: storyNodeId } });
+        if (!storyNode) throw CreateError(400, "Story node not found");
+      }
+    });
 
   delete newComment.is_deleted;
+
+  incrCommentVersion(storyId, storyNodeId);
 
   return { success: true, data: newComment };
 }

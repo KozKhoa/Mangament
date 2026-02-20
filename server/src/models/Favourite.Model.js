@@ -1,5 +1,8 @@
 import db from "../configs/db.js";
 import { redis } from "../configs/redis.js";
+import { CreateError } from "../utils/ErrorHandle.js";
+
+const REDIS_TTL = 60 * 60; // 60 minutes
 
 // Đây là hàm lấy version redis của FindAllFavouriteStories. Khi user thêm mới story vào fav list của user thì sẽ update version lên
 async function getFavVersion(userId) {
@@ -28,7 +31,7 @@ export async function FindAllFavouriteStories({
   genres = [],
   star = [],
   view = [],
-  sort = { updated_at: "desc" },
+  sort = { created_at: "desc" },
 }) {
   const version = await getFavVersion(userId);
 
@@ -46,13 +49,10 @@ export async function FindAllFavouriteStories({
     "sort=" + JSON.stringify(sort),
   ].join(":");
 
-  const REDIS_TTL = 60 * 10; // 10 minutes
-
   const cached = await redis.get(REDIS_KEY);
   if (cached) return JSON.parse(cached);
 
   const where = {
-    is_deleted: false,
     user_id: userId,
     story: {
       ...(storyType && { type: { in: storyType } }),
@@ -100,7 +100,7 @@ export async function FindAllFavouriteStories({
         },
       },
     },
-    orderBy: [sort, { updated_at: "desc" }, { id: "desc" }],
+    orderBy: [sort, { id: "desc" }],
     take: limit,
     skip: (page - 1) * limit,
   });
@@ -127,14 +127,12 @@ export async function FindFavouriteStory({ id, userId, storyId }) {
   const version = await getFavVersion(userId);
 
   const REDIS_KEY = ["FindFavouriteStory", "v=" + version, "id=" + id, "userId=" + userId, "storyId=" + storyId].join(":");
-  const REDIS_TTL = 60 * 10; // 10 minutes
 
   const cached = await redis.get(REDIS_KEY);
   if (cached) return JSON.parse(cached);
 
   const favourite = await db.favouriteStory.findUnique({
     where: {
-      is_deleted: false,
       ...(id && { id: id }),
       ...(userId &&
         storyId && {
@@ -154,33 +152,32 @@ export async function FindFavouriteStory({ id, userId, storyId }) {
 }
 
 export async function AddFavouriteStory({ userId, storyId }) {
-  const favourite = await db.favouriteStory.upsert({
-    where: { user_id_story_id: { user_id: userId, story_id: storyId } },
-    create: { user: { connect: { id: userId } }, story: { connect: { id: storyId } } },
-    update: { is_deleted: false, updated_at: new Date() },
-  });
+  const favourite = await db.favouriteStory
+    .create({
+      data: {
+        user: { connect: { id: userId } },
+        story: { connect: { id: storyId } },
+      },
+    })
+    .catch(async (error) => {
+      const user = await db.user.findFirst({ where: { is_deleted: false, id: userId } });
+      if (!user) throw CreateError(400, "User not found");
+
+      const story = await db.story.findFirst({ where: { is_deleted: false, id: storyId } });
+      if (!story) throw CreateError(400, "Story not found");
+    });
 
   incrFavVersion(userId);
 
   return { success: true, data: favourite };
 }
 
-export async function HardDeleteFavouriteStory({ id }) {
-  if (!id) throw new Error("Require id");
+export async function RemoveFavouriteStory(favouriteId) {
+  if (!favouriteId) throw CreateError(400, "Require 'id' for favourite story");
 
-  const hardRemove = await db.favouriteStory.deleteMany({ where: { id: id } });
+  await db.favouriteStory.delete({ where: { id: favouriteId } });
 
   incrFavVersion(userId);
 
   return { success: true, message: "Remove permanently" };
-}
-
-export async function SoftDeleteFavouriteStory({ id, userId }) {
-  if (!id || !userId) throw new Error("Require favourite id and user id");
-
-  const softRemove = await db.favouriteStory.update({ where: { id: id, user_id: userId }, data: { is_deleted: true } });
-
-  incrFavVersion(userId);
-
-  return { success: true, data: softRemove };
 }

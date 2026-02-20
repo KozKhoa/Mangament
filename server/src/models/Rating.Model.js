@@ -1,7 +1,36 @@
 import db from "../configs/db.js";
 import { CreateError } from "../utils/ErrorHandle.js";
 
+import { redis } from "../configs/redis.js";
+
+const REDIS_TTL = 60 * 60; // 60 minutes
+
+// Đây là hàm lấy version redis của rating.
+async function getRatingVersion(uuid) {
+  const versionKey = `version:rating:${uuid}`;
+  let version = await redis.get(versionKey);
+
+  if (!version) {
+    version = 1;
+    await redis.set(versionKey, version);
+  }
+
+  return version;
+}
+
+// Đây là hàm dùng để tăng version cho việc lấy rating list
+async function incrRatingVersion(uuid) {
+  await redis.incr(`version:rating:${uuid}`);
+}
+
 export async function FindAllRatings({ storyId, userId, star = [[0, 6]], sort = { updated_at: "desc" }, page = 1, limit = 10 }) {
+  const version = await getRatingVersion(storyId);
+
+  const REDIS_KEY = ["FindAllRatings", version, storyId, userId, star, JSON.stringify(sort), page, limit].join(":");
+
+  const cached = await redis.get(REDIS_KEY);
+  if (cached) return JSON.parse(cached);
+
   const where = {
     is_deleted: false,
     ...(storyId && { story_id: storyId }),
@@ -30,7 +59,7 @@ export async function FindAllRatings({ storyId, userId, star = [[0, 6]], sort = 
 
   const totalItems = await db.rating.count({ where: where });
 
-  return {
+  const result = {
     success: true,
     data: ratings,
     pagination: {
@@ -40,16 +69,31 @@ export async function FindAllRatings({ storyId, userId, star = [[0, 6]], sort = 
       totalItems: totalItems,
     },
   };
+
+  redis.setex(REDIS_KEY, REDIS_TTL, JSON.stringify(result));
+
+  return result;
 }
 
 export async function FindRating({ id, userId, storyId }) {
+  const version = await getRatingVersion(id);
+
+  const REDIS_KEY = ["FindAllRatings", version, storyId, userId, star, JSON.stringify(sort), page, limit].join(":");
+
+  const cached = await redis.get(REDIS_KEY);
+  if (cached) return JSON.parse(cached);
+
   if (!(id || (userId && storyId))) {
     throw new Error("Require id or (user id and story id)");
   }
 
   const rating = await db.rating.findFirst({ where: { is_deleted: false, id: id } });
 
-  return { success: true, data: rating };
+  const result = { success: true, data: rating };
+
+  redis.setex(REDIS_KEY, REDIS_TTL, JSON.stringify(result));
+
+  return result;
 }
 
 export async function AddRatings({ userId, storyId, star, title, content }) {
@@ -65,35 +109,37 @@ export async function AddRatings({ userId, storyId, star, title, content }) {
     throw CreateError(400, "star must be a number between 1 and 5");
   }
 
+  const story = await db.story.findFirst({ where: { id: storyId, is_deleted: false } });
+  if (!story) throw CreateError(400, "Story not found");
+
   return db.$transaction(async (db) => {
-    const story = await db.story.findFirst({ where: { id: storyId, is_deleted: false } });
-    if (!story) throw CreateError(400, "Story not found");
-
-    const user = await db.user.findFirst({ where: { id: userId, is_deleted: false } });
-    if (!user) throw CreateError(400, "User not found");
-
-    const oldRating = await db.rating.findUnique({ where: { user_id_story_id: { story_id: storyId, user_id: userId } } });
-    if (oldRating) throw CreateError(400, "Rating already exist");
-
-    const newRating = await db.rating.create({
-      data: {
-        user: {
-          connect: {
-            id: userId,
+    const newRating = await db.rating
+      .create({
+        data: {
+          user: {
+            connect: {
+              id: userId,
+            },
           },
-        },
-        story: {
-          connect: {
-            id: storyId,
+          story: {
+            connect: {
+              id: storyId,
+            },
           },
+          star: star,
+          title: title,
+          content: content,
         },
-        star: star,
-        title: title,
-        content: content,
-      },
 
-      include: { user: { select: { id: true, name: true, avatar: { select: { url: true, height: true, width: true } } } } },
-    });
+        include: { user: { select: { id: true, name: true, avatar: { select: { url: true, height: true, width: true } } } } },
+      })
+      .catch(async (error) => {
+        const oldRating = await db.rating.findUnique({ where: { user_id_story_id: { story_id: storyId, user_id: userId } } });
+        if (oldRating) throw CreateError(400, "Rating already exist");
+
+        const user = await db.user.findFirst({ where: { id: userId, is_deleted: false } });
+        if (!user) throw CreateError(400, "User not found");
+      });
 
     // Update star for story
     const newStar = (story.star * story.rating_count + star) / (story.rating_count + 1);
@@ -107,70 +153,45 @@ export async function AddRatings({ userId, storyId, star, title, content }) {
 
     delete newRating.is_deleted;
 
+    incrRatingVersion(storyId);
+
     return { success: true, data: newRating };
   });
 }
 
-export async function SoftDeleteRating(where = { id }) {
-  try {
-    const removing = await db.rating.update({
-      where: where,
-      data: {
-        is_deleted: true,
-      },
-      select: {
-        id: true,
-      },
-    });
-    return { success: true, data: removing };
-  } catch (error) {
-    if (error.code !== "P2025") console.error("❌ [Rating.Model.js] Error soft deleting rating:", error);
-    return { success: false, error: error.code };
-  }
+export async function SoftDeleteRating(ratingId) {
+  const removing = await db.rating.update({
+    where: { id: ratingId },
+    data: { is_deleted: true },
+  });
+
+  incrRatingVersion(ratingId);
+
+  return { success: true, data: removing };
 }
 
-export async function HardDeleteRating(where = { id }) {
-  try {
-    const removing = await db.rating.delete({
-      where: where,
-      select: {
-        id: true,
-      },
-    });
-    return { success: true, data: removing };
-  } catch (error) {
-    console.error("❌ [Rating.Model.js] Error hard delete rating:", error);
-    return { success: false, error: error.code };
-  }
+export async function HardDeleteRating(ratingId) {
+  const remove = await db.rating.delete({
+    where: { id: ratingId },
+  });
+
+  incrRatingVersion(ratingId);
+
+  return { success: true, data: remove };
 }
 
-export async function UpdateRating(where = { id }, data = {}) {
-  try {
-    const updating = await db.rating.update({
-      where: where,
-      data: data,
-      select: {
-        id: true,
-        star: true,
-        story_id: true,
-        message: true,
-        created_at: true,
-        updated_at: true,
-        user: {
-          select: {
-            id: true,
-            name: true,
-            avatar: { select: { url: true, width: true, height: true } },
-          },
-        },
-      },
-    });
+export async function UpdateRating(id, data = { star, title, content }) {
+  if (!id) throw CreateError(400, "Require 'id' for update rating");
 
-    return { success: true, data: updating };
-  } catch (error) {
-    if (error.code !== "P2025") console.error("❌ [Rating.Model.js] Error updating rating:", error);
-    return { success: false, error: error.code };
-  }
+  const updating = await db.rating.update({
+    where: where,
+    data: data,
+    include: { user: { select: { id: true, name: true, avatar: { select: { url: true, width: true, height: true } } } } },
+  });
+
+  incrRatingVersion(id);
+
+  return { success: true, data: updating };
 }
 
 export async function CountRating(where = {}) {
