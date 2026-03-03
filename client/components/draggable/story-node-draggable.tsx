@@ -296,19 +296,13 @@ const StoryNodeDraggable = React.memo(function StoryNodeDraggable({
   }
 
   return (
-    <div
-      // ref={setNodeRef} style={styles} {...attributes}
-      className={`flex flex-col gap-2 `}
-    >
+    <div className={`flex flex-col gap-2 `}>
       <div
         className={`flex gap-0.5 items-center justify-between bg-background-items
             px-3 py-2 border-2 rounded-[5] min-h-10.5 
             ${storyNode.is_deleted ? "border-red-500 opacity-20" : storyNode.is_new ? "border-green-500" : storyNode.is_edited ? "border-yellow-500" : "border-transparent"}`}
       >
-        <div
-          // {...listeners}
-          className="flex flex-row  items-center gap-2 w-full "
-        >
+        <div className="flex flex-row  items-center gap-2 w-full ">
           <div className="flex justify-center items-center min-w-10 min-h-10 px-1 bg-foreground/20 rounded-sm">
             <p className="font-semibold text-lg">{storyNode.order_index}</p>
           </div>

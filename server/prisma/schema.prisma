@@ -133,7 +133,7 @@ model User {
 
 model Story {
   id                 String      @id @default(uuid()) @db.Uuid
-  title              String      @unique
+  title              String     @unique
   view               Int         @default(0)
   star               Float       @default(0)
   rating_count       Int         @default(0) // Number of rating
@@ -187,7 +187,7 @@ model StoryNode {
   reading_history ReadingHistory[]
   comment         Comment[]
 
-  @@unique([story_id, parent_id, type, order_index])
+  // @@unique([story_id, parent_id, type, order_index]) 
 }
 
 model StoryNodeContent {
@@ -197,11 +197,14 @@ model StoryNodeContent {
   order_index   Int
   content       String?
   image_id      String?              @db.Uuid()
+  
+  is_deleted Boolean @default(false)
+  created_at         DateTime    @default(now())
 
   story_node StoryNode @relation(fields: [story_node_id], references: [id], onDelete: Cascade)
   image      Image?    @relation(fields: [image_id], references: [id], onDelete: Cascade)
 
-  @@unique([story_node_id, order_index])
+  // @@unique([story_node_id, order_index])
 }
 
 model Image {
@@ -211,7 +214,9 @@ model Image {
   public_id  String? @unique //  This contain public id of cloudinary
   width      Int?
   height     Int?
+
   is_deleted Boolean @default(false)
+  created_at         DateTime    @default(now())
 
   user               User[]
   story              Story[]

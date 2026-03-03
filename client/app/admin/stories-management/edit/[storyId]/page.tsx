@@ -54,6 +54,8 @@ export default function EditStory() {
     const newGenresSet = new Set(editedStory?.genres);
     const combineGenresSet = new Set([...oldGenresSet, ...newGenresSet]);
 
+    const change = handleParseChildrenAdjustment();
+
     modal.open("confirm", {
       title: "Xác nhận cập nhật thông tin",
       content: (
@@ -85,12 +87,17 @@ export default function EditStory() {
             <span className="font-semibold">Tóm tắt / Mô tả : </span>
             {story?.summary} ➜ {editedStory?.summary}
           </p>
+
+          <div>
+            <span className="font-semibold">Children : </span>
+            <div className="max-h-[50vh] overflow-y-scroll">
+              <pre className="bg-background p-2 rounded-lg">{JSON.stringify(change, null, 1)}</pre>
+            </div>
+          </div>
         </div>
       ),
       onConfirm: async () => {
         if (!editedStory) return toast.message("Vui lòng đợi trong giây lát");
-
-        const change = handleParseChildrenAdjustment();
 
         setIsUpdating(true);
         const res = await adminService.updateStory(editedStory, coverArtFile, change);
@@ -245,11 +252,6 @@ export default function EditStory() {
   }
 
   useEffect(() => {
-    const change = handleParseChildrenAdjustment();
-    console.log(change);
-  }, [editedStory?.children]);
-
-  useEffect(() => {
     fetchStory();
   }, []);
 
@@ -271,7 +273,7 @@ export default function EditStory() {
             <div className="col-span-1">
               <ImagePicker
                 className="w-full h-full"
-                defaultValue={story?.cover_art.url}
+                defaultValue={story?.cover_art?.url}
                 onChange={(file) => setCoverArtFile(file as File)}
                 onReset={() => setCoverArtFile(undefined)}
               />
@@ -295,7 +297,11 @@ export default function EditStory() {
           </div>
 
           {/* Content */}
-          <div>{story?.children && <StoryNodeContainerDraggable onChange={setChildren} storyNodes={story.children}></StoryNodeContainerDraggable>}</div>
+          <div>
+            {story?.children && (
+              <StoryNodeContainerDraggable storyId={storyId} onChange={setChildren} storyNodes={story.children}></StoryNodeContainerDraggable>
+            )}
+          </div>
 
           <div>
             <Button className="font-semibold text-lg w-full" onClick={onConfirmUpdate}>

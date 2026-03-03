@@ -6,6 +6,7 @@ import { ValidateStoryType } from "./Enum.Model.js";
 import { ValidateGenre } from "./Genre.Model.js";
 
 import { validate as isUUID } from "uuid";
+import { incrRedisStoryNodesVersion } from "./StoryNode.Model.js";
 
 const REDIS_TTL = 60 * 60; // 60 minutes
 
@@ -45,10 +46,13 @@ export async function BuildStoryTree(storyId, storyNodeId, isGettingContent = fa
       ...(storyNodeId && { parent_id: storyNodeId }),
     },
     include: {
-      content: {
-        include: { image: true },
-        orderBy: { order_index: "asc" },
-      },
+      ...(isGettingContent && {
+        content: {
+          where: { is_deleted: false },
+          include: { image: { where: { is_deleted: false } } },
+          orderBy: { order_index: "asc" },
+        },
+      }),
     },
 
     orderBy: { order_index: "asc" },
@@ -301,7 +305,7 @@ export async function FindStory({ id, title, isGettingChildren = false, isGettin
 
   if (cached) return JSON.parse(cached);
 
-  const story = await db.story.findUnique({
+  const story = await db.story.findFirst({
     where: { ...(id && { id: id }), ...(title && { title: title }), is_deleted: false, is_actived: isActived },
     include: {
       authors: { select: { author: { select: { id: true, name: true } } } },
@@ -333,16 +337,12 @@ export async function FindStory({ id, title, isGettingChildren = false, isGettin
   return result;
 }
 
-export async function AddStory({ title, type, nation = { name, flag_icon }, genres = [], authorIds, status, posterId, summary, coverArt = { url, publicId } }) {
+export async function AddStory({ title, type, nation, genres = [], authorIds, status, posterId, summary, coverArt }) {
   if (!title || !type) throw CreateError(400, "'title' and 'type' are required");
 
-  return await db.$transaction(async (db) => {
-    // Check if story exist or not;
-    const story = await db.story.findUnique({ where: { title: title } });
-    if (story) throw CreateError(409, "Story already exist");
-
+  return await db.$transaction(async (tx) => {
     if (authorIds) {
-      const authors = await db.author.findMany();
+      const authors = await tx.author.findMany();
       const authorsSet = new Set(authors.map((author) => author.id));
 
       const invalidAuthors = [];
@@ -354,19 +354,26 @@ export async function AddStory({ title, type, nation = { name, flag_icon }, genr
     }
 
     // If not exist
-    const newStory = await db.story.create({
-      data: {
-        ...(type && { type: type }),
-        ...(title && { title: title }),
-        ...(status && { status: status }),
-        ...(summary && { summary: summary }),
-        ...(posterId && { poster: { connect: { id: posterId } } }),
-        ...(nation && { nation: { connect: { name: nation.name } } }),
-        ...(genres && { genres: { create: genres.map((genre) => ({ genre: genre })) } }),
-        ...(authorIds && { authors: { connectOrCreate: authorIds.map((authorId) => ({ author_id: authorId })) } }),
-        ...(coverArt && { cover_art: { connectOrCreate: { where: { url: coverArt.url }, create: { url: coverArt.url, public_id: coverArt.publicId } } } }),
-      },
-    });
+    const newStory = await tx.story
+      .create({
+        data: {
+          ...(type && { type: type }),
+          ...(title && { title: title }),
+          ...(status && { status: status }),
+          ...(summary && { summary: summary }),
+          ...(posterId && { poster: { connect: { id: posterId } } }),
+          ...(nation && { nation: { connect: { name: nation.name } } }),
+          ...(genres && { genres: { create: genres.map((genre) => ({ genre: genre })) } }),
+          ...(authorIds && { authors: { connectOrCreate: authorIds.map((authorId) => ({ author_id: authorId })) } }),
+          ...(coverArt && { cover_art: { connectOrCreate: { where: { url: coverArt.url }, create: { url: coverArt.url, public_id: coverArt.publicId } } } }),
+        },
+      })
+      .catch(async (error) => {
+        console.log(error);
+
+        const uniqueTitle = title ? await db.story.findUnique({ where: { title: title } }) : undefined;
+        if (uniqueTitle) throw CreateError(400, `'${title}' đã có nguời đăng ký`);
+      });
 
     incrRedisStoriesVersion();
 
@@ -443,23 +450,28 @@ export async function UpdateStory(
     nation,
     status,
     genres = [],
-    coverArtUrl,
-    publicId,
+    coverArt,
     nextChapterIn,
     authorIds = [],
-    children = {
-      delete: { story_node: [{ id }], content: [{ id }] },
-      add: {
-        story_node: [{ id, story_id, parent_id, order_index, type }],
-        content: [{ id, type, story_node_id, order_index, image: { url, public_id, key } }],
-      },
-      edit: {
-        story_node: [{ id, order_index, story_id, title, type, content: [{ id, order_index, type }] }],
-        content: [{ id, order_index, type, image: { id, url, key, public_id } }],
-      },
-    },
+
+    children,
+    // children = {
+    //   delete: { story_node: [{ id }], content: [{ id }] },
+    //   add: {
+    //     story_node: [{ id, story_id, parent_id, order_index, type }],
+    //     content: [{ id, type, story_node_id, order_index, image: { id, url, public_id, key } }],
+    //   },
+    //   edit: {
+    //     story_node: [{ id, order_index, story_id, title, type, content: [{ id, order_index, type }] }],
+    //     content: [{ id, order_index, type, image: { id, url, key, public_id } }],
+    //   },
+    // },
   },
 ) {
+  incrRedisStoriesVersion();
+
+  incrRedisStoryNodesVersion();
+
   return await db.$transaction(async function (tx) {
     const story = await tx.story.findFirst({ where: { id: id, is_deleted: false } });
     if (!story) {
@@ -476,26 +488,33 @@ export async function UpdateStory(
       genres = ValidateGenre(genres);
     }
 
-    const result = await tx.story.update({
-      where: { id: id },
-      data: {
-        ...(title && { title: title }),
-        ...(type && { type: type }),
-        ...(view !== undefined && { view: view }),
-        ...(summary && { summary: summary }),
-        ...(status && { status: status }),
-        ...(nextChapterIn && { next_chapter_in: nextChapterIn }),
-        ...(nation && { nation: { connect: { name: nation } } }),
+    const result = await tx.story
+      .update({
+        where: { id: id },
+        data: {
+          ...(title && { title: title }),
+          ...(type && { type: type }),
+          ...(view !== undefined && { view: view }),
+          ...(summary && { summary: summary }),
+          ...(status && { status: status }),
+          ...(nextChapterIn && { next_chapter_in: nextChapterIn }),
+          ...(nation && { nation: { connect: { name: nation } } }),
 
-        ...(coverArtUrl && {
-          cover_art: { connectOrCreate: { where: { url: coverArtUrl, public_id: publicId }, create: { url: coverArtUrl, public_id: publicId } } },
-        }),
+          ...(coverArt && {
+            cover_art: { connectOrCreate: { where: { url: coverArt?.url }, create: { url: coverArt?.url, key: coverArt?.key } } },
+          }),
 
-        ...(posterId && { poster: { connect: { id: posterId } } }),
-      },
+          ...(posterId && { poster: { connect: { id: posterId } } }),
+        },
 
-      include: { cover_art: { select: { url: true, width: true, height: true } } },
-    });
+        include: { cover_art: { select: { url: true, width: true, height: true } } },
+      })
+      .catch(async (error) => {
+        console.log(error);
+
+        const uniqueTitle = title ? await db.story.findUnique({ where: { title: title } }) : undefined;
+        if (uniqueTitle) throw CreateError(400, `'${title}' đã có nguời đăng ký`);
+      });
 
     if (genres && genres.length > 0) {
       await tx.story_Genre.deleteMany({ where: { story_id: story.id } });
@@ -522,50 +541,75 @@ export async function UpdateStory(
     }
 
     if (children?.delete) {
-      await tx.storyNode.deleteMany({
-        where: {
-          id: { in: children.delete.story_node.map((node) => node.id) },
-        },
-      });
-      await tx.storyNodeContent.deleteMany({
-        where: {
-          id: { in: children.delete.content.map((cont) => cont.id) },
-        },
-      });
-    }
-
-    if (children?.add) {
-      await tx.storyNode.createMany({
-        data: children.add.story_node.map((node) => ({
-          id: node.id,
-          story_id: node.story_id,
-          parent_id: node.parent_id,
-          order_index: node.order_index,
-          type: node.type,
-        })),
-      });
-
-      let images;
-      if (children.add.content && children.add.content.length > 0) {
-        images = await tx.image.createManyAndReturn({
-          data: children.add.content.map((cont) => ({ url: cont?.image?.url, public_id: cont?.image?.public_id, key: cont?.image?.key })),
+      // Soft delete story node
+      if (children.delete.story_node && children.delete.story_node.length > 0) {
+        await tx.storyNode.updateMany({
+          where: {
+            id: { in: children.delete.story_node.map((node) => node.id) },
+          },
+          data: { is_deleted: true },
         });
       }
 
+      // Soft delete story node content
+      if (children.delete?.content && children.delete.content.length > 0) {
+        await tx.storyNodeContent.updateMany({
+          where: {
+            id: { in: children.delete.content.map((cont) => cont.id) },
+          },
+          data: { is_deleted: true },
+        });
+      }
+    }
+
+    if (children?.add) {
+      // Add story node
+      if (children.add.story_node && children.add.story_node.length > 0) {
+        await tx.storyNode.createMany({
+          data: children.add.story_node.map((node) => ({
+            id: node.id,
+            story_id: node.story_id,
+            parent_id: node.parent_id,
+            order_index: node.order_index,
+            type: node.type,
+          })),
+        });
+      }
+
+      // Add content
       await tx.storyNodeContent.createMany({
         data: children.add.content.map((cont, i) => ({
           id: cont.id,
           type: cont.type,
           story_node_id: cont.story_node_id,
           order_index: cont.order_index,
-          image_id: images[i].id,
+          image_id: cont.image.id,
         })),
       });
     }
 
     if (children?.edit) {
+      // Edit story node and update its content index
       await Promise.all(
-        children.edit.story_node.map((node) =>
+        children.edit.content.map((content) =>
+          tx.storyNodeContent.update({
+            where: { id: content.id },
+            data: {
+              order_index: content.order_index,
+              image: {
+                connectOrCreate: {
+                  where: { url: content?.image?.url, key: content?.image?.key },
+                  create: { url: content?.image?.url, key: content?.image?.key },
+                },
+              },
+            },
+          }),
+        ),
+      );
+
+      //  Edit content
+      await Promise.all(
+        children.edit?.story_node?.map((node) =>
           tx.storyNode.update({
             where: { id: node.id },
             data: {
@@ -577,18 +621,7 @@ export async function UpdateStory(
           }),
         ),
       );
-
-      await Promise.all(
-        children.edit.content.map((content) =>
-          tx.storyNodeContent.update({
-            where: { id: content.id },
-            data: { image: { create: { url: content?.image?.url, key: content?.image?.key } } },
-          }),
-        ),
-      );
     }
-
-    incrRedisStoriesVersion();
 
     return { success: true, data: result };
   });

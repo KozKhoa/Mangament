@@ -8,9 +8,9 @@ import * as storyNodeContentSeeding from "./story-node-contents.js";
 
 // await imageSeeding.default();
 
-await userSeeding.default();
+// await userSeeding.default();
 
-await nationSeeding.default();
+// await nationSeeding.default();
 
 // await storySeeding.default();
 

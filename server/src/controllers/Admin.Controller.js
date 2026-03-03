@@ -199,8 +199,6 @@ export async function UpdateUserInfo(req, res, next) {
   }
 }
 
-// STORY
-
 // GET /admin/stories/:id
 export async function GetStory(req, res, next) {
   try {
@@ -263,8 +261,6 @@ export async function PostNewStory(req, res, next) {
     // Get information from body
     const userId = req.user.id;
 
-    console.log(req.body);
-
     const title = req.body?.title;
     const type = req.body?.type;
     const nation = req.body?.nation;
@@ -272,8 +268,10 @@ export async function PostNewStory(req, res, next) {
     const status = req.body?.status ?? "ongoing";
     const genres = req.body?.genre;
     const authorIds = req.body?.authorIds?.split(",");
-    const coverArtUrl = req.body?.coverArtUrl;
-    const publicId = req.body.publicId;
+    // const coverArtUrl = req.body?.coverArtUrl;
+    // const publicId = req.body.publicId;
+
+    const coverArt = req.body.coverArt; // {url, key, id, public_id}
 
     if (!title || !type) throw CreateError(400, "'title' and 'type' are required");
 
@@ -290,7 +288,7 @@ export async function PostNewStory(req, res, next) {
       summary: summary,
       posterId: userId,
       authorIds: authorIds,
-      coverArt: { url: coverArtUrl, publicId: publicId },
+      coverArt: coverArt,
     });
 
     if (!newStory) throw CreateError();
@@ -315,8 +313,8 @@ export async function UpdateStory(req, res, next) {
     const genre = body?.genre;
     const authorIds = body?.authorIds;
     const summary = body?.summary;
-    const coverArtUrl = body?.coverArtUrl ?? req.file;
-    const publicId = body?.publicId; // This is a public id for image in cloudinary
+
+    const coverArt = req.body?.coverArt; // {url, key, ...}
 
     const children = body.children;
 
@@ -332,8 +330,7 @@ export async function UpdateStory(req, res, next) {
       status: status,
       genres: genre,
       authorIds: authorIds,
-      coverArtUrl: coverArtUrl,
-      publicId: publicId,
+      coverArt: coverArt,
       children: children,
     });
 

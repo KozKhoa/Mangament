@@ -1,29 +1,22 @@
 import db from "../configs/db.js";
 
-export const FindImage = async (where = { id, url }) => {
-  try {
-    const result = await db.image.findUnique({
-      where: {
-        is_deleted: false,
-        ...where,
-      },
-    });
-    return { success: true, data: result };
-  } catch (error) {
-    console.error("❌ [Image.Model.js] Error finding image:", error);
-    return { success: false, error: error.code };
-  }
+export const FindImage = async ({ id, url }) => {
+  const result = await db.image.findFirst({
+    where: {
+      is_deleted: false,
+      id,
+      url,
+    },
+  });
+  return { success: true, data: result };
 };
 
-export const AddImage = async (data = { url }) => {
-  let image;
-  try {
-    image = await db.image.create({ data: data });
-    return { success: true, data: image };
-  } catch (error) {
-    if (error.code !== "P2002") console.error("❌ [Image.Model.js] Error adding image:", error);
-    return { success: false, error: error, data: image };
-  }
+export const AddImage = async ({ url, key, public_id }) => {
+  const addImage = await db.image.create({ data: { url, public_id, key } }).catch(async (error) => {
+    return { success: true, data: await db.image.findUnique({ where: { url: url } }) };
+  });
+
+  return { success: true, data: addImage };
 };
 
 export const SoftDeleteImage = async (where = { id, url }) => {

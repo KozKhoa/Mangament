@@ -167,27 +167,7 @@ export async function getStories(params?: StoryParams): Promise<ServiceResult<St
 
 export async function addNewStory(story: Story, coverArtFile?: File): Promise<ServiceResult<Story>> {
   try {
-    let _coverArtUrl;
-    let _publicId;
-    if (coverArtFile) {
-      const sigRes = await api.get(`/cloudinary/signature/storyType/${story.type}/storyTitle/${story.title}/cover-art`);
-      const { timestamp, signature, apiKey, cloudName, folder, publicId } = sigRes.data;
-
-      const formData = new FormData();
-
-      formData.append("file", coverArtFile);
-      formData.append("api_key", apiKey);
-      formData.append("timestamp", timestamp);
-      formData.append("signature", signature);
-      formData.append("folder", folder);
-      formData.append("public_id", publicId);
-
-      const cloudinaryAxios = axios.create({ baseURL: `https://api.cloudinary.com/v1_1/${cloudName}` });
-      const coverArtUpload = await cloudinaryAxios.post(`/image/upload`, formData);
-
-      _coverArtUrl = coverArtUpload.data.secure_url;
-      _publicId = publicId;
-    }
+    let coverArt;
 
     const res = await api.post(`/admin/stories`, {
       title: story.title,
@@ -196,9 +176,22 @@ export async function addNewStory(story: Story, coverArtFile?: File): Promise<Se
       status: story.status,
       genre: story.genres,
       summary: story.summary,
-      ...(_coverArtUrl && { coverArtUrl: _coverArtUrl }),
-      ...(_publicId && { publicId: _publicId }),
     });
+
+    const newStory = res.data.data;
+
+    if (coverArtFile && res.data?.success && newStory) {
+      const formData = new FormData();
+      formData.append("image", coverArtFile);
+      const uploadImage = await api.post(`uploads/story/${newStory.id ?? story.title}/cover-art`, formData);
+
+      coverArt = { url: uploadImage.data.data?.url, key: uploadImage.data.data?.key, id: uploadImage.data.data?.id };
+
+      await api.put(`/admin/stories/${newStory.id}`, {
+        coverArt: coverArt,
+      });
+    }
+
     return res.data;
   } catch (error) {
     console.log(error);
@@ -216,8 +209,7 @@ export async function updateStory(
   },
 ): Promise<ServiceResult<Story>> {
   try {
-    let coverArtUrl;
-    let publicId;
+    let coverArt;
     if (coverArtFile) {
       const formData = new FormData();
 
@@ -225,7 +217,7 @@ export async function updateStory(
 
       const updateCoverArtRes = await api.post(`/uploads/story/${story.id}/cover-art`, formData);
 
-      coverArtUrl = updateCoverArtRes.data.data.url;
+      coverArt = { url: updateCoverArtRes.data.data?.url, key: updateCoverArtRes.data.data?.key, id: updateCoverArtRes.data.data?.id };
     }
 
     if (children?.add) {
@@ -245,7 +237,7 @@ export async function updateStory(
 
       children.add.content = children.add.content.map((content, i) => ({
         ...content,
-        image: { url: uploadImages[i]?.data?.data?.url, key: uploadImages[i].data?.data?.key },
+        image: { ...content.image, id: uploadImages[i]?.data?.data?.id, url: uploadImages[i]?.data?.data?.url, key: uploadImages[i].data?.data?.key },
         imageFile: undefined,
       }));
     }
@@ -269,7 +261,7 @@ export async function updateStory(
 
       children.edit.content = children.edit.content.map((content, i) => ({
         ...content,
-        image: { ...content.image, url: uploadImages[i]?.data?.data?.url, key: uploadImages[i]?.data?.data?.key },
+        image: { ...content.image, id: uploadImages[i]?.data?.data?.id, url: uploadImages[i]?.data?.data?.url, key: uploadImages[i]?.data?.data?.key },
         imageFile: undefined,
       }));
     }
@@ -283,7 +275,7 @@ export async function updateStory(
       status: story.status,
       genre: story.genres,
       summary: story.summary,
-      ...(coverArtUrl && { coverArtUrl: coverArtUrl, publicId: publicId }),
+      ...(coverArt && { coverArt: coverArt }),
       ...(children && { children: children }),
     });
     return res.data;

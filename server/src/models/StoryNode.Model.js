@@ -5,7 +5,7 @@ import { CreateError } from "../utils/ErrorHandle.js";
 
 import { BuildStoryTree, UpdateStory } from "./Story.Model.js";
 
-const REDIS_TTL = 60 * 30; // 30 minutes
+const REDIS_TTL = 60 * 10; // 10 minutes
 
 // Đây là hàm lấy version redis. Khi adim thêm mới story thì sẽ update version lên
 async function getRedisStoryNodesVersion() {
@@ -143,11 +143,19 @@ export async function FindStoryNode({ id, storyId, parentId, storyNodeType, orde
       ...(orderIndex && { order_index: orderIndex }),
     },
 
-    ...(isGettingContent && { include: { content: { select: { type: true, image: true }, orderBy: { order_index: "asc" } } } }),
+    ...(isGettingContent && {
+      include: {
+        content: {
+          where: { is_deleted: false },
+          select: { type: true, image: { where: { is_deleted: false } } },
+          orderBy: { order_index: "asc" },
+        },
+      },
+    }),
   });
 
   if (isGettingChildren) {
-    storyNode.children = await BuildStoryTree(storyNode.story_id, storyNode.id);
+    storyNode.children = await BuildStoryTree(storyNode.story_id, storyNode.id, isGettingContent);
   }
 
   const result = { success: true, data: storyNode };
