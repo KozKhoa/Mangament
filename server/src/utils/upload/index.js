@@ -61,8 +61,9 @@ async function handleAdd(filePath) {
 
   // Update cover art for story and terminate this
   if (path.parse(dir).name === "cover_art") {
-    const upload = await cloudinary.uploader.upload(filePath, { folder: [`Mangament`, storyType, storyName].join("/") });
-    const image = await db.image.create({ data: { url: upload.secure_url } });
+    // const upload = await cloudinary.uploader.upload(filePath, { folder: [`Mangament`, storyType, storyName].join("/") });
+
+    const image = await db.image.create({ data: { url: ["http://localhost:5000/story", dir].join("/") } });
 
     await handleAddCoverArtForStory({
       storyId: story.id,
@@ -86,25 +87,14 @@ async function handleAdd(filePath) {
   }
   const storyNodeId = parentId;
 
-  // Update content for storyNode
-  // const content = {
-  //   type: "image",
-  //   image_url: image.url,
-  // };
-
-  // const updateStoryNodeContent = await handleAddContentForStoryNode({
-  //   storyNodeId: storyNodeId,
-  //   content: content,
-  // });
-
   const files = await getAllFiles(folderPath);
 
-  const uploadPromises = files.map((file) => cloudinary.uploader.upload(file, { folder: [`Mangament`, storyType, storyName, ...storyNodeNames].join("/") }));
-
-  const uploadImages = await Promise.all(uploadPromises);
+  // const uploadPromises = files.map((file) => cloudinary.uploader.upload(file, { folder: [`Mangament`, storyType, storyName, ...storyNodeNames].join("/") }));
+  // const uploadImages = await Promise.all(uploadPromises);
 
   const addImages = await db.image.createManyAndReturn({
-    data: uploadImages.map((upload) => ({ url: upload.secure_url, height: upload.height, width: upload.width })),
+    // data: uploadImages.map((upload) => ({ url: upload.secure_url, height: upload.height, width: upload.width })),
+    data: files.map((file, i) => ({ url: ["http://localhost:5000/story", path.relative(root, file)].join("/") })),
   });
   console.log("Add iamge " + folderPath);
 

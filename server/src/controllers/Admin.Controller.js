@@ -5,6 +5,7 @@ import * as usersModel from "../models/User.Model.js";
 import * as storiesModel from "../models/Story.Model.js";
 import * as adminModel from "../models/AdminModel.js";
 import * as historiesModel from "../models/History.Model.js";
+import * as imageModel from "../models/Image.Model.js";
 
 import { ConvertQuery } from "../utils/QueryConvert.js";
 import { ValidateGenre } from "../models/Genre.Model.js";
@@ -198,12 +199,16 @@ export async function UpdateUserInfo(req, res, next) {
   }
 }
 
+// STORY
+
 // GET /admin/stories/:id
 export async function GetStory(req, res, next) {
   try {
     const storyId = req.params?.id;
 
-    const story = await storiesModel.FindStory({ id: storyId });
+    const { isGettingChildren, isGettingContent } = ConvertQuery(req.query);
+
+    const story = await storiesModel.FindStory({ id: storyId, isGettingChildren: isGettingChildren, isGettingContent: isGettingContent });
 
     if (!story) throw CreateError();
 
@@ -252,6 +257,50 @@ export async function GetAllStories(req, res, next) {
   }
 }
 
+// POST /admin/stories
+export async function PostNewStory(req, res, next) {
+  try {
+    // Get information from body
+    const userId = req.user.id;
+
+    console.log(req.body);
+
+    const title = req.body?.title;
+    const type = req.body?.type;
+    const nation = req.body?.nation;
+    const summary = req.body?.summary;
+    const status = req.body?.status ?? "ongoing";
+    const genres = req.body?.genre;
+    const authorIds = req.body?.authorIds?.split(",");
+    const coverArtUrl = req.body?.coverArtUrl;
+    const publicId = req.body.publicId;
+
+    if (!title || !type) throw CreateError(400, "'title' and 'type' are required");
+
+    throwErrorIfInvalidGenres(genres);
+    throwErrorIfInvalidStoryStatus(status);
+    throwErrorIfInvalidStoryType(type);
+
+    const newStory = await storiesModel.AddStory({
+      title: title,
+      type: type,
+      nation: nation,
+      genres: genres,
+      status: status,
+      summary: summary,
+      posterId: userId,
+      authorIds: authorIds,
+      coverArt: { url: coverArtUrl, publicId: publicId },
+    });
+
+    if (!newStory) throw CreateError();
+
+    return res.json({ success: true, message: "Add new story successfully", data: newStory.data });
+  } catch (error) {
+    next(error);
+  }
+}
+
 // PUT /admin/stories/:id
 export async function UpdateStory(req, res, next) {
   try {
@@ -266,8 +315,10 @@ export async function UpdateStory(req, res, next) {
     const genre = body?.genre;
     const authorIds = body?.authorIds;
     const summary = body?.summary;
-    const coverArtUrl = body?.coverArtUrl;
+    const coverArtUrl = body?.coverArtUrl ?? req.file;
     const publicId = body?.publicId; // This is a public id for image in cloudinary
+
+    const children = body.children;
 
     throwErrorIfInvalidGenres(genre);
     throwErrorIfInvalidStoryStatus(status);
@@ -283,6 +334,7 @@ export async function UpdateStory(req, res, next) {
       authorIds: authorIds,
       coverArtUrl: coverArtUrl,
       publicId: publicId,
+      children: children,
     });
 
     return res.json({ success: true, message: "Update story successfully", data: update.data });
@@ -325,39 +377,15 @@ export async function DeleteStory(req, res, next) {
   }
 }
 
-// POST /admin/stories
-export async function PostNewStory(req, res, next) {
+// GET /admin/images/trash
+export async function GetAllTrashImages(req, res, next) {
   try {
-    // Get information from body
-    const userId = req.user.id;
-    const title = req.body?.title;
-    const type = req.body?.type;
-    const nation = req.body?.nation;
-    const status = req.body?.status ?? "ongoing";
-    const coverArtUrl = req.file?.path;
-    const genres = req.body?.genre?.split(",");
-    const authorIds = req.body?.authorIds?.split(",");
+    const page = req.params?.page ?? 1;
+    const limit = req.params?.limit ?? 10;
 
-    if (!title || !type) throw CreateError(400, "'title' and 'type' are required");
+    const trashImage = await imageModel.FindTrashImage({ page, limit });
 
-    throwErrorIfInvalidGenres(genres);
-    throwErrorIfInvalidStoryStatus(status);
-    throwErrorIfInvalidStoryType(type);
-
-    const newStory = await storiesModel.AddStory({
-      title: title,
-      type: type,
-      nation: nation,
-      genres: genres,
-      status: status,
-      posterId: userId,
-      authorIds: authorIds,
-      coverArtUrl: coverArtUrl,
-    });
-
-    if (!newStory) throw CreateError();
-
-    return res.json({ success: true, data: newStory.data });
+    res.json({ success: true, data: trashImage.data });
   } catch (error) {
     next(error);
   }

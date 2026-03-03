@@ -23,6 +23,7 @@ async function incrHisVersion(userId) {
   await redis.incr(`version:reading-history:${userId}`);
 }
 
+// Tìm toàn bộ lịch sử đọc của user
 export async function FindAllReadingHistories({
   userId,
   storyId,
@@ -153,13 +154,28 @@ export async function FindAllReadingHistories({
 export async function AddReadingHistory({ userId, storyId, storyNodeId, position }) {
   if (!userId || !storyId || !storyNodeId) throw CreateError(400, "Require user id, story id and story node id");
 
-  const history = await db.readingHistory.create({
-    data: {
-      user: { connect: { id: userId } },
-      story: { connect: { id: storyId } },
-      story_node: { connect: { id: storyNodeId } },
-    },
-  });
+  const history = await db.readingHistory
+    .create({
+      data: {
+        user: { connect: { id: userId } },
+        story: { connect: { id: storyId } },
+        story_node: { connect: { id: storyNodeId } },
+      },
+    })
+    .catch(async (error) => {
+      console.log(error);
+
+      const user = await db.user.findUnique({ where: { id: userId } });
+      if (!user) throw CreateError(400, "User not found");
+
+      const story = await db.story.findUnique({ where: { id: storyId } });
+      if (!story) throw CreateError(400, "Story not found");
+
+      const storyNode = await db.storyNode.findUnique({ where: { id: storyNodeId } });
+      if (!storyNode) throw CreateError(400, "Story node not found");
+
+      throw new Error(error);
+    });
 
   incrHisVersion(userId);
 
@@ -167,7 +183,7 @@ export async function AddReadingHistory({ userId, storyId, storyNodeId, position
 }
 
 export async function HardDeleteReadingHistory({ id, userId }) {
-  if (!id || !userId) throw new Error("Require history id and userId");
+  if (!id || !userId) throw CreateError(400, "Require history id and userId");
 
   await db.readingHistory.deleteMany({ where: { id: id, user_id: userId } });
 
@@ -177,7 +193,7 @@ export async function HardDeleteReadingHistory({ id, userId }) {
 }
 
 export async function SoftDeleteReadingHistory({ id, userId }) {
-  if (!id && !userId) throw new Error("Require history id and user id");
+  if (!id && !userId) throw CreateError(400, "Require history id and user id");
 
   const softRemove = await db.readingHistory.update({
     where: { id: id, user_id: userId },
@@ -187,13 +203,4 @@ export async function SoftDeleteReadingHistory({ id, userId }) {
   incrHisVersion(userId);
 
   return { success: true, data: softRemove };
-}
-
-export async function CountHistories({ isDeleted }) {
-  const count = await db.readingHistory.count({
-    where: {
-      ...(isDeleted !== undefined && typeof isDeleted === "boolean" && { is_deleted: isDeleted }),
-    },
-  });
-  return { success: true, data: count };
 }

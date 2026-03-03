@@ -136,7 +136,7 @@ function NavBar({ duration = 100, autoHide = true, className }: NavBarProps) {
             openOnLeft={false}
             icon={
               <div className="flex gap-1.5 w-[40]">
-                <Image src={"/avatar.svg"} alt="Avatar" width={40} height={40} />
+                <Image src={user?.avatar?.url ?? "/avatar.png"} alt="Avatar" width={40} height={40} unoptimized />
               </div>
             }
           >

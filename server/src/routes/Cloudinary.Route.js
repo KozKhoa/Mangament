@@ -8,6 +8,12 @@ const cloudinaryRoute = express.Router();
 
 cloudinaryRoute.use(AuthenticationToken);
 
-cloudinaryRoute.get("/signature/:storyId/cover-art", AuthorizationRole, cloudinaryController.CreateSignatureForUploadStoryCoverArt);
+cloudinaryRoute.get("/signature/story/:storyId/cover-art", AuthorizationRole, cloudinaryController.CreateSignatureForUploadStoryCoverArt);
+cloudinaryRoute.get(
+  "/signature/storyType/:storyType/storyTitle/:storyTitle/cover-art",
+  AuthorizationRole,
+  cloudinaryController.CreateSignatureForUploadStoryCoverArt,
+);
+cloudinaryRoute.get("/signature/story-node/:storyNodeId/content", AuthorizationRole, cloudinaryController.CreateSignatureForUploadStoryNodeContent);
 
 export default cloudinaryRoute;

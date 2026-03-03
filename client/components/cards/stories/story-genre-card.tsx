@@ -69,14 +69,7 @@ export default function StoryGenreCard({ story, className }: { story: Story; cla
     >
       <div className={`relative rounded-[5] w-full h-fit cursor-pointer`}>
         {/* Cover art */}
-        <Image
-          onClick={handleClickStory}
-          src={story?.cover_art?.url.includes("https") ? story?.cover_art?.url : process.env.NEXT_PUBLIC_API_URL + "uploads/story/" + story?.cover_art?.url}
-          alt="Cover Art"
-          width={500}
-          height={500}
-          unoptimized
-        ></Image>
+        <Image onClick={handleClickStory} src={story?.cover_art?.url} alt="Cover Art" width={500} height={500} unoptimized></Image>
 
         {/* View */}
         <div

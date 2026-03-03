@@ -20,6 +20,8 @@ import { initRedis } from "./src/configs/redis.js";
 import adminRoute from "./src/routes/Admin.Route.js";
 import commentRoute from "./src/routes/Comment.Route.js";
 import cloudinaryRoute from "./src/routes/Cloudinary.Route.js";
+import uploadMulter from "./src/configs/multer.js";
+import uploadRoute from "./src/routes/Upload.Route.js";
 
 initRedis();
 
@@ -46,6 +48,9 @@ app.use("/genres", genreRoute);
 app.use("/comments", commentRoute);
 app.use("/admin", adminRoute);
 app.use("/cloudinary", cloudinaryRoute);
+app.use("/uploads", uploadRoute);
+
+app.use(express.static("./../uploads"));
 
 // Middlewares
 app.use(ErrorMiddleware);

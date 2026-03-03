@@ -70,6 +70,7 @@ export default function HistoryCard({ history, onClickRemove, className }: { his
             alt="Cover Art"
             width={500}
             height={500}
+            unoptimized
           ></Image>
         )}
 

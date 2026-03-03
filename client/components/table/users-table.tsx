@@ -127,7 +127,11 @@ export default function UserTable({ className, data }: UserTableProps) {
         if (!res.success) return toast.warning(res.message);
         toast.message(`Xóa "${user.name}" thành công`);
         setUsers((prevUsers) => prevUsers.filter((prevUser) => prevUser !== user));
+
+        modal.close();
       },
+
+      onCancel: modal.close,
     });
   }
 
@@ -169,13 +173,7 @@ export default function UserTable({ className, data }: UserTableProps) {
                 {/* Avatar */}
                 <TD>
                   <div className="w-8 aspect-square m-auto">
-                    <Image
-                      src={user?.avatar?.url.includes("https") ? user?.avatar?.url : process.env.NEXT_PUBLIC_API_URL + "uploads/" + user?.avatar?.url}
-                      alt="Avatar"
-                      width={100}
-                      height={100}
-                      unoptimized
-                    ></Image>
+                    <Image src={user?.avatar?.url ?? "/avatar.png"} alt="Avatar" width={100} height={100} unoptimized />
                   </div>
                 </TD>
                 <TD>{user.name}</TD>

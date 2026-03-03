@@ -1,8 +1,7 @@
-import { GetViewByDay } from "./src/models/AdminModel.js";
+import { generateSignatureForAddNewStoryNode } from "./src/services/cloudinary.service.js";
 
-await GetViewByDay({
-  storyId: "000b05a4-813a-41f8-9b3d-7a37361736ff",
-  storyNodeId: "50297999-d98e-4bc7-9e8b-6e59a1ab3a25",
-  fromDate: "1/1/2026",
-  toDate: "1/30/2026",
-});
+import { initRedis } from "./src/configs/redis.js";
+
+initRedis();
+
+await generateSignatureForAddNewStoryNode("ffa4e526-6c2c-4456-9594-9b7b65aa53e5", null, 20);

@@ -27,10 +27,10 @@ async function incrRedisStoriesVersion() {
   await redis.incr(`version:stories`);
 }
 
-export async function BuildStoryTree(storyId, storyNodeId) {
+export async function BuildStoryTree(storyId, storyNodeId, isGettingContent = false) {
   const version = await getRedisStoriesVersion();
 
-  const REDIS_KEY = ["BuildStoryTree", "v=" + version, storyId, storyNodeId].join(":");
+  const REDIS_KEY = ["BuildStoryTree", "v=" + version, storyId, storyNodeId, isGettingContent].join(":");
 
   const cached = await redis.get(REDIS_KEY);
 
@@ -44,6 +44,13 @@ export async function BuildStoryTree(storyId, storyNodeId) {
       },
       ...(storyNodeId && { parent_id: storyNodeId }),
     },
+    include: {
+      content: {
+        include: { image: true },
+        orderBy: { order_index: "asc" },
+      },
+    },
+
     orderBy: { order_index: "asc" },
   });
 
@@ -276,7 +283,7 @@ export async function FindAllStories({
   return result;
 }
 
-export async function FindStory({ id, title, isGettingChildren = false, isGettingNewestChapter = false, isActived }) {
+export async function FindStory({ id, title, isGettingChildren = false, isGettingContent = false, isGettingNewestChapter = false, isActived }) {
   const version = await getRedisStoriesVersion();
 
   const REDIS_KEY = [
@@ -286,6 +293,7 @@ export async function FindStory({ id, title, isGettingChildren = false, isGettin
     "title=" + title,
     "isGettingChildren=" + isGettingChildren,
     "isGettingNewestChapter=" + isGettingNewestChapter,
+    "isGettingContent=" + isGettingContent,
     "isActived=" + isActived,
   ].join(":");
 
@@ -311,7 +319,7 @@ export async function FindStory({ id, title, isGettingChildren = false, isGettin
   story.genres = story.genres.map((genre) => genre.genre);
 
   if (isGettingChildren) {
-    story.children = await BuildStoryTree(story.id, null);
+    story.children = await BuildStoryTree(story.id, null, isGettingContent);
   }
 
   if (isGettingNewestChapter) {
@@ -325,10 +333,10 @@ export async function FindStory({ id, title, isGettingChildren = false, isGettin
   return result;
 }
 
-export async function AddStory({ title, type, nation, genres, authorIds, status, posterId, summary, coverArtUrl }) {
+export async function AddStory({ title, type, nation = { name, flag_icon }, genres = [], authorIds, status, posterId, summary, coverArt = { url, publicId } }) {
   if (!title || !type) throw CreateError(400, "'title' and 'type' are required");
 
-  return db.$transaction(async (db) => {
+  return await db.$transaction(async (db) => {
     // Check if story exist or not;
     const story = await db.story.findUnique({ where: { title: title } });
     if (story) throw CreateError(409, "Story already exist");
@@ -348,15 +356,15 @@ export async function AddStory({ title, type, nation, genres, authorIds, status,
     // If not exist
     const newStory = await db.story.create({
       data: {
-        ...(title && { title: title }),
         ...(type && { type: type }),
-        ...(nation && { nation: nation }),
-        ...(genres && { genres: genres }),
+        ...(title && { title: title }),
         ...(status && { status: status }),
         ...(summary && { summary: summary }),
         ...(posterId && { poster: { connect: { id: posterId } } }),
+        ...(nation && { nation: { connect: { name: nation.name } } }),
+        ...(genres && { genres: { create: genres.map((genre) => ({ genre: genre })) } }),
         ...(authorIds && { authors: { connectOrCreate: authorIds.map((authorId) => ({ author_id: authorId })) } }),
-        ...(coverArtUrl && { cover_art: { connectOrCreate: { where: { url: coverArtUrl }, create: { url: coverArtUrl } } } }),
+        ...(coverArt && { cover_art: { connectOrCreate: { where: { url: coverArt.url }, create: { url: coverArt.url, public_id: coverArt.publicId } } } }),
       },
     });
 
@@ -426,7 +434,31 @@ export async function ActiveStory({ storyId, isActived }) {
 
 export async function UpdateStory(
   id,
-  { title, type, view, summary, posterId, nation, status, genres = [], coverArtUrl, publicId, nextChapterIn, authorIds = [] },
+  {
+    title,
+    type,
+    view,
+    summary,
+    posterId,
+    nation,
+    status,
+    genres = [],
+    coverArtUrl,
+    publicId,
+    nextChapterIn,
+    authorIds = [],
+    children = {
+      delete: { story_node: [{ id }], content: [{ id }] },
+      add: {
+        story_node: [{ id, story_id, parent_id, order_index, type }],
+        content: [{ id, type, story_node_id, order_index, image: { url, public_id, key } }],
+      },
+      edit: {
+        story_node: [{ id, order_index, story_id, title, type, content: [{ id, order_index, type }] }],
+        content: [{ id, order_index, type, image: { id, url, key, public_id } }],
+      },
+    },
+  },
 ) {
   return await db.$transaction(async function (tx) {
     const story = await tx.story.findFirst({ where: { id: id, is_deleted: false } });
@@ -434,28 +466,15 @@ export async function UpdateStory(
       throw new Error("Story not found");
     }
 
-    if (title && title !== story.title) {
-      const isTitleExist = await tx.story.findFirst({ where: { title: title, NOT: { id: id } } });
-      if (isTitleExist) {
-        throw new Error("Title already exist");
-      }
-    }
-
     if (authorIds && authorIds.length > 0) {
       for (const authorId of authorIds) {
         if (!isUUID(authorId)) throw new Error("authorIds must be uuid[]");
-
-        const author = await tx.author.findUnique({ where: { id: authorId } });
-
-        if (!author) throw new Error(`Author ${authorId} is not exist`);
       }
     }
 
     if (genres && genres.length > 0) {
       genres = ValidateGenre(genres);
     }
-
-    console.log(summary);
 
     const result = await tx.story.update({
       where: { id: id },
@@ -472,13 +491,7 @@ export async function UpdateStory(
           cover_art: { connectOrCreate: { where: { url: coverArtUrl, public_id: publicId }, create: { url: coverArtUrl, public_id: publicId } } },
         }),
 
-        ...(posterId && {
-          poster: {
-            connect: {
-              id: posterId,
-            },
-          },
-        }),
+        ...(posterId && { poster: { connect: { id: posterId } } }),
       },
 
       include: { cover_art: { select: { url: true, width: true, height: true } } },
@@ -506,6 +519,73 @@ export async function UpdateStory(
         })),
         skipDuplicates: true,
       });
+    }
+
+    if (children?.delete) {
+      await tx.storyNode.deleteMany({
+        where: {
+          id: { in: children.delete.story_node.map((node) => node.id) },
+        },
+      });
+      await tx.storyNodeContent.deleteMany({
+        where: {
+          id: { in: children.delete.content.map((cont) => cont.id) },
+        },
+      });
+    }
+
+    if (children?.add) {
+      await tx.storyNode.createMany({
+        data: children.add.story_node.map((node) => ({
+          id: node.id,
+          story_id: node.story_id,
+          parent_id: node.parent_id,
+          order_index: node.order_index,
+          type: node.type,
+        })),
+      });
+
+      let images;
+      if (children.add.content && children.add.content.length > 0) {
+        images = await tx.image.createManyAndReturn({
+          data: children.add.content.map((cont) => ({ url: cont?.image?.url, public_id: cont?.image?.public_id, key: cont?.image?.key })),
+        });
+      }
+
+      await tx.storyNodeContent.createMany({
+        data: children.add.content.map((cont, i) => ({
+          id: cont.id,
+          type: cont.type,
+          story_node_id: cont.story_node_id,
+          order_index: cont.order_index,
+          image_id: images[i].id,
+        })),
+      });
+    }
+
+    if (children?.edit) {
+      await Promise.all(
+        children.edit.story_node.map((node) =>
+          tx.storyNode.update({
+            where: { id: node.id },
+            data: {
+              order_index: node.order_index,
+              title: node.title,
+              type: node.type,
+              content: { updateMany: node.content.map((cont) => ({ where: { id: cont.id }, data: { order_index: cont.order_index, type: cont.type } })) },
+            },
+          }),
+        ),
+      );
+
+      await Promise.all(
+        children.edit.content.map((content) =>
+          tx.storyNodeContent.update({
+            where: { id: content.id },
+            data: { image: { create: { url: content?.image?.url, key: content?.image?.key } } },
+          }),
+        ),
+      );
     }
 
     incrRedisStoriesVersion();

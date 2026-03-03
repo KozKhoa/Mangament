@@ -1,6 +1,7 @@
 import db from "../configs/db.js";
 import { StoryNodeType } from "../configs/db.js";
 import { redis } from "../configs/redis.js";
+import { CreateError } from "../utils/ErrorHandle.js";
 
 import { BuildStoryTree, UpdateStory } from "./Story.Model.js";
 
@@ -20,15 +21,12 @@ async function getRedisStoryNodesVersion() {
 }
 
 // Đây là hàm dùng để tăng version cho việc lấy và build story
-async function incrRedisStoryNodesVersion() {
+export async function incrRedisStoryNodesVersion() {
   await redis.incr(`version:storyNodes`);
 }
 
-export function GetAllStoryNodeType() {
-  return Object.values(StoryNodeType);
-}
-
-export const GetParentStoryNodeTree = async (storyId, storyNodeId, isGettingContent = false) => {
+// Lấy danh sách parent của mọt story node (không lấy bản thân story đó)
+export async function GetParentStoryNodeTree(storyId, storyNodeId, isGettingContent = false) {
   const version = await getRedisStoryNodesVersion();
 
   const REDIS_KEY = ["GetParentStoryNodeTree", "v=" + version, "storyId=" + storyId, "storyNodeId=" + storyNodeId, "isGettingContent=" + isGettingContent].join(
@@ -38,8 +36,8 @@ export const GetParentStoryNodeTree = async (storyId, storyNodeId, isGettingCont
   const cached = await redis.get(REDIS_KEY);
   if (cached) return JSON.parse(cached);
 
-  if (!storyId) throw new Error("Require story id");
-  if (!storyNodeId) throw new Error("Require story node id");
+  if (!storyId) throw CreateError(400, "Require story id");
+  if (!storyNodeId) throw CreateError(400, "Require story node id");
 
   const nodes = await db.storyNode.findMany({
     where: {
@@ -74,7 +72,7 @@ export const GetParentStoryNodeTree = async (storyId, storyNodeId, isGettingCont
   redis.setex(REDIS_KEY, REDIS_TTL, JSON.stringify(result));
 
   return result;
-};
+}
 
 export async function FindAllStoryNodes({ storyId, parentId, sort = { updated_at: "desc" } }, page = 1, limit = 10, isGettingChildren = false) {
   const version = await getRedisStoryNodesVersion();
@@ -125,7 +123,7 @@ export async function FindAllStoryNodes({ storyId, parentId, sort = { updated_at
 export async function FindStoryNode({ id, storyId, parentId, storyNodeType, orderIndex, isGettingChildren = false, isGettingContent = false }) {
   const version = await getRedisStoryNodesVersion();
 
-  const REDIS_KEY = ["FindStoryNode", version, storyId, parentId, storyNodeType, orderIndex, isGettingChildren, isGettingContent].join(":");
+  const REDIS_KEY = ["FindStoryNode", version, id, storyId, parentId, storyNodeType, orderIndex, isGettingChildren, isGettingContent].join(":");
 
   const cached = await redis.get(REDIS_KEY);
   if (cached) return JSON.parse(cached);
@@ -149,7 +147,7 @@ export async function FindStoryNode({ id, storyId, parentId, storyNodeType, orde
   });
 
   if (isGettingChildren) {
-    storyNode.children = await BuildStoryTree(node.story_id, node.id);
+    storyNode.children = await BuildStoryTree(storyNode.story_id, storyNode.id);
   }
 
   const result = { success: true, data: storyNode };
@@ -159,93 +157,146 @@ export async function FindStoryNode({ id, storyId, parentId, storyNodeType, orde
   return result;
 }
 
-export const AddStoryNode = async (data = { title, type, story_id, parent_id, order_index, poster_id, content }) => {
-  let result;
-  try {
-    // If story node does not exist
-    result = await db.storyNode.create({
-      data: {
-        ...(data.story_id && {
-          story: {
-            connect: {
-              id: data.story_id,
-            },
-          },
-        }),
-        ...(data.parent_id && {
-          parent: {
-            connect: {
-              id: data.parent_id,
-            },
-          },
-        }),
-        ...(data.poster_id && {
-          poster: {
-            connect: {
-              id: data.poster_id,
-            },
-          },
-        }),
-        ...(data.content && { content: data.content }),
-        title: data.title,
-        type: data.type,
-        order_index: data.order_index,
-        number_of_children: data.number_of_children,
-      },
-      select: {
-        id: true,
-        story_id: true,
-        parent_id: true,
-        title: true,
-        type: true,
-        order_index: true,
-        updated_at: true,
-        created_at: true,
-        poster_id: true,
-      },
-    });
+export async function AddStoryNode(
+  storyId,
+  parentId,
+  data = {
+    title,
+    type,
+    orderIndex,
+    posterId,
+  },
+) {
+  if (!storyId) throw CreateError(400, "Require 'storyId'");
 
-    // Update number of children for parent node
-    if (data.parent_id) {
-      const ans = await UpdateStoryNode({ id: data.parent_id }, { number_of_children: { increment: 1 } });
+  const { title, type, orderIndex, posterId, contents } = data;
+
+  if (!type || !orderIndex) throw CreateError(400, "Story node 'type' and 'orderIndex' are required");
+
+  return await db.$transaction(async (db) => {
+    const newStoryNode = await db.storyNode
+      .create({
+        data: {
+          story: { connect: { id: storyId } },
+          ...(parentId && { parent: { connect: { id: parentId } } }),
+          ...(posterId && { poster: { connect: { id: posterId } } }),
+          ...(title && { title: title }),
+          type: type,
+          order_index: Number(orderIndex),
+        },
+      })
+      .catch(async (error) => {
+        const story = await db.story.findUnique({ where: { id: storyId } });
+        if (!story) throw CreateError(400, "Story not found");
+
+        if (parentId) {
+          const parent = await db.storyNode.findUnique({ where: { id: parentId } });
+          if (!parent) throw CreateError(400, "Parent not found");
+        }
+
+        throw new Error(error);
+      });
+
+    // Update number of children for parent or story
+    if (parentId) {
+      db.storyNode.update({ where: { id: parentId }, data: { number_of_children: { increment: 1 } } }); // This don't need to be await
     } else {
-      // Update number of children for story
-      await UpdateStory({ id: data.story_id }, { number_of_children: { increment: 1 } });
+      db.story.update({ where: { id: storyId }, data: { number_of_children: { increment: 1 } } }); // This don't need to be await
     }
-    return { success: true, data: result };
-  } catch (error) {
-    if (error.code !== "P2002") console.error("❌ [StoryNode.Model.js] Error adding story nodes:", error);
-    return { success: false, error: error.code, data: result };
-  }
-};
+    return { success: true, data: newStoryNode };
+  });
+}
 
-export const SoftDeleteStoryNode = async (where = { id }) => {
-  try {
-    const storyNode = await FindStoryNode({ id: where.id });
-    if (!storyNode || !storyNode.success || !storyNode.data) {
-      return { success: false, data: null };
-    }
+export async function UpdateStoryNode(
+  storyNodeId,
+  data = {
+    title,
+    type,
+    orderIndex,
+    posterId,
+    contents: [{ type, orderIndex, content, image: { url, height, width } }],
+  },
+) {
+  const { title, type, orderIndex, contents } = data;
 
-    const result = await db.storyNode.update({
-      where: where,
-      data: { is_deleted: true },
+  const uploadImage =
+    contents && contents.length > 0
+      ? await db.image.createManyAndReturn({
+          data: contents.map((content) => ({ url: content?.image?.url, height: content?.image?.height, width: content?.image?.width })),
+        })
+      : null;
+
+  let uploadImageIndex = 0;
+
+  const updating = await db.storyNode
+    .update({
+      where: { id: storyNodeId },
+      data: {
+        title: title,
+        type: type,
+        order_index: orderIndex,
+        content: {
+          createMany: {
+            data: contents.map((content) => ({
+              order_index: content.orderIndex,
+              type: content.type,
+              content: content.content,
+              ...(content.type === "image" && { image_id: uploadImage[uploadImageIndex++].id }),
+            })),
+          },
+        },
+      },
+    })
+    .catch(async (error) => {
+      console.log(error);
+
+      const storyNode = await db.storyNode.findUnique({ where: { id: storyNodeId } });
+      if (!storyNode) throw CreateError(400, "Story node not found");
     });
-    return { success: true, data: result };
-  } catch (error) {
-    console.error("❌ [StoryNode.Model.js] Error soft delete story nodes:", error);
-    return { success: false, error: error.code };
-  }
-};
 
-export const HardDeleteStoryNode = async (where = { id }) => {
-  try {
-    const result = await db.storyNode.delete({ where: where });
-    return { success: true, data: result };
-  } catch (error) {
-    console.error("❌ [StoryNode.Model.js] Error hard delete story nodes:", error);
-    return { success: false, error: error.code };
-  }
-};
+  return { success: true, data: updating };
+}
+
+export async function SoftDeleteStoryNode(storyNodeId) {
+  if (!storyNodeId) throw CreateError(400, "Require 'storyNodeId'");
+
+  await db.storyNode
+    .update({
+      where: { id: storyNodeId },
+      data: { is_deleted: true },
+    })
+    .catch(async (error) => {
+      console.log(error);
+
+      const storyNode = await db.storyNode.findUnique({ where: { id: storyNodeId } });
+      if (!storyNode) throw CreateError(400, "Story node not found");
+
+      throw new Error(error);
+    });
+
+  incrRedisStoryNodesVersion();
+
+  return { success: true, message: "Remove successfully" };
+}
+
+export async function HardDeleteStoryNode(storyNodeId) {
+  if (!storyNodeId) throw CreateError(400, "Require 'storyNodeId'");
+
+  await db.storyNode
+    .delete({
+      where: { id: storyNodeId },
+    })
+    .catch(async (error) => {
+      console.log(error);
+
+      const storyNode = await db.storyNode.findUnique({ where: { id: storyNodeId } });
+      if (!storyNode) throw CreateError(400, "Story node not found");
+
+      throw new Error(error);
+    });
+
+  return { success: true, message: "Remove successfully" };
+}
 
 export async function IncreaseOneViewForStoryNodeAndItsParents(storyNodeId) {
   if (!storyNodeId) throw new Error("Require story node id");
@@ -275,25 +326,3 @@ export async function IncreaseOneViewForStoryNodeAndItsParents(storyNodeId) {
 
   return { success: true, data: update };
 }
-
-export const UpdateStoryNode = async (where = { id }, data = {}) => {
-  try {
-    // Check if story node exist or not
-    const storyNode = await FindStoryNode({ id: where.id });
-    if (!storyNode || !storyNode.success || !storyNode.data) {
-      return { success: false, data: null };
-    }
-    // If exist
-    const result = await db.storyNode.update({
-      where: where,
-      data: data,
-      select: {
-        id: true,
-      },
-    });
-    return { success: true, data: result };
-  } catch (error) {
-    console.error("❌ [StoryNode.Model.js] Error updating story nodes:", error);
-    return { success: false, error: error.code };
-  }
-};

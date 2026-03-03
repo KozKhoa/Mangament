@@ -160,6 +160,8 @@ export async function AddComment({ userId, storyId, storyNodeId, title, content 
         const storyNode = await db.storyNode.findFirst({ where: { is_deleted: false, id: storyNodeId } });
         if (!storyNode) throw CreateError(400, "Story node not found");
       }
+
+      throw new Error(error);
     });
 
   delete newComment.is_deleted;

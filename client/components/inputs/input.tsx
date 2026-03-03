@@ -10,6 +10,7 @@ interface InputProps {
   onReset?: (text: string) => void;
   label?: string;
   defaultValue?: string;
+  value?: string;
   error?: string | null;
   name?: string;
   placeHolder?: string;
@@ -25,6 +26,7 @@ export default function Input({
   error,
   name,
   defaultValue,
+  value,
   placeHolder,
   type = "text",
   onChange,
@@ -36,28 +38,26 @@ export default function Input({
 }: InputProps) {
   const [isShowPassword, setIsShowPassword] = useState<boolean>(showPassword);
 
-  const [value, setValue] = useState<string>(defaultValue ?? "");
+  const [text, setText] = useState<string>(defaultValue ?? "");
 
   const handleChange = (text: string) => {
-    setValue(text);
+    setText(text);
     onChange?.(text);
   };
 
   function handleReset() {
-    if (defaultValue) {
-      setValue(defaultValue);
-      onReset?.(defaultValue);
-    }
-  }
+    if (defaultValue === null || defaultValue === undefined) return;
 
-  useEffect(() => {
-    if (defaultValue) setValue(defaultValue);
-  }, [defaultValue]);
+    setText(defaultValue);
+    onReset?.(defaultValue);
+  }
 
   return (
     <label className={`flex flex-col gap-1 text-foreground   ${className}`}>
       <div className="flex flex-row flex-wrap items-center justify-between gap-1 px-1">
-        <p className="font-semibold">{label}</p>
+        <p className="font-semibold">
+          {label} {require && <span className="text-red-500">*</span>}
+        </p>
 
         {onReset && <ReloadIcon onClick={handleReset} className="w-5 h-5 fill-foreground cursor-pointer hover:animate-spin"></ReloadIcon>}
       </div>
@@ -75,7 +75,7 @@ export default function Input({
           type={isShowPassword ? "text" : type}
           placeholder={placeHolder}
           name={name}
-          value={value}
+          value={value ?? text}
           onChange={(event) => handleChange(event.target.value)}
           tabIndex={tabIndex}
           required={require}

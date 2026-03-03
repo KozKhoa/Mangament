@@ -21,6 +21,7 @@ import useAdmin from "@/contexts/AdminContext";
 import { capitalizeWords } from "@/utils/string";
 
 import XIcon from "@/public/x-icon.svg";
+import AddIcon from "@/public/plus.svg";
 import SortUsers from "@/components/sorts/sort-users";
 import SortStories from "@/components/sorts/sort-stories";
 import Story from "@/types/story";
@@ -35,6 +36,8 @@ import FilterRatings, { TargetRating } from "@/components/filters/filter-ratings
 import FilterStoryType, { TargetStoryType } from "@/components/filters/filter-story-type";
 import { modal } from "@/components/modal/modal.store";
 import FilterNation from "@/components/filters/filter-nations";
+import Button from "@/components/buttons/button";
+import Link from "next/link";
 
 const STORIES_PIE_CHART_COLORS = [
   "#6A4E42", // warm brown
@@ -139,6 +142,14 @@ export default function StoriesManagementPage() {
 
   return (
     <div>
+      <div className="w-full">
+        <Link href={"/admin/stories-management/add"}>
+          <Button className="ml-auto">
+            <p className="text-lg">Thêm mới</p>
+            <AddIcon className="w-5 h-5"></AddIcon>
+          </Button>
+        </Link>
+      </div>
       <div>
         <h2 className="w-full text-center">Stories</h2>
         <PieChart

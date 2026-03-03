@@ -58,6 +58,7 @@ export default function MultiSelection({ className, defaultIndexs, label, option
 
   function handleReset() {
     setSelectedIndex(new Set(defaultIndexs));
+
     onReset?.(defaultIndexs ?? []);
   }
 

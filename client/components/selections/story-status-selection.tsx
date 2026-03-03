@@ -13,6 +13,8 @@ interface StoryStatusSelectionProps {
   defaultValue?: TargetStoryStatus;
 
   onChange?: (status: TargetStoryStatus) => void;
+
+  onReset?: (status: TargetStoryStatus) => void;
 }
 
 const STATUS = [
@@ -58,21 +60,27 @@ const STATUS = [
   },
 ];
 
-export default function StoryStatusSelection({ className, defaultValue, onChange }: StoryStatusSelectionProps) {
+export default function StoryStatusSelection({ className, defaultValue, onChange, onReset }: StoryStatusSelectionProps) {
   function handleChange(index: number | null) {
     if (index !== null) {
       onChange?.(STATUS[index].code as TargetStoryStatus);
     }
   }
 
+  function handleReset(index: number | null) {
+    handleChange(index);
+  }
+
+  const defaultIndex = STATUS.findIndex((status) => status.code === defaultValue);
+
   return (
     <Selection
       className={className}
       label="Tiến độ"
       options={STATUS.map((status) => status.label)}
-      defaultIndex={STATUS.findIndex((status) => status.code === defaultValue)}
+      defaultIndex={defaultIndex === -1 ? null : defaultIndex}
       onChange={handleChange}
-      onReset={handleChange}
+      onReset={onReset ? handleReset : undefined}
     ></Selection>
   );
 }

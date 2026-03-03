@@ -45,29 +45,18 @@ export async function GetStoryNode(req, res, next) {
   }
 }
 
+// POST /story-nodes
 export async function PostStoryNode(req, res, next) {
   try {
     const userId = req.user.id;
-    const { storyId, parentId, title, type, orderIndex, numberOfChildren } = req.body;
 
-    if (!storyId || !type || !orderIndex) throw CreateError(400, "Missing required fields");
+    const { storyId, parentId, title, type, orderIndex } = req.body;
 
-    // Make sure story exist
-    const story = await FindStory({ id: storyId });
-    if (!story || !story.success || !story.data) throw CreateError(404, "Story not found");
+    if (!storyId || !type || !orderIndex) throw CreateError(400, "Require 'storyId', 'type' and 'orderIndex'");
 
-    const storyNode = await AddStoryNode({
-      title: title || "",
-      type: type,
-      story_id: storyId,
-      ...(parentId && { parent_id: parentId }),
-      order_index: Number(orderIndex),
-      poster_id: userId,
-      ...(numberOfChildren && { number_of_children: Number(numberOfChildren) }),
-    });
+    const storyNode = await AddStoryNode(storyId, parentId, { title: title, type: type, orderIndex: Number(orderIndex), posterId: userId });
 
     if (!storyNode) throw CreateError();
-    if (!storyNode.success && storyNode.data) throw CreateError(400, "Story node already exists");
 
     return res.status(200).json({
       success: true,

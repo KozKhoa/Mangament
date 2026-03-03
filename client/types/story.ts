@@ -1,17 +1,14 @@
 import Author from "./author";
 import History from "./history";
 import Image from "./image";
+import Nation from "./nation";
 import Rating from "./ratings";
 import StoryNode from "./story-node";
 
 export default interface Story {
   id: string;
   title: string;
-  nation?: {
-    name: string;
-    flag_icon?: string;
-    flag_image?: Image;
-  };
+  nation?: Nation;
   view?: number;
   star?: number;
   type: string;

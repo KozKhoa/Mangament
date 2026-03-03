@@ -259,7 +259,7 @@ export default function StoryNodeReading() {
               animate={{ height: "fit-content", opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
               transition={{ duration: 0.1, ease: "linear" }}
-              className="w-full "
+              className="w-full bg-background-items"
             >
               <StoryNodeList
                 className="shadow-2xs"
@@ -318,6 +318,7 @@ export default function StoryNodeReading() {
                   alt="Cover Art"
                   width={con.image.width ?? 1500}
                   height={con.image.height ?? 3000}
+                  unoptimized
                 ></Image>
               ) : con.type === "title" ? (
                 <p className="w-full text-center font-bold text-[1.8em]">{con.content}</p>

@@ -165,6 +165,8 @@ export async function AddFavouriteStory({ userId, storyId }) {
 
       const story = await db.story.findFirst({ where: { is_deleted: false, id: storyId } });
       if (!story) throw CreateError(400, "Story not found");
+
+      throw new Error(error);
     });
 
   incrFavVersion(userId);
@@ -175,9 +177,9 @@ export async function AddFavouriteStory({ userId, storyId }) {
 export async function RemoveFavouriteStory(favouriteId) {
   if (!favouriteId) throw CreateError(400, "Require 'id' for favourite story");
 
-  await db.favouriteStory.delete({ where: { id: favouriteId } });
+  const removedItem = await db.favouriteStory.delete({ where: { id: favouriteId } });
 
-  incrFavVersion(userId);
+  incrFavVersion(removedItem.user_id);
 
   return { success: true, message: "Remove permanently" };
 }

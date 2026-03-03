@@ -1,13 +1,16 @@
 import { useEffect, useState } from "react";
 import MultiSelection from "./multi-selection/multi-selection";
 import Selection from "./selection";
+import Nation from "@/types/nation";
 
 export interface NationMultiSelectionProps {
   className?: string;
 
-  defaultValue: string | null;
+  defaultValue?: string | null;
 
-  onChange?: (nation: string | null) => void;
+  onChange?: (nation: Nation | null) => void;
+
+  onReset?: (nation: Nation | null) => void;
 }
 
 const NATIONS = [
@@ -207,9 +210,13 @@ const NATIONS = [
   "🇿🇼 Zimbabwe",
 ];
 
-export default function NationSelection({ className, defaultValue = null, onChange }: NationMultiSelectionProps) {
+export default function NationSelection({ className, defaultValue = null, onChange, onReset }: NationMultiSelectionProps) {
   function handleChange(index: number | null) {
-    onChange?.(index === null ? null : NATIONS[index].slice(5));
+    onChange?.(index === null ? null : { name: NATIONS[index].slice(5), flag_icon: NATIONS[index].slice(0, 4) });
+  }
+
+  function handleReset(index: number | null) {
+    handleChange(index);
   }
 
   return (
@@ -219,7 +226,7 @@ export default function NationSelection({ className, defaultValue = null, onChan
       options={NATIONS}
       defaultIndex={defaultValue === null ? null : NATIONS.findIndex((nation) => nation.includes(defaultValue))}
       onChange={handleChange}
-      onReset={handleChange}
+      onReset={onReset ? handleReset : undefined}
     ></Selection>
   );
 }

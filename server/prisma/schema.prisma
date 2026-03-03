@@ -206,7 +206,8 @@ model StoryNodeContent {
 
 model Image {
   id         String  @id @default(uuid()) @db.Uuid
-  url        String  @unique
+  url        String?  @unique
+  key        String? @unique // This key is use for clouldflare r2
   public_id  String? @unique //  This contain public id of cloudinary
   width      Int?
   height     Int?

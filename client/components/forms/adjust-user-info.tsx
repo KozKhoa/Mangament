@@ -17,11 +17,17 @@ export interface AdjustUserInfoProps {
 const ROLES = ["admin", "user"];
 
 export default function AdjustUserInfoForm({ className, user, onCancel, onConfirm }: AdjustUserInfoProps) {
+  const [isUpdating, setIsUpdating] = useState(false);
+
   const [name, setName] = useState(user.name);
   const [role, setRole] = useState(user.role);
 
   async function updateUserInfo() {
+    setIsUpdating(true);
+
     const res = await adminService.updateUser({ userId: user.id, name: name, role: role });
+
+    setIsUpdating(false);
 
     if (!res.success) return toast.warning(res.message);
 
@@ -42,10 +48,10 @@ export default function AdjustUserInfoForm({ className, user, onCancel, onConfir
       </div>
 
       <div className="w-full flex flex-row justify-end gap-2 mt-5">
-        <Button onClick={updateUserInfo} className="w-[100px] font-semibold">
+        <Button isProcessing={isUpdating} disable={isUpdating} onClick={updateUserInfo} className="w-[100px] font-semibold">
           Xác nhận
         </Button>
-        <Button onClick={onCancel} className="w-[100px] font-semibold" buttonType="delete">
+        <Button isProcessing={isUpdating} disable={isUpdating} onClick={onCancel} className="w-[100px] font-semibold" buttonType="delete">
           Hủy bỏ
         </Button>
       </div>

@@ -21,8 +21,7 @@ export const AddImage = async (data = { url }) => {
     image = await db.image.create({ data: data });
     return { success: true, data: image };
   } catch (error) {
-    if (error.code !== "P2002")
-      console.error("❌ [Image.Model.js] Error adding image:", error);
+    if (error.code !== "P2002") console.error("❌ [Image.Model.js] Error adding image:", error);
     return { success: false, error: error, data: image };
   }
 };
@@ -79,3 +78,19 @@ export const UpdateImage = async (where = { id, url }, data = {}) => {
     return { success: false, error: error.code };
   }
 };
+
+export async function FindTrashImage({ page = 1, limit = 10 }) {
+  const trashImage = await db.image.findMany({
+    where: {
+      user: { none: {} },
+      story: { none: {} },
+      nation: { none: {} },
+      story_node_content: { none: {} },
+    },
+
+    take: limit,
+    skip: (page - 1) * limit,
+  });
+
+  return { success: true, data: trashImage };
+}

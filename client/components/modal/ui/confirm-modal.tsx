@@ -9,8 +9,8 @@ export default function ConfirmModal({
 }: {
   title?: string;
   children?: any;
-  onConfirm?: () => void;
-  onCancel?: () => void;
+  onConfirm?: () => void | Promise<any>;
+  onCancel?: () => void | Promise<any>;
 }) {
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -25,9 +25,9 @@ export default function ConfirmModal({
           className="font-semibold"
           isProcessing={isProcessing}
           disable={isProcessing}
-          onClick={() => {
+          onClick={async () => {
             setIsProcessing(true);
-            onConfirm?.();
+            await onConfirm?.();
             setIsProcessing(false);
           }}
           buttonType="default"
@@ -38,9 +38,9 @@ export default function ConfirmModal({
           className="font-semibold"
           isProcessing={isProcessing}
           disable={isProcessing}
-          onClick={() => {
+          onClick={async () => {
             setIsProcessing(true);
-            onCancel?.();
+            await onCancel?.();
             setIsProcessing(false);
           }}
           buttonType="delete"

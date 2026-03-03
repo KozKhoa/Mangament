@@ -139,6 +139,8 @@ export async function AddRatings({ userId, storyId, star, title, content }) {
 
         const user = await db.user.findFirst({ where: { id: userId, is_deleted: false } });
         if (!user) throw CreateError(400, "User not found");
+
+        throw new Error(error);
       });
 
     // Update star for story

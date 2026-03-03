@@ -102,14 +102,14 @@ export async function FindAllUser({
 }
 
 export async function FindUser({ id, email }) {
+  if (!id && !email) throw CreateError(400, "Require 'id' or 'email'");
+
   const version = await getRedisUsersVersion();
 
-  const REDIS_KEY = ["FindUser", version, id, email].join(";");
+  const REDIS_KEY = ["FindUser", version, id, email].join(":");
 
   const cached = await redis.get(REDIS_KEY);
   if (cached) return JSON.parse(cached);
-
-  if (!id && !email) throw CreateError(400, "Require 'id' or 'email'");
 
   const user = await db.user.findFirst({
     where: {
@@ -166,14 +166,18 @@ export async function UpdateUser({ id, email, data }) {
   };
 
   return await db.$transaction(async (db) => {
-    const user = await db.user.findFirst({ where: where });
-    if (!user) throw CreateError(404, "User not found");
+    const update = await db.user
+      .update({
+        where: where,
+        data: data,
+        include: { avatar: { select: { url: true, height: true, width: true } } },
+      })
+      .catch(async (error) => {
+        const user = await db.user.findFirst({ where: where });
+        if (!user) throw CreateError(404, "User not found");
 
-    const update = await db.user.update({
-      where: where,
-      data: data,
-      include: { avatar: { select: { url: true, height: true, width: true } } },
-    });
+        throw new Error(error);
+      });
 
     delete update?.password;
 
@@ -196,7 +200,7 @@ export async function AddUser({ name, email, password, avatarUrl }) {
       password: hashedPassword,
 
       avatar: {
-        connect: { id: "001139d8-972f-4863-9609-154be6d4f120" },
+        connect: { url: "http://localhost:5000/user/avatar/avatar.png" },
       },
     },
 

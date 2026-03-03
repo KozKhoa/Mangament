@@ -50,13 +50,7 @@ export default function StoriesTable({ className, data, pagination }: StoriesTab
           <p>
             <span className="font-semibold">Title:</span> {story.title}
           </p>
-          <Image
-            className="w-64 m-auto my-1 rounded-sm"
-            src={story?.cover_art?.url.includes("https") ? story?.cover_art?.url : process.env.NEXT_PUBLIC_API_URL + "uploads/story/" + story?.cover_art?.url}
-            alt="Cover art"
-            width={300}
-            height={300}
-          ></Image>
+          <Image className="w-64 m-auto my-1 rounded-sm" src={story?.cover_art?.url} alt="Cover art" width={300} height={300}></Image>
         </div>
       ),
 
@@ -79,7 +73,11 @@ export default function StoriesTable({ className, data, pagination }: StoriesTab
 
         toast.message(`Xóa "${story.title}" thành công`);
         setStories((prevStories) => prevStories.filter((prevStory) => prevStory !== story));
+
+        modal.close();
       },
+
+      onCancel: modal.close,
     });
   }
 
@@ -149,13 +147,16 @@ export default function StoriesTable({ className, data, pagination }: StoriesTab
               <tr key={story.id} className={`hover:bg-foreground/5 ${i % 2 === 0 ? "" : "bg-foreground/2"}`}>
                 <TD>
                   <Link href={`/stories/${story.type}/${story.title}`}>
-                    <Image
-                      className="w-24 m-auto my-1 hover:w-48 duration-200 rounded-sm"
-                      src={story.cover_art?.url}
-                      alt={story.title}
-                      width={500}
-                      height={500}
-                    ></Image>
+                    {story.cover_art?.url && (
+                      <Image
+                        className="w-24 m-auto my-1 hover:w-48 duration-200 rounded-sm"
+                        src={story.cover_art?.url}
+                        alt={story.title}
+                        width={500}
+                        height={500}
+                        unoptimized
+                      />
+                    )}
                   </Link>
                 </TD>
                 <TD>{story.title}</TD>

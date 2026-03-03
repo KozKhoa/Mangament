@@ -27,7 +27,6 @@ export default function CommentInputForm({ storyId, storyNodeId, className, onSu
 
     if (title.length > 100) return toast.warning("Chủ đề không được quá 100 chữ");
 
-    console.log(storyId, storyNodeId);
     setIsProcessing(true);
     let res;
     if (storyNodeId) {

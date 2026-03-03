@@ -37,13 +37,11 @@ export function ModalRoot() {
             {m.type === "confirm" && (
               <ConfirmModal
                 title={m.props?.title ?? ""}
-                onCancel={() => {
-                  m.props?.onCancel?.();
-                  modal.close();
+                onCancel={async () => {
+                  await m.props?.onCancel?.();
                 }}
-                onConfirm={() => {
-                  m.props?.onConfirm?.();
-                  modal.close();
+                onConfirm={async () => {
+                  await m.props?.onConfirm?.();
                 }}
               >
                 {m.props?.content}

@@ -15,16 +15,23 @@ interface StoryStatusSelectionProps {
   defaultValue?: string[];
 
   onChange?: (genres: string[]) => void;
+
+  onReset?: (genres: string[]) => void;
 }
 
-export default function StoryGenreMultiSelection({ className, defaultValue, onChange }: StoryStatusSelectionProps) {
+export default function StoryGenreMultiSelection({ className, defaultValue, onChange, onReset }: StoryStatusSelectionProps) {
   const [defaultIndexs, setDefaultIndexs] = useState<number[]>([]);
 
   const [genres, setGenres] = useState<Set<string>>(new Set());
 
   function handleChange(indexs: number[]) {
     const genresArr = [...genres];
+
     onChange?.(indexs.map((index) => genresArr[index]));
+  }
+
+  function handleReset(indexs: number[]) {
+    handleChange(indexs);
   }
 
   useEffect(() => {
@@ -60,7 +67,7 @@ export default function StoryGenreMultiSelection({ className, defaultValue, onCh
       options={[...genres].map((genre) => snakeCaseToCapitalizeWord(genre))}
       defaultIndexs={defaultIndexs}
       onChange={handleChange}
-      onReset={handleChange}
+      onReset={onReset ? handleReset : undefined}
     ></MultiSelection>
   );
 }

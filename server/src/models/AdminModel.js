@@ -24,41 +24,66 @@ const intervalMap = {
 export async function GetDashboardOverview() {
   const cached = await redis.get(REDIS_CACHE_DASHBOARD_OVERVIEW_KEY);
 
-  if (cached) {
-    return { success: true, data: JSON.parse(cached) };
-  } else {
-    const totalUsers = (await db.user.count({ where: { is_deleted: false } })) ?? 0;
-    const totalBannedUsers = (await db.user.count({ where: { is_banned: true, is_deleted: false } })) ?? 0;
-    const totalStories = (await db.story.count({ where: { is_deleted: false } })) ?? 0;
-    const totalView = (await db.story.aggregate({ _sum: { view: true } }))._sum.view ?? 0;
-    const totalRating = (await db.rating.count({ where: { is_deleted: false } })) ?? 0;
+  if (cached) return JSON.parse(cached);
 
-    const storyStatus = Object.values(StoryStatus);
-    const totalStoriesBaseOnStatus = {};
-    for (const status of storyStatus) {
-      totalStoriesBaseOnStatus[status] = (await db.story.count({ where: { is_deleted: false, status: status } })) ?? 0;
-    }
+  const dbResponse = await db.$queryRaw`
+    SELECT
+      (SELECT COUNT(*)::int FROM "User" WHERE is_deleted = false) AS "totalUsers",
 
-    const userRoles = Object.values(Role);
-    const totalUserBaseOnRole = {};
-    for (const role of userRoles) {
-      totalUserBaseOnRole[role] = (await db.user.count({ where: { is_deleted: false, role: role } })) ?? 0;
-    }
+      (SELECT COUNT(*)::int 
+      FROM "User" 
+      WHERE is_deleted = false AND is_banned = true) AS "totalBannedUsers",
 
-    const data = {
-      totalStories,
-      totalStoriesBaseOnStatus,
-      totalUsers,
-      totalUserBaseOnRole,
-      totalBannedUsers,
-      totalView,
-      totalRating,
-    };
+      (SELECT COUNT(*)::int 
+      FROM "Story" 
+      WHERE is_deleted = false) AS "totalStories",
 
-    await redis.setex(REDIS_CACHE_DASHBOARD_OVERVIEW_KEY, TTL, JSON.stringify(data));
+      (SELECT COALESCE(SUM(view), 0)::int
+      FROM "Story" 
+      WHERE is_deleted = false) AS "totalView",
 
-    return { success: true, data: data };
-  }
+      (SELECT COUNT(*)::int 
+      FROM "Rating" 
+      WHERE is_deleted = false) AS "totalRating",
+
+      (
+        SELECT COALESCE(json_object_agg(status, total), '{}'::json)
+        FROM (
+          SELECT status, COUNT(*)::int AS total
+          FROM "Story"
+          WHERE is_deleted = false
+          GROUP BY status
+        ) t
+      ) AS "totalStoriesBaseOnStatus",
+
+      (
+        SELECT COALESCE(json_object_agg(role, total), '{}'::json)
+        FROM (
+          SELECT role, COUNT(*)::int AS total
+          FROM "User"
+          WHERE is_deleted = false
+          GROUP BY role
+        ) t
+      ) AS "totalUserBaseOnRole";
+  `;
+
+  const { totalUsers, totalBannedUsers, totalStories, totalView, totalRating, totalStoriesBaseOnStatus, totalUserBaseOnRole } = dbResponse[0];
+
+  const data = {
+    totalStories,
+    totalStoriesBaseOnStatus,
+    totalUsers,
+    totalUserBaseOnRole,
+    totalBannedUsers,
+    totalView,
+    totalRating,
+  };
+
+  const result = { success: true, data: data };
+
+  redis.setex(REDIS_CACHE_DASHBOARD_OVERVIEW_KEY, TTL, JSON.stringify(result));
+
+  return result;
 }
 
 export async function GetDashboardViews({ storyId, storyNodeId, fromDate, toDate, groupBy = "day" }) {

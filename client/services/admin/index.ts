@@ -6,6 +6,7 @@ import User from "@/types/user";
 import { DashboardOverview, DashboardStatsNewUsers, DashboardStatsView } from "@/types/dashboard";
 import Story from "@/types/story";
 import { StoryParams } from "@/types/params";
+import StoryNode, { StoryNodeContent } from "@/types/story-node";
 
 type ServiceResult<T> = { success: boolean; data?: T; message?: string; pagination?: Pagination };
 
@@ -138,9 +139,12 @@ export async function deleteUser(userId: string): Promise<ServiceResult<null>> {
   }
 }
 
-export async function getStory(storyId: string): Promise<ServiceResult<Story>> {
+export async function getStory(stroryId: string, params?: StoryParams): Promise<ServiceResult<Story>> {
   try {
-    const res = await api.get(`/admin/stories/${storyId}`);
+    const res = await api.get(`/admin/stories/${stroryId}`, {
+      params: params,
+      paramsSerializer: (params) => qs.stringify(params, { arrayFormat: "comma" }),
+    });
     return res.data;
   } catch (error) {
     console.log(error);
@@ -161,12 +165,12 @@ export async function getStories(params?: StoryParams): Promise<ServiceResult<St
   }
 }
 
-export async function updateStory(story: Story, coverArtFile?: File): Promise<ServiceResult<Story[]>> {
+export async function addNewStory(story: Story, coverArtFile?: File): Promise<ServiceResult<Story>> {
   try {
-    let coverArtUrl;
-    let publicId;
+    let _coverArtUrl;
+    let _publicId;
     if (coverArtFile) {
-      const sigRes = await api.get(`/cloudinary/signature/${story.id}/cover-art`);
+      const sigRes = await api.get(`/cloudinary/signature/storyType/${story.type}/storyTitle/${story.title}/cover-art`);
       const { timestamp, signature, apiKey, cloudName, folder, publicId } = sigRes.data;
 
       const formData = new FormData();
@@ -181,8 +185,96 @@ export async function updateStory(story: Story, coverArtFile?: File): Promise<Se
       const cloudinaryAxios = axios.create({ baseURL: `https://api.cloudinary.com/v1_1/${cloudName}` });
       const coverArtUpload = await cloudinaryAxios.post(`/image/upload`, formData);
 
-      coverArtUrl = coverArtUpload.data.secure_url;
+      _coverArtUrl = coverArtUpload.data.secure_url;
+      _publicId = publicId;
     }
+
+    const res = await api.post(`/admin/stories`, {
+      title: story.title,
+      nation: story.nation,
+      type: story.type,
+      status: story.status,
+      genre: story.genres,
+      summary: story.summary,
+      ...(_coverArtUrl && { coverArtUrl: _coverArtUrl }),
+      ...(_publicId && { publicId: _publicId }),
+    });
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return { success: false, message: error?.toString() };
+  }
+}
+
+export async function updateStory(
+  story: Story,
+  coverArtFile?: File,
+  children?: {
+    delete: { story_node: { id: any }[]; content: { id: any }[] };
+    add: { story_node: StoryNode[]; content: StoryNodeContent[] };
+    edit: { story_node: StoryNode[]; content: StoryNodeContent[] };
+  },
+): Promise<ServiceResult<Story>> {
+  try {
+    let coverArtUrl;
+    let publicId;
+    if (coverArtFile) {
+      const formData = new FormData();
+
+      formData.append("image", coverArtFile);
+
+      const updateCoverArtRes = await api.post(`/uploads/story/${story.id}/cover-art`, formData);
+
+      coverArtUrl = updateCoverArtRes.data.data.url;
+    }
+
+    if (children?.add) {
+      const uploadPromise = children.add.content.map((content, i) => {
+        if (content.imageFile) {
+          const formData = new FormData();
+          formData.append("image", content?.imageFile);
+          formData.append("orderIndex", content.order_index.toString());
+
+          return api.post(`uploads/story/${story.id}/story-node/${content.story_node_id}/content`, formData);
+        } else {
+          return { data: { data: [{ key: undefined, url: undefined }] } };
+        }
+      });
+
+      const uploadImages = await Promise.all(uploadPromise);
+
+      children.add.content = children.add.content.map((content, i) => ({
+        ...content,
+        image: { url: uploadImages[i]?.data?.data?.url, key: uploadImages[i].data?.data?.key },
+        imageFile: undefined,
+      }));
+    }
+
+    if (children?.edit) {
+      const uploadPromise = children.edit.content.map((content, i) => {
+        if (content.imageFile) {
+          const formData = new FormData();
+          formData.append("image", content?.imageFile);
+          formData.append("orderIndex", content.order_index.toString());
+
+          return api.post(`uploads/story/${story.id}/story-node/${content.story_node_id}/content`, formData);
+        } else {
+          return { data: { data: [{ key: undefined, url: undefined }] } };
+        }
+      });
+
+      const uploadImages = await Promise.all(uploadPromise);
+
+      console.log(uploadImages);
+
+      children.edit.content = children.edit.content.map((content, i) => ({
+        ...content,
+        image: { ...content.image, url: uploadImages[i]?.data?.data?.url, key: uploadImages[i]?.data?.data?.key },
+        imageFile: undefined,
+      }));
+    }
+
+    console.log(children);
 
     const res = await api.put(`/admin/stories/${story.id}`, {
       title: story.title,
@@ -192,6 +284,7 @@ export async function updateStory(story: Story, coverArtFile?: File): Promise<Se
       genre: story.genres,
       summary: story.summary,
       ...(coverArtUrl && { coverArtUrl: coverArtUrl, publicId: publicId }),
+      ...(children && { children: children }),
     });
     return res.data;
   } catch (error) {
@@ -230,6 +323,7 @@ const adminService = {
   updateUser,
   getStory,
   getStories,
+  addNewStory,
   updateStory,
   activeStory,
   deleteStory,
