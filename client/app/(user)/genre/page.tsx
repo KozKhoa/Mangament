@@ -1,24 +1,19 @@
 "use client";
 
-import usePaperClip from "@/hooks/usePaperClip";
 import genreService from "@/services/genre";
 import { snakeCaseToCapitalizeWord } from "@/utils/string";
 import Link from "next/link";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 export function GenrePagerCard({ genre, className }: { genre: string; className?: string }) {
-  const [ref, style] = usePaperClip();
-
   return (
     <div
       className="drop-shadow-[0_3px_3px_var(--foreground)]/5  transition-all duration-300
         hover:drop-shadow-[0_12px_5px_var(--foreground)]/20 hover:-translate-y-3"
     >
       <div
-        ref={ref as any}
-        style={style}
-        className={`bg-background-items w-full h-fit flex flex-col shadow-md 
+        className={`bg-background-items w-full h-fit flex flex-col shadow-md clip-path-paper
         ${className}`}
       >
         <Link href={`/genre/${genre}`}>
@@ -58,7 +53,7 @@ export default function GenreListPage() {
 
   return (
     <div className="p-2">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-x-2 gap-y-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-x-2 gap-y-3">
         {genres.map((genre, i) => (
           <div key={genre}>
             <GenrePagerCard genre={genre}></GenrePagerCard>

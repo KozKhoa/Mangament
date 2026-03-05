@@ -133,7 +133,7 @@ model User {
 
 model Story {
   id                 String      @id @default(uuid()) @db.Uuid
-  title              String     @unique
+  title              String      @unique
   view               Int         @default(0)
   star               Float       @default(0)
   rating_count       Int         @default(0) // Number of rating
@@ -197,9 +197,9 @@ model StoryNodeContent {
   order_index   Int
   content       String?
   image_id      String?              @db.Uuid()
-  
-  is_deleted Boolean @default(false)
-  created_at         DateTime    @default(now())
+
+  is_deleted Boolean  @default(false)
+  created_at DateTime @default(now())
 
   story_node StoryNode @relation(fields: [story_node_id], references: [id], onDelete: Cascade)
   image      Image?    @relation(fields: [image_id], references: [id], onDelete: Cascade)
@@ -208,17 +208,18 @@ model StoryNodeContent {
 }
 
 model Image {
-  id         String  @id @default(uuid()) @db.Uuid
-  url        String?  @unique
-  key        String? @unique // This key is use for clouldflare r2
-  public_id  String? @unique //  This contain public id of cloudinary
-  width      Int?
-  height     Int?
+  id        String  @id @default(uuid()) @db.Uuid
+  url       String? @unique
+  key       String? @unique // This key is use for clouldflare r2
+  public_id String? @unique //  This contain public id of cloudinary
+  width     Int?
+  height    Int?
 
-  is_deleted Boolean @default(false)
-  created_at         DateTime    @default(now())
+  is_deleted Boolean  @default(false)
+  created_at DateTime @default(now())
 
   user               User[]
+  author             Author[]
   story              Story[]
   nation             Nation[]
   story_node_content StoryNodeContent[]
@@ -227,9 +228,12 @@ model Image {
 model Author {
   id        String  @id @default(uuid()) @db.Uuid
   name      String
+  avatar_id String?  @db.Uuid()
   nation_id String? @db.Uuid()
 
   nation Nation?        @relation(fields: [nation_id], references: [id], onDelete: SetNull)
+  avatar Image?         @relation(fields: [avatar_id], references: [id], onDelete: SetNull)
+
   story  Story_Author[]
 }
 

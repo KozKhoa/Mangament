@@ -1,33 +1,25 @@
 import db from "../configs/db.js";
 import { CreateError } from "../utils/ErrorHandle.js";
 import { redis } from "../configs/redis.js";
+import redisService from "../services/redis.service.js";
+import { isUUID } from "../utils/Validators.js";
 
-const REDIS_TTL = 60 * 60; // 60 minutes
-
-// Đây là hàm lấy version redis của comment.
-async function getCommentVersion(storyId, storyNodeId) {
-  const versionKey = `version:comment:${storyId}:${storyNodeId}`;
-  let version = await redis.get(versionKey);
-
-  if (!version) {
-    version = 1;
-    await redis.set(versionKey, version);
-  }
-
-  return version;
-}
-
-// Đây là hàm dùng để tăng version cho việc lấy comment list
-async function incrCommentVersion(storyId, storyNodeId) {
-  await redis.incr(`version:comment:${storyId}:${storyNodeId}`);
-}
+const REDIS_TTL = 60 * 15; // 15 minutes
 
 export async function FindAllComments({ userId, storyId, storyNodeId, sort = { updated_at: "desc" }, page = 1, limit = 10 }) {
-  const version = await getCommentVersion(storyId, storyNodeId);
+  const storiesVer = await redisService.stories(storyId).get(); // This use to update when a story being updated like it being deleted
+  const storyNodeVer = await redisService.storyNodes(storyNodeId).get(); // This use to update when a story node being updated like it being deleted
+  const userVer = await redisService.users(userId).get(); // This use to update when a user being updated like it being deleted
+  const commentStoryVer = await redisService.comments(storyId).get(); // This use to update when a comment of a story being update like when somebody add new comment
+  const commentVer = await redisService.comments().get(); // This use update when there are any case want to update the whole comment not care which story its belong to
 
   const REDIS_KEY = [
     "FindAllComments",
-    "v=" + version,
+    "storiesVer=" + storiesVer,
+    "storyNodeVer=" + storyNodeVer,
+    "commentStoryVer=" + commentStoryVer,
+    "userVer=" + userVer,
+    "commentVer=" + commentVer,
     "userId=" + userId,
     "storyId=" + storyId,
     "storyNodeId=" + storyNodeId,
@@ -50,15 +42,7 @@ export async function FindAllComments({ userId, storyId, storyNodeId, sort = { u
   const comments = await db.comment.findMany({
     where: where,
     include: {
-      user: {
-        select: {
-          id: true,
-          name: true,
-          avatar: {
-            select: { url: true, width: true, height: true },
-          },
-        },
-      },
+      user: { select: { id: true, name: true, avatar: true } },
     },
     orderBy: [sort, { id: "asc" }],
     take: limit,
@@ -83,31 +67,31 @@ export async function FindAllComments({ userId, storyId, storyNodeId, sort = { u
   return result;
 }
 
-export async function FindComment({ id }) {
-  const REDIS_KEY = ["FindComment", "commentId=" + id].join(":");
+export async function FindComment(id) {
+  const commentVer = await redisService.comments(id).get();
+
+  const REDIS_KEY = ["FindComment", "commentVer=" + commentVer, "id=" + id].join(":");
 
   const cached = await redis.get(REDIS_KEY);
   if (cached) return JSON.parse(cached);
 
-  if (!id) throw new Error("Require id");
+  // This func do not need to cached because it is hardly called
+  if (!id) throw CreateError(400, "Require 'id'");
 
-  const comment = await db.comment.findFirst({ where: { is_deleted: false, id: id } });
+  const comment = await db.comment.findFirst({
+    where: { is_deleted: false, id: id },
+    include: { user: { select: { id: true, name: true, avatar: true } } },
+  });
 
-  const result = { success: false, data: comment };
+  if (!comment) throw CreateError(404, "Comment not found");
 
-  redis.setex(REDIS_KEY, REDIS_TTL, JSON.stringify(result));
-
-  return result;
+  return { success: true, data: comment };
 }
 
 export async function AddComment({ userId, storyId, storyNodeId, title, content }) {
-  if (!userId || !storyId) {
-    throw CreateError(400, "Require user id and story id");
-  }
+  if (!userId || !storyId) throw CreateError(400, "Require user id and story id");
 
-  if (!title || !content) {
-    throw CreateError(400, "Require both title and content");
-  }
+  if (!title || !content) throw CreateError(400, "Require both title and content");
 
   const newComment = await db.comment
     .create({
@@ -144,19 +128,22 @@ export async function AddComment({ userId, storyId, storyNodeId, title, content 
       },
     })
     .catch(async (error) => {
-      console.log(error);
+      // If there are any error occur, that could be wrong storyId, userId or storyNodeId
 
       if (storyId) {
+        if (!isUUID(storyId)) throw CreateError(400, "'storyId' must be UUID");
         const story = await db.story.findFirst({ where: { is_deleted: false, id: storyId } });
         if (!story) throw CreateError(400, "Story not found");
       }
 
       if (userId) {
+        if (!isUUID(userId)) throw CreateError(400, "'userId' must be UUID");
         const user = await db.user.findFirst({ where: { is_deleted: false, id: userId } });
         if (!user) throw CreateError(400, "User not found");
       }
 
       if (storyNodeId) {
+        if (!isUUID(storyNodeId)) throw CreateError(400, "'storyNodeId' must be UUID");
         const storyNode = await db.storyNode.findFirst({ where: { is_deleted: false, id: storyNodeId } });
         if (!storyNode) throw CreateError(400, "Story node not found");
       }
@@ -166,58 +153,69 @@ export async function AddComment({ userId, storyId, storyNodeId, title, content 
 
   delete newComment.is_deleted;
 
-  incrCommentVersion(storyId, storyNodeId);
+  redisService.comments(newComment.story_id).incr(); // This will remove the cached for list of all comment belonging to story
 
   return { success: true, data: newComment };
 }
 
-export async function UpdateComment(where = { id }, data = { message }) {
-  try {
-    const updateComment = await db.comment.update({ where: where, data: data });
-    return { success: true, data: updateComment };
-  } catch (error) {
-    if (error.code !== "P2025") console.error("❌ [User.Model.js] Error updating comment: ", error);
-    return { success: false, error: error.code };
-  }
-}
+export async function UpdateComment(id, { title, content }) {
+  if (!id) throw CreateError(400, "Require 'id'");
 
-export async function SoftDeleteComment(where = { id }) {
-  try {
-    const softRemove = await db.comment.update({
-      where: where,
-      data: {
-        is_deleted: true,
-      },
-    });
-    return { success: true, data: softRemove };
-  } catch (error) {
-    if (error.code !== "P2025") console.error("❌ [User.Model.js] Error soft deleting comment: ", error);
-    return { success: false, error: error.code };
-  }
-}
+  const update = await db.comment
+    .update({
+      where: { id: id },
+      data: { title: title, content: content },
+    })
+    .catch(async (error) => {
+      if (!isUUID(id)) throw CreateError(400, "'id' must be UUID");
+      const comment = await db.comment.findFirst({ where: { is_deleted: false, id: id } });
+      if (!comment) throw CreateError(400, "Comment not found");
 
-export async function HardDeleteComment(where = { id }) {
-  try {
-    const hardRemove = await db.comment.delete({ where: where });
-    return { success: true, data: hardRemove };
-  } catch (error) {
-    if (error.code !== "P2025") console.error("❌ [User.Model.js] Error hard deleting comment: ", error);
-    return { success: false, error: error.code };
-  }
-}
-
-export async function Count(where = { storyNodeId, storyId }) {
-  try {
-    const res = await db.comment.count({
-      where: {
-        ...(where.storyNodeId && { story_node_id: where.storyNodeId }),
-        ...(where.storyId && { story_id: where.storyId }),
-      },
+      throw new Error(error);
     });
 
-    return { success: true, data: res };
-  } catch (error) {
-    console.error("❌ [User.Model.js] Error counting comment", error);
-    return { success: false, error: error.code };
-  }
+  redisService.comments(update.story_id).incr(); // This will remove the cached for list of all comment belonging to story
+
+  return { success: true, data: update };
+}
+
+export async function SoftDeleteComment(id) {
+  if (!id) throw CreateError(400, "Require 'id'");
+
+  const softRemove = await db.comment
+    .update({
+      where: { id: id },
+      data: { is_deleted: true },
+    })
+    .catch(async (error) => {
+      if (!isUUID(id)) throw CreateError(400, "'id' must be UUID");
+      const comment = await db.comment.findFirst({ where: { id: id } });
+      if (!comment) throw CreateError(400, "Comment not found");
+
+      throw new Error(error);
+    });
+
+  redisService.comments(softRemove.story_id).incr(); // This will remove the cached for list of all comment belonging to story
+
+  return { success: true, data: softRemove };
+}
+
+export async function HardDeleteComment(id) {
+  if (!id) throw CreateError(400, "Require 'id'");
+
+  const hardRemove = await db.comment
+    .delete({
+      where: { id: id },
+    })
+    .catch(async (error) => {
+      if (!isUUID(id)) throw CreateError(400, "'id' must be UUID");
+      const comment = await db.comment.findFirst({ where: { id: id } });
+      if (!comment) throw CreateError(400, "Comment not found");
+
+      throw new Error(error);
+    });
+
+  redisService.comments(hardRemove.story_id).incr(); // This will remove the cached for list of all comment belonging to story
+
+  return { success: true, data: hardRemove };
 }

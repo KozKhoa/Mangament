@@ -43,6 +43,8 @@ export default function StoryDetailPage() {
     if (!res.success) return toast.warning(res.message);
 
     setStory(res.data);
+
+    console.log(res.data);
   }
 
   async function fetchStoryReview() {
@@ -133,7 +135,7 @@ export default function StoryDetailPage() {
       </div>
 
       {/* Rating */}
-      <RatingMasonryGrid storyId={story?.id ?? ""}></RatingMasonryGrid>
+      <RatingMasonryGrid storyId={story?.id ?? ""} allowAddNewRating={story?.rating ? false : true}></RatingMasonryGrid>
 
       {/* Comment */}
       <CommentMasonryGrid storyId={story?.id ?? ""}></CommentMasonryGrid>

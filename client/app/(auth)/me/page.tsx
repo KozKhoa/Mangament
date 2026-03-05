@@ -17,48 +17,43 @@ import History from "@/types/history";
 import HistoryList from "@/components/list/history-list";
 import { useRouter } from "next/navigation";
 import withAuth from "@/hoc/withAuth";
+import InfinityScrollHorizontalList from "@/components/list/infinity-scroll-horizontal-list";
+import HistoryCard from "@/components/cards/history-card";
 
-const limit = 20;
+const LIMIT = 20;
+const PAGE = 1;
 
 export function ProfilePage() {
   const auth = useAuth();
   const user = auth?.user;
   const router = useRouter();
 
-  let currentFavPage: number = 1;
-  let currentHisPage: number = 1;
-
   const [favourite, setFavourite] = useState<Story[]>([]);
-  const [history, setHistory] = useState<History[]>([]);
+  const [histories, setHistories] = useState<History[]>([]);
 
-  async function fetchFavourite(page: number, limit: number) {
-    const res = await favouriteService.getFavouriteStories({ limit: limit, page: page, sort: "created_at:desc" });
+  async function fetchFavourite() {
+    const res = await favouriteService.getFavouriteStories({ limit: LIMIT, page: PAGE });
 
-    if (!res) return toast.warning("Cannot connect with server");
     if (!res.success) return toast.warning(res.message);
 
     const fav: Favourite[] = res.data ?? [];
 
     if (!fav) return;
-    setFavourite((prevFav) => [...prevFav, ...fav.map((item) => item.story)]);
+
+    setFavourite(fav.map((item) => item.story));
   }
 
-  async function fetchHistory(page: number, limit: number) {
-    const res = await historyService.getHistories({ limit: limit, page: page, sort: "updated_at:desc" });
+  async function fetchHistory() {
+    const res = await historyService.getHistories({ limit: LIMIT, page: PAGE });
 
-    if (!res) return toast.warning("Cannot connect with server");
     if (!res.success) return toast.warning(res.message);
 
-    const his: History[] = res.data ?? [];
-    if (!his) return;
-    setHistory((prevHis) => [...prevHis, ...his]);
-
-    setHistory(res.data ?? []);
+    setHistories(res.data ?? []);
   }
 
   useEffect(() => {
-    fetchFavourite(currentFavPage, limit);
-    fetchHistory(currentHisPage, limit);
+    fetchFavourite();
+    fetchHistory();
   }, []);
 
   return (
@@ -68,19 +63,13 @@ export function ProfilePage() {
           {/* User card */}
           <UserCard className="max-w-5xl m-auto"></UserCard>
           {/* Favourite story */}
-          <StoryList
-            label="Truyện yêu thích"
-            stories={favourite}
-            onClickLabel={() => router.push("/favourites")}
-            onScrollToEnd={() => fetchFavourite(++currentFavPage, limit)}
-          ></StoryList>
+          <StoryList label="Truyện yêu thích" stories={favourite} onClickLabel={() => router.push("/favourites")}></StoryList>
 
           <HistoryList
-            histories={history}
+            histories={histories}
             onClickLabel={() => router.push("/histories")}
-            onScrollToEnd={() => fetchHistory(++currentHisPage, limit)}
             onRemoveElement={(removeElement) => {
-              setHistory((prevHis) => prevHis.filter((x) => x !== removeElement));
+              setHistories((prevHis) => prevHis.filter((x) => x !== removeElement));
             }}
           ></HistoryList>
         </div>

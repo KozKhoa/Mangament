@@ -5,9 +5,11 @@ import { ValidateStoryType, ValidateStoryStatus } from "../models/Enum.Model.js"
 
 import { ValidateGenre } from "../models/Genre.Model.js";
 import { AddImage } from "../models/Image.Model.js";
-import { FindAllStories, FindStory, UpdateStory, AddStory, SoftDeleteStory, CountStory, GetReview, FindRandomStory } from "../models/Story.Model.js";
+import { FindAllStories, FindStory, UpdateStory, AddStory, SoftDeleteStory, GetReview, FindRandomStory } from "../models/Story.Model.js";
 
-import { FindAllFavouriteStories, FindFavouriteStory } from "../models/Favourite.Model.js";
+import * as favouriteModel from "../models/Favourite.Model.js";
+
+import * as ratingModel from "../models/Rating.Model.js";
 
 import { CreateNewFolder, MoveFile } from "../utils/FileHandle.js";
 import DIRECTORY from "../constants/Directory.js";
@@ -40,10 +42,19 @@ export async function GetStory(req, res, next) {
 
     // Is story in user favourites list
     if (userId) {
-      const favourite = await FindFavouriteStory({ userId: userId, storyId: story.data.id });
+      const favourite = await favouriteModel.FindAllFavouriteStories({ userId: userId, limit: 1, page: 1, storyId: story.data.id });
 
-      if (favourite && favourite.data) {
-        story.data.favourite = { id: favourite.data.id };
+      if (favourite && favourite.data.length > 0) {
+        story.data.favourite = { id: favourite.data.at(0).id };
+      }
+    }
+
+    //  If user already rate this story
+    if (userId) {
+      const rating = await ratingModel.FindRating({ userId: userId, storyId: story.data.id });
+
+      if (rating && rating.data) {
+        story.data.rating = rating.data;
       }
     }
 
@@ -78,55 +89,6 @@ export async function GetStoryReview(req, res, next) {
   }
 }
 
-export async function GetCountStories(req, res, next) {
-  try {
-    const query = req.query;
-
-    const type = query.type ? query.type.split(",") : null;
-
-    const authors = query.author ? query.author.split(",") : null;
-
-    const genres = query.genre ? query.genre.split(",") : null;
-    if (!ValidateGenre(genres)) throw CreateError(400, "Invalid genre");
-
-    // rating = [[1,2], [4,5]]
-    const rating = query.star ? query.star.split(",").map((range) => range.split("-").map((number) => parseFloat(number))) : [[0, 5]];
-    // view = [[0, 100], [1000, 100000]]
-    const view = query.view ? query.view.split(",").map((range) => range.split("-").map((number) => Number(number))) : [[0, 2147483647]];
-
-    // Create where
-    const where = {
-      ...(type && { type: { in: type } }),
-      ...(authors && {
-        authors: { some: { author_id: { in: authors } } },
-      }),
-      ...(genres && {
-        genres: { hasEvery: genres },
-      }),
-      AND: [
-        {
-          OR: [...rating.map(([min, max]) => ({ star: { gte: min, lte: max } }))],
-        },
-        {
-          OR: [...view.map(([min, max]) => ({ view: { gte: min, lte: max } }))],
-        },
-      ],
-    };
-
-    const count = (await CountStory(where)).data;
-
-    return res.status(200).json({
-      success: true,
-      message: "Get count stories successfully",
-      data: {
-        count: count,
-      },
-    });
-  } catch (error) {
-    next(error);
-  }
-}
-
 export async function GetRandomStory(req, res, next) {
   try {
     const story = await FindRandomStory();
@@ -156,7 +118,6 @@ export async function GetAllStories(req, res, next) {
       view: view,
       star: star,
       genres: genres,
-      genres: genres,
       authorsId: authors,
       sort: sort,
       page: page,
@@ -172,7 +133,7 @@ export async function GetAllStories(req, res, next) {
     }
 
     if (userId) {
-      const favourites = await FindAllFavouriteStories({
+      const favourites = await favouriteModel.FindAllFavouriteStories({
         userId: userId,
         limit: 2147483647,
         page: 1,

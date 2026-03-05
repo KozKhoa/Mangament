@@ -7,6 +7,7 @@ import LabelDropDownRadio from "@/components/inputs/label-input/label-dropdown-r
 
 import { convertDateTo_yyyMMdd } from "@/utils/convert";
 import Image from "next/image";
+import ImagePicker from "@/components/inputs/image-picker";
 
 const GENDER = ["male", "female", "other"];
 
@@ -22,7 +23,15 @@ export default function UserCard({ className }: { className?: string }) {
         shadow-[11px_13px_4px_0px_rgba(0,0,0,0.3)] ${className}`}
       >
         <div className="flex flex-1 h-full min-w-xs aspect-square overflow-hidden p-3 border-2 rounded-full">
-          <Image src={user?.avatar?.url ?? ""} alt="Avatar" width={300} height={300} unoptimized></Image>
+          {/* <Image src={user?.avatar?.url ?? ""} alt="Avatar" width={300} height={300} unoptimized></Image> */}
+          <ImagePicker
+            className="flex justify-center items-center w-full"
+            defaultValue={user?.avatar?.url ?? ""}
+            value={user?.avatar?.url}
+            onChange={(file) => {
+              if (typeof file !== "string") auth?.updateAvatar(file);
+            }}
+          />
         </div>
         <div className="flex flex-5 flex-col items-start">
           {/* User name */}

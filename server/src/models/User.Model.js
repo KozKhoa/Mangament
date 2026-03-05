@@ -5,26 +5,10 @@ import { GetParentStoryNodeTree } from "./StoryNode.Model.js";
 import * as passwordService from "../utils/PasswordHandle.js";
 import { CreateError } from "../utils/ErrorHandle.js";
 import { redis } from "../configs/redis.js";
+import { throwErrorIfInvalidGenders } from "../utils/Validators.js";
+import redisService from "../services/redis.service.js";
 
-const REDIS_TTL = 60 * 30; // 30 minutes
-
-// Đây là hàm lấy version redis. Khi adim thêm mới story thì sẽ update version lên
-async function getRedisUsersVersion() {
-  const versionKey = `version:users`;
-  let version = await redis.get(versionKey);
-
-  if (!version) {
-    version = 1;
-    await redis.set(versionKey, version);
-  }
-
-  return version;
-}
-
-// Đây là hàm dùng để tăng version cho việc lấy và build story
-async function incrRedisUsersVersion() {
-  await redis.incr(`version:users`);
-}
+const REDIS_TTL = 60 * 15; // 15 minutes
 
 export async function FindAllUser({
   genders = [],
@@ -38,7 +22,7 @@ export async function FindAllUser({
   isBanned,
   search,
 }) {
-  const version = await getRedisUsersVersion();
+  const version = await redisService.users().get();
 
   const REDIS_KEY = ["FindAllUser", version, page, limit, genders, fromDate, toDate, roles, birthday, JSON.stringify(sort), isBanned, search].join(";");
 
@@ -104,7 +88,7 @@ export async function FindAllUser({
 export async function FindUser({ id, email }) {
   if (!id && !email) throw CreateError(400, "Require 'id' or 'email'");
 
-  const version = await getRedisUsersVersion();
+  const version = await redisService.users().get();
 
   const REDIS_KEY = ["FindUser", version, id, email].join(":");
 
@@ -151,38 +135,41 @@ export async function BannedUser({ id, email, isBanned }) {
     if (!user) throw CreateError(404, "User not found");
   }
 
-  incrRedisUsersVersion();
+  await redisService.users().incr();
 
   return { success: true, data: bannedUser };
 }
 
-export async function UpdateUser({ id, email, data }) {
-  if (!id && !email) throw CreateError(400, "'id' or 'email' is required");
+export async function UpdateUser(id, { name, birthday, gender, avatar }) {
+  if (!id) throw CreateError(400, "'id' is required");
 
-  const where = {
-    is_deleted: false,
-    ...(id && { id: id }),
-    ...(email && { email: email }),
-  };
+  gender && throwErrorIfInvalidGenders(gender);
 
-  return await db.$transaction(async (db) => {
-    const update = await db.user
-      .update({
-        where: where,
-        data: data,
-        include: { avatar: { select: { url: true, height: true, width: true } } },
-      })
-      .catch(async (error) => {
-        const user = await db.user.findFirst({ where: where });
-        if (!user) throw CreateError(404, "User not found");
+  const update = await db.user
+    .update({
+      where: {
+        id: id,
+      },
+      data: {
+        ...(name && { name: name }),
+        ...(birthday && { birthday: new Date(birthday) }),
+        ...(gender && { gender: gender }),
+        ...(avatar && { avatar: { connectOrCreate: { where: { url: avatar.url }, create: { url: avatar.url, key: avatar.key } } } }),
+      },
+      include: { avatar: true },
+    })
+    .catch(async (error) => {
+      const user = await db.user.findFirst({ where: { id: id } });
+      if (!user) throw CreateError(404, "User not found");
 
-        throw new Error(error);
-      });
+      throw new Error(error);
+    });
 
-    delete update?.password;
+  delete update?.password;
 
-    return { success: true, data: update };
-  });
+  await redisService.users().incr();
+
+  return { success: true, data: update };
 }
 
 export async function AddUser({ name, email, password, avatarUrl }) {
@@ -200,7 +187,10 @@ export async function AddUser({ name, email, password, avatarUrl }) {
       password: hashedPassword,
 
       avatar: {
-        connect: { url: "http://localhost:5000/user/avatar/avatar.png" },
+        connectOrCreate: {
+          create: { url: "https://pub-626aeddeabe146fb92f0e8ca1377235a.r2.dev/user/avatar/avatar.png" },
+          where: { url: "https://pub-626aeddeabe146fb92f0e8ca1377235a.r2.dev/user/avatar/avatar.png" },
+        },
       },
     },
 
@@ -212,11 +202,11 @@ export async function AddUser({ name, email, password, avatarUrl }) {
       birthday: true,
       join_date: true,
       role: true,
-      avatar: { select: { url: true, width: true, height: true } },
+      avatar: true,
     },
   });
 
-  incrRedisUsersVersion();
+  await redisService.users().incr();
 
   return { success: true, data: user };
 }
@@ -224,77 +214,90 @@ export async function AddUser({ name, email, password, avatarUrl }) {
 export async function SoftDeleteUser({ id, email }) {
   if (!id && !email) throw CreateError(400, "'id' or 'email' is required");
 
-  const where = {
-    ...(id && { id: id }),
-    ...(email && { email: email }),
-  };
-
-  return await db.$transaction(async (db) => {
-    const user = await db.user.findFirst({ where: where });
-    if (!user) throw CreateError(404, "User not found");
-
-    const softDelete = await db.user.update({ where: where, data: { is_deleted: true } });
-
-    delete softDelete.password;
-
-    incrRedisUsersVersion();
-
-    return { success: true, data: softDelete };
-  });
-}
-
-export async function CountUsers() {
-  const count = await db.user.count({ where: { is_deleted: false } });
-  return { success: true, data: count };
-}
-
-export const GetUserPassword = async (where = { id }) => {
-  try {
-    if (!where.id) return { success: false, data: null };
-    const password = await db.user.findFirst({
-      where: where,
-      select: {
-        password: true,
+  const softDelete = await db.user
+    .update({
+      where: {
+        ...(id && { id: id }),
+        ...(email && { email: email }),
       },
+      data: { is_deleted: true },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        gender: true,
+        birthday: true,
+        join_date: true,
+        role: true,
+        avatar: true,
+      },
+    })
+    .catch(async (error) => {
+      const user = await db.user.findUnique({ where: { id: id } });
+      if (!user) throw CreateError(404, "User not found");
+
+      throw new Error(error);
     });
-    return { success: true, data: password };
-  } catch (error) {
-    console.error("❌ [User.Model.js] Error getting user password:", error);
-    return { success: false, error: error.code };
-  }
-};
 
-export const HardDeleteUser = async (where = { id, email }) => {
-  try {
-    const result = await db.user.delete({ where: where });
+  await redisService.users().incr();
 
-    incrRedisUsersVersion();
-    return { success: true, data: result };
-  } catch (error) {
-    console.error("❌ [User.Model.js] Error hard delete user: ", error);
-    return { success: false, error: error.code };
-  }
-};
+  return { success: true, data: softDelete };
+}
 
-export async function ChangePassword({ userId, email, newPassword }) {
-  if (!email && !userId) return { success: false, message: "Missing field" };
+export async function HardDeleteUser({ id, email }) {
+  if (!id && !email) throw CreateError(400, "'id' or 'email' is required");
 
-  const user = await db.user.findUnique({ where: { is_deleted: false, ...(userId && { id: userId }), ...(email && { email: email }) } });
+  const hardDelete = await db.user
+    .delete({
+      where: {
+        ...(id && { id: id }),
+        ...(email && { email: email }),
+      },
+    })
+    .catch(async (error) => {
+      const user = await db.user.findUnique({ where: { id: id } });
+      if (!user) throw CreateError(404, "User not found");
 
-  if (!user) return { success: false, message: "User not found" };
+      throw new Error(error);
+    });
 
-  const updateUser = await db.user.update({ where: { id: user.id }, data: { password: newPassword } });
+  await redisService.users().incr();
+
+  return { success: true, data: hardDelete };
+}
+
+export async function ChangePassword({ id, email, newPassword }) {
+  if (!email && !id) throw CreateError(400, "'id' or 'email' is required");
+
+  const updateUser = await db.user
+    .update({
+      where: {
+        ...(id && { id: id }),
+        ...(email && { email: email }),
+      },
+      data: { password: newPassword },
+    })
+    .catch(async (error) => {
+      const user = await db.user.findFirst({ where: { is_deleted: false, ...(id && { id: id }), ...(email && { email: email }) } });
+      if (!user) throw CreateError(404, "User not found");
+
+      throw new Error(error);
+    });
+
+  await redisService.users().incr();
 
   return { success: !!updateUser, data: updateUser };
 }
 
-export async function ResetPassword({ userId }) {
-  const user = await db.user.findUnique({ where: { id: userId, is_deleted: false } });
-  if (!user) return { success: false, message: "User not found" };
+export async function ResetPassword({ id }) {
+  const user = await db.user.findUnique({ where: { id: id, is_deleted: false } });
+  if (!user) throw CreateError(404, "User not found");
 
   const newPassword = RandomPassword(12);
 
-  const resetPassword = await db.user.update({ where: { id: userId }, data: { password: newPassword } });
+  const resetPassword = await db.user.update({ where: { id: id }, data: { password: newPassword } });
+
+  await redisService.users().incr();
 
   return { success: true, data: resetPassword };
 }

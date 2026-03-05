@@ -1,12 +1,14 @@
-import { FindAllUser, FindUser, UpdateUser, GetUserPassword, SoftDeleteUser } from "../models/User.Model.js";
+import { FindAllUser, FindUser, UpdateUser, SoftDeleteUser } from "../models/User.Model.js";
 
 import { AddImage, FindImage } from "../models/Image.Model.js";
 import { CreateError } from "../utils/ErrorHandle.js";
 import ErrorCodes from "../constants/Error.js";
 import { ValidateGender } from "../models/Enum.Model.js";
 import { HashPassword, ComparePassword } from "../utils/PasswordHandle.js";
-import { CheckEmailAndPasswordFormat } from "../utils/Validators.js";
+import { CheckEmailAndPasswordFormat, throwErrorIfInvalidGenders } from "../utils/Validators.js";
 import { MoveFile } from "../utils/FileHandle.js";
+
+import * as userModel from "../models/User.Model.js";
 
 import DIRECTORY from "../constants/Directory.js";
 import path from "path";
@@ -96,69 +98,37 @@ export const GetAllUsers = async (req, res, next) => {
   }
 };
 
-export const PutUser = async (req, res, next) => {
+export async function PutUser(req, res, next) {
   try {
     if (!req.params?.id) {
       req.params.id = req.user?.id;
     }
     const userId = req.params.id;
 
-    if (!userId) {
-      throw CreateError(400, "'id' is required");
-    }
-
-    // Check if user exists
-    const user = await FindUser({ id: userId });
-    if (!user || !user.success) {
-      throw CreateError();
-    }
-    if (!user.data) {
-      throw CreateError(404, "User not found");
-    }
+    if (!userId) throw CreateError(400, "'id' for user is required");
 
     // Get information need to be updated and validate them
     const name = req?.body?.name;
-    const birthday = req?.body?.birthday ? new Date(req?.body?.birthday) : null;
-    if (birthday == "Invalid Date") {
-      throw CreateError(400, "Invalid birthday format");
-    }
+    const birthday = req?.body?.birthday ? new Date(req?.body?.birthday) : undefined;
+    const avatar = req.body?.avatar;
+    const gender = req.body?.gender;
 
-    // Validate gender
-    const gender = req?.body?.gender;
-    if (!ValidateGender(gender)) {
-      throw CreateError(400, "Invalid gender");
-    }
+    if (birthday == "Invalid Date") throw CreateError(400, "Invalid birthday format");
 
     // Update user infomation
-    const updateUser = await UpdateUser(
-      { id: userId },
-      {
-        ...(name && { name }),
-        ...(gender && { gender }),
-        ...(birthday && { birthday }),
-      },
-    );
-    if (!updateUser || !updateUser.success) {
-      throw CreateError();
-    }
+    const updateUser = await userModel.UpdateUser(userId, { name, birthday, gender, avatar });
+
+    delete updateUser.data.password;
 
     return res.status(200).json({
       success: true,
       message: "Update user information successfully",
-      data: {
-        user: {
-          id: updateUser.data.id,
-          name: updateUser.data.name,
-          gender: updateUser.data.gender,
-          birthday: updateUser.data.birthday,
-        },
-      },
+      data: updateUser.data,
     });
   } catch (error) {
-    if (!error.status) console.error("❌ [User.Controller.js] Error put user:", error);
     next(error);
   }
-};
+}
 
 export async function PutUserPassword(req, res, next) {
   try {

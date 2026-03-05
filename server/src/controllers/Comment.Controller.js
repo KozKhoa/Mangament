@@ -1,5 +1,5 @@
 import ErrorCodes from "../constants/Error.js";
-import { AddComment, Count, FindAllComments, SoftDeleteComment, UpdateComment } from "../models/Comment.Model.js";
+import { AddComment, FindAllComments, SoftDeleteComment, UpdateComment } from "../models/Comment.Model.js";
 
 import { CreateError } from "../utils/ErrorHandle.js";
 import { ConvertQuery } from "../utils/QueryConvert.js";
@@ -101,26 +101,6 @@ export async function DeleteComment(req, res, next) {
     return res.status(200).json({
       success: true,
       message: "Delete comment successfully",
-    });
-  } catch (error) {
-    next(error);
-  }
-}
-
-export async function GetCountComment(req, res, next) {
-  try {
-    const storyId = req.params?.storyId;
-    const storyNodeId = req.params?.storyNodeId;
-    if (!storyId && !storyNodeId) throw CreateError(400, "Require at least 'storyId' or 'storyNodeId'");
-
-    const count = await Count({ storyId: storyId, storyNodeId: storyNodeId });
-
-    if (!count || !count.success) throw CreateError();
-
-    return res.status(200).json({
-      success: true,
-      message: "Get all comments successfully",
-      data: count.data,
     });
   } catch (error) {
     next(error);

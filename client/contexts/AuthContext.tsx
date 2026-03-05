@@ -9,6 +9,7 @@ import User from "@/types/user";
 import userService from "@/services/user";
 import { validateEmailFormat, validatePasswordFormat } from "@/lib/validation";
 import { useRouter } from "next/navigation";
+import { s } from "framer-motion/client";
 
 interface AuthContextProps {
   user: User | null;
@@ -40,7 +41,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     newUser.gender = newGender;
 
     setLoading(true);
-    const res = await userService.update(newUser);
+    const res = await userService.updateUser(newUser);
     setLoading(false);
 
     if (!res.success) toast.warning(res.message);
@@ -57,7 +58,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     newUser.name = name;
 
     setLoading(true);
-    const res = await userService.update(newUser);
+    const res = await userService.updateUser(newUser);
     setLoading(false);
 
     if (!res) return toast.warning("Cannot connect with server");
@@ -75,10 +76,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     newUser.birthday = date;
 
     setLoading(true);
-    const res = await userService.update(newUser);
+    const res = await userService.updateUser(newUser);
     setLoading(false);
 
-    if (!res) return toast.warning("Cannot connect with server");
     if (!res.success) toast.warning(res.message);
 
     toast.message("Update user name successfully");
@@ -86,7 +86,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setUser(newUser);
   }
 
-  async function updateAvatar(avatar: File) {}
+  async function updateAvatar(avatarFile: File) {
+    if (!user) return;
+
+    const newUser: User = { ...user, avatar: { file: avatarFile, url: undefined } };
+
+    console.log(newUser);
+
+    setLoading(true);
+    const res = await userService.updateUser(newUser);
+    setLoading(false);
+
+    if (!res.success) toast.warning(res.message);
+
+    toast.message("Cập nhật avatar thành công");
+  }
 
   async function me() {
     setLoading(true);

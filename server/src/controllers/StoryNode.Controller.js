@@ -13,7 +13,7 @@ import {
   IncreaseOneViewForStoryNodeAndItsParents,
 } from "../models/StoryNode.Model.js";
 import { FindStory } from "../models/Story.Model.js";
-import { AddImage, FindImage, HardDeleteImage, SoftDeleteImage, UpdateImage } from "../models/Image.Model.js";
+import { AddImage } from "../models/Image.Model.js";
 
 import DIRECTORY from "../constants/Directory.js";
 import { CreateNewFolder, IsFileExist, MoveFile, SoftRemoveFile, SoftRemoveThingsInFolder } from "../utils/FileHandle.js";

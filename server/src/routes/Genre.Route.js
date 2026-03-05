@@ -6,6 +6,21 @@ import { AuthenticationToken, AuthorizationRole } from "../middlewares/Auth.Midd
 
 const genreRoute = express.Router();
 
+/**
+ * @openapi
+ * tags:
+ *   - name: Genres
+ *     description: Genre listing
+ *
+ * /genres:
+ *   get:
+ *     tags: [Genres]
+ *     summary: List genres
+ *     responses:
+ *       '200':
+ *         description: List
+ */
+
 genreRoute.get("/", GetAllGenre);
 
 export default genreRoute;

@@ -6,32 +6,22 @@ import { ValidateStoryType } from "./Enum.Model.js";
 import { ValidateGenre } from "./Genre.Model.js";
 
 import { validate as isUUID } from "uuid";
-import { incrRedisStoryNodesVersion } from "./StoryNode.Model.js";
+import redisService from "../services/redis.service.js";
 
-const REDIS_TTL = 60 * 60; // 60 minutes
-
-// Đây là hàm lấy version redis. Khi adim thêm mới story thì sẽ update version lên
-async function getRedisStoriesVersion() {
-  const versionKey = `version:stories`;
-  let version = await redis.get(versionKey);
-
-  if (!version) {
-    version = 1;
-    await redis.set(versionKey, version);
-  }
-
-  return version;
-}
-
-// Đây là hàm dùng để tăng version cho việc lấy và build story
-async function incrRedisStoriesVersion() {
-  await redis.incr(`version:stories`);
-}
+const REDIS_TTL = 60 * 15; // 15 minutes
 
 export async function BuildStoryTree(storyId, storyNodeId, isGettingContent = false) {
-  const version = await getRedisStoriesVersion();
+  const storiesVer = await redisService.stories(storyId).get();
+  const storyNodeVer = await redisService.storyNodes(storyId).get();
 
-  const REDIS_KEY = ["BuildStoryTree", "v=" + version, storyId, storyNodeId, isGettingContent].join(":");
+  const REDIS_KEY = [
+    "BuildStoryTree",
+    "storiesVer=" + storiesVer,
+    "storyNodeVer=" + storyNodeVer,
+    "storyId=" + storyId,
+    "storyNodeId=" + storyNodeId,
+    "isGettingContent=" + isGettingContent,
+  ].join(":");
 
   const cached = await redis.get(REDIS_KEY);
 
@@ -78,9 +68,9 @@ export async function BuildStoryTree(storyId, storyNodeId, isGettingContent = fa
 }
 
 export async function GetNewestChapter(storyId, number) {
-  const version = await getRedisStoriesVersion();
+  const storyVer = await redisService.stories(storyId).get();
 
-  const REDIS_KEY = ["GetNewestChapter", "v=" + version, "storyId=" + storyId, "number=" + number].join(":");
+  const REDIS_KEY = ["GetNewestChapter", "storyVer=" + storyVer, "storyId=" + storyId, "number=" + number].join(":");
 
   const cached = await redis.get(REDIS_KEY);
   if (cached) return JSON.parse(cached);
@@ -131,9 +121,9 @@ export async function GetNewestChapter(storyId, number) {
 }
 
 export async function GetReview(storyId, number = 1) {
-  const version = await getRedisStoriesVersion();
+  const storyVer = await redisService.stories(storyId).get();
 
-  const REDIS_KEY = ["GetReview:", "v=" + version, storyId, number].join(";");
+  const REDIS_KEY = ["GetReview:", "storyVer=" + storyVer, "storyId=" + storyId, "number=" + number].join(":");
 
   const cached = await redis.get(REDIS_KEY);
   if (cached) return JSON.parse(cached);
@@ -198,11 +188,11 @@ export async function FindAllStories({
   isGettingChildren = false,
   isGettingNewestChapter = false,
 }) {
-  const version = await getRedisStoriesVersion();
+  const storiesVer = await redisService.stories().get();
 
   const REDIS_KEY = [
     "FindAllStories",
-    "v=" + version,
+    "storiesVer=" + storiesVer,
     "page=" + page,
     "limit=" + limit,
     "sort=" + JSON.stringify(sort),
@@ -288,11 +278,11 @@ export async function FindAllStories({
 }
 
 export async function FindStory({ id, title, isGettingChildren = false, isGettingContent = false, isGettingNewestChapter = false, isActived }) {
-  const version = await getRedisStoriesVersion();
+  const storiesVer = await redisService.stories(id || title).get();
 
   const REDIS_KEY = [
     "FindStory",
-    "v=" + version,
+    "storiesVer=" + storiesVer,
     "id=" + id,
     "title=" + title,
     "isGettingChildren=" + isGettingChildren,
@@ -369,72 +359,80 @@ export async function AddStory({ title, type, nation, genres = [], authorIds, st
         },
       })
       .catch(async (error) => {
-        console.log(error);
-
         const uniqueTitle = title ? await db.story.findUnique({ where: { title: title } }) : undefined;
         if (uniqueTitle) throw CreateError(400, `'${title}' đã có nguời đăng ký`);
+
+        throw new Error(error);
       });
 
-    incrRedisStoriesVersion();
+    redisService.stories().incr();
 
     return { success: true, data: newStory };
   });
 }
 
 export async function SoftDeleteStory({ id, title }) {
-  if (!(id || title)) throw new Error("Require at least id or title");
+  if (!(id || title)) throw CreateError(400, "Require at least id or title");
 
-  const where = {
-    ...(id && { id: id }),
-    ...(title && { title: title }),
-  };
+  const softDelete = await db.story
+    .update({
+      where: { ...(id && { id: id }), ...(title && { title: title }) },
+      data: { is_deleted: true },
+    })
+    .catch(async (error) => {
+      const story = await db.story.findUnique({ where: { ...(id && { id: id }), ...(title && { title: title }), is_deleted: false } });
+      if (!story) throw CreateError(400, "Story not found");
 
-  return await db.$transaction(async (db) => {
-    const story = await db.story.findFirst({ where: where });
-    if (!story) throw CreateError(404, "Story not found");
+      throw new Error(error);
+    });
 
-    const softDelete = await db.story.update({ where: where, data: { is_deleted: true } });
+  redisService.stories().incr();
+  redisService.stories(softDelete.id).incr();
+  redisService.stories(softDelete.title).incr();
 
-    incrRedisStoriesVersion();
-
-    return { success: true, data: softDelete };
-  });
+  return { success: true, data: softDelete };
 }
 
 export async function HardDeleteStory({ id, title }) {
-  if (!(id || title)) throw new Error("Require at least id or title");
+  if (!(id || title)) throw CreateError(400, "Require at least id or title");
 
-  const where = {
-    ...(id && { id: id }),
-    ...(title && { title: title }),
-  };
+  const hardRemove = await db.story
+    .delete({
+      where: { ...(id && { id: id }), ...(title && { title: title }) },
+    })
+    .catch(async (error) => {
+      const story = await db.story.findUnique({ where: { ...(id && { id: id }), ...(title && { title: title }) }, is_deleted: false });
+      if (!story) throw CreateError(404, "Story not found");
 
-  return await db.$transaction(async (db) => {
-    const story = await db.story.findFirst({ where: where });
-    if (!story) throw CreateError(404, "Story not found");
+      throw new Error(error);
+    });
 
-    const hardRemove = await db.story.delete({ where: where });
+  redisService.stories().incr();
+  redisService.stories(hardRemove.id).incr();
+  redisService.stories(hardRemove.title).incr();
 
-    incrRedisStoriesVersion();
-
-    return { success: true, data: hardRemove };
-  });
+  return { success: true, data: hardRemove };
 }
 
 export async function ActiveStory({ storyId, isActived }) {
   if (typeof isActived !== "boolean") throw CreateError(400, "'isActived' must be boolean");
 
-  const story = await db.story.findFirst({ where: { id: storyId, is_deleted: false } });
+  const active = await db.story
+    .update({
+      where: { id: storyId, is_deleted: false },
+      data: { is_actived: isActived },
+      include: { cover_art: { select: { url: true, height: true, width: true } } },
+    })
+    .catch(async (error) => {
+      const story = await db.story.findUnique({ where: { ...(storyId && { id: storyId }), ...(title && { title: title }) }, is_deleted: false });
+      if (!story) throw CreateError(404, "Story not found");
 
-  if (!story) throw CreateError(400, "Story not found");
+      throw new Error(error);
+    });
 
-  const active = await db.story.update({
-    where: { id: storyId, is_deleted: false },
-    data: { is_actived: isActived },
-    include: { cover_art: { select: { url: true, height: true, width: true } } },
-  });
-
-  incrRedisStoriesVersion();
+  redisService.stories().incr();
+  redisService.stories(active.id).incr();
+  redisService.stories(active.title).incr();
 
   return { success: true, data: active };
 }
@@ -468,10 +466,6 @@ export async function UpdateStory(
     // },
   },
 ) {
-  incrRedisStoriesVersion();
-
-  incrRedisStoryNodesVersion();
-
   return await db.$transaction(async function (tx) {
     const story = await tx.story.findFirst({ where: { id: id, is_deleted: false } });
     if (!story) {
@@ -515,6 +509,10 @@ export async function UpdateStory(
         const uniqueTitle = title ? await db.story.findUnique({ where: { title: title } }) : undefined;
         if (uniqueTitle) throw CreateError(400, `'${title}' đã có nguời đăng ký`);
       });
+
+    redisService.stories().incr();
+    redisService.stories(result.id).incr();
+    redisService.stories(result.title).incr();
 
     if (genres && genres.length > 0) {
       await tx.story_Genre.deleteMany({ where: { story_id: story.id } });
@@ -636,11 +634,6 @@ export async function AddOneViewForStory(storyId) {
   });
 
   return { success: true, data: story };
-}
-
-export async function CountStory() {
-  const count = await db.story.count({ where: { is_deleted: false, is_actived: true } });
-  return { success: true, data: count };
 }
 
 export async function FindRandomStory() {

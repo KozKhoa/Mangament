@@ -1,7 +1,7 @@
 import chokidar from "chokidar";
 import path from "path";
 
-import { AddImage, UpdateImage, SoftDeleteImage, FindImage } from "./Image.Model.js";
+import { AddImage } from "./Image.Model.js";
 
 import { AddStory, UpdateStory, FindStory } from "./Story.Model.js";
 import { FindStoryNode, UpdateStoryNode, AddStoryNode } from "./StoryNode.Model.js";
@@ -78,7 +78,7 @@ const HandleAdding = async (filePath) => {
         // Update parent's number of children
         {
           content: newStoryNodeContent,
-        }
+        },
       );
     }
   }

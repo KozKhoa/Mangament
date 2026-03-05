@@ -39,8 +39,24 @@ export function proxy(req: NextRequest) {
       return NextResponse.redirect(url);
     }
   }
+
+  if (pathname.startsWith("/genre/")) {
+    if (!url.searchParams.has("page")) {
+      url.searchParams.set("page", "1");
+
+      return NextResponse.redirect(url);
+    }
+  }
+
+  if (pathname.startsWith("/histories") || pathname.startsWith("/favourites")) {
+    if (!url.searchParams.has("page")) {
+      url.searchParams.set("page", "1");
+
+      return NextResponse.redirect(url);
+    }
+  }
 }
 
 export const config = {
-  matcher: ["/stories/:type", "/ranking/:storyType", "/admin/user-management", "/admin/stories-management"],
+  matcher: ["/stories/:type", "/ranking/:storyType", "/admin/user-management", "/admin/stories-management", "/genre/:genre", "/histories", "/favourites"],
 };

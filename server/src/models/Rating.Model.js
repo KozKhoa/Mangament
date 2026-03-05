@@ -3,7 +3,7 @@ import { CreateError } from "../utils/ErrorHandle.js";
 
 import { redis } from "../configs/redis.js";
 
-const REDIS_TTL = 60 * 60; // 60 minutes
+const REDIS_TTL = 60 * 15; // 15 minutes
 
 // Đây là hàm lấy version redis của rating.
 async function getRatingVersion(uuid) {
@@ -47,7 +47,7 @@ export async function FindAllRatings({ storyId, userId, star = [[0, 6]], sort = 
         select: {
           id: true,
           name: true,
-          avatar: { select: { url: true, height: true, width: true } },
+          avatar: true,
         },
       },
     },
@@ -76,18 +76,18 @@ export async function FindAllRatings({ storyId, userId, star = [[0, 6]], sort = 
 }
 
 export async function FindRating({ id, userId, storyId }) {
-  const version = await getRatingVersion(id);
-
-  const REDIS_KEY = ["FindAllRatings", version, storyId, userId, star, JSON.stringify(sort), page, limit].join(":");
-
-  const cached = await redis.get(REDIS_KEY);
-  if (cached) return JSON.parse(cached);
-
   if (!(id || (userId && storyId))) {
     throw new Error("Require id or (user id and story id)");
   }
 
-  const rating = await db.rating.findFirst({ where: { is_deleted: false, id: id } });
+  const version = await getRatingVersion([id, userId, storyId].join(":"));
+
+  const REDIS_KEY = ["FindRating", version, id, userId, storyId].join(":");
+
+  const cached = await redis.get(REDIS_KEY);
+  // if (cached) return JSON.parse(cached);
+
+  const rating = await db.rating.findFirst({ where: { is_deleted: false, id: id, user_id: userId, story_id: storyId } });
 
   const result = { success: true, data: rating };
 

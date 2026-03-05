@@ -229,7 +229,6 @@ export async function GetAllStories(req, res, next) {
       view: view,
       star: star,
       genres: genres,
-      genres: genres,
       authorsId: authors,
       sort: sort,
       page: page,

@@ -11,10 +11,13 @@ import Rating from "@/types/ratings";
 import ratingService from "@/services/rating";
 import { modal } from "../modal/modal.store";
 import RatingInputForm from "../forms/rating-input-form";
+import useAuth from "@/contexts/AuthContext";
 interface RatingGridProps {
   className?: string;
   storyId: string;
   elementPerPage?: number;
+
+  allowAddNewRating?: boolean;
 }
 
 function RatingButton({ storyId, onSubmit }: { storyId: string; onSubmit?: (newRating?: Rating) => void }) {
@@ -41,7 +44,9 @@ function RatingButton({ storyId, onSubmit }: { storyId: string; onSubmit?: (newR
   );
 }
 
-export default function RatingMasonryGrid({ className, storyId, elementPerPage = 8 }: RatingGridProps) {
+export default function RatingMasonryGrid({ className, storyId, elementPerPage = 8, allowAddNewRating = true }: RatingGridProps) {
+  const auth = useAuth();
+
   const page = useRef(1);
   const [ratings, setRatings] = useState<Rating[]>([]);
   const [pagination, setPagination] = useState<Pagination>();
@@ -112,13 +117,14 @@ export default function RatingMasonryGrid({ className, storyId, elementPerPage =
           </span>
         </h2>
 
-        <RatingButton
-          storyId={storyId}
-          onSubmit={(newRating) => {
-            console.log(newRating);
-            newRating && updateUiWithNewRating(newRating);
-          }}
-        ></RatingButton>
+        {allowAddNewRating && (
+          <RatingButton
+            storyId={storyId}
+            onSubmit={(newRating) => {
+              newRating && updateUiWithNewRating(newRating);
+            }}
+          />
+        )}
       </div>
 
       {ratings.length > 0 ? (
@@ -126,29 +132,36 @@ export default function RatingMasonryGrid({ className, storyId, elementPerPage =
           {ratings.length > elementPerPage ? (
             <MasonryGrid breakpointCols={breakpointColumnsObj}>
               {ratings.map((rating, i) => (
-                <RatingCard key={rating.id} rating={rating}></RatingCard>
+                <RatingCard
+                  key={rating.id}
+                  rating={rating}
+                  className={`w-full border-2 ${auth?.user?.id == rating.user?.id ? "border-amber-500" : "border-transparent"}`}
+                />
               ))}
             </MasonryGrid>
           ) : (
             <div className="grid grid-cols-2 gap-2 w-full">
               {ratings.map((rating, i) => (
-                <RatingCard className="w-full" key={rating.id} rating={rating}></RatingCard>
+                <RatingCard
+                  key={rating.id}
+                  className={`w-full border-2 ${auth?.user?.id == rating.user?.id ? "border-amber-500" : "border-transparent"}`}
+                  rating={rating}
+                />
               ))}
             </div>
           )}
         </>
       ) : (
         <>
-          {!loading && (
+          {!loading && allowAddNewRating && (
             <div className="flex flex-col justify-center items-center gap-2 md:text-[1.2em]">
               <p className="text-center p-10 py-5">Chưa có đánh giá nào, hãy trở thành người đánh giá đầu tiên</p>
               <RatingButton
                 storyId={storyId}
                 onSubmit={(newRating) => {
-                  console.log(newRating);
                   newRating && updateUiWithNewRating(newRating);
                 }}
-              ></RatingButton>
+              />
             </div>
           )}
         </>

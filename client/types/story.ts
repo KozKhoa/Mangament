@@ -29,6 +29,7 @@ export default interface Story {
     id: string;
     user_id: string;
   };
+
   rating?: Rating;
 
   newest_chapter?: StoryNode[];

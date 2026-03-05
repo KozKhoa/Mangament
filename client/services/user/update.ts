@@ -2,7 +2,7 @@ import api from "@/lib/axios";
 import User from "@/types/user";
 import axios from "axios";
 
-export default async function update(user: User) {
+export default async function updateUser(user: User) {
   let res;
   try {
     res = await api.put("/users/me", user);

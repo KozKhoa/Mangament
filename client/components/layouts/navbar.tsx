@@ -135,8 +135,8 @@ function NavBar({ duration = 100, autoHide = true, className }: NavBarProps) {
           <ButtonDropdown
             openOnLeft={false}
             icon={
-              <div className="flex gap-1.5 w-[40]">
-                <Image src={user?.avatar?.url ?? "/avatar.png"} alt="Avatar" width={40} height={40} unoptimized />
+              <div className="flex gap-1.5 min-w-10 aspect-square rounded-full overflow-hidden">
+                <Image src={user?.avatar?.url ?? "/avatar.png"} className="rounded-full shrink-0 " alt="Avatar" width={40} height={40} unoptimized />
               </div>
             }
           >

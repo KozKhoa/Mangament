@@ -29,6 +29,10 @@ const nextConfig: NextConfig = {
         hostname: "wvndbmnkdnpafialnxlh.supabase.co", // supabase url
       },
       {
+        protocol: "https",
+        hostname: "pub-626aeddeabe146fb92f0e8ca1377235a.r2.dev", // cloudflare r2 url
+      },
+      {
         protocol: "http",
         hostname: "localhost",
         port: "5000",

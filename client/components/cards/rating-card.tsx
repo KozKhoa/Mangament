@@ -21,7 +21,7 @@ export default function RatingCard({ className, rating }: { rating: Rating; clas
 
       <div className="flex flex-row flex-wrap gap-2 justify-between items-center">
         <div className="flex flex-row justify-center items-center gap-3">
-          {rating.user?.avatar?.url && <Image className="rounded-full" src={rating.user.avatar.url} alt="Avatar" width={32} height={32}></Image>}
+          {rating.user?.avatar?.url && <Image className="rounded-full" src={rating.user.avatar.url} alt="Avatar" width={32} height={32} unoptimized></Image>}
           <p className="text-[0.9em] line-clamp-2">{rating.user?.name}</p>
         </div>
         <p className="text-foreground/60 text-[0.8em] italic text-end">{convertDateTo_yyyMMddHHmm(new Date(rating.created_at ?? ""))}</p>

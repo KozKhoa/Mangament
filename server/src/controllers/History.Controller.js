@@ -68,12 +68,11 @@ export async function PostReadingHistory(req, res, next) {
 
 export async function DeleteReadingHistory(req, res, next) {
   try {
-    const userId = req.user?.id;
     const historyId = req.params?.historyId;
 
     if (!historyId) throw CreateError(400, "'historyId' is required");
 
-    const removing = await SoftDeleteReadingHistory({ id: historyId, userId: userId });
+    const removing = await SoftDeleteReadingHistory(historyId);
     if (!removing) throw CreateError();
 
     return res.status(200).json({

@@ -1,6 +1,20 @@
 import db from "../configs/db.js";
+import { redis } from "../configs/redis.js";
+import redisService from "../services/redis.service.js";
+import { CreateError } from "../utils/ErrorHandle.js";
 
-export const FindImage = async ({ id, url }) => {
+const REDIS_TTL = 60 * 15;
+
+export async function FindImage({ id, url }) {
+  if (!id && !url) throw CreateError(400, "Require 'id' or 'url'");
+
+  const imageVer = await redisService.image(url || id).get();
+
+  const REDIS_KEY = ["FindImage", imageVer, id, url].join(":");
+
+  const cached = await redis.get(REDIS_KEY);
+  if (cached) return JSON.parse(cached);
+
   const result = await db.image.findFirst({
     where: {
       is_deleted: false,
@@ -8,71 +22,45 @@ export const FindImage = async ({ id, url }) => {
       url,
     },
   });
-  return { success: true, data: result };
-};
 
-export const AddImage = async ({ url, key, public_id }) => {
+  redis.setex(REDIS_KEY, REDIS_TTL, JSON.stringify({ success: true, data: result }));
+
+  return { success: true, data: result };
+}
+
+export async function AddImage({ url, key, public_id }) {
   const addImage = await db.image.create({ data: { url, public_id, key } }).catch(async (error) => {
     return { success: true, data: await db.image.findUnique({ where: { url: url } }) };
   });
 
   return { success: true, data: addImage };
-};
+}
 
-export const SoftDeleteImage = async (where = { id, url }) => {
-  try {
-    const image = await FindImage(where);
-    if (!image || image.success || image.data) {
-      // If not image is not found
-      return { success: false, data: null };
-    }
+export async function SoftDeleteImage({ id, url }) {
+  if (!id && !url) throw CreateError(400, "Require 'id' or 'url'");
 
-    // Image is found
-    const result = await db.image.update({
-      where: where,
-      data: {
-        is_deleted: true,
-      },
-    });
-    return { success: true, data: result };
-  } catch (error) {
-    console.error("❌ [Image.Model.js] Error soft delete image:", error);
-    return { success: false, error: error.code };
-  }
-};
+  const softDelete = await db.image.update({
+    where: { ...(id && { id: id }), ...(url && { url: url }) },
+    data: { is_deleted: true },
+  });
 
-export const HardDeleteImage = async (where = { id, url }) => {
-  try {
-    const result = await db.image.delete({
-      where: where,
-    });
-    return { success: true, data: result };
-  } catch (error) {
-    console.error("❌ [Image.Model.js] Error hard delete image:", error);
-    return { success: false, error: error.code };
-  }
-};
+  redisService.image(url || id).del();
 
-export const UpdateImage = async (where = { id, url }, data = {}) => {
-  try {
-    const image = await FindImage(where);
-    if (!image || image.success || image.data) {
-      // If not image is not found
-      return { success: false, data: null };
-    }
-    // If image is found
-    const result = await db.image.update({
-      where: where,
-      data: data,
-    });
-    return { success: true, data: result };
-  } catch (error) {
-    console.error("❌ [User.Model.js] Error updating image: ", error);
-    return { success: false, error: error.code };
-  }
-};
+  return { success: true, data: softDelete };
+}
+
+export async function HardDeleteImage({ id, url }) {
+  if (!id && !url) throw CreateError(400, "Require 'id' or 'url'");
+
+  await db.image.delete({ where: { ...(id && { id: id }), ...(url && { url: url }) } });
+
+  redisService.image(url || id).del();
+
+  return { success: true, message: "Remove permanently" };
+}
 
 export async function FindTrashImage({ page = 1, limit = 10 }) {
+  // This will find the images that are not used by any user, story, nation or story node content
   const trashImage = await db.image.findMany({
     where: {
       user: { none: {} },

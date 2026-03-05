@@ -2,30 +2,15 @@ import db from "../configs/db.js";
 import { redis } from "../configs/redis.js";
 import { CreateError } from "../utils/ErrorHandle.js";
 
-const REDIS_TTL = 60 * 60; // 60 minutes
+import redisService from "../services/redis.service.js";
 
-// Đây là hàm lấy version redis của FindAllFavouriteStories. Khi user thêm mới story vào fav list của user thì sẽ update version lên
-async function getFavVersion(userId) {
-  const versionKey = `version:favouriteStories:${userId}`;
-  let version = await redis.get(versionKey);
-
-  if (!version) {
-    version = 1;
-    await redis.set(versionKey, version);
-  }
-
-  return version;
-}
-
-// Đây là hàm dùng để tăng version cho việc lấy fav list của user
-async function incrFavVersion(userId) {
-  await redis.incr(`version:favouriteStories:${userId}`);
-}
+const REDIS_TTL = 60 * 15; // 15 minutes
 
 export async function FindAllFavouriteStories({
   limit = 10,
   page = 1,
   userId,
+  storyId,
   storyType = [],
   authorsId = [],
   genres = [],
@@ -33,14 +18,21 @@ export async function FindAllFavouriteStories({
   view = [],
   sort = { created_at: "desc" },
 }) {
-  const version = await getFavVersion(userId);
+  const storyVer = await redisService.stories(storyId).get(); // This is used to update when a story being updated like it being deleted
+  const userVer = await redisService.users(userId).get(); // This is used to update when a user being update like changing their name, avatar,... or they are banned or deleted
+  const favouriteUserVer = await redisService.favourites(userId).get(); // This is used to update when user change their fav list like removing or adding one new story into their fav list
+  const favouriteVer = await redisService.favourites().get(); // This is used to update when there are any case want to update the whole favourite not care which user its belong to
 
   const REDIS_KEY = [
     "FindAllFavouriteStories",
-    "v=" + version,
+    "storyVer=" + storyVer,
+    "userVer=" + userVer,
+    "favouriteUserVer=" + favouriteUserVer,
+    "favouriteVer=" + favouriteVer,
     "page=" + page,
     "limit=" + limit,
     "userId=" + userId,
+    "storyId=" + storyId,
     "storyType=" + storyType,
     "authorsId=" + authorsId,
     "genres=" + genres,
@@ -53,17 +45,16 @@ export async function FindAllFavouriteStories({
   if (cached) return JSON.parse(cached);
 
   const where = {
-    user_id: userId,
+    user: { id: userId, is_banned: false, is_deleted: false },
     story: {
-      ...(storyType && { type: { in: storyType } }),
+      is_actived: true,
+      is_deleted: false,
+      ...(storyId && { id: storyId }),
+      ...(storyType && storyType.length > 0 && { type: { in: storyType } }),
       ...(genres &&
         genres.length > 0 && {
           genres: {
-            some: {
-              genre: {
-                in: genres,
-              },
-            },
+            some: { genre: { in: genres } },
           },
         }),
       ...(authorsId && {
@@ -90,13 +81,7 @@ export async function FindAllFavouriteStories({
           star: true,
           view: true,
           type: true,
-          cover_art: {
-            select: {
-              url: true,
-              width: true,
-              height: true,
-            },
-          },
+          cover_art: true,
         },
       },
     },
@@ -124,34 +109,33 @@ export async function FindAllFavouriteStories({
 }
 
 export async function FindFavouriteStory({ id, userId, storyId }) {
-  const version = await getFavVersion(userId);
+  const userVer = await redisService.users(userId).get();
+  const storyVer = await redisService.stories(storyId).get();
+  const favouriteVer = await redisService.favourites(id).get();
 
-  const REDIS_KEY = ["FindFavouriteStory", "v=" + version, "id=" + id, "userId=" + userId, "storyId=" + storyId].join(":");
+  const REDIS_KEY = ["FindFavouriteStory", "favouriteVer=" + favouriteVer, "userVer=" + userVer, "storyVer=" + storyVer, "id=" + id].join(":");
 
   const cached = await redis.get(REDIS_KEY);
   if (cached) return JSON.parse(cached);
 
-  const favourite = await db.favouriteStory.findUnique({
+  if (!id && !(userId && storyId)) throw CreateError(400, "Require 'id' or 'userId' and 'storyId'");
+
+  const favourite = await db.favouriteStory.findFirst({
     where: {
       ...(id && { id: id }),
-      ...(userId &&
-        storyId && {
-          user_id_story_id: {
-            user_id: userId,
-            story_id: storyId,
-          },
-        }),
+      ...(userId && { user: { id: userId, is_banned: false, is_deleted: false } }),
+      ...(storyId && { story: { id: storyId, is_actived: true, is_deleted: false } }),
     },
   });
 
   const result = { success: true, data: favourite };
 
-  await redis.setex(REDIS_KEY, REDIS_TTL, JSON.stringify(result));
-
   return result;
 }
 
 export async function AddFavouriteStory({ userId, storyId }) {
+  if (!userId || !storyId) throw CreateError(400, "Require 'userId' and 'storyId'");
+
   const favourite = await db.favouriteStory
     .create({
       data: {
@@ -160,6 +144,9 @@ export async function AddFavouriteStory({ userId, storyId }) {
       },
     })
     .catch(async (error) => {
+      if (!isUUID(userId)) throw CreateError(400, "'userId' must be UUID");
+      if (!isUUID(storyId)) throw CreateError(400, "'storyId' must be UUID");
+
       const user = await db.user.findFirst({ where: { is_deleted: false, id: userId } });
       if (!user) throw CreateError(400, "User not found");
 
@@ -169,7 +156,7 @@ export async function AddFavouriteStory({ userId, storyId }) {
       throw new Error(error);
     });
 
-  incrFavVersion(userId);
+  redisService.favourites(favourite.user_id).incr();
 
   return { success: true, data: favourite };
 }
@@ -179,7 +166,7 @@ export async function RemoveFavouriteStory(favouriteId) {
 
   const removedItem = await db.favouriteStory.delete({ where: { id: favouriteId } });
 
-  incrFavVersion(removedItem.user_id);
+  redisService.favourites(removedItem.user_id).incr();
 
   return { success: true, message: "Remove permanently" };
 }

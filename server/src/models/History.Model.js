@@ -1,27 +1,10 @@
 import db from "../configs/db.js";
 import { redis } from "../configs/redis.js";
+import redisService from "../services/redis.service.js";
 import { CreateError } from "../utils/ErrorHandle.js";
 import { GetParentStoryNodeTree } from "./StoryNode.Model.js";
 
-const REDIS_TTL = 60 * 60; // 60 minutes
-
-// Đây là hàm lấy version redis của FindAllFavouriteStories. Khi user thêm mới story vào fav list của user thì sẽ update version lên
-async function getHisVersion(userId) {
-  const versionKey = `version:reading-history:${userId}`;
-  let version = await redis.get(versionKey);
-
-  if (!version) {
-    version = 1;
-    await redis.set(versionKey, version);
-  }
-
-  return version;
-}
-
-// Đây là hàm dùng để tăng version cho việc lấy fav list của user
-async function incrHisVersion(userId) {
-  await redis.incr(`version:reading-history:${userId}`);
-}
+const REDIS_TTL = 60 * 15; // 15 minutes
 
 // Tìm toàn bộ lịch sử đọc của user
 export async function FindAllReadingHistories({
@@ -38,11 +21,13 @@ export async function FindAllReadingHistories({
   fromDate,
   toDate,
 }) {
-  const version = await getHisVersion(userId);
+  const storiesVer = await redisService.stories().get();
+  const historiesVer = await redisService.histories(userId).get();
 
   const REDIS_KEY = [
     "FindAllReadingHistories",
-    version,
+    storiesVer,
+    historiesVer,
     userId,
     storyId,
     limit,
@@ -113,13 +98,7 @@ export async function FindAllReadingHistories({
           star: true,
           view: true,
           type: true,
-          cover_art: {
-            select: {
-              url: true,
-              width: true,
-              height: true,
-            },
-          },
+          cover_art: true,
         },
       },
     },
@@ -151,7 +130,7 @@ export async function FindAllReadingHistories({
   return result;
 }
 
-export async function AddReadingHistory({ userId, storyId, storyNodeId, position }) {
+export async function AddReadingHistory({ userId, storyId, storyNodeId }) {
   if (!userId || !storyId || !storyNodeId) throw CreateError(400, "Require user id, story id and story node id");
 
   const history = await db.readingHistory
@@ -177,30 +156,30 @@ export async function AddReadingHistory({ userId, storyId, storyNodeId, position
       throw new Error(error);
     });
 
-  incrHisVersion(userId);
+  redisService.histories(history.user_id).incr();
 
   return { success: true, data: history };
 }
 
-export async function HardDeleteReadingHistory({ id, userId }) {
-  if (!id || !userId) throw CreateError(400, "Require history id and userId");
+export async function HardDeleteReadingHistory(id) {
+  if (!id) throw CreateError(400, "Require history id");
 
-  await db.readingHistory.deleteMany({ where: { id: id, user_id: userId } });
+  const hardRemove = await db.readingHistory.delete({ where: { id: id } });
 
-  incrHisVersion(userId);
+  redisService.histories(hardRemove.user_id).incr();
 
   return { success: true, message: "Remove permanently" };
 }
 
-export async function SoftDeleteReadingHistory({ id, userId }) {
-  if (!id && !userId) throw CreateError(400, "Require history id and user id");
+export async function SoftDeleteReadingHistory(id) {
+  if (!id) throw CreateError(400, "Require history id");
 
   const softRemove = await db.readingHistory.update({
-    where: { id: id, user_id: userId },
+    where: { id: id },
     data: { is_deleted: true },
   });
 
-  incrHisVersion(userId);
+  redisService.histories(softRemove.user_id).incr();
 
   return { success: true, data: softRemove };
 }

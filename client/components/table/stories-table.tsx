@@ -50,7 +50,7 @@ export default function StoriesTable({ className, data, pagination }: StoriesTab
           <p>
             <span className="font-semibold">Title:</span> {story.title}
           </p>
-          <Image className="w-64 m-auto my-1 rounded-sm" src={story?.cover_art?.url} alt="Cover art" width={300} height={300}></Image>
+          <Image className="w-64 m-auto my-1 rounded-sm" src={story?.cover_art?.url ?? ""} alt="Cover art" width={300} height={300} unoptimized></Image>
         </div>
       ),
 
