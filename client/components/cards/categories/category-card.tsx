@@ -1,3 +1,5 @@
+"use client";
+
 import { CSSProperties, MouseEventHandler, useCallback, useEffect, useRef, useState } from "react";
 
 export default function CategoryCard({

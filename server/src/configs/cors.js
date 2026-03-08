@@ -1,9 +1,7 @@
-const WHITE_LIST = ["http://localhost:3000"];
+const WHITE_LIST = ["http://localhost:3000", "https://mangament.netlify.app"];
 
 export const corsOptions = {
   origin: function (origin, callback) {
-    return callback(null, true); // temporary open for everyone
-
     if (process.env.NODE_ENV === "development") {
       return callback(null, true);
     }

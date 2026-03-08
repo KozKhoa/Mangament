@@ -1,11 +1,11 @@
-"use client";
-
 import CategoryCard from "@/components/cards/categories/category-card";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
+
+export const metadata = {
+  title: "Truyện",
+};
 
 export default function StoriesPage() {
-  const router = useRouter();
-
   return (
     <div className="flex flex-col">
       {/* Header use to display story type and page index */}
@@ -19,13 +19,12 @@ export default function StoriesPage() {
       </div>
 
       <div className="flex flex-row flex-wrap justify-center items-center gap-x-20 gap-y-10 m-auto w-fit py-10">
-        <CategoryCard className="hover:scale-110" imageSource="/manga.jpg" label="MANGA" onClick={() => router.push("/stories/manga")}></CategoryCard>
-        <CategoryCard
-          className="hover:scale-110"
-          imageSource="/light_novel.jpg"
-          label="LIGHT NOVEL"
-          onClick={() => router.push("/stories/light_novel")}
-        ></CategoryCard>
+        <Link href={"/stories/manga"}>
+          <CategoryCard className="hover:scale-110" imageSource="/manga.jpg" label="MANGA"></CategoryCard>
+        </Link>
+        <Link href={"/stories/light_novel"}>
+          <CategoryCard className="hover:scale-110" imageSource="/light_novel.jpg" label="LIGHT NOVEL"></CategoryCard>
+        </Link>
       </div>
     </div>
   );
