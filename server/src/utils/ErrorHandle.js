@@ -1,6 +1,6 @@
-export const CreateError = (error = ErrorCodes.INTERNAL_SERVER_ERROR) => {
-  const err = new Error(error.message);
+export function CreateError(status = 500, message = "Internal server error") {
+  const err = new Error(message);
   err.success = false;
-  err.status = error.status;
+  err.status = status || 500;
   return err;
-};
+}

@@ -1,9 +1,7 @@
-import { FindAllReadingHistories, AddReadingHistory, SoftDeleteReadingHistory, FindReadingHistory } from "../models/History.Model.js";
+import { FindAllReadingHistories, AddReadingHistory, SoftDeleteReadingHistory } from "../models/History.Model.js";
 
 import { CreateError } from "../utils/ErrorHandle.js";
 import { ConvertQuery } from "../utils/QueryConvert.js";
-
-import ErrorCodes from "../constants/Error.js";
 
 export async function GetAllReadingHistories(req, res, next) {
   try {
@@ -26,7 +24,7 @@ export async function GetAllReadingHistories(req, res, next) {
       toDate: toDate,
     });
 
-    if (!readingHistory) throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
+    if (!readingHistory) throw CreateError();
 
     return res.status(200).json({
       success: true,
@@ -48,7 +46,8 @@ export async function PostReadingHistory(req, res, next) {
     // Position will be added later
 
     const histories = await AddReadingHistory({ userId: userId, storyId: storyId, storyNodeId: storyNodeId });
-    if (!histories || !histories.success) throw CreateError(histories.message || ErrorCodes.INTERNAL_SERVER_ERROR);
+
+    if (!histories) throw CreateError();
 
     return res.status(200).json({
       success: true,
@@ -69,13 +68,12 @@ export async function PostReadingHistory(req, res, next) {
 
 export async function DeleteReadingHistory(req, res, next) {
   try {
-    const userId = req.user?.id;
     const historyId = req.params?.historyId;
 
-    if (!historyId) throw CreateError(ErrorCodes.BAD_REQUEST);
+    if (!historyId) throw CreateError(400, "'historyId' is required");
 
-    const removing = await SoftDeleteReadingHistory({ id: historyId, userId: userId });
-    if (!removing) throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
+    const removing = await SoftDeleteReadingHistory(historyId);
+    if (!removing) throw CreateError();
 
     return res.status(200).json({
       success: true,

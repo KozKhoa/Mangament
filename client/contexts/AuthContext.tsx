@@ -9,6 +9,7 @@ import User from "@/types/user";
 import userService from "@/services/user";
 import { validateEmailFormat, validatePasswordFormat } from "@/lib/validation";
 import { useRouter } from "next/navigation";
+import { s } from "framer-motion/client";
 
 interface AuthContextProps {
   user: User | null;
@@ -21,9 +22,9 @@ interface AuthContextProps {
   updateBirthday: (date: Date) => void;
   updateAvatar: (avatar: File) => void;
 
-  login: (email: string, password: string) => void;
-  register: (name: string, email: string, password: string) => void;
-  logout: () => void;
+  login: (email: string, password: string) => Promise<any>;
+  register: (name: string, email: string, password: string) => Promise<any>;
+  logout: () => Promise<any>;
 }
 
 const AuthContext = createContext<AuthContextProps | null>(null);
@@ -31,7 +32,7 @@ const AuthContext = createContext<AuthContextProps | null>(null);
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
 
   async function updateGender(newGender: string) {
     if (!user) return;
@@ -40,7 +41,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     newUser.gender = newGender;
 
     setLoading(true);
-    const res = await userService.update(newUser);
+    const res = await userService.updateUser(newUser);
     setLoading(false);
 
     if (!res.success) toast.warning(res.message);
@@ -57,7 +58,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     newUser.name = name;
 
     setLoading(true);
-    const res = await userService.update(newUser);
+    const res = await userService.updateUser(newUser);
     setLoading(false);
 
     if (!res) return toast.warning("Cannot connect with server");
@@ -75,10 +76,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     newUser.birthday = date;
 
     setLoading(true);
-    const res = await userService.update(newUser);
+    const res = await userService.updateUser(newUser);
     setLoading(false);
 
-    if (!res) return toast.warning("Cannot connect with server");
     if (!res.success) toast.warning(res.message);
 
     toast.message("Update user name successfully");
@@ -86,12 +86,25 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setUser(newUser);
   }
 
-  async function updateAvatar(avatar: File) {}
+  async function updateAvatar(avatarFile: File) {
+    if (!user) return;
+
+    const newUser: User = { ...user, avatar: { file: avatarFile, url: undefined } };
+
+    console.log(newUser);
+
+    setLoading(true);
+    const res = await userService.updateUser(newUser);
+    setLoading(false);
+
+    if (!res.success) toast.warning(res.message);
+
+    toast.message("Cập nhật avatar thành công");
+  }
 
   async function me() {
     setLoading(true);
     const res = await authService.me();
-    setLoading(false);
 
     const user = res.data;
     if (user) {
@@ -99,9 +112,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       toast.message(res.message);
     }
+    setLoading(false);
   }
 
-  async function login(email: string, password: string) {
+  async function login(email: string, password: string): Promise<any> {
     if (!validateEmailFormat(email)) return toast.error("Invalid Email");
     if (!validatePasswordFormat(password)) return toast.error("Password must have at least six character");
 
@@ -112,7 +126,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     if (!res.success) return toast.warning(res.message);
 
     const user = res.data?.user;
-    const accessToken = res.data?.token;
+    const accessToken = res.data?.accessToken;
 
     if (user && accessToken) {
       setUser(user); // Save user
@@ -133,16 +147,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const res = await authService.register(name, email, password);
     setLoading(false);
 
+    if (!res.success) return toast.warning(res.message);
+
     const user = res.data?.user;
-    const accessToken = res.data?.token;
+    const accessToken = res.data?.accessToken;
+
     if (user && accessToken) {
       setUser(user);
       token.setAccessToken(accessToken);
 
-      toast.message(res.message);
+      toast.message("Đăng ký thành công! Vui lòng đăng nhập lại với tài khoản đã đang ký");
 
       // navigate to home page
-      router.replace("/");
+      router.replace("/login");
     }
   }
 

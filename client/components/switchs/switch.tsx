@@ -1,8 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import Loading from "../loadings/loading";
 
 interface SwithProps {
+  disable?: boolean;
+  loading?: boolean;
+
   onToggle?: (isOn: boolean) => void;
   duration?: number;
   width?: number;
@@ -17,10 +21,16 @@ interface SwithProps {
   borderWeight?: number;
   borderColor?: string;
   defaultValue?: boolean;
+
+  children?: React.ReactNode | React.ReactNode[];
+
   className?: string;
 }
 
 function Switch({
+  disable = false,
+  loading = false,
+
   onToggle = (isOn: boolean) => {},
   duration = 100,
   width = 50,
@@ -35,18 +45,28 @@ function Switch({
   borderWeight = 1,
   borderColor = "black",
   defaultValue = false,
+
+  children,
+
   className = "",
 }: SwithProps) {
   const [stage, setStage] = useState(defaultValue);
 
   function handleToggle() {
+    if (disable || loading) return;
+
     onToggle(!stage);
-    setStage(!stage);
+    // setStage(!stage);
   }
+
+  useEffect(() => {
+    setStage(defaultValue);
+  }, [defaultValue]);
 
   return (
     <button
-      className={`flex relative justify-center items-center w-fit cursor-pointer  ${className}`}
+      className={`flex relative justify-center items-center w-fit 
+        ${disable || loading ? "cursor-default opacity-60" : "cursor-pointer"}  ${className}`}
       style={{
         height: roundHeight > height ? roundHeight : height,
       }}
@@ -73,42 +93,20 @@ function Switch({
           width: roundHeight,
           height: roundHeight,
 
-          transform: stage
-            ? `translateX(${width - roundHeight + 1}px)`
-            : `translateX(0px)`,
+          transform: stage ? `translateX(${width - roundHeight + 1}px)` : `translateX(0px)`,
           transition: `transform ${duration}ms ease, background-color ${duration}ms linear`,
 
           backgroundColor: stage ? roundColorOn : roundColorOff,
-          backgroundImage: stage
-            ? `url(${roundImageBgOnUrl})`
-            : `url(${roundImageBgOffUrl})`,
+          backgroundImage: stage ? `url(${roundImageBgOnUrl})` : `url(${roundImageBgOffUrl})`,
           backgroundRepeat: "no-repeat",
           backgroundSize: "80%",
           backgroundPosition: "center",
         }}
-      ></div>
+      >
+        {loading ? <Loading className="m-px"></Loading> : <>{children}</>}
+      </div>
     </button>
   );
 }
 
 export default Switch;
-
-{
-  /* <label className="inline-flex items-center cursor-pointer">
-        <input type="checkbox" value="" className="sr-only peer" />
-        <div
-          className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4
-         peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700
-         peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full
-          peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px]
-           after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all
-            dark:border-gray-600 peer-checked:bg-blue-600 dark:peer-checked:bg-blue-600"
-        ></div>
-      </label> */
-}
-
-// ...((roundImageBgOnUrl || roundImageBgOffUrl) && {
-//   backgroundImage: stage
-// ? `url(${roundImageBgOn})`
-// : `url(${roundImageBgOff})`,
-// }),

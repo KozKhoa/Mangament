@@ -2,7 +2,7 @@ import NewestChapter from "@/types/newest-chapter";
 import Story from "@/types/story";
 
 import { capitalizeFirstChar, capitalizeWords } from "@/utils/string";
-import StatusTag from "@/components/tags/status-tag";
+import StoryStatusTag from "@/components/tags/story-status-tag";
 import Tag from "@/components/tags/tag";
 import GenreTag from "@/components/tags/genre-tag";
 import { useEffect, useState } from "react";
@@ -39,7 +39,7 @@ export default function StoryInfoCard({ story, className }: StoryInfoCardProps) 
         {/* Status */}
         <div className={subContainerClassName}>
           <p className={labelClassName}>Tình trạng: </p>
-          <StatusTag status={story?.status}>{capitalizeFirstChar(story?.status || "")}</StatusTag>
+          <StoryStatusTag status={story?.status}>{capitalizeFirstChar(story?.status || "")}</StoryStatusTag>
         </div>
 
         {/* Author */}

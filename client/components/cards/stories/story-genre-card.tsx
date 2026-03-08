@@ -15,6 +15,7 @@ import { snakeCaseToCapitalizeWord } from "@/utils/string";
 import { beautifulView } from "@/utils/beautiful";
 
 import GenreTag from "@/components/tags/genre-tag";
+import Image from "next/image";
 
 export default function StoryGenreCard({ story, className }: { story: Story; className?: string }) {
   const auth = useAuth();
@@ -62,18 +63,21 @@ export default function StoryGenreCard({ story, className }: { story: Story; cla
 
   return (
     <div
-      className={`flex flex-col bg-background-items text-foreground gap-1 p-0.5 rounded-[5] border-transparent 
-        transition-all duration-100 ease-in-out shadow-lg hover:z-10 max-w-sm w-full h-full
+      className={`flex flex-col bg-background-items text-foreground gap-1 p-1.5 rounded-[5] border-transparent 
+        transition-all duration-100 ease-in-out shadow-lg max-w-sm w-full h-full
         ${className} `}
     >
       <div className={`relative rounded-[5] w-full h-fit cursor-pointer`}>
         {/* Cover art */}
-        <img
+        <Image
+          className=" aspect-7/10 object-contain rounded-sm overflow-hidden"
           onClick={handleClickStory}
-          className="h-full rounded-[5]"
-          src={process.env.NEXT_PUBLIC_API_URL + "uploads/story/" + story?.cover_art?.url}
+          src={story?.cover_art?.url ?? ""}
           alt="Cover Art"
-        ></img>
+          width={300}
+          height={300}
+          unoptimized
+        ></Image>
 
         {/* View */}
         <div

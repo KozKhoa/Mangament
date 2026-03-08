@@ -1,11 +1,5 @@
 import ErrorCodes from "../constants/Error.js";
-import {
-  AddAuthor,
-  FindAllAuthors,
-  FindAuthor,
-  HardDeleteAuthor,
-  UpdateAuthor,
-} from "../models/Author.Model.js";
+import { AddAuthor, FindAllAuthors, FindAuthor, HardDeleteAuthor, UpdateAuthor } from "../models/Author.Model.js";
 
 import { CreateError } from "../utils/ErrorHandle.js";
 
@@ -20,8 +14,7 @@ export async function GetAllAuthors(req, res, next) {
     } else sort["name"] = "asc";
 
     const authors = await FindAllAuthors({}, sort, limit, (page - 1) * limit);
-    if (!authors || !authors.success)
-      throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
+    if (!authors || !authors.success) throw CreateError();
 
     return res.status(200).json({
       success: true,
@@ -38,11 +31,10 @@ export async function PostAuthor(req, res, next) {
     const userId = req.user.id;
 
     const authorName = req.body?.name;
-    if (!authorName) throw CreateError(ErrorCodes.MISSING_FIELD);
+    if (!authorName) throw CreateError(400, "'name' for author is require");
 
     const author = await AddAuthor({ name: authorName });
-    if (!author || !author.success)
-      throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
+    if (!author || !author.success) throw CreateError();
 
     return res.status(200).json({
       success: true,
@@ -64,20 +56,15 @@ export async function PutAuthor(req, res, next) {
     const userId = req.user.id;
     const newAuthorName = req.body?.name;
     const authorId = req.params?.id;
-    if (!authorId) throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
-    if (!newAuthorName) throw CreateError(ErrorCodes.MISSING_FIELD);
+    if (!authorId) throw CreateError();
+    if (!newAuthorName) throw CreateError(400, "'name' for author is required");
 
     // Make sure author exist
     const author = await FindAuthor({ id: authorId });
-    if (!author || !author.success || !author.data)
-      throw CreateError(ErrorCodes.ASSET_NOT_FOUND);
+    if (!author || !author.success || !author.data) throw CreateError(404, "Cannot find author");
 
-    const update = await UpdateAuthor(
-      { id: authorId },
-      { name: newAuthorName }
-    );
-    if (!update || !update.success)
-      throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
+    const update = await UpdateAuthor({ id: authorId }, { name: newAuthorName });
+    if (!update || !update.success) throw CreateError();
 
     return res.status(200).json({
       success: true,
@@ -97,11 +84,10 @@ export async function PutAuthor(req, res, next) {
 export async function DeleteAuthor(req, res, next) {
   try {
     const authorId = req.params?.id;
-    if (!authorId) throw CreateError(ErrorCodes.BAD_REQUEST);
+    if (!authorId) throw CreateError(400, "'id' for author is required");
 
     const deleting = await HardDeleteAuthor({ id: authorId });
-    if (!deleting || !deleting.success)
-      throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
+    if (!deleting || !deleting.success) throw CreateError();
 
     return res.status(200).json({
       success: true,

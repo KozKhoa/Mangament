@@ -8,7 +8,7 @@ import ButtonDropdown from "../buttons/dropdown/btn-dropdown";
 import Checkbox from "../inputs/checkbox";
 import { useEffect, useState } from "react";
 
-export type TargetStoryStatus = "0-1" | "1-2" | "2-3" | "3-4" | "4-6" | null;
+export type TargetStoryStatus = "ongoing" | "finished" | "postpone" | "upcoming" | null;
 
 const STATUS = [
   {
@@ -66,7 +66,7 @@ export default function FilterStoryStatus({ value, onChange }: FilterStoryStatus
   return (
     <ButtonDropdown
       openOnLeft={true}
-      className={`border-foreground border rounded-[5] relative text-foreground`}
+      className={`border-foreground/50 border rounded-[5] relative text-foreground`}
       acceptButtonLabel="Finish"
       onClickAcceptButton={handleFinish}
       closeButtonLabel="Reset"

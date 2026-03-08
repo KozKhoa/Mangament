@@ -21,12 +21,12 @@ export default function RankingCard({ top, story, className, ref }: { top?: numb
   }
 
   return (
-    <div ref={ref} className={`relative bg-background-items rounded-md`}>
+    <div ref={ref} className={`relative bg-background-items rounded-md h-full`}>
       {top && (
         <>
           <StoryCard
             className={`flex-row justify-start shadow-none border-0 hover:shadow-none hover:border-transparent 
-              bg-background-items w-full 
+              bg-background-items w-full
               ${className}`}
             data={story}
           ></StoryCard>

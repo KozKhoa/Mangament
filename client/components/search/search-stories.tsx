@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import SearchBar from "./search";
-import StorySearchCard from "../cards/story-search-card";
+import StorySearchCard from "../cards/stories/story-search-card";
 
 import Story from "@/types/story";
 

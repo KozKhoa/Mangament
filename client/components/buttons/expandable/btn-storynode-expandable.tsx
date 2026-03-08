@@ -26,14 +26,14 @@ export default function ButtonStoryNodeExpandable({ onClick, storyNode, classNam
     <div className={`flex flex-col w-full h-fit rounded-t-[5] overflow-hidden transition-all duration-100 ${className}`}>
       {/* Label*/}
       <button
-        className={`flex flex-row justify-between items-center px-2 py-1.5 border-b border-foreground w-full 
+        className={`flex flex-row justify-between items-center px-2 py-1.5 border-b border-foreground w-full cursor-pointer
           rounded-t-[5] hover:bg-hover-background ${open ? "bg-hover-background" : ""} ${className}`}
         onClick={() => handleClick([storyNode])}
       >
         <div className="flex flex-row gap-1 overflow-hidden truncate">
           {storyNode.type !== "chapter" ? (
             <div className={`w-5 h-5 transition-all duration-100 ${open ? "" : "-rotate-90"}`}>
-              <SharpTriangleDownIcon className="w-full h-full"></SharpTriangleDownIcon>
+              <SharpTriangleDownIcon className="w-full h-full "></SharpTriangleDownIcon>
             </div>
           ) : (
             <div className="w-5 h-5"></div>

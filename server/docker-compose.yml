@@ -22,17 +22,17 @@ services:
     ports:
       - "${DB_PORT}:5432" # Maps host port 5431 to container port 5432
     volumes:
-      - pgdata:/var/lib/postgresql/data # Persists database data
+      - pgdata:/var/lib/postgresql # Persists database data
 
-  pgadmin:
-    image: dpage/pgadmin4
-    container_name: managment_pgadmin4
-    restart: always
-    env_file:
-      - .env
-    ports:
-      - "${PGADMIN_PORT}:80" # Maps host port 8080 to container port 80
-    depends_on:
-      - db
+  # pgadmin:
+  #   image: dpage/pgadmin4
+  #   container_name: managment_pgadmin4
+  #   restart: always
+  #   env_file:
+  #     - .env
+  #   ports:
+  #     - "${PGADMIN_PORT}:80" # Maps host port 8080 to container port 80
+  #   depends_on:
+  #     - db
 volumes:
   pgdata:

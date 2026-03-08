@@ -1,56 +1,42 @@
 import { useEffect, useRef, useState } from "react";
 
 import DateIcon from "@/public/date.svg";
+import { convertDateTo_yyyMMdd } from "@/utils/convert";
 
-export default function FilterDate({ onFilter, isReset = false, className }: { onFilter?: ({}) => void; isReset: boolean; className?: string }) {
-  const isRunFirstTime = useRef(true);
-  const [fromDate, setFromDate] = useState<string>("");
-  const [toDate, setToDate] = useState<string>("");
+export default function FilterDate({
+  onChange,
+  label,
+  defaultValue,
+  className,
+}: {
+  onChange?: (date: Date) => void;
+  label?: string;
+  defaultValue?: Date;
+  className?: string;
+}) {
+  const [date, setDate] = useState<string>(convertDateTo_yyyMMdd(defaultValue ? new Date(defaultValue) : new Date()));
 
   useEffect(() => {
-    if (isReset) {
-      setFromDate("");
-      setToDate("");
-    }
-  }, [isReset]);
+    setDate(convertDateTo_yyyMMdd(defaultValue ? new Date(defaultValue) : new Date()));
+  }, [defaultValue]);
 
   return (
-    <>
-      <div
-        className={`flex flex-row flex-wrap relative justify-center items-start p-[1] border-foreground border rounded-[5]
-          text-foreground h-fit w-fit bg-background px-2 gap-1 ${className}`}
-      >
-        <DateIcon className="w-6 h-6"></DateIcon>
+    <div
+      className={`flex flex-row flex-wrap relative justify-center items-start p-[3px] border-foreground/50 border rounded-[5]
+          text-foreground h-fit w-fit bg-background-items px-2 gap-1 ${className}`}
+    >
+      <DateIcon className="w-6 h-6 stroke-foreground"></DateIcon>
 
-        <p className="font-bold">Từ ngày:</p>
-        <input
-          className="w-fit"
-          type="date"
-          value={fromDate}
-          onChange={(e) => {
-            setFromDate(e.target.value);
-            onFilter?.({ fromDate: e.target.value });
-          }}
-        ></input>
-      </div>
-
-      <div
-        className={`flex flex-row flex-wrap relative justify-center items-start p-[1] border-foreground border rounded-[5]
-          text-foreground h-fit w-fit bg-background px-2 gap-1 ${className}`}
-      >
-        <DateIcon className="w-6 h-6"></DateIcon>
-
-        <p className="font-bold">Đến ngày:</p>
-        <input
-          className="w-fit"
-          type="date"
-          value={toDate}
-          onChange={(e) => {
-            setToDate(e.target.value);
-            onFilter?.({ toDate: e.target.value });
-          }}
-        ></input>
-      </div>
-    </>
+      <p className="font-bold">{label}</p>
+      <input
+        className="w-fit"
+        type="date"
+        value={date}
+        onChange={(e) => {
+          setDate(e.target.value);
+          e.target.value && onChange?.(new Date(e.target.value));
+        }}
+      ></input>
+    </div>
   );
 }

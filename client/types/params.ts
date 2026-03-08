@@ -3,13 +3,14 @@ export interface StoryParams {
   title?: string;
   page?: number;
   limit?: number;
-  type?: string;
+  type?: string[];
   keyword?: string;
   author?: string[];
   star?: string[];
   view?: string[];
   genre?: string[];
   status?: string[];
+  nation?: string[];
   sort?: string;
   isGettingChildren?: boolean;
   isGettingContent?: boolean;

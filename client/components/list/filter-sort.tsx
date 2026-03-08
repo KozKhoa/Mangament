@@ -52,7 +52,7 @@ export default function FilterSort({ onChange, isResetAll = false, className }: 
       {/* <FilterViews onFilter={updateParams} isReset={isResetAll}></FilterViews> */}
 
       {/* Story type */}
-      <FilterStoryType onFilter={updateParams} isReset={isResetAll}></FilterStoryType>
+      {/* <FilterStoryType onFilter={updateParams} isReset={isResetAll}></FilterStoryType> */}
     </div>
   );
 }

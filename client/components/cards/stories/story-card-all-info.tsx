@@ -4,11 +4,12 @@ import { beautifulView } from "@/utils/beautiful";
 import { capitalizeWords, capitalizeFirstChar, snakeCaseToCapitalizeWord } from "@/utils/string";
 
 import DisplayStar from "@/components/displays/ratings/display-star";
-import StatusTag from "@/components/tags/status-tag";
+import StoryStatusTag from "@/components/tags/story-status-tag";
 import Tag from "@/components/tags/tag";
 import Loading from "@/components/loadings/loading";
 import Line from "@/components/lines/line";
 import GenreTag from "@/components/tags/genre-tag";
+import Image from "next/image";
 
 interface StoryCardAllInfoProps {
   story?: Story;
@@ -26,7 +27,7 @@ export default function StoryCardAllInfo({ story, className }: StoryCardAllInfoP
         ${className} `}
     >
       {!story ? (
-        <Loading className="w-full"></Loading>
+        <Loading className="w-full h-64"></Loading>
       ) : (
         <div
           className="grid grid-cols-1 grid-rows-[auto_auto_auto]
@@ -36,12 +37,12 @@ export default function StoryCardAllInfo({ story, className }: StoryCardAllInfoP
         >
           {/* Cover art */}
           <div className="w-full min-w-[100] md:row-span-2 flex justify-center">
-            <img className="object-cover rounded-[5]" src={process.env.NEXT_PUBLIC_API_URL + "uploads/story/" + story?.cover_art?.url} alt="Cover Art"></img>
+            <Image className="object-cover rounded-[5]" src={story?.cover_art?.url} alt="Cover Art" width={500} height={500} unoptimized></Image>
           </div>
 
           <div className="flex flex-col gap-1 justify-start items-start">
             {/* Tittle */}
-            <h2 className="font-bold leading-tight cursor-pointer">{"[" + capitalizeFirstChar(story?.type || "") + "] " + story?.title}</h2>
+            <h2 className="font-bold leading-tight">{"[" + snakeCaseToCapitalizeWord(story?.type || "") + "] " + story?.title}</h2>
 
             <Line></Line>
 
@@ -66,7 +67,7 @@ export default function StoryCardAllInfo({ story, className }: StoryCardAllInfoP
               {/* Status */}
               <div className={labelContainerStyle}>
                 <p className={subLabelStyle}>Tình trạng:</p>
-                <StatusTag status={story?.status}>{capitalizeFirstChar(story?.status || "")}</StatusTag>
+                <StoryStatusTag status={story?.status}>{capitalizeFirstChar(story?.status || "")}</StoryStatusTag>
               </div>
 
               {/* Author */}

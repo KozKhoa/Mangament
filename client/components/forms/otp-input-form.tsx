@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import OtpInput from "../inputs/otp-input";
-import Input from "./input";
+import Input from "../inputs/input";
 import Button from "../buttons/button";
 
 import ErrorExclamationIcon from "@/public/error-exclamation.svg";
