@@ -74,9 +74,8 @@ export default function StoryGenreCard({ story, className }: { story: Story; cla
           onClick={handleClickStory}
           src={story?.cover_art?.url ?? ""}
           alt="Cover Art"
-          width={300}
+          width={200}
           height={300}
-          unoptimized
         ></Image>
 
         {/* View */}

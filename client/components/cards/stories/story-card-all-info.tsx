@@ -37,7 +37,7 @@ export default function StoryCardAllInfo({ story, className }: StoryCardAllInfoP
         >
           {/* Cover art */}
           <div className="w-full min-w-[100] md:row-span-2 flex justify-center">
-            <Image className="object-cover rounded-[5]" src={story?.cover_art?.url} alt="Cover Art" width={500} height={500} unoptimized></Image>
+            <Image className="object-cover rounded-[5]" src={story?.cover_art?.url ?? ""} alt="Cover Art" width={500} height={500}></Image>
           </div>
 
           <div className="flex flex-col gap-1 justify-start items-start">

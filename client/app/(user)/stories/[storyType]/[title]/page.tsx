@@ -128,7 +128,7 @@ export default function StoryDetailPage() {
           {review?.map((url, i) => (
             <div key={i} className="border border-foreground/30 rounded-sm overflow-hidden">
               {/* {url && <Image src={url} alt={`review ${i}`} width={400} height={800}></Image>} */}
-              {url && <Image src={url} alt={`review ${i}`} width={400} height={800} unoptimized></Image>}
+              {url && <Image src={url} alt={`review ${i}`} width={400} height={800}></Image>}
             </div>
           ))}
         </div>

@@ -173,7 +173,7 @@ export default function UserTable({ className, data }: UserTableProps) {
                 {/* Avatar */}
                 <TD>
                   <div className="w-8 aspect-square m-auto">
-                    <Image src={user?.avatar?.url ?? "/avatar.png"} alt="Avatar" width={100} height={100} unoptimized />
+                    <Image src={user?.avatar?.url ?? "/avatar.png"} alt="Avatar" width={100} height={100} />
                   </div>
                 </TD>
                 <TD>{user.name}</TD>
