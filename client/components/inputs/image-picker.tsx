@@ -1,4 +1,5 @@
-import { ChangeEvent, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { useDropzone } from "react-dropzone";
 
 import ErrorExclamationIcon from "@/public/error-exclamation.svg";
 import ReloadIcon from "@/public/reload.svg";
@@ -19,30 +20,57 @@ export interface ImagePickerProps {
 
   onChange?: (image: string | File) => void;
   onReset?: (image: string | File) => void;
+
+  onSelectMultiImage?: (images: File[]) => void;
 }
 
-export default function ImagePicker({ className, defaultValue, value, labelForNoImage, disabled = false, onChange, onReset }: ImagePickerProps) {
+export default function ImagePicker({
+  className,
+  defaultValue,
+  value,
+  labelForNoImage,
+  disabled = false,
+  onChange,
+  onReset,
+  onSelectMultiImage,
+}: ImagePickerProps) {
   const [image, setImage] = useState<string>();
   const [error, setError] = useState<string>("");
 
-  function handleChangeImage(e: ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
+  function handleChangeImage(files?: FileList) {
+    if (!files || files?.length < 0) return;
 
-    if (!file) return;
-
-    if (!file?.type.startsWith("image")) {
-      setError("File phải là hình ảnh");
-      return;
+    if (files.length > 1) {
+      onSelectMultiImage?.([...files]);
     } else {
-      setError("");
+      const file = files.item(0);
+
+      if (!file) return;
+
+      if (!file.type.startsWith("image")) {
+        setError("File phải là hình ảnh");
+        return;
+      } else {
+        setError("");
+      }
+
+      if (image && image.startsWith("blob:")) {
+        URL.revokeObjectURL(image);
+      }
+
+      setImage(URL.createObjectURL(file));
+
+      onChange?.(file);
     }
-
-    URL.revokeObjectURL(image ?? "");
-
-    setImage(URL.createObjectURL(file));
-
-    onChange?.(file);
   }
+
+  // const { getRootProps, getInputProps, isDragActive } = useDropzone({
+  //   onDrop,
+  //   accept: { "image/*": [] },
+  //   multiple: false,
+  //   disabled: disabled,
+  //   useFsAccessApi: false,
+  // });
 
   function handleResetImage() {
     setImage(defaultValue ? (typeof defaultValue === "string" ? defaultValue : URL.createObjectURL(defaultValue)) : "");
@@ -89,8 +117,19 @@ export default function ImagePicker({ className, defaultValue, value, labelForNo
         </div>
       )}
 
-      <label className={` ${disabled ? "" : "cursor-pointer"}  `}>
-        <input disabled={disabled} type="file" accept="image/*" onChange={handleChangeImage} className="hidden"></input>
+      <label
+        // {...getRootProps()}
+        className={` ${disabled ? "" : "cursor-pointer"} ${false ? "opacity-70 w-full scale-[0.98] border-2 border-dashed border-blue-500 bg-blue-50/10" : ""} transition-all duration-200 block h-full`}
+      >
+        <input
+          // {...getInputProps()}
+          disabled={disabled}
+          type="file"
+          accept="image/*"
+          onChange={(e) => handleChangeImage(e.target.files ?? undefined)}
+          multiple
+          className="hidden"
+        ></input>
 
         {image ? (
           <Image
@@ -105,7 +144,7 @@ export default function ImagePicker({ className, defaultValue, value, labelForNo
         ) : (
           <div className="flex flex-col gap-2 justify-center items-center w-full h-full m-auto text-[#7f7f7f]">
             <UploadPhotoIcon className="w-30 h-30 "></UploadPhotoIcon>
-            <p className="font-semibold text-lg">{labelForNoImage}</p>
+            <p className="font-semibold text-lg">{false ? "Thả ảnh vào đây..." : labelForNoImage}</p>
           </div>
         )}
       </label>

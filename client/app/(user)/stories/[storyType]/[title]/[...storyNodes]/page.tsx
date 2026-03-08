@@ -310,14 +310,14 @@ export default function StoryNodeReading() {
           }}
         >
           {content?.map((con, i) => (
-            <div key={i} className="flex flex-col justify-center items-center gap-1 w-full">
+            <div key={i} className="flex flex-col justify-center items-center gap-2 w-full">
               {con.type === "image" && con?.image?.url ? (
                 <Image
-                  className="max-w-[1500px]"
+                  className="max-w-[1200px]"
                   src={con.image?.url}
                   alt="Cover Art"
-                  width={con.image.width ?? 1500}
-                  height={con.image.height ?? 3000}
+                  width={con.image.width ?? 1200}
+                  height={con.image.height ?? 1800}
                   unoptimized
                 ></Image>
               ) : con.type === "title" ? (

@@ -88,9 +88,9 @@ export async function FindAllUser({
 export async function FindUser({ id, email }) {
   if (!id && !email) throw CreateError(400, "Require 'id' or 'email'");
 
-  const version = await redisService.users().get();
+  const version = await redisService.users(id || email).get();
 
-  const REDIS_KEY = ["FindUser", version, id, email].join(":");
+  const REDIS_KEY = ["FindUser", version, id || email].join(":");
 
   const cached = await redis.get(REDIS_KEY);
   if (cached) return JSON.parse(cached);
@@ -128,14 +128,21 @@ export async function BannedUser({ id, email, isBanned }) {
     ...(email && { email: email }),
   };
 
-  const bannedUser = await db.user.updateMany({ where: where, data: { is_banned: isBanned } });
+  const bannedUser = await db.user
+    .update({
+      where: where,
+      data: { is_banned: isBanned },
+    })
+    .catch(async (error) => {
+      const user = await db.user.findFirst({ where: where });
+      if (!user) throw CreateError(404, "User not found");
 
-  if (bannedUser.count === 0) {
-    const user = await db.user.findFirst({ where: where });
-    if (!user) throw CreateError(404, "User not found");
-  }
+      throw new Error(error);
+    });
 
   await redisService.users().incr();
+  await redisService.users(bannedUser.id).incr();
+  await redisService.users(bannedUser.email).incr();
 
   return { success: true, data: bannedUser };
 }
@@ -167,7 +174,9 @@ export async function UpdateUser(id, { name, birthday, gender, avatar }) {
 
   delete update?.password;
 
-  await redisService.users().incr();
+  redisService.users(update.id).incr();
+  redisService.users(update.email).incr();
+  redisService.users().incr();
 
   return { success: true, data: update };
 }
@@ -239,7 +248,9 @@ export async function SoftDeleteUser({ id, email }) {
       throw new Error(error);
     });
 
-  await redisService.users().incr();
+  redisService.users().incr();
+  redisService.users(softDelete.id).incr();
+  redisService.users(softDelete.email).incr();
 
   return { success: true, data: softDelete };
 }
@@ -261,7 +272,9 @@ export async function HardDeleteUser({ id, email }) {
       throw new Error(error);
     });
 
-  await redisService.users().incr();
+  redisService.users().incr();
+  redisService.users(hardDelete.id).incr();
+  redisService.users(hardDelete.email).incr();
 
   return { success: true, data: hardDelete };
 }

@@ -228,7 +228,9 @@ export default function EditStory() {
                 order_index: child.order_index,
                 title: child.title,
                 type: child.type,
-                content: child?.content?.filter((cont) => !cont.isDeleted).map((cont, i) => ({ id: cont.id, type: cont.type, order_index: i })) ?? [],
+                content: isEqual(oldChild?.content, child.content)
+                  ? []
+                  : (child?.content?.filter((cont) => !cont.isDeleted).map((cont, i) => ({ id: cont.id, type: cont.type, order_index: i })) ?? []),
               });
             }
           }

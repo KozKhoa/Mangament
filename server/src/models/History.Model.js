@@ -21,25 +21,30 @@ export async function FindAllReadingHistories({
   fromDate,
   toDate,
 }) {
-  const storiesVer = await redisService.stories().get();
-  const historiesVer = await redisService.histories(userId).get();
+  const storiesVer = await redisService.stories(storyId).get(); // This is used to update cache when story is updated
+  const userVer = await redisService.users(userId).get(); // This is used to update cache when user is updated
+
+  const historiesUserVer = await redisService.histories(userId).get(); // This is used to update cache when user's histories is updated
+  const historiesVer = await redisService.histories().get(); // This is used to update cache when histories is updated
 
   const REDIS_KEY = [
     "FindAllReadingHistories",
-    storiesVer,
-    historiesVer,
-    userId,
-    storyId,
-    limit,
-    page,
-    JSON.stringify(sort),
-    type,
-    authorsId,
-    genres,
-    star,
-    view,
-    fromDate,
-    toDate,
+    "historiesUserVer=" + historiesUserVer,
+    "historiesVer=" + historiesVer,
+    "storiesVer=" + storiesVer,
+    "userVer=" + userVer,
+    "userId=" + userId,
+    "storyId=" + storyId,
+    "limit=" + limit,
+    "page=" + page,
+    "sort=" + JSON.stringify(sort),
+    "type=" + type,
+    "authorsId=" + authorsId,
+    "genres=" + genres,
+    "star=" + star,
+    "view=" + view,
+    "fromDate=" + fromDate,
+    "toDate=" + toDate,
   ].join(":");
 
   const cached = await redis.get(REDIS_KEY);
@@ -88,31 +93,32 @@ export async function FindAllReadingHistories({
     },
   };
 
-  const histories = await db.readingHistory.findMany({
-    where: where,
-    include: {
-      story: {
-        select: {
-          id: true,
-          title: true,
-          star: true,
-          view: true,
-          type: true,
-          cover_art: true,
+  const [histories, totalItems] = await Promise.all([
+    db.readingHistory.findMany({
+      where: where,
+      include: {
+        story: {
+          select: {
+            id: true,
+            title: true,
+            star: true,
+            view: true,
+            type: true,
+            cover_art: true,
+          },
         },
       },
-    },
-    orderBy: [sort, { updated_at: "desc" }, { id: "desc" }],
-    take: limit,
-    skip: (page - 1) * limit,
-  });
+      orderBy: [sort, { updated_at: "desc" }, { id: "desc" }],
+      take: limit,
+      skip: (page - 1) * limit,
+    }),
+    db.readingHistory.count({ where: where }),
+  ]);
 
   for (const history of histories) {
     delete history.is_deleted;
     history.story_node = await GetParentStoryNodeTree(history.story_id, history.story_node_id);
   }
-
-  const totalItems = await db.readingHistory.count({ where: where });
 
   const result = {
     success: true,
@@ -124,6 +130,29 @@ export async function FindAllReadingHistories({
       totalItems: totalItems,
     },
   };
+
+  redis.setex(REDIS_KEY, REDIS_TTL, JSON.stringify(result));
+
+  return result;
+}
+
+export async function FindReadingHistory(id) {
+  if (!id) throw CreateError(400, "Require id");
+
+  const historiesVer = await redisService.histories(id).get();
+
+  const REDIS_KEY = ["FindReadingHistory", "historiesVer=" + historiesVer, "id=" + id].join(":");
+
+  const cached = await redis.get(REDIS_KEY);
+  if (cached) return JSON.parse(cached);
+
+  const history = await db.readingHistory.findUnique({ where: { id: id } });
+
+  if (!history) throw CreateError(404, "History not found");
+
+  history.story_node = await GetParentStoryNodeTree(history.story_id, history.story_node_id);
+
+  const result = { success: true, data: history };
 
   redis.setex(REDIS_KEY, REDIS_TTL, JSON.stringify(result));
 
@@ -166,6 +195,7 @@ export async function HardDeleteReadingHistory(id) {
 
   const hardRemove = await db.readingHistory.delete({ where: { id: id } });
 
+  redisService.histories(hardRemove.id).incr();
   redisService.histories(hardRemove.user_id).incr();
 
   return { success: true, message: "Remove permanently" };
@@ -179,6 +209,7 @@ export async function SoftDeleteReadingHistory(id) {
     data: { is_deleted: true },
   });
 
+  redisService.histories(softRemove.id).incr();
   redisService.histories(softRemove.user_id).incr();
 
   return { success: true, data: softRemove };

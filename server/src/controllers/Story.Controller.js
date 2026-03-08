@@ -51,10 +51,10 @@ export async function GetStory(req, res, next) {
 
     //  If user already rate this story
     if (userId) {
-      const rating = await ratingModel.FindRating({ userId: userId, storyId: story.data.id });
+      const rating = await ratingModel.FindAllRatings({ userId: userId, storyId: story.data.id, limit: 1, page: 1 });
 
-      if (rating && rating.data) {
-        story.data.rating = rating.data;
+      if (rating && rating.data.length > 0) {
+        story.data.rating = rating.data.at(0);
       }
     }
 

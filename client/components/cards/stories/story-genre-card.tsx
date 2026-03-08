@@ -69,7 +69,15 @@ export default function StoryGenreCard({ story, className }: { story: Story; cla
     >
       <div className={`relative rounded-[5] w-full h-fit cursor-pointer`}>
         {/* Cover art */}
-        <Image onClick={handleClickStory} src={story?.cover_art?.url} alt="Cover Art" width={500} height={500} unoptimized></Image>
+        <Image
+          className=" aspect-7/10 object-contain rounded-sm overflow-hidden"
+          onClick={handleClickStory}
+          src={story?.cover_art?.url ?? ""}
+          alt="Cover Art"
+          width={300}
+          height={300}
+          unoptimized
+        ></Image>
 
         {/* View */}
         <div

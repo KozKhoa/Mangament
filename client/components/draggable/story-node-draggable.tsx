@@ -210,6 +210,14 @@ const StoryNodeDraggable = React.memo(function StoryNodeDraggable({
     }
   }
 
+  const handleAddManyImageContent = useCallback(
+    (contents: StoryNodeContent[]) => {
+      const newContent = [...(storyNode.content ?? []), ...contents.map((content) => ({ ...content, isNew: true }))];
+      onChange?.({ ...storyNode, content: newContent });
+    },
+    [storyNode],
+  );
+
   function handleAddNewThings() {
     let numberOfContent: Record<string, number> = { image: 0 };
 
@@ -228,7 +236,6 @@ const StoryNodeDraggable = React.memo(function StoryNodeDraggable({
                   allowNumeric={false}
                   defaultValue={numberOfNewChildren.arc}
                   onChange={(number) => {
-                    console.log(number);
                     numberOfNewChildren.arc = number;
                   }}
                 />
@@ -354,6 +361,7 @@ const StoryNodeDraggable = React.memo(function StoryNodeDraggable({
                           onDiscardDelete={handleDiscardDeleteContent}
                           onChange={handleUpdateContent}
                           onReset={handleUpdateContent}
+                          onAddManyImageContent={handleAddManyImageContent}
                           key={content.id}
                           id={content.id}
                           content={content}

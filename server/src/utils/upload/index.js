@@ -2,6 +2,8 @@ import chokidar from "chokidar";
 import path from "path";
 import { PrismaClient } from "../../generated/prisma/client.js";
 
+import fs from "fs";
+
 import { v2 as cloudinary } from "cloudinary";
 import { getAllFiles } from "../FileHandle.js";
 
@@ -9,6 +11,9 @@ const CLOUDINARY_CLOUD_NAME = "dje88gzxb";
 const CLOUDINARY_URL = "cloudinary://831417615379221:Ak8cqj-yPxzqxjQgPtFpY4SQtFs@dje88gzxb";
 const CLOUDINARY_API_KEY = "831417615379221";
 const CLOUDINARY_API_SECRET = "Ak8cqj-yPxzqxjQgPtFpY4SQtFs";
+
+const ADMIN_TOKEN =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjFhYzU5ZGQ1LWMxMzUtNDJiMi05NDlmLWE1OTI3OWU4ZjMwMCIsIm5hbWUiOiJraG9hIiwiZW1haWwiOiJhQGEuYSIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzcyODU4MjgzLCJleHAiOjE3NzQxNTQyODN9.GMahHiBH4sgjexTrexbJe-bRhOO792Arldpva_HLelg";
 
 // Configuration
 cloudinary.config({
@@ -41,12 +46,6 @@ async function handleAdd(filePath) {
   const imageName = seperateDir[seperateDir.length - 1];
   const storyNodeNames = seperateDir.slice(2, -1);
 
-  // Add image
-  // const uploads = await cloudinary.uploader.upload(filePath, {
-  //   folder: [`Mangament`, storyType, storyName, ...storyNodeNames].join("/"),
-  // });
-  // const image = await handleAddImage({ imageUrl: uploads.secure_url });
-
   const folderPath = filePath.split(path.sep).slice(0, -1).join(path.sep);
 
   if (alreadyCheckFolder.has(folderPath)) {
@@ -61,13 +60,26 @@ async function handleAdd(filePath) {
 
   // Update cover art for story and terminate this
   if (path.parse(dir).name === "cover_art") {
-    // const upload = await cloudinary.uploader.upload(filePath, { folder: [`Mangament`, storyType, storyName].join("/") });
+    const coverArtFormData = new FormData();
+    coverArtFormData.append("image", new Blob([fs.readFileSync(filePath)]), imageName);
+    const coverArtRes = await fetch(`http://localhost:5000/uploads/story/${story.id}/cover-art`, {
+      headers: {
+        Authorization: `Bearer ${ADMIN_TOKEN}`,
+      },
+      method: "POST",
+      body: coverArtFormData,
+    });
 
-    const image = await db.image.create({ data: { url: ["http://localhost:5000/story", dir].join("/") } });
+    const coverArtResJson = await coverArtRes.json();
 
-    await handleAddCoverArtForStory({
-      storyId: story.id,
-      coverArtId: image.id,
+    console.log(coverArtResJson);
+
+    const { url: coverArtUrl, key: coverArtKey, id: coverArtId } = coverArtResJson.data;
+
+    // Update cover art for story
+    await db.story.update({
+      where: { id: story.id },
+      data: { cover_art: { connect: { url: coverArtUrl } } },
     });
 
     console.log("Add cover art for " + storyName);
@@ -89,18 +101,26 @@ async function handleAdd(filePath) {
 
   const files = await getAllFiles(folderPath);
 
-  // const uploadPromises = files.map((file) => cloudinary.uploader.upload(file, { folder: [`Mangament`, storyType, storyName, ...storyNodeNames].join("/") }));
-  // const uploadImages = await Promise.all(uploadPromises);
-
-  const addImages = await db.image.createManyAndReturn({
-    // data: uploadImages.map((upload) => ({ url: upload.secure_url, height: upload.height, width: upload.width })),
-    data: files.map((file, i) => ({ url: ["http://localhost:5000/story", path.relative(root, file)].join("/") })),
+  const uploadPromises = files.map((file) => {
+    const imageFormData = new FormData();
+    imageFormData.append("image", new Blob([fs.readFileSync(file)]));
+    return fetch(`http://localhost:5000/uploads/story/${story.id}/story-node/${storyNodeId}/content`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${ADMIN_TOKEN}`,
+      },
+      body: imageFormData,
+    });
   });
-  console.log("Add iamge " + folderPath);
+
+  const uploadImages = await Promise.all(uploadPromises);
+
+  const uploadJson = await Promise.all(uploadImages.map((upload) => upload.json()));
 
   const addContent = await db.storyNodeContent.createMany({
-    data: addImages.map((image, i) => ({ story_node_id: storyNodeId, image_id: image.id, type: "image", order_index: i })),
+    data: uploadJson.map((image, i) => ({ story_node_id: storyNodeId, image_id: image.data.id, type: "image", order_index: i })),
   });
+
   console.log("Update content for " + [storyName, ...storyNodeNames].join("/"));
 
   alreadyCheckFolder.add(folderPath);
@@ -117,7 +137,7 @@ const ProccessAddingQueue = async () => {
     try {
       await handleAdd(dir);
     } catch (error) {
-      console.error("❌ [Upload.Model.js] Error update change: ", error);
+      console.error("❌ Error update change: ", error);
     }
   }
   isProccessingAdding = false;

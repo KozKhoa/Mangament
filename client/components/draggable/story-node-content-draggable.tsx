@@ -9,8 +9,6 @@ import ReturnIcon from "@/public/return.svg";
 import ImagePicker from "../inputs/image-picker";
 import ResetIcon from "@/public/reset.svg";
 
-type Content = StoryNodeContent;
-
 const StoryNodeContentDraggable = React.memo(function StoryNodeContentDraggable({
   id,
   content,
@@ -19,16 +17,20 @@ const StoryNodeContentDraggable = React.memo(function StoryNodeContentDraggable(
   onDiscardDelete,
   onChange,
   onReset,
+
+  onAddManyImageContent,
 }: {
   id: number | string;
-  content: Content;
+  content: StoryNodeContent;
   className?: string;
 
-  onDelete?: (content?: Content) => void;
-  onDiscardDelete?: (content?: Content) => void;
+  onDelete?: (content?: StoryNodeContent) => void;
+  onDiscardDelete?: (content?: StoryNodeContent) => void;
 
-  onChange?: (content: Content) => void;
-  onReset?: (content: Content) => void;
+  onChange?: (content: StoryNodeContent) => void;
+  onReset?: (content: StoryNodeContent) => void;
+
+  onAddManyImageContent?: (content: StoryNodeContent[]) => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id });
 
@@ -71,23 +73,35 @@ const StoryNodeContentDraggable = React.memo(function StoryNodeContentDraggable(
           {content.order_index.toString()}
         </p>
 
-        {(content as Content).isDeleted ? (
+        {(content as StoryNodeContent).isDeleted ? (
           <ReturnIcon onClick={() => onDiscardDelete?.(content)} className="w-4.5 h-4.5 absolute right-2 top-0 cursor-pointer" />
         ) : (
           <RemoveIcon onClick={() => onDelete?.(content)} className="w-5 h-5 absolute right-2 top-0 text-red-500 cursor-pointer" />
         )}
       </div>
 
-      <div className={`h-full ${content.isDeleted ? "opacity-10" : ""} `}>
+      <div className={`h-full w-full ${content.isDeleted ? "opacity-10" : ""} `}>
         {content.type === "image" && (
           <ImagePicker
-            className="h-full w-fit"
+            className="h-full w-full"
             disabled={content.isDeleted}
             defaultValue={content.image?.url}
             value={content.image?.url ? content.imageFile : content.imageFile ? content.imageFile : ""}
+            onSelectMultiImage={(images) => {
+              onAddManyImageContent?.(
+                images.map((image, i) => ({
+                  type: "image",
+                  imageFile: image,
+                  story_node_id: content.story_node_id,
+                  order_index: Number(content.order_index) + i + 1,
+                  id: crypto.randomUUID(),
+                  isDeleted: false,
+                  isNew: true,
+                })),
+              );
+            }}
             onChange={(file) => {
               isEdited.current = true;
-
               handleUpdateContent(file);
             }}
           />

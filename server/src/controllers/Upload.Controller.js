@@ -64,11 +64,6 @@ export async function UploadStoryCoverArt(req, res, next) {
 
     const url = `${process.env.CDN_URL}/${key}`;
 
-    // const existImage = await imageModel.FindImage({ url });
-    // if (existImage.data) {
-    //   return res.json({ success: true, data: { key: existImage.data.key, url: existImage.data.url, id: existImage.data.id } });
-    // }
-
     // Resize + optimize
     const optimizedBuffer = await sharp(file.buffer)
       .resize({ width: 800, withoutEnlargement: true })
@@ -99,8 +94,6 @@ export async function UploadStoryCoverArt(req, res, next) {
 // POST /uploads/story/:storyId/story-node/:storyNodeId/contents
 export async function UploadManyContentsForStoryNode(req, res, next) {
   try {
-    const userId = req.user?.id;
-
     const storyId = req.params.storyId;
     const storyNodeId = req.params.storyNodeId;
 
@@ -111,11 +104,6 @@ export async function UploadManyContentsForStoryNode(req, res, next) {
     const results = await Promise.all(
       files.map((file, index) =>
         limit(async () => {
-          // const existImage = await imageModel.FindImage({ url });
-          // if (existImage.data) {
-          //   return { key: existImage.data.key, url: existImage.data.url, id: existImage.data.id };
-          // }
-
           const optimized = await sharp(file.buffer)
             .resize({
               width: 1200,
@@ -164,11 +152,6 @@ export async function UploadContentForStoryNode(req, res, next) {
 
     const key = `story/${storyId}/story-node/${storyNodeId}/${crypto.randomUUID()}.jpg`;
     const url = `${process.env.CDN_URL}/${key}`;
-
-    // const existImage = await imageModel.FindImage({ url });
-    // if (existImage.data) {
-    //   return res.json({ success: true, data: { key: existImage.data.key, url: existImage.data.url, id: existImage.data.id } });
-    // }
 
     const optimized = await sharp(file.buffer)
       .resize({

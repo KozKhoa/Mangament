@@ -1,6 +1,6 @@
 import { CreateError } from "../utils/ErrorHandle.js";
 import ErrorCodes from "../constants/Error.js";
-import { AddRatings, CountRating, FindAllRatings, SoftDeleteRating, UpdateRating } from "../models/Rating.Model.js";
+import { AddRatings, FindAllRatings, SoftDeleteRating, UpdateRating } from "../models/Rating.Model.js";
 import { FindStory } from "../models/Story.Model.js";
 
 import { ConvertQuery } from "../utils/QueryConvert.js";
@@ -113,38 +113,6 @@ export async function DeleteRating(req, res, next) {
     return res.status(200).json({
       success: true,
       message: "Delete rating successfully",
-    });
-  } catch (error) {
-    next(error);
-  }
-}
-
-export async function GetCountRating(req, res, next) {
-  try {
-    const query = req.query;
-
-    const storyId = req.params?.id;
-    if (!storyId) throw CreateError(400, "'id' is required");
-
-    // Make sure story exist
-    const story = await FindStory({ id: storyId });
-    if (!story || !story.data) throw CreateError(404, "Story not found");
-    const star = query.star ? query.star.split(",").map((range) => range.split("-").map((number) => parseFloat(number))) : [[0, 6]];
-
-    const where = {
-      story_id: storyId,
-
-      OR: [...star.map(([min, max]) => ({ star: { gte: min, lte: max } }))],
-    };
-
-    const count = await CountRating(where);
-
-    if (!count || !count.success) throw CreateError();
-
-    return res.status(200).json({
-      success: true,
-      message: "Getting count ratings successfully",
-      data: count.data,
     });
   } catch (error) {
     next(error);

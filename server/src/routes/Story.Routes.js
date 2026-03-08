@@ -5,7 +5,7 @@ import path from "path";
 import { AddOneViewForStory, GetAllStories, GetRandomStory, GetStory, GetStoryReview, PostStory } from "../controllers/Story.Controller.js";
 
 import { AuthenticationToken, AuthorizationRole, OptionalAuth } from "../middlewares/Auth.Middleware.js";
-import { DeleteRating, GetAllRatings, GetCountRating, PostRating, PutRating } from "../controllers/Rating.Controller.js";
+import { DeleteRating, GetAllRatings, PostRating, PutRating } from "../controllers/Rating.Controller.js";
 
 const saveLocation = "uploads/image";
 
@@ -222,7 +222,6 @@ storyRoute.post("/", AuthenticationToken, AuthorizationRole, upload.single("cove
 
 // Rating
 storyRoute.post("/:id/ratings", AuthenticationToken, PostRating);
-storyRoute.get("/:id/ratings/count", GetCountRating);
 storyRoute.get("/:id/ratings", GetAllRatings);
 storyRoute.put("/ratings/:id", AuthenticationToken, PutRating);
 storyRoute.delete("/ratings/:id", AuthenticationToken, DeleteRating);

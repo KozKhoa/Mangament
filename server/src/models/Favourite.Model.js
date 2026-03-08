@@ -20,6 +20,7 @@ export async function FindAllFavouriteStories({
 }) {
   const storyVer = await redisService.stories(storyId).get(); // This is used to update when a story being updated like it being deleted
   const userVer = await redisService.users(userId).get(); // This is used to update when a user being update like changing their name, avatar,... or they are banned or deleted
+
   const favouriteUserVer = await redisService.favourites(userId).get(); // This is used to update when user change their fav list like removing or adding one new story into their fav list
   const favouriteVer = await redisService.favourites().get(); // This is used to update when there are any case want to update the whole favourite not care which user its belong to
 
@@ -71,26 +72,27 @@ export async function FindAllFavouriteStories({
     },
   };
 
-  const favourites = await db.favouriteStory.findMany({
-    where: where,
-    include: {
-      story: {
-        select: {
-          id: true,
-          title: true,
-          star: true,
-          view: true,
-          type: true,
-          cover_art: true,
+  const [favourites, totalItems] = await Promise.all([
+    db.favouriteStory.findMany({
+      where: where,
+      include: {
+        story: {
+          select: {
+            id: true,
+            view: true,
+            type: true,
+            cover_art: true,
+            title: true,
+            star: true,
+          },
         },
       },
-    },
-    orderBy: [sort, { id: "desc" }],
-    take: limit,
-    skip: (page - 1) * limit,
-  });
-
-  const totalItems = await db.favouriteStory.count({ where: where });
+      orderBy: [sort, { id: "desc" }],
+      take: limit,
+      skip: (page - 1) * limit,
+    }),
+    db.favouriteStory.count({ where: where }),
+  ]);
 
   const result = {
     success: true,
@@ -108,12 +110,10 @@ export async function FindAllFavouriteStories({
   return result;
 }
 
-export async function FindFavouriteStory({ id, userId, storyId }) {
-  const userVer = await redisService.users(userId).get();
-  const storyVer = await redisService.stories(storyId).get();
+export async function FindFavouriteStory(id) {
   const favouriteVer = await redisService.favourites(id).get();
 
-  const REDIS_KEY = ["FindFavouriteStory", "favouriteVer=" + favouriteVer, "userVer=" + userVer, "storyVer=" + storyVer, "id=" + id].join(":");
+  const REDIS_KEY = ["FindFavouriteStory", "favouriteVer=" + favouriteVer, "id=" + id].join(":");
 
   const cached = await redis.get(REDIS_KEY);
   if (cached) return JSON.parse(cached);
@@ -156,6 +156,7 @@ export async function AddFavouriteStory({ userId, storyId }) {
       throw new Error(error);
     });
 
+  redisService.favourites(favourite.id).incr();
   redisService.favourites(favourite.user_id).incr();
 
   return { success: true, data: favourite };
@@ -166,6 +167,7 @@ export async function RemoveFavouriteStory(favouriteId) {
 
   const removedItem = await db.favouriteStory.delete({ where: { id: favouriteId } });
 
+  redisService.favourites(removedItem.id).incr();
   redisService.favourites(removedItem.user_id).incr();
 
   return { success: true, message: "Remove permanently" };

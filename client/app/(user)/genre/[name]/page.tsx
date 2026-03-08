@@ -6,18 +6,14 @@ import MasonryGrid from "@/components/grids/masonry-grid";
 import Loading from "@/components/loadings/loading";
 import SwitchPageSmall from "@/components/switch-page/small";
 import DEFAULT from "@/constants/default";
-import GENRES from "@/constants/genres";
-import useInView from "@/hooks/useInView";
-import genreService from "@/services/genre";
+
 import storyService from "@/services/story";
 import { Pagination } from "@/types/pagination";
 import Story from "@/types/story";
-import { randomNumerInRange } from "@/utils/number";
 import { snakeCaseToCapitalizeWord } from "@/utils/string";
-import Link from "next/link";
 
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 const LIMIT = 30;
