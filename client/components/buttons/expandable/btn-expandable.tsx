@@ -33,11 +33,11 @@ function ButtonExpandable({
   }
 
   return (
-    <div className={`flex flex-col gap-0 overflow-hidden w-full h-fit rounded-t-[5] ${className}`}>
+    <div className={`overflow-hidden`}>
       {/* Main button*/}
       <div
-        className={`flex flex-row justify-between items-center 
-        px-5 py-1.5 border-b border-foreground w-full rounded-t-[5] hover:bg-hover-background`}
+        className={`flex flex-row justify-between items-center gap-1 px-5 py-1.5 border-b border-foreground 
+          w-full rounded-t-md hover:bg-foreground/20 ${className}`}
       >
         <button className="cursor-pointer w-full text-start" onClick={handleClick}>
           {typeof label === "string" && label}
@@ -57,7 +57,7 @@ function ButtonExpandable({
             animate={{ height: "fit-content" }}
             exit={{ height: 0 }}
             transition={{ duration: duration / 1000, ease: "linear" }}
-            className={`flex pl-5 md:pl-7 lg:pl-10 w-full h-fit `}
+            className={`flex pl-5 md:pl-7 w-full h-fit `}
           >
             <div
               className="flex flex-col justify-center items-start 

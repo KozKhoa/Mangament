@@ -27,13 +27,12 @@ import { usePathname } from "next/navigation";
 interface NavBarProps {
   duration?: number;
   className?: string;
+  autoHide?: boolean;
 }
 
-function NavBar({ duration = 100, className }: NavBarProps) {
+function NavBar({ duration = 100, autoHide = true, className }: NavBarProps) {
   const pathName = usePathname();
   const router = useRouter();
-
-  const path = pathName.split("/");
 
   const auth = useAuth();
 
@@ -58,6 +57,8 @@ function NavBar({ duration = 100, className }: NavBarProps) {
   }
 
   useEffect(() => {
+    if (!autoHide) return;
+
     const handleNavbarHidden = () => {
       if (openSidebar) return;
 
@@ -74,9 +75,13 @@ function NavBar({ duration = 100, className }: NavBarProps) {
     };
 
     window.addEventListener("scroll", handleNavbarHidden);
+    document.body.style.overflow = openSidebar ? "hidden" : "";
 
-    return () => window.removeEventListener("scroll", handleNavbarHidden);
-  }, [openSidebar]);
+    return () => {
+      window.removeEventListener("scroll", handleNavbarHidden);
+      document.body.style.overflow = "";
+    };
+  }, [openSidebar, autoHide]);
 
   useEffect(() => {
     fetchGenres();
@@ -91,14 +96,15 @@ function NavBar({ duration = 100, className }: NavBarProps) {
       <div
         className={`flex flex-row justify-between text-center text-foreground 
           items-center px-2.5 py-1 h-fit bg-background-items z-20 transition-transform duration-300
-          rounded-b-md border-b-3 border-x-2 shadow-[5px_8px_4px_rgba(0,0,0,0.3)]
+          rounded-b-md border-b-3 border-x-2 border-foreground
+          ${openSidebar ? "shadow-[5px_8px_4px_rgba(0,0,0,0.3)]" : "drop-shadow-[5px_8px_4px_rgba(0,0,0,0.3)]"}
           ${hidden ? "-translate-y-full" : ""} 
           ${className}
        `}
       >
         <div className={`flex flex-row justify-center items-center gap-5 h-10`}>
           <Link href={"/"}>
-            <p className={`text-2xl  font-holtwood`}>Mangament</p>
+            <p className={`text-2xl font-holtwood`}>Mangament</p>
           </Link>
 
           {/* Desktop */}
@@ -129,21 +135,25 @@ function NavBar({ duration = 100, className }: NavBarProps) {
           <ButtonDropdown
             openOnLeft={false}
             icon={
-              <div className="flex gap-1.5 w-[40]">
-                <Image src={"/avatar.svg"} alt="Avatar" width={40} height={40} />
+              <div className="flex gap-1.5 min-w-10 aspect-square rounded-full overflow-hidden">
+                <Image src={user?.avatar?.url ?? "/avatar.png"} className="rounded-full shrink-0 " alt="Avatar" width={40} height={40} unoptimized />
               </div>
             }
           >
-            <ButtonExpandable className="w-full" label="Cài đặt"></ButtonExpandable>
             {user ? (
               <>
                 <ButtonExpandable className="w-full" label="Thông tin tài khoản" onClick={() => router.push("/me")}></ButtonExpandable>
+                {user.role === "admin" && (
+                  <ButtonExpandable className="w-full" label="Quản lý Web" onClick={() => router.push("/admin/dashboard")}></ButtonExpandable>
+                )}
                 <ButtonExpandable className="w-full" label="Truyện yêu thích" onClick={() => router.push("/favourites")}></ButtonExpandable>
                 <ButtonExpandable className="w-full" label="Lịch sử đọc" onClick={() => router.push("/histories")}></ButtonExpandable>
+                <ButtonExpandable className="w-full" label="Cài đặt"></ButtonExpandable>
                 <ButtonExpandable className="w-full" label="Đăng xuất" onClick={() => auth?.logout()}></ButtonExpandable>
               </>
             ) : (
               <>
+                <ButtonExpandable className="w-full" label="Cài đặt"></ButtonExpandable>
                 <ButtonExpandable className="w-full" label="Đăng nhập" onClick={() => router.push("/login")}></ButtonExpandable>
                 <ButtonExpandable className="w-full" label="Đăng ký" onClick={() => router.push("/register")}></ButtonExpandable>
               </>
@@ -173,8 +183,8 @@ function NavBar({ duration = 100, className }: NavBarProps) {
 
               {/* The side bar */}
               <div
-                className="flex fixed top-5 bottom-5 right-0 flex-col gap-2.5 min-w-3/5 w-full max-w-[500px] bg-background
-                px-2.5 py-4 rounded-l-lg shadow-[10px_13px_5px_rgba(0,0,0,0.3)
+                className="flex fixed top-5 bottom-5 right-0 flex-col gap-2.5 min-w-3/5 w-full max-w-[500px] bg-background-items
+                px-2.5 py-4 rounded-l-lg shadow-[10px_13px_5px_rgba(0,0,0,0.3) overflow-y-scroll
                 border-foreground border-l-2 border-t-2 border-b-2 "
               >
                 <div className="flex flex-row justify-between ">
@@ -187,12 +197,15 @@ function NavBar({ duration = 100, className }: NavBarProps) {
                 <SearchStories className="w-full"></SearchStories>
 
                 {/* Content in navbar */}
-                <div className="flex flex-col gap-2.5 overflow-y-auto">
+                <div className="flex flex-col gap-2.5 ">
                   {user && <ButtonExpandable onClick={() => router.push("/me")} label="Thông tin tài khoản" />}
-                  <ButtonExpandable onClick={() => router.push("/story/random")} label="Random" />
+                  {user && user.role === "admin" && (
+                    <ButtonExpandable className="w-full" label="Quản lý Web" onClick={() => router.push("/admin/dashboard")}></ButtonExpandable>
+                  )}
+                  <ButtonExpandable onClick={() => router.push("/stories/random")} label="Random" />
                   <ButtonExpandable onClick={() => router.push("/ranking")} label="Xếp hạng" />
                   <ButtonExpandable label="Thể loại" onClick={() => router.push("/genre")}>
-                    <div className="flex flex-col gap-x-5 gap-y-1 w-full pt-1">
+                    <div className="flex flex-col gap-x-5 gap-y-1 w-full pt-1 max-h-[60vh] min-h-[300px] overflow-y-scroll no-scrollbar">
                       {genres &&
                         genres.length > 0 &&
                         genres.map((genre, i) => (
@@ -252,27 +265,7 @@ function NavBar({ duration = 100, className }: NavBarProps) {
         </div>
       </div>
 
-      <div className="h-16"></div>
-
-      <div
-        className="flex flex-row flex-wrap m-2 gap-1 text-foreground/80 
-          text-[1em] transition-all duration-300 rounded-md"
-      >
-        {path.map((p, i) => {
-          if (p)
-            return (
-              <Link
-                key={i}
-                href={path.slice(0, i + 1).join("/")}
-                className={`w-fit cursor-pointer p-1 px-4 hover:bg-foreground/20 bg-foreground/10 
-                  ${i === 1 ? "rounded-l-md" : ""}
-                  ${i === path.length - 1 ? "rounded-r-md" : ""}`}
-              >
-                {snakeCaseToCapitalizeWord(decodeURIComponent(p))}
-              </Link>
-            );
-        })}
-      </div>
+      <div className="h-[60px]"></div>
 
       <button
         className={` w-12 h-12 flex justify-center items-center border rounded-sm fixed bottom-4 right-4 p-3 z-30`}

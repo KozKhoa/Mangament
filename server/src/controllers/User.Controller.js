@@ -1,12 +1,14 @@
-import { FindAllUser, FindUser, UpdateUser, GetUserPassword, SoftDeleteUser } from "../models/User.Model.js";
+import { FindAllUser, FindUser, UpdateUser, SoftDeleteUser } from "../models/User.Model.js";
 
 import { AddImage, FindImage } from "../models/Image.Model.js";
 import { CreateError } from "../utils/ErrorHandle.js";
 import ErrorCodes from "../constants/Error.js";
 import { ValidateGender } from "../models/Enum.Model.js";
 import { HashPassword, ComparePassword } from "../utils/PasswordHandle.js";
-import { CheckEmailAndPasswordFormat } from "../utils/Validators.js";
+import { CheckEmailAndPasswordFormat, throwErrorIfInvalidGenders } from "../utils/Validators.js";
 import { MoveFile } from "../utils/FileHandle.js";
+
+import * as userModel from "../models/User.Model.js";
 
 import DIRECTORY from "../constants/Directory.js";
 import path from "path";
@@ -20,11 +22,11 @@ export const GetUser = async (req, res, next) => {
     const userId = req.params.id;
     // Check user request
     if (!userId) {
-      throw CreateError(ErrorCodes.BAD_REQUEST);
+      throw CreateError(400, "'id' is required");
     }
     const result = await FindUser({ id: userId }); // Check if user exist
     if (!result || !result.success || !result.data) {
-      throw CreateError(ErrorCodes.USER_NOT_FOUND);
+      throw CreateError(404, "User not found");
     }
     const user = result.data;
 
@@ -66,7 +68,7 @@ export const GetAllUsers = async (req, res, next) => {
   try {
     const query = req?.query;
     if (!query) {
-      throw CreateError(ErrorCodes.BAD_REQUEST);
+      throw CreateError(400, "Missing query parameters");
     }
 
     // Analys the query from the user
@@ -82,8 +84,8 @@ export const GetAllUsers = async (req, res, next) => {
     }
 
     const users = await FindAllUser({}, order, limit, (page - 1) * limit);
-    if (!users || !users.success) throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
-    if (!users.data) throw CreateError(ErrorCodes.USER_NOT_FOUND);
+    if (!users || !users.success) throw CreateError();
+    if (!users.data) throw CreateError(404, "User not found");
 
     return res.status(200).json({
       success: true,
@@ -96,69 +98,37 @@ export const GetAllUsers = async (req, res, next) => {
   }
 };
 
-export const PutUser = async (req, res, next) => {
+export async function PutUser(req, res, next) {
   try {
     if (!req.params?.id) {
       req.params.id = req.user?.id;
     }
     const userId = req.params.id;
 
-    if (!userId) {
-      throw CreateError(ErrorCodes.BAD_REQUEST);
-    }
-
-    // Check if user exists
-    const user = await FindUser({ id: userId });
-    if (!user || !user.success) {
-      throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
-    }
-    if (!user.data) {
-      throw CreateError(ErrorCodes.USER_NOT_FOUND);
-    }
+    if (!userId) throw CreateError(400, "'id' for user is required");
 
     // Get information need to be updated and validate them
     const name = req?.body?.name;
-    const birthday = req?.body?.birthday ? new Date(req?.body?.birthday) : null;
-    if (birthday == "Invalid Date") {
-      throw CreateError(ErrorCodes.INVALID_INPUT);
-    }
+    const birthday = req?.body?.birthday ? new Date(req?.body?.birthday) : undefined;
+    const avatar = req.body?.avatar;
+    const gender = req.body?.gender;
 
-    // Validate gender
-    const gender = req?.body?.gender;
-    if (!ValidateGender(gender)) {
-      throw CreateError(ErrorCodes.INVALID_INPUT);
-    }
+    if (birthday == "Invalid Date") throw CreateError(400, "Invalid birthday format");
 
     // Update user infomation
-    const updateUser = await UpdateUser(
-      { id: userId },
-      {
-        ...(name && { name }),
-        ...(gender && { gender }),
-        ...(birthday && { birthday }),
-      }
-    );
-    if (!updateUser || !updateUser.success) {
-      throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
-    }
+    const updateUser = await userModel.UpdateUser(userId, { name, birthday, gender, avatar });
+
+    delete updateUser.data.password;
 
     return res.status(200).json({
       success: true,
       message: "Update user information successfully",
-      data: {
-        user: {
-          id: updateUser.data.id,
-          name: updateUser.data.name,
-          gender: updateUser.data.gender,
-          birthday: updateUser.data.birthday,
-        },
-      },
+      data: updateUser.data,
     });
   } catch (error) {
-    if (!error.status) console.error("❌ [User.Controller.js] Error put user:", error);
     next(error);
   }
-};
+}
 
 export async function PutUserPassword(req, res, next) {
   try {
@@ -168,10 +138,10 @@ export async function PutUserPassword(req, res, next) {
     const newPassword = req?.body?.newPassword;
 
     // Check if missing password field
-    if (!oldPassword || !newPassword) throw CreateError(ErrorCodes.MISSING_FIELD);
+    if (!oldPassword || !newPassword) throw CreateError(400, "Missing password field");
     if (oldPassword === newPassword)
       // old and new password can not be the same
-      throw CreateError(ErrorCodes.INVALID_INPUT);
+      throw CreateError(400, "Old password and new password cannot be the same");
 
     // Validate password format.
     CheckEmailAndPasswordFormat("example@gmail.com", newPassword);
@@ -180,17 +150,17 @@ export async function PutUserPassword(req, res, next) {
     const user = await GetUserPassword({ id: userId });
     if (!user || !user.success)
       // Server error
-      throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
-    if (!user.data) throw CreateError(ErrorCodes.USER_NOT_FOUND); // No user
+      throw CreateError();
+    if (!user.data) throw CreateError(404, "User not found"); // No user
 
     // Compare old password that user provide with password in database
     const isOldPasswordMatch = await ComparePassword(oldPassword, user.data.password);
-    if (!isOldPasswordMatch) throw CreateError(ErrorCodes.INVALID_PASSWORD);
+    if (!isOldPasswordMatch) throw CreateError(400, "Invalid password");
 
     // Hashed new password and save it to database;
     const hashedPassword = await HashPassword(newPassword);
     const afterUpdate = await UpdateUser({ id: userId }, { password: hashedPassword });
-    if (!afterUpdate || !afterUpdate.success) throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
+    if (!afterUpdate || !afterUpdate.success) throw CreateError();
 
     return res.status(200).json({
       success: true,
@@ -211,7 +181,7 @@ export async function PatchUserAvatar(req, res, next) {
   try {
     const userId = req.user.id;
     const avatar = req.file;
-    if (!avatar) throw CreateError(ErrorCodes.MISSING_FIELD);
+    if (!avatar) throw CreateError(400, "Missing avatar file");
 
     const folderPath = DIRECTORY.UPLOADS_AVATAR;
     const fileName = userId + "_" + new Date() + path.extname(avatar.filename);
@@ -221,7 +191,7 @@ export async function PatchUserAvatar(req, res, next) {
     const image = await AddImage({ url: filePath });
 
     const updating = await UpdateUser({ id: userId }, { avatar: { connect: { id: image.data.id } } });
-    if (!updating || !updating.success) throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
+    if (!updating || !updating.success) throw CreateError();
 
     return res.status(200).json({
       success: true,
@@ -245,13 +215,13 @@ export async function PatchUserAvatar(req, res, next) {
 export async function DeleteUser(req, res, next) {
   try {
     const userId = req.params?.id;
-    if (!userId) throw CreateError(ErrorCodes.BAD_REQUEST);
+    if (!userId) throw CreateError(400, "'id' is required");
 
     // Soft delete user already check user exist. If user is not found, its success return false
     // Soft delete user
     const softRemoveUser = await SoftDeleteUser({ id: userId });
-    if (!softRemoveUser) throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
-    if (!softRemoveUser.success) throw CreateError(ErrorCodes.USER_NOT_FOUND);
+    if (!softRemoveUser) throw CreateError();
+    if (!softRemoveUser.success) throw CreateError(404, "User not found");
 
     return res.status(200).json({
       success: true,

@@ -9,7 +9,7 @@ type ServiceResult<T> = { success: boolean; data?: T; message?: string; paginati
 
 export async function getStoryComments(storyId: string, params: CommentParams): Promise<ServiceResult<Comment[]>> {
   try {
-    const res = await api.get(`/stories/${storyId ?? ""}/comments`, {
+    const res = await api.get(`/comments/story/${storyId ?? ""}`, {
       params: params,
       paramsSerializer: (params) => qs.stringify(params, { arrayFormat: "comma" }),
     });
@@ -20,9 +20,9 @@ export async function getStoryComments(storyId: string, params: CommentParams): 
   }
 }
 
-export async function getStoryNodeComments(storyNodeId: string, params?: CommentParams): Promise<ServiceResult<Comment[]>> {
+export async function getStoryNodeComments(storyId: string, storyNodeId: string, params?: CommentParams): Promise<ServiceResult<Comment[]>> {
   try {
-    const res = await api.get(`/story-nodes/${storyNodeId}/comments`, {
+    const res = await api.get(`/comments/story/${storyId}/story-node/${storyNodeId}`, {
       ...(params && {
         params: params,
         paramsSerializer: (params) => qs.stringify(params, { arrayFormat: "comma" }),
@@ -37,7 +37,7 @@ export async function getStoryNodeComments(storyNodeId: string, params?: Comment
 
 export async function postStoryComment(storyId: string, title: string, content: string): Promise<ServiceResult<Comment>> {
   try {
-    const res = await api.post(`/stories/${storyId ?? ""}/comments`, { title, content });
+    const res = await api.post(`/comments/story/${storyId}`, { title, content });
     return res.data;
   } catch (error) {
     console.error(error);
@@ -45,9 +45,9 @@ export async function postStoryComment(storyId: string, title: string, content: 
   }
 }
 
-export async function postStoryNodeComment(storyNodeId: string, title: string, content: string): Promise<ServiceResult<Comment>> {
+export async function postStoryNodeComment(storyId: string, storyNodeId: string, title: string, content: string): Promise<ServiceResult<Comment>> {
   try {
-    const res = await api.post(`/story-nodes/${storyNodeId ?? ""}/comments`, { title, content });
+    const res = await api.post(`/comments/story/${storyId}/story-node/${storyNodeId}`, { title, content });
     return res.data;
   } catch (error) {
     console.error(error);

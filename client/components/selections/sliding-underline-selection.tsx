@@ -1,4 +1,3 @@
-import { del } from "framer-motion/client";
 import { useEffect, useRef, useState } from "react";
 
 export default function SlidingUnderlineSelection({
@@ -49,7 +48,7 @@ export default function SlidingUnderlineSelection({
               if (ref) itemsRef.current[i] = ref;
             }}
             onClick={() => handleClick(i)}
-            className={`text-xl hover:text-foreground hover:-translate-y-2 hover:scale-120
+            className={`text-xl hover:text-foreground hover:-translate-y-1 hover:scale-110
               px-3 py-1 cursor-pointer transition-all duration-200 font-semibold
               ${selected === i ? "text-foreground" : "text-foreground/45 "} ${itemsClassName}`}
           >

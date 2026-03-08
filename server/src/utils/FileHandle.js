@@ -1,5 +1,6 @@
 import path from "path";
 import fs from "fs/promises";
+import sharp from "sharp";
 
 import DIRECTORY from "../constants/Directory.js";
 
@@ -23,20 +24,14 @@ export async function MoveFile(oldPath, newPath) {
     await fs.unlink(oldPath);
     return true;
   } catch (error) {
-    console.log(
-      "❌ Fail to move file from " + oldPath + " to " + newPath,
-      error
-    );
+    console.log("❌ Fail to move file from " + oldPath + " to " + newPath, error);
     return false;
   }
 }
 
 export async function SoftRemoveFile(filePath) {
   try {
-    const deletePath = path.join(
-      DIRECTORY.TRASH,
-      Date.now() + path.extname(filePath)
-    );
+    const deletePath = path.join(DIRECTORY.TRASH, Date.now() + path.extname(filePath));
 
     await fs.copyFile(filePath, deletePath);
     return deletePath;
@@ -54,10 +49,7 @@ export async function SoftRemoveThingsInFolder(folderPath) {
     }
     return true;
   } catch (error) {
-    console.log(
-      "❌ Fail to soft remove thing on folder file " + folderPath,
-      error
-    );
+    console.log("❌ Fail to soft remove thing on folder file " + folderPath, error);
     return false;
   }
 }
@@ -77,4 +69,19 @@ export async function RenameFolder(folderPath, newName) {
     console.log("❌ Fail to rename folder " + folderPath, error);
     return false;
   }
+}
+
+export async function getAllFiles(folderPath) {
+  const files = await fs.readdir(folderPath, {
+    recursive: false,
+  });
+
+  const fullPaths = files.map((file) => path.resolve(folderPath, file));
+
+  return fullPaths;
+}
+
+export async function getMetaData(filePath) {
+  const metadata = await sharp(filePath).metadata();
+  return metadata;
 }

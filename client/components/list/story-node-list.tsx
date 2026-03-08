@@ -21,7 +21,7 @@ export default function StoryNodeList({ storyNodes, size, onClickItem, className
        h-fit ${className}`}
     >
       {!storyNodes ? (
-        <Loading className="w-full"></Loading>
+        <Loading className="w-full h-64"></Loading>
       ) : (
         <div className="w-full">
           {/* Header */}

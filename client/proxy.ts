@@ -21,8 +21,42 @@ export function proxy(req: NextRequest) {
       return NextResponse.redirect(url);
     }
   }
+
+  if (pathname.startsWith("/admin/user-management")) {
+    if (!url.searchParams.has("page")) {
+      url.searchParams.set("page", "1");
+      url.searchParams.set("sort", "join_date:desc");
+
+      return NextResponse.redirect(url);
+    }
+  }
+
+  if (pathname.startsWith("/admin/stories-management")) {
+    if (!url.searchParams.has("page")) {
+      url.searchParams.set("page", "1");
+      url.searchParams.set("sort", "updated_at:desc");
+
+      return NextResponse.redirect(url);
+    }
+  }
+
+  if (pathname.startsWith("/genre/")) {
+    if (!url.searchParams.has("page")) {
+      url.searchParams.set("page", "1");
+
+      return NextResponse.redirect(url);
+    }
+  }
+
+  if (pathname.startsWith("/histories") || pathname.startsWith("/favourites")) {
+    if (!url.searchParams.has("page")) {
+      url.searchParams.set("page", "1");
+
+      return NextResponse.redirect(url);
+    }
+  }
 }
 
 export const config = {
-  matcher: ["/stories/:type", "/ranking/:storyType"],
+  matcher: ["/stories/:type", "/ranking/:storyType", "/admin/user-management", "/admin/stories-management", "/genre/:genre", "/histories", "/favourites"],
 };

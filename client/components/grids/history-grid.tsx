@@ -15,6 +15,7 @@ import DEFAULT from "@/constants/default";
 import FilterSort from "../list/filter-sort";
 import useInView from "@/hooks/useInView";
 import FilterSortHistories from "../list/filter-sort-histories";
+import SwitchPageSmall from "../switch-page/small";
 
 let isAtTheEnd = false;
 
@@ -37,30 +38,13 @@ export default function HistoryGrid({
   onClickLabel?: () => void;
   onScrollToEnd?: () => void;
 }) {
-  const isRunFirstTime = useRef<boolean>(true);
-  const parentRef = useRef<HTMLDivElement>(null);
-  const childRef = useRef<HTMLDivElement>(null);
-
-  const [ref, inView] = useInView();
-
   const [params, setParams] = useState<Params>(DEFAULT.params);
   const [isResetFilterSort, setIsResetFilterSort] = useState<boolean>(false);
 
   useEffect(() => {
-    if (isRunFirstTime.current) {
-      isRunFirstTime.current = false;
-      return;
-    }
-
     onChangeParams?.(params);
     setIsResetFilterSort(false);
   }, [params]);
-
-  useEffect(() => {
-    if (inView) {
-      onScrollToEnd?.();
-    }
-  }, [inView]);
 
   return (
     <div className={`w-full ${className}`}>
@@ -76,11 +60,10 @@ export default function HistoryGrid({
         {/* Sort and fiter */}
         {/* <FilterSortHistories className="w-full" onChange={setParams} isResetAll={isResetFilterSort}></FilterSortHistories> */}
 
-        <div ref={parentRef}>
+        <div>
           {children && children.length > 0 ? (
             // Grid
             <div
-              ref={childRef}
               className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-7 gap-2
                 border-b-2 border-foreground pb-2 w-full"
             >
@@ -96,9 +79,6 @@ export default function HistoryGrid({
           )}
           {isLoading && <Loading className="w-full p-10"></Loading>}
         </div>
-
-        {/* This is use to determine is grid inview or not */}
-        <div ref={ref as any}></div>
       </div>
     </div>
   );

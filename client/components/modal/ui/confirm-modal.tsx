@@ -9,14 +9,14 @@ export default function ConfirmModal({
 }: {
   title?: string;
   children?: any;
-  onConfirm?: () => void;
-  onCancel?: () => void;
+  onConfirm?: () => void | Promise<any>;
+  onCancel?: () => void | Promise<any>;
 }) {
   const [isProcessing, setIsProcessing] = useState(false);
 
   return (
     <div className="flex flex-col gap-2 pb-2">
-      <p className="text-[1.5em] md:text-[1.8em] font-semibold">{title}</p>
+      <p className="text-[1.2em] md:text-[1.4em] font-semibold">{title}</p>
 
       <div>{children}</div>
 
@@ -25,9 +25,9 @@ export default function ConfirmModal({
           className="font-semibold"
           isProcessing={isProcessing}
           disable={isProcessing}
-          onClick={() => {
+          onClick={async () => {
             setIsProcessing(true);
-            onConfirm?.();
+            await onConfirm?.();
             setIsProcessing(false);
           }}
           buttonType="default"
@@ -38,9 +38,9 @@ export default function ConfirmModal({
           className="font-semibold"
           isProcessing={isProcessing}
           disable={isProcessing}
-          onClick={() => {
+          onClick={async () => {
             setIsProcessing(true);
-            onCancel?.();
+            await onCancel?.();
             setIsProcessing(false);
           }}
           buttonType="delete"

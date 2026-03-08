@@ -27,7 +27,7 @@ const ErrorCodes = {
   },
   TOKEN_EXPIRED: {
     status: 401,
-    message: "Token has expired",
+    message: "Token has been expired",
   },
   TOKEN_INVALID: {
     status: 401,

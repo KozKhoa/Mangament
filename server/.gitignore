@@ -9,3 +9,6 @@ logs/
 uploads/
 
 api-key/
+
+
+migrations/

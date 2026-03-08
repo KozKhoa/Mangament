@@ -8,13 +8,12 @@ import {
   FindAllStoryNodes,
   FindStoryNode,
   UpdateStoryNode,
-  ValidateStoryNodeType,
   GetParentStoryNodeTree,
   SoftDeleteStoryNode,
   IncreaseOneViewForStoryNodeAndItsParents,
 } from "../models/StoryNode.Model.js";
 import { FindStory } from "../models/Story.Model.js";
-import { AddImage, FindImage, HardDeleteImage, SoftDeleteImage, UpdateImage } from "../models/Image.Model.js";
+import { AddImage } from "../models/Image.Model.js";
 
 import DIRECTORY from "../constants/Directory.js";
 import { CreateNewFolder, IsFileExist, MoveFile, SoftRemoveFile, SoftRemoveThingsInFolder } from "../utils/FileHandle.js";
@@ -26,16 +25,15 @@ export async function GetStoryNode(req, res, next) {
     const isGettingChildren = req.query?.isGettingChildren == "true" ? true : false;
     const isGettingContent = req.query?.isGettingContent == "true" ? true : false;
 
-    if (!storyNodeId && !(storyId && storyNodeType && orderIndex)) throw CreateError(ErrorCodes.BAD_REQUEST);
+    if (!storyNodeId && !(storyId && storyNodeType && orderIndex)) throw CreateError(400, "'id' is required");
 
     const storyNode = await FindStoryNode({
       id: storyNodeId,
       isGettingChildren: isGettingChildren,
+      isGettingContent: isGettingContent,
     });
 
-    if (!storyNode) throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
-
-    if (!isGettingContent) delete storyNode.data.content;
+    if (!storyNode) throw CreateError();
 
     return res.status(200).json({
       success: true,
@@ -47,32 +45,18 @@ export async function GetStoryNode(req, res, next) {
   }
 }
 
+// POST /story-nodes
 export async function PostStoryNode(req, res, next) {
   try {
     const userId = req.user.id;
-    const { storyId, parentId, title, type, orderIndex, numberOfChildren } = req.body;
 
-    if (!storyId || !type || !orderIndex) throw CreateError(ErrorCodes.MISSING_FIELD);
+    const { storyId, parentId, title, type, orderIndex } = req.body;
 
-    // Validate type of story node
-    if (!ValidateStoryNodeType(type)) throw CreateError(ErrorCodes.INVALID_INPUT);
+    if (!storyId || !type || !orderIndex) throw CreateError(400, "Require 'storyId', 'type' and 'orderIndex'");
 
-    // Make sure story exist
-    const story = await FindStory({ id: storyId });
-    if (!story || !story.success || !story.data) throw CreateError(ErrorCodes.STORY_NOT_FOUND);
+    const storyNode = await AddStoryNode(storyId, parentId, { title: title, type: type, orderIndex: Number(orderIndex), posterId: userId });
 
-    const storyNode = await AddStoryNode({
-      title: title || "",
-      type: type,
-      story_id: storyId,
-      ...(parentId && { parent_id: parentId }),
-      order_index: Number(orderIndex),
-      poster_id: userId,
-      ...(numberOfChildren && { number_of_children: Number(numberOfChildren) }),
-    });
-
-    if (!storyNode) throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
-    if (!storyNode.success && storyNode.data) throw CreateError(ErrorCodes.ASSET_ALREADY_EXIST);
+    if (!storyNode) throw CreateError();
 
     return res.status(200).json({
       success: true,
@@ -88,12 +72,11 @@ export async function PutStoryNode(req, res, next) {
   try {
     const userId = req.user.id;
     const storyNodeId = req.params?.id;
-    if (!storyNodeId) throw CreateError(ErrorCodes.BAD_REQUEST);
+    if (!storyNodeId) throw CreateError(400, "'id' is required");
 
     const { storyId, parentId, title, type, orderIndex, view } = req?.body;
-    if (!ValidateStoryNodeType(type)) throw CreateError(ErrorCodes.INVALID_INPUT);
-    if (!storyId) throw CreateError(ErrorCodes.MISSING_FIELD);
 
+    if (!storyId) throw CreateError(400, "Missing required fields");
     // Updating
     const updating = await UpdateStoryNode(
       { id: storyNodeId },
@@ -105,7 +88,7 @@ export async function PutStoryNode(req, res, next) {
         ...(orderIndex && { order_index: Number(orderIndex) }),
         ...(view && { view: Number(view) }),
         updated_at: new Date(),
-      }
+      },
     );
 
     return res.status(200).json({
@@ -123,10 +106,10 @@ export async function PatchStoryNodeContent(req, res, next) {
     const storyNodeId = req.params?.id;
 
     // Validate input value
-    if (!storyNodeId) throw CreateError(ErrorCodes.BAD_REQUEST);
-    if (!req.body?.content) throw CreateError(ErrorCodes.MISSING_FIELD);
+    if (!storyNodeId) throw CreateError(400, "'id' is required");
+    if (!req.body?.content) throw CreateError(400, "Missing required fields");
     if (!IsJsonString(req.body.content)) {
-      throw CreateError(ErrorCodes.INVALID_INPUT);
+      throw CreateError(400, "Invalid content");
     }
 
     // Get image
@@ -134,7 +117,7 @@ export async function PatchStoryNodeContent(req, res, next) {
     if (req.files && req.body?.content) {
       // Get story
       const story = await FindStory({ id: storyNode.data.story_id });
-      if (!story || !story.success || !story.data) throw CreateError(ErrorCodes.STORY_NOT_FOUND);
+      if (!story || !story.success || !story.data) throw CreateError(404, "Story not found");
 
       // Get tree structure for the whole story node parents
       const storyNodeTree = await GetParentStoryNodeTree(story.id, storyNode.data.parent_id);
@@ -153,7 +136,7 @@ export async function PatchStoryNodeContent(req, res, next) {
         story?.data?.type || "",
         story?.data?.title || "",
         newFolderPath,
-        `${storyNode.data.type} ${storyNode.data.order_index}`
+        `${storyNode.data.type} ${storyNode.data.order_index}`,
       );
       await CreateNewFolder(newFolderPath);
 
@@ -197,13 +180,13 @@ export async function PatchStoryNodeContent(req, res, next) {
 export async function DeleteStoryNode(req, res, next) {
   try {
     const storyNodeId = req.params?.id;
-    if (!storyNodeId) throw CreateError(ErrorCodes.BAD_REQUEST);
+    if (!storyNodeId) throw CreateError(400, "'id' is required");
 
     const storyNode = await FindStoryNode({ id: storyNodeId });
-    if (!storyNode || !storyNode.success || !storyNode.data) throw CreateError(ErrorCodes.STORY_NODE_NOT_FOUND);
+    if (!storyNode || !storyNode.success || !storyNode.data) throw CreateError(404, "Story node not found");
 
     const removing = await SoftDeleteStoryNode({ id: storyNodeId });
-    if (!removing || !removing.success) throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
+    if (!removing || !removing.success) throw CreateError();
 
     return res.status(200).json({
       success: true,
@@ -217,10 +200,10 @@ export async function DeleteStoryNode(req, res, next) {
 export async function IncreaseOneViewForStoryNode(req, res, next) {
   try {
     const storyNodeId = req.params?.id;
-    if (!storyNodeId) throw CreateError(ErrorCodes.BAD_REQUEST);
+    if (!storyNodeId) throw CreateError(400, "'id' is required");
 
     const updating = await IncreaseOneViewForStoryNodeAndItsParents(storyNodeId);
-    if (!updating) throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
+    if (!updating) throw CreateError();
 
     return res.status(200).json({
       success: true,

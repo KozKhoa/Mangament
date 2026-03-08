@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 import ButtonDropdown from "./btn-dropdown";
 
@@ -27,29 +27,34 @@ function ButtonDropdownRadio({ onFinishCheck, name, label, options, className }:
   const [rerender, setRerender] = useState(false); // This only use to force this component re render to update items
   const [selected, setSelected] = useState<number>(0);
 
+  const [selections, setSelections] = useState<ButtonFilterOption[]>(options ?? []);
+
   const handleUpdateSelected = (item: ButtonFilterOption, index: number, isChecked: boolean) => {
     setSelected(index);
   };
 
   const handleFinish = () => {
     // Reset all value for options
-    if (options) {
-      options.forEach((item) => (item.isChecked = false));
+    if (selections) {
+      selections.forEach((item) => (item.isChecked = false));
     }
 
     // Update new selection for items
-    if (options && options[selected]) {
-      options[selected].isChecked = true;
+    if (selections && selections[selected]) {
+      selections[selected].isChecked = true;
     }
-    options && onFinishCheck?.(options);
+    selections && onFinishCheck?.(selections);
     setRerender(!rerender); // only use to rerender this component
   };
+
+  useEffect(() => {
+    setSelections(selections ?? []);
+  }, [selections]);
 
   return (
     <ButtonDropdown
       openOnLeft={true}
-      className={`border-foreground border rounded-[5] 
-          text-foreground ${className}`}
+      className={`border-foreground/50 border rounded-[5] py-[3px] text-foreground ${className}`}
       acceptButtonLabel="Finish"
       onClickAcceptButton={handleFinish}
       icon={
@@ -66,7 +71,7 @@ function ButtonDropdownRadio({ onFinishCheck, name, label, options, className }:
       }
     >
       <ul className="flex flex-col justify-start items-center gap-2.5 w-full h-fit">
-        {options?.map((item, index) => {
+        {selections?.map((item, index) => {
           return (
             <li key={index} className="flex w-full h-fit justify-start items-center">
               <Radio

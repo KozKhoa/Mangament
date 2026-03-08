@@ -2,15 +2,16 @@ import useAuth from "@/contexts/AuthContext";
 import ratingService from "@/services/rating";
 import { useState } from "react";
 import { toast } from "sonner";
-import Input from "./input";
+import Input from "../inputs/input";
 import StarPicker from "../inputs/star-picker";
 import Button from "../buttons/button";
 import commentService from "@/services/comment";
+import Comment from "@/types/comment";
 
 export interface CommentInputForm {
-  onSubmit?: () => void;
+  onSubmit?: (newComment?: Comment) => void;
   onCancel?: () => void;
-  storyId?: string;
+  storyId: string;
   storyNodeId?: string;
   className?: string;
 }
@@ -29,17 +30,17 @@ export default function CommentInputForm({ storyId, storyNodeId, className, onSu
     setIsProcessing(true);
     let res;
     if (storyNodeId) {
-      res = await commentService.postStoryNodeComment(storyNodeId, title, content);
+      res = await commentService.postStoryNodeComment(storyId, storyNodeId, title, content);
     } else {
-      res = await commentService.postStoryComment(storyId ?? "", title, content);
+      res = await commentService.postStoryComment(storyId, title, content);
     }
     setIsProcessing(false);
 
     if (!res.success) return toast.warning(res.message);
 
-    onSubmit?.();
+    onSubmit?.(res.data);
 
-    toast.message("Bình luận của bạn đã được ghị nhận! Tải lại trang để nhìn thấy đánh giá của bạn");
+    toast.message("Bình luận của bạn đã được ghi nhận!");
   }
 
   return (

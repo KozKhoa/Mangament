@@ -1,5 +1,11 @@
 export default interface Image {
-  url: string;
+  id?: string;
+  url?: string;
   width?: number | null;
   height?: number | null;
+
+  file?: File;
+
+  key?: string;
+  public_id?: string;
 }

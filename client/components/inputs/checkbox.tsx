@@ -35,14 +35,14 @@ function Checkbox({ defaultChecked = false, children, className, name, value, on
       />
 
       <CheckIcon
-        className="absolute top-0 left-0 h-[1.5em] w-[1.5em]
+        className="absolute top-1/2 -translate-y-1/2 left-0 h-[1.5em] w-[1.5em]
           rotate-y-90 peer-checked:rotate-y-0
           fill-foreground 
           transition-all duration-100 ease-linear"
       ></CheckIcon>
 
       <UnCheckIcon
-        className="absolute top-0 left-0 peer-checked:rotate-y-90 h-[1.5em] w-[1.5em]
+        className="absolute top-1/2 -translate-y-1/2 left-0 peer-checked:rotate-y-90 h-[1.5em] w-[1.5em]
           transition-all duration-100 ease-linear"
       ></UnCheckIcon>
 

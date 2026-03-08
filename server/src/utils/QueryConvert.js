@@ -6,6 +6,8 @@ export function ConvertQuery(query) {
   const isGettingNewestChapter = query.isGettingNewestChapter == "true" ? true : false;
   const isGettingSummary = query.isGettingSummary == "true" ? true : false;
 
+  const isBanned = query.isBanned && (query.isBanned == "true" ? true : query.isBanned == "false" ? false : undefined);
+
   const limit = query.limit ? Number(query.limit) : 100;
 
   const page = query.page ? Number(query.page) : 1;
@@ -20,6 +22,12 @@ export function ConvertQuery(query) {
 
   const status = query.status ? query.status.split(",") : null;
 
+  const genders = query?.gender ? query.gender.split(",") : null;
+
+  const roles = query.role ? query.role.split(",") : null;
+
+  const groupBy = query.groupBy;
+
   // rating = [[1,2], [4,5]]
   const star = query.star ? query.star.split(",").map((range) => range.split("-").map((number) => parseFloat(number))) : [[0, 6]];
   // view = [[0, 100], [1000, 100000]]
@@ -30,14 +38,14 @@ export function ConvertQuery(query) {
     const [field, direction] = query.sort.split(":");
     sort[field.toLowerCase()] = direction.toLowerCase();
   } else {
-    sort["updated_at"] = "desc";
+    sort["created_at"] = "desc";
   }
 
   const keyword = query.keyword ? query.keyword : null;
 
-  let fromDate = query.fromDate ? dayjs(query.fromDate).startOf("day").toDate() : null;
+  let fromDate = query.fromDate ? new Date(query.fromDate) : null;
   if (fromDate == "Invalid Date") fromDate = null;
-  let toDate = query.toDate ? dayjs(query.toDate).endOf("day").toDate() : null;
+  let toDate = query.toDate ? new Date(query.toDate) : null;
   if (toDate == "Invalid Date") toDate = null;
 
   return {
@@ -57,6 +65,10 @@ export function ConvertQuery(query) {
     sort,
     fromDate,
     toDate,
+    genders,
+    roles,
+    isBanned,
+    groupBy,
     keyword,
   };
 }

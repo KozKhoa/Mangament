@@ -15,23 +15,33 @@ import { modal } from "../modal/modal.store";
 interface StoryNodeCommentsGridProps {
   className?: string;
   storyNodeId?: string;
-  storyId?: string;
+  storyId: string;
   elementPerPage?: number;
 }
 
 const SWITCH_LAYOUT = 4;
 
-function CommentButton({ storyId, storyNodeId }: { storyId?: string; storyNodeId?: string }) {
+function CommentButton({ storyId, storyNodeId, onSubmit }: { storyId: string; storyNodeId?: string; onSubmit?: (newComment?: Comment) => void }) {
   return (
     <button
       onClick={() => {
         modal.open("custom", {
-          content: <CommentInputForm onCancel={modal.close} onSubmit={modal.close} storyId={storyId} storyNodeId={storyNodeId}></CommentInputForm>,
+          content: (
+            <CommentInputForm
+              onCancel={modal.close}
+              onSubmit={(newComment) => {
+                onSubmit?.(newComment);
+                modal.close();
+              }}
+              storyId={storyId}
+              storyNodeId={storyNodeId}
+            ></CommentInputForm>
+          ),
         });
       }}
       className="px-5 py-1 w-fit h-fit rounded-md select-none bg-foreground/10 text-foreground/80 cursor-pointer hover:bg-foreground/20"
     >
-      Đánh giá ➤
+      Bình luận ➤
     </button>
   );
 }
@@ -60,7 +70,7 @@ export default function CommentMasonryGrid({ className, storyNodeId, storyId, el
     if (!storyNodeId) return;
 
     setLoading(true);
-    const res = await commentService.getStoryNodeComments(storyNodeId, { limit: elementPerPage, page: page.current });
+    const res = await commentService.getStoryNodeComments(storyId, storyNodeId, { limit: elementPerPage, page: page.current });
     setLoading(false);
 
     if (!res.success) return toast.warning(res.message);
@@ -70,9 +80,13 @@ export default function CommentMasonryGrid({ className, storyNodeId, storyId, el
     setComments((prevComments) => [...prevComments, ...newComment]);
   }
 
-  function handleGetMoreComments() {
+  async function handleGetMoreComments() {
     if (storyNodeId) fetchMoreStoryNodeComments();
     else if (storyId) fetchMoreStoryComments();
+  }
+
+  function updateUiWithNewComment(newComment: Comment) {
+    setComments((prev) => [newComment, ...prev]);
   }
 
   useEffect(() => {
@@ -80,7 +94,7 @@ export default function CommentMasonryGrid({ className, storyNodeId, storyId, el
       if (!storyNodeId) return;
 
       setLoading(true);
-      const res = await commentService.getStoryNodeComments(storyNodeId, { limit: elementPerPage, page: 1 });
+      const res = await commentService.getStoryNodeComments(storyId, storyNodeId, { limit: elementPerPage, page: 1 });
       setLoading(false);
 
       if (!res.success) return toast.warning(res.message);
@@ -132,19 +146,25 @@ export default function CommentMasonryGrid({ className, storyNodeId, storyId, el
           </span>
         </h2>
 
-        <CommentButton storyId={storyId}></CommentButton>
+        <CommentButton
+          storyId={storyId}
+          storyNodeId={storyNodeId}
+          onSubmit={(neComment) => {
+            neComment && updateUiWithNewComment(neComment);
+          }}
+        ></CommentButton>
       </div>
 
       {comments.length > 0 ? (
         <>
-          {comments.length > SWITCH_LAYOUT ? (
+          {comments.length > elementPerPage ? (
             <MasonryGrid breakpointCols={breakpointColumnsObj}>
               {comments.map((commment, i) => (
                 <CommentCard key={commment.id} comment={commment}></CommentCard>
               ))}
             </MasonryGrid>
           ) : (
-            <div className="flex flex-col gap-2 justify-center items-center">
+            <div className="grid grid-cols-2 gap-2 w-full">
               {comments.map((commment, i) => (
                 <CommentCard className="w-full" key={commment.id} comment={commment}></CommentCard>
               ))}
@@ -156,7 +176,13 @@ export default function CommentMasonryGrid({ className, storyNodeId, storyId, el
           {!loading && (
             <div className="flex flex-col justify-center items-center gap-2 md:text-[1.2em]">
               <p className="text-center p-10 py-5">Chưa có bình luận nào, hãy trở thành người bình luận đầu tiên</p>
-              <CommentButton storyId={storyId} storyNodeId={storyNodeId}></CommentButton>
+              <CommentButton
+                storyId={storyId}
+                storyNodeId={storyNodeId}
+                onSubmit={(neComment) => {
+                  neComment && updateUiWithNewComment(neComment);
+                }}
+              ></CommentButton>
             </div>
           )}
         </>
