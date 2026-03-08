@@ -132,15 +132,7 @@ export default function ImagePicker({
         ></input>
 
         {image ? (
-          <Image
-            src={image}
-            alt={image}
-            width={10000}
-            height={10000}
-            style={{ width: "auto", height: "auto" }}
-            className="rounded-sm shrink-0"
-            unoptimized
-          ></Image>
+          <Image src={image} alt={image} width={400} height={400} style={{ width: "auto", height: "auto" }} className="rounded-sm shrink-0"></Image>
         ) : (
           <div className="flex flex-col gap-2 justify-center items-center w-full h-full m-auto text-[#7f7f7f]">
             <UploadPhotoIcon className="w-30 h-30 "></UploadPhotoIcon>

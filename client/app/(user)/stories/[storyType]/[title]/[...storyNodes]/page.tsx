@@ -318,7 +318,6 @@ export default function StoryNodeReading() {
                   alt="Cover Art"
                   width={con.image.width ?? 1200}
                   height={con.image.height ?? 1800}
-                  unoptimized
                 ></Image>
               ) : con.type === "title" ? (
                 <p className="w-full text-center font-bold text-[1.8em]">{con.content}</p>

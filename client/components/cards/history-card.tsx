@@ -68,9 +68,8 @@ export default function HistoryCard({ history, onClickRemove, className }: { his
             onClick={() => navigateToStoryNode()}
             src={story?.cover_art?.url}
             alt="Cover Art"
-            width={500}
-            height={500}
-            unoptimized
+            width={200}
+            height={300}
           ></Image>
         )}
 

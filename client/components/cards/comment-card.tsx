@@ -12,7 +12,7 @@ export default function CommentCard({ comment, className }: { comment: Comment; 
 
       <div className="flex flex-row flex-wrap gap-2 justify-between items-center">
         <div className="flex flex-row justify-center items-center gap-3">
-          <Image className="rounded-full" src={comment.user?.avatar?.url ?? ""} alt="Avatar" width={32} height={32} unoptimized></Image>
+          <Image className="rounded-full" src={comment.user?.avatar?.url ?? ""} alt="Avatar" width={32} height={32}></Image>
           <p className="text-[0.9em] line-clamp-2">{comment.user?.name}</p>
         </div>
         <p className="text-foreground/60 text-[0.8em] italic text-end">{convertDateTo_yyyMMddHHmm(new Date(comment.created_at ?? ""))}</p>
