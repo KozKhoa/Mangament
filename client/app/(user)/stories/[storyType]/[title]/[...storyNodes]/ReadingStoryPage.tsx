@@ -316,8 +316,9 @@ export default function ReadingStoryPage() {
                   className="max-w-[1200px]"
                   src={con.image?.url}
                   alt="Cover Art"
-                  width={con.image.width ?? 1200}
-                  height={con.image.height ?? 1800}
+                  width={1200}
+                  height={1800}
+                  style={{ width: "100%", height: "auto" }}
                 ></Image>
               ) : con.type === "title" ? (
                 <p className="w-full text-center font-bold text-[1.8em]">{con.content}</p>
