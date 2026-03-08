@@ -582,42 +582,115 @@ export async function UpdateStory(
       }
 
       if (children?.edit) {
-        d;
-        //  Edit content
-        for (const content of children.edit.content) {
-          await tx.storyNodeContent.update({
-            where: { id: content.id },
-            data: {
-              order_index: content.order_index,
-              image: {
-                connectOrCreate: {
-                  where: { url: content?.image?.url, key: content?.image?.key },
-                  create: { url: content?.image?.url, key: content?.image?.key },
-                },
-              },
-            },
+        // Edit content concurrently using Raw SQL query for high performance
+        if (children.edit.content && children.edit.content.length > 0) {
+          const contents = children.edit.content;
+          const params = [];
+
+          let query = `UPDATE "StoryNodeContent" SET \n  order_index = CASE\n`;
+          contents.forEach((c) => {
+            params.push(c.id, c.order_index);
+            query += `    WHEN id = $${params.length - 1}::uuid THEN $${params.length}::integer\n`;
           });
+          query += `    ELSE order_index\n  END`;
+
+          const hasImage = contents.some((c) => c.image?.url);
+          if (hasImage) {
+            query += `,\n  image_id = CASE\n`;
+            contents.forEach((c) => {
+              if (c.image?.url) {
+                params.push(c.id, c.image.url);
+                query += `    WHEN id = $${params.length - 1}::uuid THEN (SELECT id FROM "Image" WHERE url = $${params.length} LIMIT 1)\n`;
+              }
+            });
+            query += `    ELSE image_id\n  END`;
+          }
+
+          const idPlaceholders = contents.map((c) => {
+            params.push(c.id);
+            return `$${params.length}::uuid`;
+          });
+          query += `\nWHERE id IN (${idPlaceholders.join(", ")});`;
+
+          await tx.$executeRawUnsafe(query, ...params);
         }
 
-        // Edit story node and update its content index
-        for (const node of children.edit.story_node) {
-          await tx.storyNode.update({
-            where: { id: node.id },
-            data: {
-              order_index: node.order_index,
-              ...(node.title && { title: node.title }),
-              ...(node.type && { type: node.type }),
-              ...(node.content &&
-                node.content.length > 0 && {
-                  content: {
-                    updateMany: node.content.map((cont) => ({
-                      where: { id: cont.id },
-                      data: { order_index: cont.order_index, type: cont.type },
-                    })),
-                  },
-                }),
-            },
+        // Edit story node and update its content index concurrently using Raw SQL query
+        if (children.edit.story_node && children.edit.story_node.length > 0) {
+          const nodes = children.edit.story_node;
+          const nodeParams = [];
+
+          let nodeQuery = `UPDATE "StoryNode" SET \n  order_index = CASE\n`;
+          nodes.forEach((n) => {
+            nodeParams.push(n.id, n.order_index);
+            nodeQuery += `    WHEN id = $${nodeParams.length - 1}::uuid THEN $${nodeParams.length}::float\n`;
           });
+          nodeQuery += `    ELSE order_index\n  END`;
+
+          const hasTitle = nodes.some((n) => n.title !== undefined);
+          if (hasTitle) {
+            nodeQuery += `,\n  title = CASE\n`;
+            nodes.forEach((n) => {
+              if (n.title !== undefined) {
+                nodeParams.push(n.id, n.title);
+                nodeQuery += `    WHEN id = $${nodeParams.length - 1}::uuid THEN $${nodeParams.length}::text\n`;
+              }
+            });
+            nodeQuery += `    ELSE title\n  END`;
+          }
+
+          const hasType = nodes.some((n) => n.type !== undefined);
+          if (hasType) {
+            nodeQuery += `,\n  type = CASE\n`;
+            nodes.forEach((n) => {
+              if (n.type !== undefined) {
+                nodeParams.push(n.id, n.type);
+                // Let pg infer the type (often it's an enum, so explicit cast can cause issues if not exact)
+                nodeQuery += `    WHEN id = $${nodeParams.length - 1}::uuid THEN $${nodeParams.length}::"StoryNodeType"\n`;
+              }
+            });
+            nodeQuery += `    ELSE type\n  END`;
+          }
+
+          const nodeIdPlaceholders = nodes.map((n) => {
+            nodeParams.push(n.id);
+            return `$${nodeParams.length}::uuid`;
+          });
+
+          nodeQuery += `\nWHERE id IN (${nodeIdPlaceholders.join(", ")});`;
+
+          await tx.$executeRawUnsafe(nodeQuery, ...nodeParams);
+
+          const nodeContents = nodes.flatMap((n) => n.content || []);
+          if (nodeContents.length > 0) {
+            const contentParams = [];
+            let contentQuery = `UPDATE "StoryNodeContent" SET \n  order_index = CASE\n`;
+            nodeContents.forEach((c) => {
+              contentParams.push(c.id, c.order_index);
+              contentQuery += `    WHEN id = $${contentParams.length - 1}::uuid THEN $${contentParams.length}::integer\n`;
+            });
+            contentQuery += `    ELSE order_index\n  END`;
+
+            const hasContentType = nodeContents.some((c) => c.type !== undefined);
+            if (hasContentType) {
+              contentQuery += `,\n  type = CASE\n`;
+              nodeContents.forEach((c) => {
+                if (c.type !== undefined) {
+                  contentParams.push(c.id, c.type);
+                  contentQuery += `    WHEN id = $${contentParams.length - 1}::uuid THEN $${contentParams.length}::"StoryNodeContentType"\n`;
+                }
+              });
+              contentQuery += `    ELSE type\n  END`;
+            }
+
+            const contentIdPlaceholders = nodeContents.map((c) => {
+              contentParams.push(c.id);
+              return `$${contentParams.length}::uuid`;
+            });
+            contentQuery += `\nWHERE id IN (${contentIdPlaceholders.join(", ")});`;
+
+            await tx.$executeRawUnsafe(contentQuery, ...contentParams);
+          }
         }
       }
 

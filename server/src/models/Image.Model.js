@@ -3,6 +3,8 @@ import { redis } from "../configs/redis.js";
 import redisService from "../services/redis.service.js";
 import { CreateError } from "../utils/ErrorHandle.js";
 
+import * as r2CloudflareService from "../services/r2-cloudflare.service.js";
+
 const REDIS_TTL = 60 * 15;
 
 export async function FindImage({ id, url }) {
@@ -44,21 +46,50 @@ export async function SoftDeleteImage({ id, url }) {
     data: { is_deleted: true },
   });
 
-  redisService.image(url || id).del();
+  redisService.image(id).incr();
+  redisService.image(url).incr();
 
   return { success: true, data: softDelete };
 }
 
 export async function HardDeleteImage({ id, url }) {
+  // Hard delete image also mean remove it in cloudflare
   if (!id && !url) throw CreateError(400, "Require 'id' or 'url'");
+
+  const image = await db.image.findFirst({
+    where: { ...(id && { id: id }), ...(url && { url: url }) },
+  });
+
+  if (!image) throw CreateError(404, "Image not found");
+
+  await r2CloudflareService.deleteObject(image.key);
 
   await db.image.delete({ where: { ...(id && { id: id }), ...(url && { url: url }) } });
 
-  redisService.image(url || id).del();
+  redisService.image(id).del();
+  redisService.image(url).del();
 
   return { success: true, message: "Remove permanently" };
 }
 
+export async function HardDeleteManyImages({ ids = [], urls = [] }) {
+  if (ids.length === 0 && urls.length === 0) throw CreateError(400, "Require 'id' or 'url'");
+
+  const images = await db.image.findMany({
+    where: { ...(ids.length > 0 && { id: { in: ids } }), ...(urls.length > 0 && { url: { in: urls } }) },
+  });
+
+  if (images.length <= 0) throw CreateError(404, "Image not found");
+
+  await r2CloudflareService.deleteManyObjects(images.map((image) => image.key));
+
+  await db.image.deleteMany({ where: { ...(ids.length > 0 && { id: { in: ids } }), ...(urls.length > 0 && { url: { in: urls } }) } });
+
+  ids.forEach((id) => redisService.image(id).del());
+  urls.forEach((url) => redisService.image(url).del());
+
+  return { success: true, message: "Remove permanently" };
+}
 export async function FindTrashImage({ page = 1, limit = 10 }) {
   // This will find the images that are not used by any user, story, nation or story node content
   const trashImage = await db.image.findMany({

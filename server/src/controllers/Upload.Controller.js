@@ -8,6 +8,8 @@ import sharp from "sharp";
 
 import { r2 } from "../configs/r2.js";
 
+import * as r2CloudflareService from "../services/r2-cloudflare.service.js";
+
 // POST /uploads/user/:userId/avatar
 // POST /uploads/user/me/avatar
 export async function UploadAvatar(req, res, next) {
@@ -20,11 +22,6 @@ export async function UploadAvatar(req, res, next) {
 
     const url = `${process.env.CDN_URL}/${key}`;
 
-    // const existImage = await imageModel.FindImage({ url });
-    // if (existImage.data) {
-    //   return res.json({ success: true, data: { key: existImage.data.key, url: existImage.data.url, id: existImage.data.id } });
-    // }
-
     // Resize + optimize
     const optimizedBuffer = await sharp(file.buffer)
       .resize({ width: 300 })
@@ -34,18 +31,7 @@ export async function UploadAvatar(req, res, next) {
       })
       .toBuffer();
 
-    const result = await Promise.all([
-      r2.send(
-        new PutObjectCommand({
-          Bucket: process.env.CLOUDFLARE_BUCKET,
-          Key: key,
-          Body: optimizedBuffer,
-          ContentType: file.mimetype,
-        }),
-      ),
-
-      imageModel.AddImage({ url, key }),
-    ]);
+    const result = await Promise.all([r2CloudflareService.uploadObject(key, optimizedBuffer, file.mimetype), imageModel.AddImage({ url, key })]);
 
     res.json({ success: true, data: { key, url, id: result[1].data.id } });
   } catch (err) {
@@ -73,17 +59,7 @@ export async function UploadStoryCoverArt(req, res, next) {
       })
       .toBuffer();
 
-    const result = await Promise.all([
-      r2.send(
-        new PutObjectCommand({
-          Bucket: process.env.CLOUDFLARE_BUCKET,
-          Key: key,
-          Body: optimizedBuffer,
-          ContentType: file.mimetype,
-        }),
-      ),
-      imageModel.AddImage({ url, key }),
-    ]);
+    const result = await Promise.all([r2CloudflareService.uploadObject(key, optimizedBuffer, file.mimetype), imageModel.AddImage({ url, key })]);
 
     res.json({ success: true, data: { key, url, id: result[1].data.id } });
   } catch (err) {
@@ -118,18 +94,7 @@ export async function UploadManyContentsForStoryNode(req, res, next) {
           const key = `story/${storyId}/story-node/${storyNodeId}/${crypto.randomUUID()}.jpg`;
           const url = `${process.env.CDN_URL}/${key}`;
 
-          const result = await Promise.all([
-            r2.send(
-              new PutObjectCommand({
-                Bucket: process.env.CLOUDFLARE_BUCKET,
-                Key: key,
-                Body: optimized,
-                ContentType: "image/jpeg",
-                CacheControl: "public, max-age=31536000, immutable",
-              }),
-            ),
-            imageModel.AddImage({ url, key }),
-          ]);
+          const result = await Promise.all([r2CloudflareService.uploadObject(key, optimized, "image/jpeg"), imageModel.AddImage({ url, key })]);
 
           return { key, url, id: result[1].data.id };
         }),
@@ -164,18 +129,7 @@ export async function UploadContentForStoryNode(req, res, next) {
       })
       .toBuffer();
 
-    const result = await Promise.all([
-      r2.send(
-        new PutObjectCommand({
-          Bucket: process.env.CLOUDFLARE_BUCKET,
-          Key: key,
-          Body: optimized,
-          ContentType: "image/jpeg",
-          CacheControl: "public, max-age=31536000, immutable",
-        }),
-      ),
-      imageModel.AddImage({ url, key }),
-    ]);
+    const result = await Promise.all([r2CloudflareService.uploadObject(key, optimized, "image/jpeg"), imageModel.AddImage({ url, key })]);
 
     res.json({ success: true, data: { key, url, id: result[1].data.id } });
   } catch (err) {

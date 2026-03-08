@@ -828,6 +828,14 @@ adminRoute.delete("/users/:id", adminController.DeleteUser);
  */
 adminRoute.patch("/users/:id/ban", adminController.BanUser);
 
+//
+//
+//
+// Images
+//
+//
+//
+
 /**
  * @openapi
  * /admin/images/trash:
@@ -865,5 +873,83 @@ adminRoute.patch("/users/:id/ban", adminController.BanUser);
  *         $ref: '#/components/responses/Unauthorized'
  */
 adminRoute.get("/images/trash", adminController.GetAllTrashImages);
+
+/**
+ * @openapi
+ * /admin/images/trash/{id}:
+ *   delete:
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     summary: Delete a trashed image permanently
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       '200':
+ *         description: Image deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *             example:
+ *               success: true
+ *               message: "Delete image image_1"
+ *       '401':
+ *         $ref: '#/components/responses/Unauthorized'
+ */
+adminRoute.delete("/images/trash/:id", adminController.DeleteTrashImage);
+
+/**
+ * @openapi
+ * /admin/images/trash:
+ *   delete:
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     summary: Delete multiple trashed images permanently
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               ids:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 description: Array of image IDs to delete
+ *             required:
+ *               - ids
+ *           example:
+ *             ids: ["image_1", "image_2", "image_3"]
+ *     responses:
+ *       '200':
+ *         description: Images deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *             example:
+ *               success: true
+ *               message: "Delete images successfully"
+ *       '401':
+ *         $ref: '#/components/responses/Unauthorized'
+ */
+adminRoute.delete("/images/trash", adminController.DeleteManyTrashImages);
 
 export default adminRoute;

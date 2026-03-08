@@ -386,3 +386,33 @@ export async function GetAllTrashImages(req, res, next) {
     next(error);
   }
 }
+
+// DELETE /admin/images/trash
+export async function DeleteManyTrashImages(req, res, next) {
+  try {
+    const imageIds = req.body?.ids;
+
+    if (!imageIds) throw CreateError(400, "'id' for image is required");
+
+    await imageModel.HardDeleteManyImages({ ids: imageIds });
+
+    return res.json({ success: true, message: "Remove successfully" });
+  } catch (error) {
+    next(error);
+  }
+}
+
+// DELETE /admin/images/trash/:id
+export async function DeleteTrashImage(req, res, next) {
+  try {
+    const imageId = req.params?.id;
+
+    if (!imageId) throw CreateError(400, "'id' for image is required");
+
+    await imageModel.HardDeleteImage({ id: imageId });
+
+    return res.json({ success: true, message: "Remove successfully" });
+  } catch (error) {
+    next(error);
+  }
+}
