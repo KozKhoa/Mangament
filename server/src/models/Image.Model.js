@@ -5,7 +5,7 @@ import { CreateError } from "../utils/ErrorHandle.js";
 
 import * as r2CloudflareService from "../services/r2-cloudflare.service.js";
 
-const REDIS_TTL = 60 * 15;
+const REDIS_TTL = 60 * 30;
 
 export async function FindImage({ id, url }) {
   if (!id && !url) throw CreateError(400, "Require 'id' or 'url'");

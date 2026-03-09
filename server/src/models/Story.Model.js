@@ -8,7 +8,7 @@ import { ValidateGenre } from "./Genre.Model.js";
 import { validate as isUUID } from "uuid";
 import redisService from "../services/redis.service.js";
 
-const REDIS_TTL = 60 * 15; // 15 minutes
+const REDIS_TTL = 60 * 30; // 30 minutes
 
 export async function BuildStoryTree(storyId, storyNodeId, isGettingContent = false) {
   const storiesVer = await redisService.stories(storyId).get();
