@@ -25,6 +25,7 @@ import uploadRoute from "./src/routes/Upload.Route.js";
 
 import swaggerJsdoc from "swagger-jsdoc";
 import swaggerUi from "swagger-ui-express";
+import db from "./src/configs/db.js";
 
 initRedis();
 
@@ -247,10 +248,25 @@ app.use("/admin", adminRoute);
 app.use("/cloudinary", cloudinaryRoute);
 app.use("/uploads", uploadRoute);
 
-app.use(express.static("./../uploads"));
+// Let render ping after amount of time for preventing container to idle
+app.get("/health", (req, res) => {
+  res.status(200).send("ok");
+});
 
 // Middlewares
 app.use(ErrorMiddleware);
+
+// Keep db prisma alive after 3 min
+setInterval(
+  async () => {
+    try {
+      await db.$queryRaw`SELECT 1`;
+    } catch (err) {
+      console.error("DB keepalive error", err);
+    }
+  },
+  1000 * 60 * 3,
+);
 
 if (process.env.NODE_ENV === "development") {
   // Listen
