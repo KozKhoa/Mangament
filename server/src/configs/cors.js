@@ -6,6 +6,11 @@ export const corsOptions = {
       return callback(null, true);
     }
 
+    // Allow server-to-server request
+    if (!origin) {
+      return callback(null, true);
+    }
+
     if (WHITE_LIST.includes(origin)) {
       return callback(null, true);
     } else {
