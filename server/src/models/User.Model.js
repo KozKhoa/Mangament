@@ -8,7 +8,7 @@ import { redis } from "../configs/redis.js";
 import { throwErrorIfInvalidGenders } from "../utils/Validators.js";
 import redisService from "../services/redis.service.js";
 
-const REDIS_TTL = 60 * 15; // 15 minutes
+const REDIS_TTL = 60 * 30; // 30 minutes
 
 export async function FindAllUser({
   genders = [],

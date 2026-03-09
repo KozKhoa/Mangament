@@ -5,7 +5,7 @@ import { redis } from "../configs/redis.js";
 
 import redisService from "../services/redis.service.js";
 
-const REDIS_TTL = 60 * 15; // 15 minutes
+const REDIS_TTL = 60 * 30; // 30 minutes
 
 export async function FindAllRatings({ storyId, userId, star = [[0, 6]], sort = { updated_at: "desc" }, page = 1, limit = 10 }) {
   const storyVer = await redisService.stories(storyId).get();

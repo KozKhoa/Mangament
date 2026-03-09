@@ -6,7 +6,7 @@ import { CreateError } from "../utils/ErrorHandle.js";
 
 import { BuildStoryTree, UpdateStory } from "./Story.Model.js";
 
-const REDIS_TTL = 60 * 15; // 15 minutes
+const REDIS_TTL = 60 * 30; // 30 minutes
 
 // Lấy danh sách parent của mọt story node (không lấy bản thân story đó)
 export async function GetParentStoryNodeTree(storyId, storyNodeId, isGettingContent = false) {

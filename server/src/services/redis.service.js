@@ -1,6 +1,6 @@
 import { redis } from "../configs/redis.js";
 
-const REDIS_TTL = 60 * 15; // 15 minutes
+const REDIS_TTL = 60 * 30; // 15 minutes
 
 const version = {
   get: async (key) => {
