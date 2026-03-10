@@ -11,12 +11,10 @@ const BANNED = [
   {
     label: "Hoạt động",
     code: false,
-    isChecked: false,
   },
   {
     label: "Bị cấm",
     code: true,
-    isChecked: false,
   },
 ];
 
@@ -26,25 +24,31 @@ interface FilterGendersProps {
 }
 
 export default function FilterBanned({ value, onChange }: FilterGendersProps) {
+  const [bannedOptions, setBannedOptions] = useState(BANNED.map((banned) => banned.label));
+
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+
+  function onSelect(index: number) {
+    setSelectedIndex(index);
+
+    onChange?.(BANNED[index].code);
+  }
 
   function resetAllField() {
     setSelectedIndex(null);
+    onChange?.(null);
   }
 
   useEffect(() => {
-    onChange?.(selectedIndex === null ? null : (BANNED[selectedIndex]?.code as null | boolean));
-  }, [selectedIndex]);
-
-  useEffect(() => {
-    if (value === null || value === undefined) setSelectedIndex(null);
-    else {
-      BANNED.forEach((ban, i) => {
-        if (value == ban.code) {
-          console.log(value);
-          setSelectedIndex(i);
-        }
-      });
+    if (value === null || value === undefined) {
+      setSelectedIndex(null);
+    } else {
+      const idx = BANNED.findIndex((b) => b.code === value);
+      if (idx === -1) {
+        setSelectedIndex(null);
+      } else {
+        setSelectedIndex(idx);
+      }
     }
   }, [value]);
 
@@ -60,7 +64,7 @@ export default function FilterBanned({ value, onChange }: FilterGendersProps) {
             <div className="flex flex-row flex-wrap gap-1.5 justify-center items-center w-fit h-fit">
               <BanIcon className="w-5 h-5 fill-foreground"></BanIcon>
               <p className="font-bold">Trạng thái</p>
-              <div className="flex flex-row flex-wrap gap-0.5">{BANNED?.map((ban, i) => i === selectedIndex && <Tag key={i}>{ban.label}</Tag>)}</div>
+              <div className="flex flex-row flex-wrap gap-0.5">{bannedOptions.map((ban, i) => selectedIndex === i && <Tag key={i}>{ban}</Tag>)}</div>
             </div>
           }
           <div className="w-[1em] h-[1em]">
@@ -70,10 +74,10 @@ export default function FilterBanned({ value, onChange }: FilterGendersProps) {
       }
     >
       <div className="flex flex-col justify-start items-center gap-2.5 w-full h-fit">
-        {BANNED?.map((ban, i) => (
+        {bannedOptions.map((ban, i) => (
           <div key={i} className="flex w-full h-fit justify-start items-center">
-            <Radio name="banned" defaultChecked={i === selectedIndex} onChange={() => setSelectedIndex(i)}>
-              {ban.label}
+            <Radio name="banned" value={i === selectedIndex} onChange={() => onSelect(i)}>
+              {ban}
             </Radio>
           </div>
         ))}

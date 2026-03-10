@@ -7,49 +7,59 @@ import ButtonDropdown from "../buttons/dropdown/btn-dropdown";
 import Checkbox from "../inputs/checkbox";
 import { useEffect, useState } from "react";
 
-export type TargetRole = "admin" | "user" | null;
-
 const ROLES = [
   {
     label: "Admin",
     code: "admin",
-    isChecked: false,
   },
   {
     label: "User",
     code: "user",
-    isChecked: false,
   },
 ];
 
 interface FilterRolesProps {
-  value: TargetRole[];
-  onChange?: (value: TargetRole[]) => void;
+  value: string[];
+  onChange?: (value: string[]) => void;
 }
 
 export default function FilterRoles({ value, onChange }: FilterRolesProps) {
-  const [rerender, setRerender] = useState(false); // This only use to force this component re render to update items
+  const [roles, setRoles] = useState(ROLES.map((role) => role.label));
+  const [selectedIndexs, setSelectedIndexs] = useState<Set<number>>(new Set());
+  const [finalSelectedIndex, setFinalSelectedIndex] = useState<Set<number>>(new Set());
+
+  function toggleCheckbox(index: number, checked: boolean) {
+    const newSet = new Set(selectedIndexs);
+    if (checked) newSet.add(index);
+    else newSet.delete(index);
+    setSelectedIndexs(newSet);
+  }
 
   function handleFinish() {
-    setRerender(!rerender);
-    onChange?.(ROLES.filter((role) => role.isChecked).map((role) => role.code as TargetRole));
+    const result: string[] = [];
+    ROLES.forEach((r, idx) => {
+      if (selectedIndexs.has(idx)) result.push(r.code);
+    });
+    setFinalSelectedIndex(new Set(selectedIndexs));
+    onChange?.(result);
   }
 
   function resetAllField() {
-    ROLES.forEach((role) => {
-      role.isChecked = false;
-    });
-    handleFinish();
+    setSelectedIndexs(new Set());
+    setFinalSelectedIndex(new Set());
+
+    onChange?.([]);
   }
 
   useEffect(() => {
-    ROLES.forEach((role) => {
-      if (value.includes(role.code as TargetRole)) {
-        role.isChecked = true;
-      } else {
-        role.isChecked = false;
-      }
+    const valueSet = new Set(value);
+
+    const selected: number[] = [];
+    ROLES.forEach((r, idx) => {
+      if (valueSet.has(r.code as string)) selected.push(idx);
     });
+    setSelectedIndexs(new Set(selected));
+    setFinalSelectedIndex(new Set(selected));
   }, [value]);
 
   return (
@@ -66,7 +76,7 @@ export default function FilterRoles({ value, onChange }: FilterRolesProps) {
             <div className="flex flex-row flex-wrap gap-1.5 justify-center items-center w-fit h-fit">
               <RoleIcon className="w-5 h-5 fill-foreground"></RoleIcon>
               <p className="font-bold">Vai trò</p>
-              <div className="flex flex-row flex-wrap gap-0.5">{ROLES?.map((role, i) => role.isChecked && <Tag key={role.code}>{role.label}</Tag>)}</div>
+              <div className="flex flex-row flex-wrap gap-0.5">{roles.map((role, i) => finalSelectedIndex.has(i) && <Tag key={role}>{role}</Tag>)}</div>
             </div>
           }
           <div className="w-[1em] h-[1em]">
@@ -76,10 +86,10 @@ export default function FilterRoles({ value, onChange }: FilterRolesProps) {
       }
     >
       <div className="flex flex-col justify-start items-center gap-2.5 w-full h-fit">
-        {ROLES?.map((role, index) => (
+        {roles.map((role, index) => (
           <div key={index} className="flex w-full h-fit justify-start items-center">
-            <Checkbox defaultChecked={role.isChecked} onChange={(isChecked) => (role.isChecked = isChecked)}>
-              {role.label}
+            <Checkbox value={selectedIndexs.has(index)} onChange={(isChecked) => toggleCheckbox(index, isChecked)}>
+              {role}
             </Checkbox>
           </div>
         ))}

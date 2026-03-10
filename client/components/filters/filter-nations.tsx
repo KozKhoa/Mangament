@@ -223,14 +223,14 @@ const Item = React.memo(function Item({
 }) {
   return (
     <div className="flex w-fit h-fit justify-start items-center">
-      <Checkbox defaultChecked={isOn} onChange={() => toggleCheckbox(index)}>
+      <Checkbox value={isOn} onChange={() => toggleCheckbox(index)}>
         {children}
       </Checkbox>
     </div>
   );
 });
 
-export default function FilterNation({ value, onChange }: FilterRatingsProps) {
+const FilterNation = React.memo(({ value, onChange }: FilterRatingsProps) => {
   const [selectedIndex, setSelectedIndex] = useState<Set<number>>(new Set());
   const [finalSelectedIndex, setFinalSelectedIndex] = useState<Set<number>>(new Set());
 
@@ -312,4 +312,6 @@ export default function FilterNation({ value, onChange }: FilterRatingsProps) {
       </div>
     </ButtonDropdown>
   );
-}
+});
+
+export default FilterNation;

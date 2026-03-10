@@ -1,24 +1,23 @@
 "use client";
 
-import { TargetStoryStatus } from "@/components/filters/filter-story-status";
 import Input from "@/components/inputs/input";
 import ImagePicker from "@/components/inputs/image-picker";
-import Loading from "@/components/loadings/loading";
+
 import StoryGenreMultiSelection from "@/components/selections/story-genres-multi-selection";
 import StoryStatusSelection from "@/components/selections/story-status-selection";
 import adminService from "@/services/admin";
 import Story from "@/types/story";
 import { useParams, useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import TextArea from "@/components/inputs/text-area";
 import Button from "@/components/buttons/button";
 import { modal } from "@/components/modal/modal.store";
 import { snakeCaseToCapitalizeWord } from "@/utils/string";
-import Link from "next/link";
+
 import FullScreenLoading from "@/components/loadings/full-screen-loading";
 import NationSelection from "@/components/selections/nation-selection";
-import storyService from "@/services/story";
+
 import StoryTypeSelection from "@/components/selections/story-type-selection";
 import Nation from "@/types/nation";
 

@@ -1,10 +1,9 @@
-import Image from "next/image";
-import { ChangeEvent, KeyboardEventHandler, useState } from "react";
+import { useState } from "react";
 import SearchIcon from "@/public/search.svg";
 import { useFloating, offset, flip, shift } from "@floating-ui/react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 
-interface SearchBarProps<T> {
+interface SearchBarProps {
   onSearch?: (text: string) => void;
   onType?: (text: string) => void;
   children?: React.ReactNode;
@@ -14,7 +13,7 @@ interface SearchBarProps<T> {
   className?: string;
 }
 
-function SearchBar<T>({ onSearch, onType, children, placeHolder = "Tìm kiếm", styles = {}, className }: SearchBarProps<T>) {
+function SearchBar({ onSearch, onType, children, placeHolder = "Tìm kiếm", styles = {}, className }: SearchBarProps) {
   const { refs, floatingStyles } = useFloating({
     middleware: [offset(10), flip(), shift()],
   });

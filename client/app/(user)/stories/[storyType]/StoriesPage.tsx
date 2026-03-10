@@ -1,7 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useParams, usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import { snakeCaseToCapitalizeWord } from "@/utils/string";
 
@@ -12,7 +12,6 @@ import storyService from "@/services/story";
 
 import XIcon from "@/public/x-icon.svg";
 
-import RecommendStories from "@/components/list/recommend-story";
 import { toast } from "sonner";
 import Loading from "@/components/loadings/loading";
 import StoryCard from "@/components/cards/stories/story-card";
@@ -23,11 +22,11 @@ import DEFAULT from "@/constants/default";
 
 import SwitchPageSmall from "@/components/switch-page/small";
 import SortStories from "@/components/sorts/sort-stories";
-import FilterRatings, { TargetRating } from "@/components/filters/filter-ratings";
+import FilterRatings from "@/components/filters/filter-ratings";
 import FilterGenres from "@/components/filters/fiilter-genres";
 import FilterAuthors from "@/components/filters/filter-authors";
-import FilterViews, { TargetView } from "@/components/filters/filter-views";
-import FilterStoryStatus, { TargetStoryStatus } from "@/components/filters/filter-story-status";
+import FilterViews from "@/components/filters/filter-views";
+import FilterStoryStatus from "@/components/filters/filter-story-status";
 import FilterNation from "@/components/filters/filter-nations";
 
 const LIMIT = 30;
@@ -36,72 +35,70 @@ export default function StoriesPage() {
   const router = useRouter();
   const params = useParams();
   const searchParams = useSearchParams();
+  const pathname = usePathname();
 
   const storyType = params?.storyType?.toString() ?? "";
 
-  const page = Number(searchParams.get("page") ?? 1);
-  const sort = searchParams.get("sort");
-  const genres = searchParams.get("genres")?.split(",");
-  const author = searchParams.get("author")?.split(",");
-  const star = searchParams.get("star")?.split(",");
-  const view = searchParams.get("view")?.split(",");
-  const status = searchParams.get("status")?.split(",");
-  const nation = searchParams.get("nation")?.split(",");
+  const page = useMemo(() => Number(searchParams.get("page") ?? 1), [searchParams]);
+  const sort = useMemo(() => searchParams.get("sort")?.toString() ?? "", [searchParams]);
+  const genres = useMemo(() => searchParams.get("genres")?.split(",") ?? [], [searchParams]);
+  const authors = useMemo(() => searchParams.get("authors")?.split(",") ?? [], [searchParams]);
+  const star = useMemo(() => searchParams.get("star")?.split(",") ?? [], [searchParams]);
+  const view = useMemo(() => searchParams.get("view")?.split(",") ?? [], [searchParams]);
+  const status = useMemo(() => searchParams.get("status")?.split(",") ?? [], [searchParams]);
+  const nation = useMemo(() => searchParams.get("nation")?.split(",") ?? [], [searchParams]);
 
   const [loading, setLoading] = useState(true);
   const [hoverStoryIndex, setHoverStoryIndex] = useState<number>(0);
   const [stories, setStories] = useState<Story[] | null>(null);
   const [pagination, setPagination] = useState<Pagination>();
 
-  const fetchStories = useCallback(async () => {
-    setLoading(true);
-    const res = await storyService.getStories({
-      ...DEFAULT.params,
-      page: page,
-      limit: LIMIT,
-      type: [storyType],
-      nation: nation,
-      isGettingNewestChapter: true,
-      isGettingSummary: true,
+  function handleNavigate(key: string, value: string) {
+    const params = new URLSearchParams(searchParams.toString());
 
-      ...(sort && { sort: sort }),
-      ...(author && author.length > 0 && { author: author }),
-      ...(genres && genres.length > 0 && { genre: genres }),
-      ...(star && star.length > 0 && { star: star }),
-      ...(view && view.length > 0 && { view: view }),
-      ...(status && status.length > 0 && { status: status }),
-    });
+    params.set("page", "1");
 
-    setLoading(false);
+    if (!value) {
+      params.delete(key);
+    } else {
+      params.set(key, value);
+    }
 
-    if (!res.success) return toast.warning(res.message);
-
-    setStories(res.data ?? []);
-    setPagination(res.pagination);
-  }, [page, sort, genres, author, star, view, searchParams]);
-
-  const handleNavigate = useCallback(
-    (key: string, value: string) => {
-      const params = new URLSearchParams(searchParams);
-
-      params.set("page", "1");
-
-      if (!value) {
-        params.delete(key);
-      } else {
-        params.set(key, value);
-      }
-
-      router.push(`?${params.toString()}`);
-    },
-    [searchParams],
-  );
+    router.push(`${pathname}?${params.toString()}`);
+  }
 
   const handleResetSearchParams = useCallback(() => {
-    router.push(`?page=1&sort=updated_at:desc`);
-  }, []);
+    router.push(`?page=1&sort=${sort}`);
+  }, [sort]);
 
   useEffect(() => {
+    async function fetchStories() {
+      setLoading(true);
+      const res = await storyService.getStories({
+        ...DEFAULT.params,
+        page: page,
+        limit: LIMIT,
+        type: [storyType],
+        nation: nation,
+        isGettingNewestChapter: true,
+        isGettingSummary: true,
+
+        ...(sort && { sort: sort }),
+        ...(authors && authors.length > 0 && { author: authors }),
+        ...(genres && genres.length > 0 && { genre: genres }),
+        ...(star && star.length > 0 && { star: star }),
+        ...(view && view.length > 0 && { view: view }),
+        ...(status && status.length > 0 && { status: status }),
+      });
+
+      setLoading(false);
+
+      if (!res.success) return toast.warning(res.message);
+
+      setStories(res.data ?? []);
+      setPagination(res.pagination);
+    }
+
     fetchStories();
   }, [searchParams]);
 
@@ -129,24 +126,21 @@ export default function StoriesPage() {
           <div className="flex flex-col gap-2 justify-start items-center py-2 w-full">
             <div className="w-full flex flex-col gap-2 px-1.5">
               <div className={`flex flex-row flex-wrap gap-2 w-full`}>
-                <FilterRatings value={(star ?? []) as TargetRating[]} onChange={(stars) => handleNavigate("star", stars?.join(","))}></FilterRatings>
+                <FilterRatings value={star} onChange={(stars) => handleNavigate("star", stars?.join(","))} />
 
-                <FilterGenres value={genres ?? []} onChange={(genres) => handleNavigate("genres", genres.join(","))}></FilterGenres>
+                <FilterGenres value={genres} onChange={(genres) => handleNavigate("genres", genres.join(","))} />
 
-                <FilterAuthors value={author ?? []} onChange={(authors) => handleNavigate("author", authors.join(","))}></FilterAuthors>
+                <FilterAuthors value={authors} onChange={(authors) => handleNavigate("authors", authors.join(","))} />
 
-                <FilterViews value={(view ?? []) as TargetView[]} onChange={(view) => handleNavigate("view", view.join(","))}></FilterViews>
+                <FilterViews value={view} onChange={(view) => handleNavigate("view", view.join(","))} />
 
-                <FilterNation value={nation ?? []} onChange={(nations) => handleNavigate("nation", nations.join(","))}></FilterNation>
+                <FilterNation value={nation} onChange={(nations) => handleNavigate("nation", nations.join(","))} />
 
-                <FilterStoryStatus
-                  value={(status ?? []) as TargetStoryStatus[]}
-                  onChange={(status) => handleNavigate("status", status.join(","))}
-                ></FilterStoryStatus>
+                <FilterStoryStatus value={status} onChange={(status) => handleNavigate("status", status.join(","))} />
               </div>
 
               <div className="flex flex-row flex-wrap justify-between gap-2 w-full">
-                <SortStories onSort={(param) => handleNavigate("sort", param?.sort)}></SortStories>
+                <SortStories value={sort ?? ""} onSort={(sort) => handleNavigate("sort", sort)}></SortStories>
 
                 {searchParams.size > 2 && (
                   <div

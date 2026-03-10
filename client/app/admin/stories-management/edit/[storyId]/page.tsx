@@ -1,6 +1,6 @@
 "use client";
 
-import { TargetStoryStatus } from "@/components/filters/filter-story-status";
+import { TargetStoryStatus } from "@/components/selections/story-status-selection";
 import Input from "@/components/inputs/input";
 import ImagePicker from "@/components/inputs/image-picker";
 import Loading from "@/components/loadings/loading";

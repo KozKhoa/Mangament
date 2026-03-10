@@ -1,96 +1,94 @@
-import PeopleIcon from "@/public/people/people.svg";
-
-import authorService from "@/services/author";
-
 import SharpTriangleDownIcon from "@/public/sharp-triangle-down.svg";
 import Tag from "../tags/tag";
 
 import ButtonDropdown from "../buttons/dropdown/btn-dropdown";
 import Checkbox from "../inputs/checkbox";
-import { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 
-import { toast } from "sonner";
+import PeopleIcon from "@/public/people/people.svg";
 
-import FilterProps from "@/types/filter";
+import { snakeCaseToCapitalizeWord } from "@/utils/string";
 
-interface FilterAuthorsProps {
+import useApp from "@/contexts/AppContext";
+
+interface FilterGenresProps {
   value: string[];
   onChange?: (value: string[]) => void;
 }
 
-export default function FilterAuthors({ value, onChange }: FilterAuthorsProps) {
-  const [rerender, setRerender] = useState(false); // This only use to force this component re render to update items
-  const [authors, setAuthors] = useState<FilterProps[]>([]);
+const FilterAuthors = React.memo(({ value, onChange }: FilterGenresProps) => {
+  const app = useApp();
 
-  let AUTHORS = [...authors];
+  const [authors, setAuthors] = useState<string[]>([]);
 
-  async function fetchAuthors() {
-    const res = await authorService.get();
+  const [selectedIndexs, setSelectedIndexs] = useState<Set<number>>(new Set());
+  const [finalSelectedIndex, setFinalSelectedIndex] = useState<Set<number>>(new Set());
 
-    if (!res.success) return toast.warning(res.message);
+  const resetAllField = useCallback(() => {
+    setSelectedIndexs(new Set());
+    setFinalSelectedIndex(new Set());
+  }, []);
 
-    const authors = res.data.map((author: { id: string; name: string }) => {
-      const { id, name, ...newAuthor } = {
-        ...author,
-        ...{
-          label: author.name,
-          code: author.id,
-          isChecked: value.includes(author.id) ?? false,
-        },
-      };
+  function toggleCheckbox(index: number, checked: boolean) {
+    const newSet = new Set(selectedIndexs);
 
-      return newAuthor;
-    });
+    if (checked) {
+      newSet.add(index);
+    } else {
+      newSet.delete(index);
+    }
 
-    setAuthors(authors);
+    setSelectedIndexs(newSet);
   }
 
   function handleFinish() {
-    console.log(AUTHORS);
-    onChange?.(AUTHORS.filter((author) => author.isChecked).map((author) => author.code ?? ""));
-    setRerender(!rerender);
-  }
+    const result: string[] = [];
 
-  function resetAllField() {
-    AUTHORS.forEach((author) => {
-      author.isChecked = false;
+    const genresArr = [...authors];
+
+    [...selectedIndexs].forEach((index) => {
+      result.push(genresArr[index]);
     });
 
-    handleFinish();
+    onChange?.(result);
 
-    setAuthors(AUTHORS);
+    setFinalSelectedIndex(new Set(selectedIndexs));
   }
 
   useEffect(() => {
-    AUTHORS.forEach((author) => {
-      if (value.includes(author.code ?? "")) {
-        author.isChecked = true;
-      } else {
-        author.isChecked = false;
-      }
-    });
-  }, [value]);
+    setAuthors(app?.authors ?? []);
+  }, [app?.authors]);
 
   useEffect(() => {
-    fetchAuthors();
-  }, []);
+    const selected: number[] = [];
+
+    const valueSet = new Set(value);
+
+    let i = 0;
+    for (const author of authors) {
+      if (valueSet.has(author)) selected.push(i);
+      i++;
+    }
+
+    setSelectedIndexs(new Set(selected));
+    setFinalSelectedIndex(new Set(selected));
+  }, [authors, value]);
 
   return (
     <ButtonDropdown
-      openOnLeft={true}
       className={`border-foreground/50 border rounded-[5] relative text-foreground`}
       acceptButtonLabel="Finish"
       onClickAcceptButton={handleFinish}
       closeButtonLabel="Reset"
       onClickCloseButton={resetAllField}
       icon={
-        <div className={`flex flex-row relative justify-start items-center gap-1.5 p-0.5 cursor-pointer w-fit text-foreground px-2 `}>
+        <div className={`flex flex-row relative justify-start items-center gap-1.5 cursor-pointer w-fit text-foreground px-2 `}>
           {
-            <div className="flex flex-row flex-wrap gap-1.5 justify-center items-center w-fit h-fit">
+            <div className="flex flex-row flex-wrap gap-1.5 justify-center items-center w-fit h-fit p-0.5">
               <PeopleIcon className="w-5 h-5 text-foreground stroke-0"></PeopleIcon>
               <p className="font-bold">Tác giả</p>
               <div className="flex flex-row flex-wrap gap-0.5">
-                {AUTHORS.map((author, i) => author.isChecked && <Tag key={author.code}>{author.label}</Tag>)}
+                {authors?.map((author, i) => finalSelectedIndex.has(i) && <Tag key={author}>{snakeCaseToCapitalizeWord(author)}</Tag>)}
               </div>
             </div>
           }
@@ -100,21 +98,17 @@ export default function FilterAuthors({ value, onChange }: FilterAuthorsProps) {
         </div>
       }
     >
-      <div className="flex flex-col justify-start items-center gap-2.5 w-full h-fit">
-        {AUTHORS.map((author, index) => (
-          <div key={index} className="flex w-full h-fit justify-start items-center">
-            <Checkbox
-              defaultChecked={author.isChecked}
-              onChange={(isChecked) => {
-                console.log(isChecked);
-                author.isChecked = isChecked;
-              }}
-            >
-              {author.label}
+      <div className="grid grid-cols-2 gap-2.5 w-[300px] sm:w-[400px] lg:grid-cols-3 lg:w-[600px]">
+        {authors?.map((author, i) => (
+          <div key={i} className="flex w-full h-fit justify-start items-center">
+            <Checkbox value={selectedIndexs.has(i)} onChange={(isChecked) => toggleCheckbox(i, isChecked)}>
+              {snakeCaseToCapitalizeWord(author)}
             </Checkbox>
           </div>
         ))}
       </div>
     </ButtonDropdown>
   );
-}
+});
+
+export default FilterAuthors;

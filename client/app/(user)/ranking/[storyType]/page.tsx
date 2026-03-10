@@ -1,5 +1,6 @@
 import { snakeCaseToCapitalizeWord } from "@/utils/string";
 import RankingStoryPage from "./RankingStoryPage";
+import { redirect } from "next/navigation";
 
 export async function generateMetadata({ params }: { params: { storyType: string } }) {
   return {
@@ -7,6 +8,10 @@ export async function generateMetadata({ params }: { params: { storyType: string
   };
 }
 
-export default function Page() {
-  return <RankingStoryPage />;
+export default async function Page({ searchParams }: { searchParams: { page?: string; rankBy?: string } }) {
+  if (!(await searchParams).page || !(await searchParams).rankBy) {
+    redirect("?page=1&rankBy=hottest");
+  } else {
+    return <RankingStoryPage />;
+  }
 }

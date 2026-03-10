@@ -73,7 +73,7 @@ export default function SearchStories({ className }: { className?: string }) {
         <>
           {stories.length > 0 ? (
             <>
-              {stories.map((story, i) => (
+              {stories.map((story) => (
                 <StorySearchCard key={story.id} story={story}></StorySearchCard>
               ))}
               {isLoading && <Loading className="w-full"></Loading>}

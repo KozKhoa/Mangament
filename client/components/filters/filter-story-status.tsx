@@ -8,59 +8,70 @@ import ButtonDropdown from "../buttons/dropdown/btn-dropdown";
 import Checkbox from "../inputs/checkbox";
 import { useEffect, useState } from "react";
 
-export type TargetStoryStatus = "ongoing" | "finished" | "postpone" | "upcoming" | null;
-
 const STATUS = [
   {
     label: "Đang tiếp tục",
     code: "ongoing",
-    isChecked: false,
   },
   {
     label: "Hoàn thành",
     code: "finished",
-    isChecked: false,
   },
   {
     label: "Trì hoãn",
     code: "postpone",
-    isChecked: false,
   },
   {
     label: "Sắp ra mắt",
     code: "upcoming",
-    isChecked: false,
   },
 ];
 
 interface FilterStoryStatusProps {
-  value: TargetStoryStatus[];
-  onChange?: (value: TargetStoryStatus[]) => void;
+  value: string[];
+  onChange?: (value: string[]) => void;
 }
 
 export default function FilterStoryStatus({ value, onChange }: FilterStoryStatusProps) {
-  const [rerender, setRerender] = useState(false); // This only use to force this component re render to update items
+  const [statuses, setStatuses] = useState(STATUS.map((status) => status.label));
+
+  const [selectedIndexs, setSelectedIndexs] = useState<Set<number>>(new Set());
+  const [finalSelectedIndex, setFinalSelectedIndex] = useState<Set<number>>(new Set());
+
+  function toggleCheckbox(index: number, checked: boolean) {
+    const newSet = new Set(selectedIndexs);
+    if (checked) newSet.add(index);
+    else newSet.delete(index);
+    setSelectedIndexs(newSet);
+  }
 
   function handleFinish() {
-    setRerender(!rerender);
-    onChange?.(STATUS.filter((status) => status.isChecked).map((status) => status.code as TargetStoryStatus));
+    const result: string[] = [];
+
+    STATUS.forEach((status, idx) => {
+      if (selectedIndexs.has(idx)) result.push(status.code);
+    });
+
+    onChange?.(result);
+
+    setFinalSelectedIndex(new Set(selectedIndexs));
   }
 
   function resetAllField() {
-    STATUS.forEach((status) => {
-      status.isChecked = false;
-    });
-    handleFinish();
+    setSelectedIndexs(new Set());
+    setFinalSelectedIndex(new Set());
+
+    onChange?.([]);
   }
 
   useEffect(() => {
-    STATUS.forEach((ratings) => {
-      if (value.includes(ratings.code as TargetStoryStatus)) {
-        ratings.isChecked = true;
-      } else {
-        ratings.isChecked = false;
-      }
+    const valueSet = new Set(value);
+    const selected: number[] = [];
+    STATUS.forEach((s, idx) => {
+      if (valueSet.has(s.code as string)) selected.push(idx);
     });
+    setSelectedIndexs(new Set(selected));
+    setFinalSelectedIndex(new Set(selected));
   }, [value]);
 
   return (
@@ -78,21 +89,21 @@ export default function FilterStoryStatus({ value, onChange }: FilterStoryStatus
               <TickIcon className="w-5 h-5 "></TickIcon>
               <p className="font-bold">Tiến độ</p>
               <div className="flex flex-row flex-wrap gap-0.5">
-                {STATUS?.map((status, i) => status.isChecked && <Tag key={status.code}>{status.label}</Tag>)}
+                {statuses.map((status, i) => finalSelectedIndex.has(i) && <Tag key={status}>{status}</Tag>)}
               </div>
             </div>
           }
           <div className="w-[1em] h-[1em]">
-            <SharpTriangleDownIcon className="w-[1em] h-[1em] text-foreground" />
+            <SharpTriangleDownIcon className="w-[1em] h-[1em] text-fore🇦🇴 Anground" />
           </div>
         </div>
       }
     >
       <div className="flex flex-col justify-start items-center gap-2.5 w-full h-fit">
-        {STATUS?.map((status, index) => (
+        {statuses.map((status, index) => (
           <div key={index} className="flex w-full h-fit justify-start items-center">
-            <Checkbox defaultChecked={status.isChecked} onChange={(isChecked) => (status.isChecked = isChecked)}>
-              {status.label}
+            <Checkbox value={selectedIndexs.has(index)} onChange={(isChecked) => toggleCheckbox(index, isChecked)}>
+              {status}
             </Checkbox>
           </div>
         ))}

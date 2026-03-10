@@ -5,16 +5,19 @@ import { createContext, useContext, useEffect, useLayoutEffect, useState } from 
 import Story from "@/types/story";
 import DEFAULT from "@/constants/default";
 import KEY from "@/constants/key";
+import genreService from "@/services/genre";
+import { toast } from "sonner";
+import authorService from "@/services/author";
 
 interface AppContextProps {
-  story?: Story;
+  genres?: string[];
+  authors?: string[];
   font?: string;
   textSize?: number;
   readingFont: string;
   readingTextSize: number;
   readingLineSpacing: number;
 
-  setStory: (story: Story) => void;
   updateFont: (font: string) => void;
   updateTextSize: (textSize: number) => void;
   updateReadingFont: (font: string) => void;
@@ -25,7 +28,10 @@ interface AppContextProps {
 const AppContext = createContext<AppContextProps | null>(null);
 
 export const AppProvider = ({ children }: { children: React.ReactNode }) => {
-  const [story, setStory] = useState<Story>();
+  const [loading, setLoading] = useState(false);
+
+  const [genres, setGenres] = useState<string[]>([]);
+  const [authors, setAuthors] = useState<string[]>([]);
   const [textSize, setTextSize] = useState<number>(DEFAULT.textSize);
   const [font, setFont] = useState<string>(DEFAULT.font.id);
   const [readingFont, setReadingFont] = useState<string>(DEFAULT.font.id);
@@ -71,6 +77,31 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
     setReadingLineSpacing(newSpacing);
   }
 
+  useEffect(() => {
+    async function fetchGenres() {
+      const res = await genreService.get();
+
+      setLoading(true);
+      if (!res.success) return toast.warning(res.message);
+      setLoading(false);
+
+      setGenres(res.data);
+    }
+
+    async function fetchAuthors() {
+      const res = await authorService.getAuthors();
+
+      setLoading(true);
+      if (!res.success) return toast.warning(res.message);
+      setLoading(false);
+
+      setAuthors(res.data ?? []);
+    }
+
+    fetchAuthors();
+    fetchGenres();
+  }, []);
+
   useLayoutEffect(() => {
     loadFont();
   }, []);
@@ -78,13 +109,13 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
   return (
     <AppContext.Provider
       value={{
-        story,
+        authors,
+        genres,
         font,
         textSize,
         readingFont,
         readingTextSize,
         readingLineSpacing,
-        setStory,
         updateFont,
         updateTextSize,
         updateReadingFont,

@@ -6,13 +6,12 @@ import UnCheckedRadio from "@/public/radio/unchecked.svg";
 interface RadioProps {
   onChange?: (isOn: boolean) => void;
   name?: string;
-  value?: string;
+  value?: boolean;
   children?: React.ReactNode;
   className?: string;
-  defaultChecked?: boolean;
 }
 
-function Radio({ onChange, name, value, children, className, defaultChecked = false }: RadioProps) {
+function Radio({ onChange, name, value, children, className }: RadioProps) {
   const handleChange = (checked: boolean) => {
     onChange?.(checked);
   };
@@ -22,14 +21,7 @@ function Radio({ onChange, name, value, children, className, defaultChecked = fa
           text-foreground
         ${className}`}
     >
-      <input
-        className={`sr-only peer`}
-        type="radio"
-        defaultChecked={defaultChecked}
-        name={name}
-        value={value}
-        onChange={(state) => handleChange(state.target.checked)}
-      />
+      <input className={`sr-only peer`} type="radio" checked={value} name={name} onChange={(state) => handleChange(state.target.checked)} />
 
       <CheckedRadio
         className="absolute top-0 left-0 h-[1.5em] w-[1.5em]

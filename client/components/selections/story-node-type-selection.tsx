@@ -1,10 +1,5 @@
 import Selection from "./selection";
 
-import OngoingIcon from "@/public/story-status/ongoing.svg";
-import PostponeIcon from "@/public/story-status/postpone.svg";
-import FinishIcon from "@/public/story-status/finished.svg";
-import UpcomingIcon from "@/public/story-status/upcoming.svg";
-
 export type TargetStoryNodeType = "chapter" | "volume" | "arc" | null;
 
 interface StoryNodeTypeSelectionProps {

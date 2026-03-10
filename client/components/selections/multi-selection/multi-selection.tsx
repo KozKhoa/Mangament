@@ -38,7 +38,7 @@ const Item = React.memo(function Item({
 }) {
   return (
     <div className="bg-background-items hover:bg-foreground/10 px-3 rounded-sm">
-      <Checkbox defaultChecked={isOn} onChange={() => toggleCheckbox(index)} className="border-b border-foreground/30 py-2.5 ">
+      <Checkbox value={isOn} onChange={() => toggleCheckbox(index)} className="border-b border-foreground/30 py-2.5 ">
         {children}
       </Checkbox>
     </div>

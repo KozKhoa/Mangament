@@ -41,11 +41,7 @@ export const AuthenticationToken = async (req, res, next) => {
 
     next();
   } catch (error) {
-    console.error("❌ [Auth.Middleware.js] Error authorization:", error);
-    return res.status(ErrorCodes.INTERNAL_SERVER_ERROR.status).json({
-      success: false,
-      message: ErrorCodes.INTERNAL_SERVER_ERROR.message,
-    });
+    next(error);
   }
 };
 
@@ -114,10 +110,6 @@ export const OptionalAuth = async (req, res, next) => {
 
     next();
   } catch (error) {
-    console.error("❌ [Auth.Middleware.js] Error authorization:", error);
-    return res.status(ErrorCodes.INTERNAL_SERVER_ERROR.status).json({
-      success: false,
-      message: ErrorCodes.INTERNAL_SERVER_ERROR.message,
-    });
+    next(error);
   }
 };

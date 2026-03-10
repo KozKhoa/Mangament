@@ -42,7 +42,7 @@ export default function LabelDropDownRadio({
               <Radio
                 key={i}
                 name={name}
-                defaultChecked={options.at(selected) === op}
+                value={options.at(selected) === op}
                 onChange={() => {
                   setSelected(i);
                   onChange?.(i);

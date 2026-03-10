@@ -7,49 +7,59 @@ import ButtonDropdown from "../buttons/dropdown/btn-dropdown";
 import Checkbox from "../inputs/checkbox";
 import { useEffect, useState } from "react";
 
-export type TargetStoryType = "manga" | "light_novel" | null;
-
 const TYPE = [
   {
     label: "Manga",
     code: "manga",
-    isChecked: false,
   },
   {
     label: "Light novel",
     code: "light_novel",
-    isChecked: false,
   },
 ];
 
 interface FilterStoryTypeProps {
-  value: TargetStoryType[];
-  onChange?: (value: TargetStoryType[]) => void;
+  value: string[];
+  onChange?: (value: string[]) => void;
 }
 
 export default function FilterStoryType({ value, onChange }: FilterStoryTypeProps) {
-  const [rerender, setRerender] = useState(false); // This only use to force this component re render to update items
+  const [types, setTypes] = useState<typeof TYPE>(() => TYPE.map((t) => ({ ...t })));
+  const [selectedIndexs, setSelectedIndexs] = useState<Set<number>>(new Set());
+  const [finalSelectedIndex, setFinalSelectedIndex] = useState<Set<number>>(new Set());
+
+  function toggleCheckbox(index: number, checked: boolean) {
+    const newSet = new Set(selectedIndexs);
+    if (checked) newSet.add(index);
+    else newSet.delete(index);
+    setSelectedIndexs(newSet);
+  }
 
   function handleFinish() {
-    setRerender(!rerender);
-    onChange?.(TYPE.filter((type) => type.isChecked).map((type) => type.code as TargetStoryType));
+    const result: string[] = [];
+
+    TYPE.forEach((t, idx) => {
+      if (selectedIndexs.has(idx)) result.push(t.code);
+    });
+
+    setFinalSelectedIndex(new Set(selectedIndexs));
+    onChange?.(result);
   }
 
   function resetAllField() {
-    TYPE.forEach((type) => {
-      type.isChecked = false;
-    });
-    handleFinish();
+    setSelectedIndexs(new Set());
+    setFinalSelectedIndex(new Set());
+    onChange?.([]);
   }
 
   useEffect(() => {
-    TYPE.forEach((ratings) => {
-      if (value.includes(ratings.code as TargetStoryType)) {
-        ratings.isChecked = true;
-      } else {
-        ratings.isChecked = false;
-      }
+    const valueSet = new Set(value);
+    const selected: number[] = [];
+    TYPE.forEach((t, idx) => {
+      if (valueSet.has(t.code as string)) selected.push(idx);
     });
+    setSelectedIndexs(new Set(selected));
+    setFinalSelectedIndex(new Set(selected));
   }, [value]);
 
   return (
@@ -66,7 +76,9 @@ export default function FilterStoryType({ value, onChange }: FilterStoryTypeProp
             <div className="flex flex-row flex-wrap gap-1.5 justify-center items-center w-fit h-fit">
               <BookIcon className="w-5 h-5 "></BookIcon>
               <p className="font-bold">Loại truyện</p>
-              <div className="flex flex-row flex-wrap gap-0.5">{TYPE?.map((type, i) => type.isChecked && <Tag key={type.code}>{type.label}</Tag>)}</div>
+              <div className="flex flex-row flex-wrap gap-0.5">
+                {types.map((type, i) => finalSelectedIndex.has(i) && <Tag key={type.code}>{type.label}</Tag>)}
+              </div>
             </div>
           }
           <div className="w-[1em] h-[1em]">
@@ -76,9 +88,9 @@ export default function FilterStoryType({ value, onChange }: FilterStoryTypeProp
       }
     >
       <div className="flex flex-col justify-start items-center gap-2.5 w-full h-fit">
-        {TYPE?.map((type, index) => (
+        {types.map((type, index) => (
           <div key={index} className="flex w-full h-fit justify-start items-center">
-            <Checkbox defaultChecked={type.isChecked} onChange={(isChecked) => (type.isChecked = isChecked)}>
+            <Checkbox value={selectedIndexs.has(index)} onChange={(isChecked) => toggleCheckbox(index, isChecked)}>
               {type.label}
             </Checkbox>
           </div>
