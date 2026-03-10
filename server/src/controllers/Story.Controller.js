@@ -15,6 +15,7 @@ import { CreateNewFolder, MoveFile } from "../utils/FileHandle.js";
 import DIRECTORY from "../constants/Directory.js";
 import { ConvertQuery } from "../utils/QueryConvert.js";
 import { FindAllReadingHistories } from "../models/History.Model.js";
+import { throwErrorIfInvalidGenres } from "../utils/Validators.js";
 
 export async function GetStory(req, res, next) {
   try {
@@ -110,6 +111,8 @@ export async function GetAllStories(req, res, next) {
     const { isGettingChildren, authors, keyword, isGettingNewestChapter, limit, status, page, type, genres, star, view, sort, nations } = ConvertQuery(
       req.query,
     );
+
+    if (genres && genres.length > 0) throwErrorIfInvalidGenres(genres);
 
     const stories = await FindAllStories({
       isActived: true,

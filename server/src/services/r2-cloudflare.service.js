@@ -8,6 +8,7 @@ export async function uploadObject(key, fileBuffer, contentType) {
       Bucket: process.env.CLOUDFLARE_BUCKET,
       Key: key,
       Body: fileBuffer,
+      CacheControl: "public, max-age=31536000, immutable",
       ContentType: contentType,
     }),
   );

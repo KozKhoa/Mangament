@@ -5,6 +5,8 @@ import { randomInt } from "../utils/Number.js";
 import { ValidateStoryType } from "./Enum.Model.js";
 import { ValidateGenre } from "./Genre.Model.js";
 
+import { throwErrorIfInvalidGenres } from "../utils/Validators.js";
+
 import { validate as isUUID } from "uuid";
 import redisService from "../services/redis.service.js";
 
@@ -211,6 +213,8 @@ export async function FindAllStories({
 
   const cached = await redis.get(REDIS_KEY);
   if (cached) return JSON.parse(cached);
+
+  if (genres && genres.length > 0) throwErrorIfInvalidGenres(genres);
 
   const where = {
     is_deleted: false,
