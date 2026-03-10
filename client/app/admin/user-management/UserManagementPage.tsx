@@ -23,10 +23,11 @@ import { capitalizeWords } from "@/utils/string";
 import XIcon from "@/public/x-icon.svg";
 import SortUsers from "@/components/sorts/sort-users";
 import SwitchPageSmall from "@/components/switch-page/small";
+import withAdmin from "@/hoc/withAdmin";
 
 const LIMIT = 15;
 
-export default function UserManagement() {
+export function UserManagement() {
   const admin = useAdmin();
   const overview = admin.overview;
 
@@ -152,3 +153,5 @@ export default function UserManagement() {
     </div>
   );
 }
+
+export default withAdmin(UserManagement);

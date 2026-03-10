@@ -35,6 +35,7 @@ import { modal } from "@/components/modal/modal.store";
 import FilterNation from "@/components/filters/filter-nations";
 import Button from "@/components/buttons/button";
 import Link from "next/link";
+import withAdmin from "@/hoc/withAdmin";
 
 const STORIES_PIE_CHART_COLORS = [
   "#6A4E42", // warm brown
@@ -67,7 +68,7 @@ const STORIES_PIE_CHART_COLORS = [
 
 const LIMIT = 10;
 
-export default function StoriesManagementPage() {
+export function StoriesManagementPage() {
   const admin = useAdmin();
   const overview = admin.overview;
 
@@ -226,3 +227,5 @@ export default function StoriesManagementPage() {
     </div>
   );
 }
+
+export default withAdmin(StoriesManagementPage);

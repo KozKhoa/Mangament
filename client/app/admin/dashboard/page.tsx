@@ -4,21 +4,17 @@ import StatsCard from "@/components/cards/admin/stats-card";
 import LineChart from "@/components/chart/line-chart";
 import Loading from "@/components/loadings/loading";
 import SlidingUnderlineSelection from "@/components/selections/sliding-underline-selection";
-import withAdmin from "@/hoc/withAdmin";
 
 import GroupByIcon from "@/public/group-by.svg";
 
 import adminService from "@/services/admin";
-import { DashboardOverview, DashboardStatsNewUsers, DashboardStatsView } from "@/types/dashboard";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { subMonths, subWeeks, subYears } from "date-fns";
 import FilterDate from "@/components/filters/filter-date";
 import ButtonDropdownRadio from "@/components/buttons/dropdown/btn-drop-down-radio";
 import { capitalizeWords } from "@/utils/string";
 import PieChart from "@/components/chart/pie-chart";
-import ColumnChart from "@/components/chart/colum-chart";
-import { data } from "framer-motion/client";
 import useAdmin from "@/contexts/AdminContext";
 
 const USER_PIE_CHART_COLORS = [

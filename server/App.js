@@ -261,8 +261,9 @@ setInterval(
   async () => {
     try {
       await db.$queryRaw`SELECT 1`;
+      console.log("\x1b[32mDB keepalive successfully");
     } catch (err) {
-      console.error("DB keepalive error", err);
+      console.error("\x1b[31mDB keepalive error", err);
     }
   },
   1000 * 60 * 3,
