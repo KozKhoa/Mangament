@@ -4,6 +4,8 @@ import { CreateError } from "../utils/ErrorHandle.js";
 
 import redisService from "../services/redis.service.js";
 
+import { isUUID } from "../utils/Validators.js";
+
 const REDIS_TTL = 60 * 30; // 30 minutes
 
 export async function FindAllFavouriteStories({

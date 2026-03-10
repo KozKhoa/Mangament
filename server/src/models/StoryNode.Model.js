@@ -6,6 +6,8 @@ import { CreateError } from "../utils/ErrorHandle.js";
 
 import { BuildStoryTree, UpdateStory } from "./Story.Model.js";
 
+import { isUUID } from "../utils/Validators.js";
+
 const REDIS_TTL = 60 * 30; // 30 minutes
 
 // Lấy danh sách parent của mọt story node (không lấy bản thân story đó)
