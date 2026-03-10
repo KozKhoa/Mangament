@@ -1,19 +1,9 @@
-import ButtonDropdown from "../buttons/dropdown/btn-dropdown";
-import StarIcon from "@/public/star.svg";
-import TickIcon from "@/public/tick-o.svg";
-
-import SharpTriangleDownIcon from "@/public/sharp-triangle-down.svg";
 import ArrowDownIcon from "@/public/arrows/down-v.svg";
 import ReloadIcon from "@/public/reload.svg";
 
-import Tag from "../tags/tag";
-
-import Checkbox from "../inputs/checkbox";
 import { useEffect, useRef, useState } from "react";
-import StoryStatusTag from "../tags/story-status-tag";
 import { AnimatePresence, motion } from "framer-motion";
 import { flip, offset, shift, useFloating } from "@floating-ui/react-dom";
-import { snakeCaseToAllCapital, snakeCaseToCapitalizeWord } from "@/utils/string";
 
 interface StoryStatusSelectionProps {
   // Define any props if needed in the future

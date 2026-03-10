@@ -4,7 +4,6 @@ import FilterAuthors from "../filters/filter-authors";
 import FilterGenres from "../filters/fiilter-genres";
 import FilterRatings from "../filters/filter-ratings";
 import FilterViews from "../filters/filter-views";
-import SortStories from "../sorts/sort-stories";
 import FilterProps from "@/types/filter";
 import { Params } from "@/types/params";
 import DEFAULT from "@/constants/default";

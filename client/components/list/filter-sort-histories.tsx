@@ -46,7 +46,7 @@ export default function FilterSortHistories({
   return (
     <div className={`flex flex-row flex-wrap gap-2 ${className}`}>
       {/* Sort */}
-      <SortTime onSort={updateParams}></SortTime>
+      {/* <SortTime onSort={updateParams}></SortTime> */}
 
       {/* Rating */}
       {/* <FilterRatings onFilter={updateParams} isReset={isResetAll}></FilterRatings> */}

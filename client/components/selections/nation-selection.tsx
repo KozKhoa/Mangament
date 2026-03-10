@@ -1,5 +1,3 @@
-import { useEffect, useState } from "react";
-import MultiSelection from "./multi-selection/multi-selection";
 import Selection from "./selection";
 import Nation from "@/types/nation";
 

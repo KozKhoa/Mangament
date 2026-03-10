@@ -5,76 +5,93 @@ import Tag from "../tags/tag";
 
 import ButtonDropdown from "../buttons/dropdown/btn-dropdown";
 import Checkbox from "../inputs/checkbox";
-import { useEffect, useState } from "react";
-
-export type TargetView = "0-1000" | "1000-10000" | "10000-50000" | "50000-100000" | "100000-500000" | "500000-1000000" | "1000000-2147483647" | null;
+import React, { useEffect, useState } from "react";
 
 const VIEWS = [
   {
     label: "Trên 1 triệu view",
     code: "1000000-2147483647",
-    isChecked: false,
   },
   {
     label: "Từ 500.000 đến 1 triệu view",
     code: "500000-1000000",
-    isChecked: false,
   },
-
   {
     label: "Từ 100.000 đến 500.000 view",
     code: "100000-500000",
-    isChecked: false,
   },
   {
     label: "Từ 50.000 đến 100.000 view",
     code: "50000-100000",
-    isChecked: false,
   },
   {
     label: "Từ 10.000 đến 50.000 view",
     code: "10000-50000",
-    isChecked: false,
   },
   {
     label: "Từ 1.000 đến 10.000 view",
     code: "1000-10000",
-    isChecked: false,
   },
   {
     label: "Dưới 1.000 view",
     code: "0-1000",
-    isChecked: false,
   },
 ];
+
 interface FilterViewProps {
-  value: TargetView[];
-  onChange?: (value: TargetView[]) => void;
+  value: string[];
+  onChange?: (value: string[]) => void;
 }
 
-export default function FilterViews({ value, onChange }: FilterViewProps) {
-  const [rerender, setRerender] = useState(false); // This only use to force this component re render to update items
+const FilterViews = React.memo(({ value, onChange }: FilterViewProps) => {
+  const [views, setViews] = useState(VIEWS.map((view) => view.label));
+
+  const [selectedIndexs, setSelectedIndexs] = useState<Set<number>>(new Set());
+  const [finalSelectedIndex, setFinalSelectedIndex] = useState<Set<number>>(new Set());
+
+  function toggleCheckbox(index: number, checked: boolean) {
+    const newSet = new Set(selectedIndexs);
+
+    if (checked) {
+      newSet.add(index);
+    } else {
+      newSet.delete(index);
+    }
+
+    setSelectedIndexs(newSet);
+  }
 
   function handleFinish() {
-    setRerender(!rerender);
-    onChange?.(VIEWS.filter((view) => view.isChecked).map((view) => view.code as TargetView));
+    const result: string[] = [];
+
+    VIEWS.forEach((view, idx) => {
+      if (selectedIndexs.has(idx)) result.push(view.code);
+    });
+
+    setFinalSelectedIndex(new Set(selectedIndexs));
+    onChange?.(result);
   }
 
   function resetAllField() {
-    VIEWS.forEach((view) => {
-      view.isChecked = false;
-    });
-    handleFinish();
+    onChange?.([]);
+
+    setSelectedIndexs(new Set());
+    setFinalSelectedIndex(new Set());
   }
 
   useEffect(() => {
-    VIEWS.forEach((ratings) => {
-      if (value.includes(ratings.code as TargetView)) {
-        ratings.isChecked = true;
-      } else {
-        ratings.isChecked = false;
-      }
-    });
+    const selected: number[] = [];
+
+    const valueSet = new Set(value);
+
+    let i = 0;
+    for (const view of VIEWS) {
+      if (valueSet.has(view.code)) selected.push(i);
+      i++;
+    }
+
+    setSelectedIndexs(new Set(selected));
+    setFinalSelectedIndex(new Set(selected));
   }, [value]);
 
   return (
@@ -91,7 +108,7 @@ export default function FilterViews({ value, onChange }: FilterViewProps) {
             <div className="flex flex-row flex-wrap gap-1.5 justify-center items-center w-fit h-fit">
               <EyeIcon className="w-5 h-5 text-foreground stroke-0"></EyeIcon>
               <p className="font-bold">Lượt xem</p>
-              <div className="flex flex-row flex-wrap gap-0.5">{VIEWS?.map((view, i) => view.isChecked && <Tag key={view.code}>{view.label}</Tag>)}</div>
+              <div className="flex flex-row flex-wrap gap-0.5">{views.map((view, i) => finalSelectedIndex.has(i) && <Tag key={view}>{view}</Tag>)}</div>
             </div>
           }
           <div className="w-[1em] h-[1em]">
@@ -101,14 +118,16 @@ export default function FilterViews({ value, onChange }: FilterViewProps) {
       }
     >
       <div className="flex flex-col justify-start items-center gap-2.5 w-full h-fit">
-        {VIEWS?.map((view, index) => (
-          <div key={index} className="flex w-full h-fit justify-start items-center">
-            <Checkbox defaultChecked={view.isChecked} onChange={(isChecked) => (view.isChecked = isChecked)}>
-              {view.label}
+        {views.map((view, i) => (
+          <div key={i} className="flex w-full h-fit justify-start items-center">
+            <Checkbox value={selectedIndexs.has(i)} onChange={(isChecked) => toggleCheckbox(i, isChecked)}>
+              {view}
             </Checkbox>
           </div>
         ))}
       </div>
     </ButtonDropdown>
   );
-}
+});
+
+export default FilterViews;

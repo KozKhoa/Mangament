@@ -5,7 +5,7 @@ export async function generateMetadata({ params }: { params: { title: string; st
   const { storyNodes, title } = await params;
 
   return {
-    title: storyNodes.map((node) => snakeCaseToCapitalizeWord(decodeURIComponent(node))).join("/") + " - " + title,
+    title: storyNodes.map((node) => decodeURIComponent(snakeCaseToCapitalizeWord(node))).join("/") + " - " + decodeURIComponent(title),
   };
 }
 

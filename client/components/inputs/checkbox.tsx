@@ -5,16 +5,15 @@ import UnCheckIcon from "@/public/checkbox/unchecked.svg";
 import TickIcon from "@/public/checkbox/tick.svg";
 
 interface CheckBoxProps {
-  defaultChecked?: boolean;
   children?: React.ReactNode | string;
   className?: string;
   onChange?: (checked: boolean) => void;
   name?: string;
-  value?: string;
+  value?: boolean;
   tabIndex?: number;
 }
 
-function Checkbox({ defaultChecked = false, children, className, name, value, onChange, tabIndex }: CheckBoxProps) {
+function Checkbox({ children, className, name, value, onChange, tabIndex }: CheckBoxProps) {
   const handleChange = (checked: boolean) => {
     onChange?.(checked);
   };
@@ -27,9 +26,8 @@ function Checkbox({ defaultChecked = false, children, className, name, value, on
       <input
         className={`sr-only peer`}
         type="checkbox"
-        defaultChecked={defaultChecked}
+        checked={value}
         name={name}
-        value={value}
         onChange={(state) => handleChange(state.target.checked)}
         tabIndex={tabIndex}
       />

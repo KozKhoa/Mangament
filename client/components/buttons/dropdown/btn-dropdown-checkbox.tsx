@@ -65,12 +65,7 @@ function ButtonDropdownCheckbox({ onFinishCheck, label, options, className, name
         {options?.map((option, index) => {
           return (
             <li key={index} className="flex w-full h-fit justify-start items-center">
-              <Checkbox
-                defaultChecked={option.isChecked}
-                name={name}
-                value={option.label}
-                onChange={(isChecked) => handleUpdateSelected(option, index, isChecked)}
-              >
+              <Checkbox value={option.isChecked} name={name} onChange={(isChecked) => handleUpdateSelected(option, index, isChecked)}>
                 {option.label}
               </Checkbox>
             </li>

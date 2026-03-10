@@ -5,55 +5,75 @@ import Tag from "../tags/tag";
 import ButtonDropdown from "../buttons/dropdown/btn-dropdown";
 import Checkbox from "../inputs/checkbox";
 import { useEffect, useState } from "react";
-
-export type TargetGender = "male" | "female" | "other" | null;
+import GenderTag from "../tags/gender-tag";
 
 const GENDERS = [
   {
     label: "Nam",
     code: "male",
-    isChecked: false,
   },
   {
     label: "Nữ",
     code: "female",
-    isChecked: false,
   },
   {
     label: "Khác",
     code: "other",
-    isChecked: false,
   },
 ];
 
 interface FilterGendersProps {
-  value: TargetGender[];
-  onChange?: (value: TargetGender[]) => void;
+  value: string[];
+  onChange?: (value: string[]) => void;
 }
 
 export default function FilterGenders({ value, onChange }: FilterGendersProps) {
-  const [rerender, setRerender] = useState(false); // This only use to force this component re render to update items
+  const [genders, setGenders] = useState(GENDERS.map((gender) => gender.label));
+
+  const [selectedIndexs, setSelectedIndexs] = useState<Set<number>>(new Set());
+  const [finalSelectedIndex, setFinalSelectedIndex] = useState<Set<number>>(new Set());
+
+  function toggleCheckbox(index: number, checked: boolean) {
+    const newSet = new Set(selectedIndexs);
+    if (checked) {
+      newSet.add(index);
+    } else {
+      newSet.delete(index);
+    }
+
+    setSelectedIndexs(newSet);
+  }
 
   function handleFinish() {
-    setRerender(!rerender);
-    onChange?.(GENDERS.filter((gender) => gender.isChecked).map((gender) => gender.code as TargetGender));
+    const result: string[] = [];
+
+    GENDERS.forEach((gender, idx) => {
+      if (selectedIndexs.has(idx)) result.push(gender.code);
+    });
+
+    setFinalSelectedIndex(new Set(selectedIndexs));
+    onChange?.(result);
   }
 
   function resetAllField() {
-    GENDERS.forEach((gender) => {
-      gender.isChecked = false;
-    });
-    handleFinish();
+    setSelectedIndexs(new Set());
+    setFinalSelectedIndex(new Set());
+
+    onChange?.([]);
   }
 
   useEffect(() => {
-    GENDERS.forEach((gender) => {
-      if (value.includes(gender.code as TargetGender)) {
-        gender.isChecked = true;
-      } else {
-        gender.isChecked = false;
-      }
+    const valueSet = new Set(value);
+
+    const selected: number[] = [];
+
+    GENDERS.forEach((g, idx) => {
+      if (valueSet.has(g.code)) selected.push(idx);
     });
+
+    setSelectedIndexs(new Set(selected));
+
+    setFinalSelectedIndex(new Set(selected));
   }, [value]);
 
   return (
@@ -70,9 +90,7 @@ export default function FilterGenders({ value, onChange }: FilterGendersProps) {
             <div className="flex flex-row flex-wrap gap-1.5 justify-center items-center w-fit h-fit">
               <GenderIcon className="w-5 h-5 fill-background-items stroke-foreground"></GenderIcon>
               <p className="font-bold">Giới tính</p>
-              <div className="flex flex-row flex-wrap gap-0.5">
-                {GENDERS?.map((gender, i) => gender.isChecked && <Tag key={gender.code}>{gender.label}</Tag>)}
-              </div>
+              <div className="flex flex-row flex-wrap gap-0.5">{genders.map((gender, i) => finalSelectedIndex.has(i) && <Tag key={gender}>{gender}</Tag>)}</div>
             </div>
           }
           <div className="w-[1em] h-[1em]">
@@ -82,10 +100,10 @@ export default function FilterGenders({ value, onChange }: FilterGendersProps) {
       }
     >
       <div className="flex flex-col justify-start items-center gap-2.5 w-full h-fit">
-        {GENDERS?.map((gender, index) => (
-          <div key={index} className="flex w-full h-fit justify-start items-center">
-            <Checkbox defaultChecked={gender.isChecked} onChange={(isChecked) => (gender.isChecked = isChecked)}>
-              {gender.label}
+        {genders.map((gender, i) => (
+          <div key={i} className="flex w-full h-fit justify-start items-center">
+            <Checkbox value={selectedIndexs.has(i)} onChange={(isChecked) => toggleCheckbox(i, isChecked)}>
+              {gender}
             </Checkbox>
           </div>
         ))}

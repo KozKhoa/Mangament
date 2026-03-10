@@ -142,7 +142,7 @@ function LoginRegisterForm({ type, className }: LoginRegisterProps) {
         ></Input>
       )}
 
-      <Checkbox tabIndex={6} onChange={setRemember} defaultChecked={true}>
+      <Checkbox tabIndex={6} onChange={setRemember} value={remember}>
         Ghi nhớ tôi
       </Checkbox>
 

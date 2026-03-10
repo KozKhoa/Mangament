@@ -88,7 +88,7 @@ export default function LoginPage() {
           tabIndex={3}
         ></Input>
 
-        <Checkbox tabIndex={6} onChange={setRemember} defaultChecked={true}>
+        <Checkbox tabIndex={6} onChange={setRemember} value={remember}>
           Ghi nhớ tôi
         </Checkbox>
 

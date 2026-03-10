@@ -7,7 +7,7 @@ import storyService from "@/services/story";
 import Story from "@/types/story";
 import Loading from "@/components/loadings/loading";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
 const LIMIT = 50;
@@ -30,58 +30,57 @@ const RANK = [
 export default function RankingStoryPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-
-  const rankBy = searchParams.get("rankBy")?.toString();
-
   const params = useParams();
+
   const storyType = params.storyType?.toString().split(",");
 
+  const page = useMemo(() => Number(searchParams.get("page") ?? 1), [searchParams]);
+  const rankBy = useMemo(() => searchParams.get("rankBy")?.toString(), [searchParams]);
+
   const listRef = useRef<HTMLDivElement>(null);
-  const listItemsRef = useRef<Array<HTMLDivElement | null>>([]);
 
   const [loading, setLoading] = useState(true);
-  const [selected, setSelected] = useState(0);
-
   const [stories, setStories] = useState<Story[]>([]);
 
-  async function fetchHostestStories() {
-    setLoading(true);
-    const res = await storyService.getStories({ type: storyType, limit: LIMIT, sort: "view:desc" });
-
-    if (!res) return toast.warning("Cannot connect with server");
-    if (!res.success) return toast.warning(res.message);
-
-    setStories(res.data ?? []);
-    setLoading(false);
-  }
-
-  async function fetchBestRankStories() {
-    setLoading(true);
-    const res = await storyService.getStories({ type: storyType, limit: LIMIT, sort: "star:desc" });
-
-    if (!res) return toast.warning("Cannot connect with server");
-    if (!res.success) return toast.warning(res.message);
-
-    setStories(res.data ?? []);
-    setLoading(false);
-  }
-
-  async function fetchNewestStories() {
-    setLoading(true);
-    const res = await storyService.getStories({ type: storyType, limit: LIMIT, sort: "updated_at:desc" });
-
-    if (!res) return toast.warning("Cannot connect with server");
-    if (!res.success) return toast.warning(res.message);
-
-    setStories(res.data ?? []);
-    setLoading(false);
-  }
-
   function handleNavigate(rankBy: string) {
-    router.replace(`?rankBy=${rankBy}`);
+    console.log(rankBy);
+    router.replace(`?page=${page}&rankBy=${rankBy ?? "hottest"}`);
   }
 
   useEffect(() => {
+    async function fetchHostestStories() {
+      setLoading(true);
+      const res = await storyService.getStories({ type: storyType, limit: LIMIT, sort: "view:desc" });
+
+      if (!res) return toast.warning("Cannot connect with server");
+      if (!res.success) return toast.warning(res.message);
+
+      setStories(res.data ?? []);
+      setLoading(false);
+    }
+
+    async function fetchBestRankStories() {
+      setLoading(true);
+      const res = await storyService.getStories({ type: storyType, limit: LIMIT, sort: "star:desc" });
+
+      if (!res) return toast.warning("Cannot connect with server");
+      if (!res.success) return toast.warning(res.message);
+
+      setStories(res.data ?? []);
+      setLoading(false);
+    }
+
+    async function fetchNewestStories() {
+      setLoading(true);
+      const res = await storyService.getStories({ type: storyType, limit: LIMIT, sort: "updated_at:desc" });
+
+      if (!res) return toast.warning("Cannot connect with server");
+      if (!res.success) return toast.warning(res.message);
+
+      setStories(res.data ?? []);
+      setLoading(false);
+    }
+
     if (rankBy === "hottest") fetchHostestStories();
     else if (rankBy === "rating") fetchBestRankStories();
     else if (rankBy === "latest") fetchNewestStories();

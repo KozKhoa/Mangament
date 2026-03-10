@@ -7,62 +7,37 @@ const SORTS = [
   {
     label: "Tài khoản mới trước",
     code: "join_date:desc",
-    isChecked: true,
   },
   {
     label: "Tài khoản cũ trước",
     code: "join_date:asc",
-    isChecked: false,
   },
   {
     label: "Tên A-Z",
     code: "name:asc",
-    isChecked: false,
   },
   {
     label: "Tên Z-A",
     code: "name:desc",
-    isChecked: false,
   },
   {
     label: "Email A-Z",
     code: "email:asc",
-    isChecked: false,
   },
   {
     label: "Email Z-A",
     code: "email:desc",
-    isChecked: false,
   },
 ];
+
+const SORT_LABEL = SORTS.map((sort) => sort.label);
 
 export default function SortUsers({ value, onSort }: { value: string; onSort?: (sort: string) => void }) {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
-  function handleSort(
-    value: {
-      label: string;
-      code?: string;
-      isChecked: boolean;
-    }[],
-  ) {
-    value.forEach((v, i) => {
-      if (v.isChecked) {
-        onSort?.(v.code ?? "");
-        return;
-      }
-    });
-  }
-
   useEffect(() => {
-    if (value === null || value === undefined) setSelectedIndex(null);
-    else {
-      SORTS.forEach((sort, i) => {
-        if (sort.code == value) {
-          setSelectedIndex(i);
-        }
-      });
-    }
+    const find = SORTS.findIndex((sort) => sort.code === value);
+    setSelectedIndex(find < 0 ? null : find);
   }, [value]);
 
   return (
@@ -74,9 +49,10 @@ export default function SortUsers({ value, onSort }: { value: string; onSort?: (
           <div className="flex flex-row flex-wrap gap-2">{SORTS?.map((sort, i) => selectedIndex === i && <p key={sort.code}>{sort.label}</p>)}</div>
         </div>
       }
-      options={SORTS}
+      options={SORT_LABEL}
+      selectedIndex={selectedIndex}
       name="filter-sort-author"
-      onFinishCheck={handleSort}
+      onChange={(index) => onSort?.(SORTS[index].code)}
     ></ButtonDropdownRadio>
   );
 }

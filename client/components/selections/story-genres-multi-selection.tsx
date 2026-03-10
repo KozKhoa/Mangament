@@ -1,13 +1,7 @@
-import Selection from "./selection";
-
-import OngoingIcon from "@/public/story-status/ongoing.svg";
-import PostponeIcon from "@/public/story-status/postpone.svg";
-import FinishIcon from "@/public/story-status/finished.svg";
-import UpcomingIcon from "@/public/story-status/upcoming.svg";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import MultiSelection from "./multi-selection/multi-selection";
 import genreService from "@/services/genre";
-import { capitalizeWords, snakeCaseToCapitalizeWord } from "@/utils/string";
+import { snakeCaseToCapitalizeWord } from "@/utils/string";
 
 interface StoryStatusSelectionProps {
   className?: string;

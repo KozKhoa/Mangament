@@ -282,7 +282,7 @@ export default function ReadingStoryPage() {
       <div className="flex flex-col gap-3">
         {/* Main header */}
         <div className="flex flex-row flex-wrap gap-5  justify-center">
-          <FontSelection onChange={(fontId) => app?.updateReadingFont(fontId)} defaultValue={app?.readingFont}></FontSelection>
+          <FontSelection onChange={(fontId) => app?.updateReadingFont(fontId)} value={app?.readingFont ?? ""}></FontSelection>
           <div className="flex flex-row gap-2 justify-center items-center w-fit">
             <p>Khoảng cách dòng</p>
             <NumberInput

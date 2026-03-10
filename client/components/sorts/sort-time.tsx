@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import ButtonDropdownRadio from "../buttons/dropdown/btn-drop-down-radio";
 
 import SortIcon from "@/public/sort.svg";
@@ -15,21 +16,15 @@ const SORTS = [
   },
 ];
 
-export default function SortTime({ onSort }: { onSort?: ({}) => void }) {
-  function handleSort(
-    value: {
-      label: string;
-      code?: string;
-      isChecked: boolean;
-    }[]
-  ) {
-    value.forEach((v, i) => {
-      if (v.isChecked) {
-        onSort?.({ sort: v.code || "" });
-        return;
-      }
-    });
-  }
+const SORT_LABEL = SORTS.map((sort) => sort.label);
+
+export default function SortTime({ value, onSort }: { value: string; onSort?: (sort: string) => void }) {
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+
+  useEffect(() => {
+    const find = SORTS.findIndex((sort) => sort.code === value);
+    setSelectedIndex(find < 0 ? null : find);
+  }, [value]);
 
   return (
     <ButtonDropdownRadio
@@ -40,9 +35,10 @@ export default function SortTime({ onSort }: { onSort?: ({}) => void }) {
           <div className="flex flex-row flex-wrap gap-2">{SORTS?.map((sort, i) => sort.isChecked && <p key={sort.code}>{sort.label}</p>)}</div>
         </div>
       }
-      options={SORTS}
+      options={SORT_LABEL}
       name="filter-sort-author"
-      onFinishCheck={handleSort}
+      selectedIndex={selectedIndex}
+      onChange={(index) => onSort?.(SORTS[index].code)}
     ></ButtonDropdownRadio>
   );
 }

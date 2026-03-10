@@ -1,5 +1,6 @@
 import { snakeCaseToCapitalizeWord } from "@/utils/string";
 import StoryGenreListPage from "./StoryGenreListPage";
+import { redirect } from "next/navigation";
 
 export async function generateMetadata({ params }: { params: { name: string } }) {
   return {
@@ -7,6 +8,10 @@ export async function generateMetadata({ params }: { params: { name: string } })
   };
 }
 
-export default function Page() {
-  return <StoryGenreListPage />;
+export default async function Page({ searchParams }: { searchParams: { page?: string } }) {
+  if (!(await searchParams).page) {
+    redirect("?page=1");
+  } else {
+    return <StoryGenreListPage />;
+  }
 }

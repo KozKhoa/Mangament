@@ -109,8 +109,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const user = res.data;
     if (user) {
       setUser(user);
-
-      toast.message(res.message);
     }
     setLoading(false);
   }

@@ -75,6 +75,12 @@ const STORIES_PIE_CHART_COLORS = [
   "#E1DDD8",
 ];
 
+const GROUP_BY = [
+  { label: "Ngày", code: "day" },
+  { label: "Tháng", code: "month" },
+  { label: "Năm", code: "year" },
+];
+
 type DateRange = "1week" | "1month" | "3month" | "6month" | "1year" | "custom";
 type GroupBy = "day" | "week" | "month" | "year";
 
@@ -289,14 +295,11 @@ export default function Dashboard() {
                         <p>{capitalizeWords(viewGroupBy)}</p>
                       </div>
                     }
-                    options={[
-                      { label: "Ngày", isChecked: viewGroupBy === "day", code: "day" },
-                      { label: "Tháng", isChecked: viewGroupBy === "month", code: "month" },
-                      { label: "Năm", isChecked: viewGroupBy === "year", code: "year" },
-                    ]}
-                    onFinishCheck={(selection) => setViewGroupBy(selection.find((s) => s.isChecked == true)?.code as GroupBy)}
+                    options={GROUP_BY.map((group) => group.label)}
+                    selectedIndex={GROUP_BY.findIndex((group) => group.code === viewGroupBy)}
+                    onChange={(index) => setViewGroupBy(GROUP_BY[index].code as GroupBy)}
                     name="groupBy"
-                  ></ButtonDropdownRadio>
+                  />
                 </div>
               )}
 
@@ -348,14 +351,11 @@ export default function Dashboard() {
                         <p>{capitalizeWords(viewGroupBy)}</p>
                       </div>
                     }
-                    options={[
-                      { label: "Ngày", isChecked: viewGroupBy === "day", code: "day" },
-                      { label: "Tháng", isChecked: viewGroupBy === "month", code: "month" },
-                      { label: "Năm", isChecked: viewGroupBy === "year", code: "year" },
-                    ]}
-                    onFinishCheck={(selection) => setNewUsersGroup(selection.find((s) => s.isChecked == true)?.code as GroupBy)}
+                    options={GROUP_BY.map((group) => group.label)}
+                    selectedIndex={GROUP_BY.findIndex((group) => group.code === newUsersGroup)}
+                    onChange={(index) => setNewUsersGroup(GROUP_BY[index].code as GroupBy)}
                     name="groupBy"
-                  ></ButtonDropdownRadio>
+                  />
                 </div>
               )}
 

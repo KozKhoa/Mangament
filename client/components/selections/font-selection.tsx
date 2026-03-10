@@ -1,38 +1,27 @@
 import FONT from "@/constants/font";
+
 import ButtonDropdownRadio from "../buttons/dropdown/btn-drop-down-radio";
 
 import FontIcon from "@/public/font.svg";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 interface FontSelectionProps {
   onChange?: (fontId: string) => void;
   className?: string;
 
-  defaultValue?: string;
+  value: string;
 }
 
-export default function FontSelection({ onChange, className, defaultValue }: FontSelectionProps) {
-  const [fonts, setFonts] = useState<{ label: string; code: string; isChecked: boolean }[]>([]);
-  const [selectedIndex, setSelectedIndex] = useState<number>(0);
+const FONT_NAME = FONT.map((font) => font.name);
 
-  function handelChange(selectedOption: { label: string; code?: string; isChecked: boolean }[]) {
-    selectedOption.forEach((op, i) => {
-      if (op.isChecked) {
-        setSelectedIndex(i);
-        return onChange?.(op.code ?? defaultValue ?? "");
-      }
-    });
-  }
+export default function FontSelection({ onChange, className, value }: FontSelectionProps) {
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
   useEffect(() => {
-    setFonts(
-      FONT.map((f, i) => {
-        if (f.id === defaultValue) setSelectedIndex(i);
-        return { label: f.name, code: f.id, isChecked: f.id === defaultValue ? true : false };
-      })
-    );
-  }, [defaultValue]);
+    const find = FONT.findIndex((font) => font.id === value);
+    setSelectedIndex(find < 0 ? null : find);
+  }, [value]);
 
   return (
     <ButtonDropdownRadio
@@ -42,13 +31,14 @@ export default function FontSelection({ onChange, className, defaultValue }: Fon
           <FontIcon className="w-5 h-5 text-foreground stroke-0"></FontIcon>
           <p className="font-bold">Font chữ:</p>
           <div className="flex flex-row flex-wrap gap-2">
-            <p>{fonts.at(selectedIndex)?.label}</p>
+            <p>{selectedIndex !== null ? FONT[selectedIndex]?.name : ""}</p>
           </div>
         </div>
       }
-      options={fonts}
+      options={FONT_NAME}
       name="font-selection"
-      onFinishCheck={handelChange}
+      selectedIndex={selectedIndex}
+      onChange={(index) => onChange?.(FONT[index].id)}
     ></ButtonDropdownRadio>
   );
 }
