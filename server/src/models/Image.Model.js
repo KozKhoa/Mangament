@@ -11,7 +11,6 @@ export async function FindImage({ id, url }) {
   if (!id && !url) throw CreateError(400, "Require 'id' or 'url'");
 
   const imageVer = await redisService.image(url || id).get();
-
   const REDIS_KEY = ["FindImage", imageVer, id, url].join(":");
 
   const cached = await redis.get(REDIS_KEY);
@@ -66,8 +65,9 @@ export async function HardDeleteImage({ id, url }) {
 
   await db.image.delete({ where: { ...(id && { id: id }), ...(url && { url: url }) } });
 
-  redisService.image(id).del();
-  redisService.image(url).del();
+  redisService.image().incr();
+  redisService.image(id).incr();
+  redisService.image(url).incr();
 
   return { success: true, message: "Remove permanently" };
 }
@@ -85,24 +85,49 @@ export async function HardDeleteManyImages({ ids = [], urls = [] }) {
 
   await db.image.deleteMany({ where: { ...(ids.length > 0 && { id: { in: ids } }), ...(urls.length > 0 && { url: { in: urls } }) } });
 
-  ids.forEach((id) => redisService.image(id).del());
-  urls.forEach((url) => redisService.image(url).del());
+  redisService.image().incr();
+  ids.forEach((id) => redisService.image(id).incr());
+  urls.forEach((url) => redisService.image(url).incr());
 
   return { success: true, message: "Remove permanently" };
 }
-export async function FindTrashImage({ page = 1, limit = 10 }) {
-  // This will find the images that are not used by any user, story, nation or story node content
-  const trashImage = await db.image.findMany({
-    where: {
-      user: { none: {} },
-      story: { none: {} },
-      nation: { none: {} },
-      story_node_content: { none: {} },
-    },
 
-    take: limit,
-    skip: (page - 1) * limit,
+// This will find the images that are not used by any user, story, nation or story node content
+export async function FindTrashImage({ page = 1, limit = 10 }) {
+  const imageVer = await redisService.image().get();
+  const REDIS_KEY = ["FindTrashImage", "v=" + imageVer, "page=" + page, "limit=" + limit].join(":");
+
+  const cached = await redis.get(REDIS_KEY);
+  if (cached) return JSON.parse(cached);
+
+  const where = {
+    user: { none: {} },
+    story: { none: {} },
+    nation: { none: {} },
+    story_node_content: { none: {} },
+  };
+
+  const trashImage = await db.image.findMany({
+    where: where,
+
+    take: Number(limit),
+    skip: Number((page - 1) * limit),
   });
 
-  return { success: true, data: trashImage };
+  const totalItems = await db.image.count({ where: where });
+
+  const result = {
+    success: true,
+    data: trashImage,
+    pagination: {
+      page: page,
+      pageSize: trashImage.length,
+      totalPages: Math.ceil(totalItems / limit),
+      totalItems: totalItems,
+    },
+  };
+
+  redis.setex(REDIS_KEY, REDIS_TTL, JSON.stringify(result));
+
+  return result;
 }

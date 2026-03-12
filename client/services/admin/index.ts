@@ -7,6 +7,7 @@ import { DashboardOverview, DashboardStatsNewUsers, DashboardStatsView } from "@
 import Story from "@/types/story";
 import { StoryParams } from "@/types/params";
 import StoryNode, { StoryNodeContent } from "@/types/story-node";
+import Image from "@/types/image";
 
 type ServiceResult<T> = { success: boolean; data?: T; message?: string; pagination?: Pagination };
 
@@ -305,6 +306,40 @@ export async function deleteStory(storyId: string): Promise<ServiceResult<null>>
   }
 }
 
+export async function getTrashImages({ page, limit }: { page?: number; limit?: number }): Promise<ServiceResult<Image[]>> {
+  try {
+    const res = await api.get(`/admin/images/trash`, {
+      params: { page, limit },
+    });
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return { success: false, message: error?.toString() };
+  }
+}
+
+export async function deleteTrashImage(id: string): Promise<ServiceResult<null>> {
+  try {
+    const res = await api.delete(`/admin/images/trash/${id}`);
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return { success: false, message: error?.toString() };
+  }
+}
+
+export async function deleteManyTrashImages(ids: string[]): Promise<ServiceResult<null>> {
+  try {
+    const res = await api.delete(`/admin/images/trash`, {
+      data: { ids: ids },
+    });
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return { success: false, message: error?.toString() };
+  }
+}
+
 const adminService = {
   getOverview,
   getStatsView,
@@ -319,6 +354,9 @@ const adminService = {
   updateStory,
   activeStory,
   deleteStory,
+  getTrashImages,
+  deleteTrashImage,
+  deleteManyTrashImages,
 };
 
 export default adminService;

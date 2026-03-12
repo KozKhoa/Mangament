@@ -33,7 +33,7 @@ export function ModalRoot() {
     <AnimatePresence>
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.1, ease: "linear" }}>
         {stack.map((m, index) => (
-          <Modal key={m.id} zIndex={50 + index} onClose={modal.close}>
+          <Modal key={m.id} zIndex={50 + index} onClickOutside={m.props?.onClickOutside}>
             {m.type === "confirm" && (
               <ConfirmModal
                 title={m.props?.title ?? ""}

@@ -376,12 +376,12 @@ export async function DeleteStory(req, res, next) {
 // GET /admin/images/trash
 export async function GetAllTrashImages(req, res, next) {
   try {
-    const page = req.params?.page ?? 1;
-    const limit = req.params?.limit ?? 10;
+    const page = Number(req.query?.page ?? 1);
+    const limit = Number(req.query?.limit ?? 10);
 
     const trashImage = await imageModel.FindTrashImage({ page, limit });
 
-    res.json({ success: true, data: trashImage.data });
+    res.json({ success: true, data: trashImage.data, pagination: trashImage.pagination });
   } catch (error) {
     next(error);
   }

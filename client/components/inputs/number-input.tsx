@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import PlusIcon from "@/public/plus.svg";
 import MinusIcon from "@/public/minus.svg";
@@ -7,6 +7,9 @@ interface NumberInputProps {
   max?: number;
   min?: number;
   defaultValue?: number;
+  value?: number;
+
+  delay?: number;
 
   width?: string;
   height?: string;
@@ -25,6 +28,8 @@ export default function NumberInput({
   min = -Infinity,
   max = Infinity,
   defaultValue = 0,
+  value,
+  delay = 500,
   allowNegative = true,
   allowPositive = true,
   allowNumeric = true,
@@ -32,19 +37,19 @@ export default function NumberInput({
   height = "1em",
   onChange,
 }: NumberInputProps) {
-  const [number, setNumber] = useState<string>(defaultValue.toString());
+  const [firstRun, setFirstRun] = useState(true);
+
+  const [number, setNumber] = useState<string>(value?.toString() ?? defaultValue.toString());
 
   function handleChange(value: string) {
     if (Number(value) < min || Number(value) > max) return;
 
     if (!value) {
       setNumber("");
-      onChange?.(0);
     }
 
     if ((value === "-" && allowNegative) || (value === "+" && allowPositive)) {
       setNumber(value.toString());
-      onChange?.(Number(value));
     }
 
     if (/^[-+]?\d+(\.\d*)?$/.test(value)) {
@@ -53,13 +58,31 @@ export default function NumberInput({
       if (!allowPositive && Number(value) > 0) return; // If not allow positive number
 
       setNumber(value.toString());
-      onChange?.(Number(value));
     }
   }
 
   useEffect(() => {
-    setNumber(defaultValue.toString());
-  }, [defaultValue]);
+    if (firstRun) {
+      setFirstRun(false);
+      return;
+    }
+
+    if (value === undefined) return;
+    setNumber(value?.toString());
+  }, [value]);
+
+  useEffect(() => {
+    if (firstRun) {
+      setFirstRun(false);
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      onChange?.(Number(number));
+    }, delay);
+
+    return () => clearTimeout(timer);
+  }, [number]);
 
   return (
     <div className={`border rounded-md px-2 w-fit text-center flex justify-between gap-1   ${className}`}>

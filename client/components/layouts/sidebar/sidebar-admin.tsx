@@ -146,6 +146,13 @@ export default function AdminSidebar({ className }: AdminSidebarProps) {
                   ></ButtonExpandable>
                 </Link>
 
+                <Link href={"/admin/trash"}>
+                  <ButtonExpandable
+                    className={pathname.includes("trash") ? "bg-foreground/95 text-background-items hover:bg-foreground/95 hover:text-background-items" : ""}
+                    label="Thùng rác"
+                  ></ButtonExpandable>
+                </Link>
+
                 <div className="h-32"></div>
               </div>
             </div>
