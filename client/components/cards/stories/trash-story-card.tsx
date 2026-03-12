@@ -25,7 +25,12 @@ export default function TrashStoryCard({
 }) {
   return (
     <div className={`flex flex-col justify-between gap-3 p-2 bg-background-items rounded-lg ${className}`}>
-      <div className="flex flex-col gap-2" onClick={onClick}>
+      <div
+        className="flex flex-col gap-2"
+        onClick={(e) => {
+          !disable && onClick?.(e);
+        }}
+      >
         <Image
           className="aspect-7/10 object-contain"
           src={story.cover_art.key ? [process.env.NEXT_PUBLIC_CDN_URL, story.cover_art.key].join("/") : (story.cover_art.url ?? "")}

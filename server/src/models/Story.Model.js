@@ -398,7 +398,9 @@ export async function AddStory({ title, type, nation, genres = [], authorIds, st
 }
 
 export async function ToggleSoftDeleteStory(id, isDeleted = false) {
-  if (!(id || title)) throw CreateError(400, "Require at least id or title");
+  if (!id) throw CreateError(400, "Require at least id or title");
+
+  if (!isUUID(id)) throw CreateError(400, "'id' must be uuid");
 
   const softDelete = await db.story
     .update({

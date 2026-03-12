@@ -562,6 +562,31 @@ adminRoute.patch("/stories/:id/active", adminController.ToggleActiveStory);
 
 /**
  * @openapi
+ * /admin/stories:
+ *   delete:
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     summary: This is used to permanently remove stories that soft-removed
+ *     requestBody:
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               ids:
+ *                 type: array
+ *     responses:
+ *       '200':
+ *         description: List of stories with pagination
+ *       '401':
+ *         $ref: '#/components/responses/Unauthorized'
+ */
+// This is used to permanently remove many stories
+adminRoute.delete("/stories/trash", adminController.DeleteManyTrashStories);
+
+/**
+ * @openapi
  * /admin/stories/{id}:
  *   delete:
  *     tags: [Admin]
@@ -594,7 +619,7 @@ adminRoute.delete("/stories/:id", adminController.DeleteStory);
 
 /**
  * @openapi
- * /admin/stories/{id}:
+ * /admin/stories/trash/{id}:
  *   delete:
  *     tags: [Admin]
  *     security:
@@ -626,38 +651,13 @@ adminRoute.delete("/stories/trash/:id", adminController.DeleteTrashStory);
 
 /**
  * @openapi
- * /admin/stories:
- *   delete:
- *     tags: [Admin]
- *     security:
- *       - bearerAuth: []
- *     summary: This is used to permanently remove stories that soft-removed
- *    requestBody:
- *       content:
- *         multipart/form-data:
- *           schema:
- *             type: object
- *             properties:
- *               ids:
- *                 type: array
- *     responses:
- *       '200':
- *         description: List of stories with pagination
- *       '401':
- *         $ref: '#/components/responses/Unauthorized'
- */
-// This is used to permanently remove many stories
-adminRoute.delete("/stories/trash", adminController.DeleteManyTrashStories);
-
-/**
- * @openapi
- * /admin/stories:
+ * /admin/stories/trash/restore:
  *   patch:
  *     tags: [Admin]
  *     security:
  *       - bearerAuth: []
  *     summary: This is used to restore stories soft-removed
- *    requestBody:
+ *     requestBody:
  *       content:
  *         multipart/form-data:
  *           schema:
@@ -676,7 +676,7 @@ adminRoute.patch("/stories/trash/restore", adminController.RestoreManyTrashStori
 
 /**
  * @openapi
- * /admin/stories/{id}:
+ * /admin/stories/trash/{id}/restore:
  *   patch:
  *     tags: [Admin]
  *     security:

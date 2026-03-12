@@ -10,6 +10,7 @@ import * as imageModel from "../models/Image.Model.js";
 import { ConvertQuery } from "../utils/QueryConvert.js";
 import { ValidateGenre } from "../models/Genre.Model.js";
 import {
+  isUUID,
   throwErrorIfInvalidGenders,
   throwErrorIfInvalidGenres,
   throwErrorIfInvalidRoles,
@@ -365,6 +366,8 @@ export async function DeleteStory(req, res, next) {
 
     if (!storyId) throw CreateError(400, "'id' for story is required");
 
+    if (!isUUID(storyId)) throw CreateError(400, "'id' must be UUID");
+
     const remove = await storiesModel.ToggleSoftDeleteStory(storyId, true);
     if (!remove.success) throw CreateError();
 
@@ -481,6 +484,8 @@ export async function RestoreManyTrashStories(req, res, next) {
 export async function RestoreTrashStory(req, res, next) {
   try {
     const storyId = req.params?.id;
+
+    if (!isUUID(storyId)) throw CreateError(400, "'id' must be UUID");
 
     const story = await storiesModel.ToggleSoftDeleteStory(storyId, false); // Restore
 

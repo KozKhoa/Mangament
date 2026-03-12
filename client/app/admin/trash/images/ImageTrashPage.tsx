@@ -253,7 +253,7 @@ export function ImageTrashPage() {
               <button
                 key={i}
                 disabled={deleting.has(image.id ?? "")}
-                className={`border-4 relative rounded-lg overflow-hidden
+                className={`border-4 relative rounded-lg overflow-hidden bg-background-items
                 ${deleting.has(image.id ?? "") ? "border-red-500 opacity-20" : selected.has(image.id ?? "") ? "border-green-500" : "border-transparent"}
               `}
               >
@@ -272,13 +272,13 @@ export function ImageTrashPage() {
                 </div>
 
                 <Image
-                  className={`${selected.has(image.id ?? "") ? "opacity-40" : ""}`}
+                  className={`object-contain ${selected.has(image.id ?? "") ? "opacity-40" : ""}`}
                   onClick={(e) => handleToggleSelectedImage(image.id ?? "", e as any)}
                   src={[process.env.NEXT_PUBLIC_CDN_URL, image.key].join("/")}
                   alt={image.key ?? ""}
                   width={300}
                   height={400}
-                  style={{ width: "100%", height: "100%" }}
+                  style={{ width: "auto", height: "auto" }}
                 />
               </button>
             ))}
