@@ -2,15 +2,17 @@ import { PrismaClient, Role, Gender, Genre, StoryStatus, StoryType, StoryNodeTyp
 
 const globalForPrisma = globalThis;
 
-const db =
-  globalForPrisma.prisma ||
-  new PrismaClient({
-    log: ["error"],
-  });
+const db = new PrismaClient();
 
-if (process.env.NODE_ENV !== "production") {
-  globalForPrisma.prisma = db;
-}
+// const db =
+//   globalForPrisma.prisma ||
+//   new PrismaClient({
+//     log: ["error"],
+//   });
+
+// if (process.env.NODE_ENV !== "production") {
+//   globalForPrisma.prisma = db;
+// }
 
 try {
   await db.$queryRaw`SELECT 1`;

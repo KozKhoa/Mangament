@@ -340,23 +340,91 @@ export async function deleteManyTrashImages(ids: string[]): Promise<ServiceResul
   }
 }
 
+export async function getAllTrashStories({ page, limit }: { page?: number; limit?: number }): Promise<ServiceResult<Story[]>> {
+  try {
+    const res = await api.get(`/admin/stories/trash`, {
+      params: { page, limit },
+    });
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return { success: false, message: error?.toString() };
+  }
+}
+
+// DELETE /admin/stories/trash/:id
+export async function deletePermanentTrashStory(id: string): Promise<ServiceResult<null>> {
+  try {
+    const res = await api.delete(`/admin/stories/trash/${id}`);
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return { success: false, message: error?.toString() };
+  }
+}
+
+// DELETE /admin/stories/trash
+export async function deletePermanentManyTrashStories(ids: string[]): Promise<ServiceResult<null>> {
+  try {
+    const res = await api.delete(`/admin/stories/trash`, {
+      data: { ids: ids },
+    });
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return { success: false, message: error?.toString() };
+  }
+}
+
+// PATCH /admin/stories/trash/:id/restore
+export async function restoreStory(id: string): Promise<ServiceResult<Story>> {
+  try {
+    const res = await api.patch(`/admin/stories/trash/${id}/restore`);
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return { success: false, message: error?.toString() };
+  }
+}
+
+// PATCH /admin/stories/trash/:id/restore
+export async function restoreManyStories(ids: string[]): Promise<ServiceResult<Story[]>> {
+  try {
+    const res = await api.patch(`/admin/stories/trash/restore`, { ids: ids });
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return { success: false, message: error?.toString() };
+  }
+}
+
 const adminService = {
   getOverview,
   getStatsView,
   getStatsNewUsers,
+
   getUsers,
   banUser,
   deleteUser,
   updateUser,
+
   getStory,
   getStories,
   addNewStory,
   updateStory,
   activeStory,
   deleteStory,
+
   getTrashImages,
+  getAllTrashStories,
   deleteTrashImage,
   deleteManyTrashImages,
+
+  deletePermanentTrashStory,
+  deletePermanentManyTrashStories,
+
+  restoreStory,
+  restoreManyStories,
 };
 
 export default adminService;

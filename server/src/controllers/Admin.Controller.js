@@ -358,13 +358,14 @@ export async function ToggleActiveStory(req, res, next) {
 }
 
 // DELETE /admin/stories/:id
+// This is use for soft remove story
 export async function DeleteStory(req, res, next) {
   try {
     const storyId = req.params.id;
 
     if (!storyId) throw CreateError(400, "'id' for story is required");
 
-    const remove = await storiesModel.SoftDeleteStory({ id: storyId });
+    const remove = await storiesModel.ToggleSoftDeleteStory(storyId, true);
     if (!remove.success) throw CreateError();
 
     return res.json({ success: true, message: "Remove successfully" });
@@ -412,6 +413,78 @@ export async function DeleteTrashImage(req, res, next) {
     await imageModel.HardDeleteImage({ id: imageId });
 
     return res.json({ success: true, message: "Remove successfully" });
+  } catch (error) {
+    next(error);
+  }
+}
+
+// GET /admin/stories/trash
+export async function GetAllTrashStories(req, res, next) {
+  try {
+    const page = Number(req.query?.page ?? 1);
+    const limit = Number(req.query?.limit ?? 10);
+
+    const trashStories = await storiesModel.FindAllStories({ page: page, limit: limit, isDeleted: true });
+
+    res.json({ success: true, data: trashStories.data, pagination: trashStories.pagination });
+  } catch (error) {
+    next(error);
+  }
+}
+
+// DELETE /admin/stories/trash/:id
+// This is use to permanently remove story
+export async function DeleteTrashStory(req, res, next) {
+  try {
+    const storyId = req.params?.id;
+
+    if (!storyId) throw CreateError(400, "'id' for image is required");
+
+    await storiesModel.HardDeleteStory(storyId);
+
+    return res.json({ success: true, message: "Remove successfully" });
+  } catch (error) {
+    next(error);
+  }
+}
+
+// DELETE /admin/stories/trash
+// This is use to permanently remove many stories
+export async function DeleteManyTrashStories(req, res, next) {
+  try {
+    const storyIds = req.body?.ids;
+
+    if (!storyIds) throw CreateError(400, "'id' for image is required");
+
+    await storiesModel.HardDeleteManyStories(storyIds);
+
+    return res.json({ success: true, message: "Remove successfully" });
+  } catch (error) {
+    next(error);
+  }
+}
+
+// PATCH /admin/stories/trash/restore
+export async function RestoreManyTrashStories(req, res, next) {
+  try {
+    const storyIds = req.body?.ids;
+
+    const stories = await storiesModel.ToggleSoftDeleteManyStories(storyIds, false); // Restore
+
+    res.json({ success: true, message: "Restore successfully", data: stories });
+  } catch (error) {
+    next(error);
+  }
+}
+
+// PATCH /admin/stories/trash/:id/restore
+export async function RestoreTrashStory(req, res, next) {
+  try {
+    const storyId = req.params?.id;
+
+    const story = await storiesModel.ToggleSoftDeleteStory(storyId, false); // Restore
+
+    res.json({ success: true, message: "Restore successfully", data: story });
   } catch (error) {
     next(error);
   }

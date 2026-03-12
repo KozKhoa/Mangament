@@ -193,6 +193,9 @@ export function ImageTrashPage() {
 
     setLoading(true);
 
+    setDeleting(new Set());
+    setSelected(new Set());
+
     router.push(`?${params.toString()}`);
   }
 

@@ -314,6 +314,64 @@ adminRoute.get("/stories", adminController.GetAllStories);
 
 /**
  * @openapi
+ * /admin/stories/trash:
+ *   get:
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     summary: List stories with filters
+ *     parameters:
+ *       - name: page
+ *         in: query
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *       - name: limit
+ *         in: query
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *       - name: keyword
+ *         in: query
+ *         schema:
+ *           type: string
+ *       - name: authors
+ *         in: query
+ *         schema:
+ *           type: string
+ *       - name: genres
+ *         in: query
+ *         schema:
+ *           type: string
+ *       - name: type
+ *         in: query
+ *         schema:
+ *           type: string
+ *     responses:
+ *       '200':
+ *         description: List of stories with pagination
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Story'
+ *                 pagination:
+ *                   $ref: '#/components/schemas/Pagination'
+ *       '401':
+ *         $ref: '#/components/responses/Unauthorized'
+ */
+adminRoute.get("/stories/trash", adminController.GetAllTrashStories);
+
+/**
+ * @openapi
  * /admin/stories/{id}:
  *   get:
  *     tags: [Admin]
@@ -509,7 +567,7 @@ adminRoute.patch("/stories/:id/active", adminController.ToggleActiveStory);
  *     tags: [Admin]
  *     security:
  *       - bearerAuth: []
- *     summary: Delete story
+ *     summary: Soft Delete story
  *     parameters:
  *       - name: id
  *         in: path
@@ -531,7 +589,122 @@ adminRoute.patch("/stories/:id/active", adminController.ToggleActiveStory);
  *       '401':
  *         $ref: '#/components/responses/Unauthorized'
  */
+// This is used for soft removing story
 adminRoute.delete("/stories/:id", adminController.DeleteStory);
+
+/**
+ * @openapi
+ * /admin/stories/{id}:
+ *   delete:
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     summary: Hard Delete story (Remove Permanently)
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       '200':
+ *         description: Deletion result
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *       '401':
+ *         $ref: '#/components/responses/Unauthorized'
+ */
+// This is used to permanently remove story
+adminRoute.delete("/stories/trash/:id", adminController.DeleteTrashStory);
+
+/**
+ * @openapi
+ * /admin/stories:
+ *   delete:
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     summary: This is used to permanently remove stories that soft-removed
+ *    requestBody:
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               ids:
+ *                 type: array
+ *     responses:
+ *       '200':
+ *         description: List of stories with pagination
+ *       '401':
+ *         $ref: '#/components/responses/Unauthorized'
+ */
+// This is used to permanently remove many stories
+adminRoute.delete("/stories/trash", adminController.DeleteManyTrashStories);
+
+/**
+ * @openapi
+ * /admin/stories:
+ *   patch:
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     summary: This is used to restore stories soft-removed
+ *    requestBody:
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               ids:
+ *                 type: array
+ *     responses:
+ *       '200':
+ *         description: List of stories with pagination
+ *       '401':
+ *         $ref: '#/components/responses/Unauthorized'
+ */
+// This is used to restore stories soft-removed
+adminRoute.patch("/stories/trash/restore", adminController.RestoreManyTrashStories);
+
+/**
+ * @openapi
+ * /admin/stories/{id}:
+ *   patch:
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     summary: Restore soft-delelted story with id
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       '200':
+ *         description: Deletion result
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *       '401':
+ *         $ref: '#/components/responses/Unauthorized'
+ */
+// This is used to restored story soft-removed
+adminRoute.patch("/stories/trash/:id/restore", adminController.RestoreTrashStory);
 
 //
 //

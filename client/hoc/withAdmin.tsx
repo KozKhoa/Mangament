@@ -13,8 +13,6 @@ export default function withAdmin<T extends object>(WrappedComponent: React.Comp
     const isLoading = auth?.loading;
     const user = auth?.user;
 
-    console.log(user);
-
     useEffect(() => {
       if (!user && !isLoading) {
         toast.warning("Yêu cầu đăng nhập để tiếp tục");

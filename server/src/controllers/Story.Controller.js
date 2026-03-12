@@ -5,7 +5,7 @@ import { ValidateStoryType, ValidateStoryStatus } from "../models/Enum.Model.js"
 
 import { ValidateGenre } from "../models/Genre.Model.js";
 import { AddImage } from "../models/Image.Model.js";
-import { FindAllStories, FindStory, UpdateStory, AddStory, SoftDeleteStory, GetReview, FindRandomStory } from "../models/Story.Model.js";
+import { FindAllStories, FindStory, UpdateStory, AddStory, GetReview, FindRandomStory } from "../models/Story.Model.js";
 
 import * as favouriteModel from "../models/Favourite.Model.js";
 
