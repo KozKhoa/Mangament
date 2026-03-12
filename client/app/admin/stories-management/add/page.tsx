@@ -20,8 +20,9 @@ import NationSelection from "@/components/selections/nation-selection";
 
 import StoryTypeSelection from "@/components/selections/story-type-selection";
 import Nation from "@/types/nation";
+import withAdmin from "@/hoc/withAdmin";
 
-export default function AddNewStoryPage() {
+export function AddNewStoryPage() {
   const params = useParams();
   const router = useRouter();
 
@@ -161,3 +162,5 @@ export default function AddNewStoryPage() {
     </div>
   );
 }
+
+export default withAdmin(AddNewStoryPage);

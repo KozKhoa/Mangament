@@ -33,15 +33,14 @@ function Checkbox({ children, className, name, value, onChange, tabIndex }: Chec
       />
 
       <CheckIcon
-        className="absolute top-1/2 -translate-y-1/2 left-0 h-[1.5em] w-[1.5em]
+        className={`absolute top-1/2 -translate-y-1/2 left-0 h-[1.5em] w-[1.5em]
           rotate-y-90 peer-checked:rotate-y-0
-          fill-foreground 
-          transition-all duration-100 ease-linear"
+          transition-all duration-100 ease-linear`}
       ></CheckIcon>
 
       <UnCheckIcon
-        className="absolute top-1/2 -translate-y-1/2 left-0 peer-checked:rotate-y-90 h-[1.5em] w-[1.5em]
-          transition-all duration-100 ease-linear"
+        className={`absolute top-1/2 -translate-y-1/2 left-0 peer-checked:rotate-y-90 h-[1.5em] w-[1.5em]
+          transition-all duration-100 ease-linear`}
       ></UnCheckIcon>
 
       {/* This only use for keeping place for the two previous element */}

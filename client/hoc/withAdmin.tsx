@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useEffect } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import useAuth from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -12,8 +12,6 @@ export default function withAdmin<T extends object>(WrappedComponent: React.Comp
 
     const isLoading = auth?.loading;
     const user = auth?.user;
-
-    console.log(user);
 
     useEffect(() => {
       if (!user && !isLoading) {

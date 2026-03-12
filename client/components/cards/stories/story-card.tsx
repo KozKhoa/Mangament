@@ -1,4 +1,3 @@
-import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -29,7 +28,6 @@ interface StoryCardProps {
 export default function StoryCard({ data, className }: StoryCardProps) {
   const auth = useAuth();
   const user = auth?.user;
-  const router = useRouter();
   const story = data;
 
   const [favouriteId, setFavouriteId] = useState<string | null>(story.favourite?.id ?? null);

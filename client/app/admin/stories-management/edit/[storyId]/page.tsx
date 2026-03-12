@@ -23,8 +23,9 @@ import { isEqual } from "lodash";
 
 import StoryNodeContainerDraggable from "@/components/draggable/story-node-container-draggable";
 import StoryNode, { StoryNodeContent } from "@/types/story-node";
+import withAdmin from "@/hoc/withAdmin";
 
-export default function EditStory() {
+export function EditStory() {
   const params = useParams();
   const router = useRouter();
 
@@ -317,3 +318,5 @@ export default function EditStory() {
     </div>
   );
 }
+
+export default withAdmin(EditStory);
