@@ -43,7 +43,7 @@ export async function GetStory(req, res, next) {
 
     // Is story in user favourites list
     if (userId) {
-      const favourite = await favouriteModel.FindAllFavouriteStories({ userId: userId, limit: 1, page: 1, storyId: story.data.id });
+      const favourite = await favouriteModel.FindAllFavouriteStories({ userId: userId, storyId: story.data.id, page: 1, limit: 1 });
 
       if (favourite && favourite.data.length > 0) {
         story.data.favourite = { id: favourite.data.at(0).id };

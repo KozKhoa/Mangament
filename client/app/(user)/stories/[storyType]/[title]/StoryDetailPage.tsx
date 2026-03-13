@@ -5,12 +5,8 @@ import { toast } from "sonner";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Params } from "next/dist/server/request/params";
-
-import useAuth from "@/contexts/AuthContext";
 
 import storyService from "@/services/story";
-import favouriteService from "@/services/favourite";
 
 import Story from "@/types/story";
 import StoryNode from "@/types/story-node";

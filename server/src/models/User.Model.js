@@ -102,9 +102,7 @@ export async function FindUser({ id, email }) {
       ...(email && { email: email }),
     },
 
-    include: {
-      avatar: { select: { url: true, width: true, height: true } },
-    },
+    include: { avatar: true },
   });
 
   if (!user) throw CreateError(404, "User not found");

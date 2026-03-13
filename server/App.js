@@ -24,6 +24,9 @@ import uploadRoute from "./src/routes/Upload.Route.js";
 import swaggerJsdoc from "swagger-jsdoc";
 import swaggerUi from "swagger-ui-express";
 import db from "./src/configs/db.js";
+import ratingRoute from "./src/routes/Rating.Route.js";
+import historyRoute from "./src/routes/History.Route.js";
+import favouriteRoute from "./src/routes/Favourite.Route.js";
 
 initRedis();
 
@@ -236,13 +239,22 @@ app.use(PerformanceMiddleware.MeasureRequestTime);
 
 // Main routes
 app.use("/auth", authRouter);
+
 app.use("/users", userRoute);
+
 app.use("/stories", storyRoute);
 app.use("/story-nodes", storyNodeRoute);
+
 app.use("/authors", authorRoute);
 app.use("/genres", genreRoute);
+
 app.use("/comments", commentRoute);
+app.use("/ratings", ratingRoute);
+app.use("/histories", historyRoute);
+app.use("/favourites", favouriteRoute);
+
 app.use("/admin", adminRoute);
+
 app.use("/uploads", uploadRoute);
 
 // Let render ping after amount of time for preventing container to idle

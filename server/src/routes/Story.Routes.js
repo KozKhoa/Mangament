@@ -206,10 +206,4 @@ storyRoute.get("/title/:title", OptionalAuth, GetStory);
 storyRoute.get("/", OptionalAuth, GetAllStories);
 storyRoute.patch("/:id/view", AddOneViewForStory);
 
-// Rating
-storyRoute.post("/:id/ratings", AuthenticationToken, PostRating);
-storyRoute.get("/:id/ratings", GetAllRatings);
-storyRoute.put("/ratings/:id", AuthenticationToken, PutRating);
-storyRoute.delete("/ratings/:id", AuthenticationToken, DeleteRating);
-
 export default storyRoute;

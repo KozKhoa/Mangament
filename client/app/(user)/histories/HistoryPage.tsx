@@ -2,7 +2,7 @@
 
 import { toast } from "sonner";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 import History from "@/types/history";
 

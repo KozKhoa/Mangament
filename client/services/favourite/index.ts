@@ -1,7 +1,6 @@
 import api from "@/lib/axios";
 import Favourite from "@/types/favourite";
 import { FavoureiteParams } from "@/types/params";
-import axios from "axios";
 import qs from "qs";
 
 type Pagination = { page: number; pageSize: number; totalItems: number; totalPages: number };
@@ -9,7 +8,10 @@ type ServiceResult<T> = { success: boolean; data?: T; message?: string; paginati
 
 export async function getFavouriteStories(params: FavoureiteParams): Promise<ServiceResult<Favourite[]>> {
   try {
-    const res = await api.get("/users/me/favourites", { params: params, paramsSerializer: (params) => qs.stringify(params, { arrayFormat: "comma" }) });
+    const res = await api.get("/favourites/user/me", {
+      params: params,
+      paramsSerializer: (params) => qs.stringify(params, { arrayFormat: "comma" }),
+    });
     return res.data;
   } catch (error) {
     console.log(error);
@@ -19,7 +21,7 @@ export async function getFavouriteStories(params: FavoureiteParams): Promise<Ser
 
 export async function addNewFavouriteStory(storyId: string): Promise<ServiceResult<Favourite>> {
   try {
-    const res = await api.post("/users/me/favourites", {
+    const res = await api.post(`/favourites/story/${storyId}`, {
       storyId: storyId,
     });
     return res.data;
@@ -31,7 +33,7 @@ export async function addNewFavouriteStory(storyId: string): Promise<ServiceResu
 
 export async function removeFavouriteStory(favouriteId: string): Promise<ServiceResult<Favourite>> {
   try {
-    const res = await api.delete(`/users/me/favourites/${favouriteId}`);
+    const res = await api.delete(`/favourites/${favouriteId}`);
     return res.data;
   } catch (error) {
     console.log(error);

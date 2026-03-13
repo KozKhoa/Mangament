@@ -1,15 +1,17 @@
 import { HistoryParams } from "@/types/params";
 import api from "@/lib/axios";
-import axios from "axios";
 import qs from "qs";
 import History from "@/types/history";
 import { Pagination } from "@/types/pagination";
 
 type ServiceResult<T> = { success: boolean; data?: T; message?: string; pagination?: Pagination };
 
-export async function getHistories(params: HistoryParams): Promise<ServiceResult<History[]>> {
+export async function getHistories({ page = 1, limit = 10, sort = "created_at:desc", fromDate, toDate }: HistoryParams): Promise<ServiceResult<History[]>> {
   try {
-    const res = await api.get("/users/me/histories", { params: params, paramsSerializer: (params) => qs.stringify(params, { arrayFormat: "comma" }) });
+    const res = await api.get(`/histories/user/me`, {
+      params: { page, limit, sort, fromDate, toDate },
+      paramsSerializer: (params) => qs.stringify(params, { arrayFormat: "comma" }),
+    });
     return res.data;
   } catch (error) {
     console.error(error);
@@ -19,7 +21,7 @@ export async function getHistories(params: HistoryParams): Promise<ServiceResult
 
 export async function addHistory(storyId: string, storyNodeId: string): Promise<ServiceResult<History>> {
   try {
-    const res = await api.post("/users/me/histories", { storyId, storyNodeId });
+    const res = await api.post(`/histories/story/${storyId}/story-node/${storyNodeId}`);
     return res.data;
   } catch (error) {
     console.error(error);
@@ -29,7 +31,7 @@ export async function addHistory(storyId: string, storyNodeId: string): Promise<
 
 export async function removeHistory(historyId: string): Promise<ServiceResult<History>> {
   try {
-    const res = await api.delete(`/users/me/histories/${historyId}`);
+    const res = await api.delete(`/histories/${historyId}`);
     return res.data;
   } catch (error) {
     console.error(error);

@@ -56,13 +56,12 @@ export async function FindAllFavouriteStories({
       ...(storyType && storyType.length > 0 && { type: { in: storyType } }),
       ...(genres &&
         genres.length > 0 && {
-          genres: {
-            some: { genre: { in: genres } },
-          },
+          genres: { some: { genre: { in: genres } } },
         }),
-      ...(authorsId && {
-        authors: { some: { author_id: { in: authorsId } } },
-      }),
+      ...(authorsId &&
+        authorsId.length > 0 && {
+          authors: { some: { author_id: { in: authorsId } } },
+        }),
       AND: [
         {
           OR: [...star.map(([min, max]) => ({ star: { gte: min, lte: max } }))],
@@ -113,24 +112,19 @@ export async function FindAllFavouriteStories({
 }
 
 export async function FindFavouriteStory(id) {
-  const favouriteVer = await redisService.favourites(id).get();
+  if (!id) throw CreateError(400, "Require 'id' or 'userId' and 'storyId'");
 
+  const favouriteVer = await redisService.favourites(id).get();
   const REDIS_KEY = ["FindFavouriteStory", "favouriteVer=" + favouriteVer, "id=" + id].join(":");
 
   const cached = await redis.get(REDIS_KEY);
   if (cached) return JSON.parse(cached);
 
-  if (!id && !(userId && storyId)) throw CreateError(400, "Require 'id' or 'userId' and 'storyId'");
-
-  const favourite = await db.favouriteStory.findFirst({
-    where: {
-      ...(id && { id: id }),
-      ...(userId && { user: { id: userId, is_banned: false, is_deleted: false } }),
-      ...(storyId && { story: { id: storyId, is_actived: true, is_deleted: false } }),
-    },
-  });
+  const favourite = await db.favouriteStory.findFirst({ where: { id: id } });
 
   const result = { success: true, data: favourite };
+
+  redis.setex(REDIS_KEY, REDIS_TTL, JSON.stringify(result));
 
   return result;
 }

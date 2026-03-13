@@ -8,7 +8,7 @@ type ServiceResult<T> = { success: boolean; data?: T; message?: string; paginati
 
 export async function getRatings(storyId: string, params: RatingParams): Promise<ServiceResult<Rating[]>> {
   try {
-    const res = await api.get(`/stories/${storyId ?? ""}/ratings`, {
+    const res = await api.get(`/ratings/story/${storyId ?? ""}`, {
       params: params,
       paramsSerializer: (params) => qs.stringify(params, { arrayFormat: "comma" }),
     });
@@ -21,7 +21,7 @@ export async function getRatings(storyId: string, params: RatingParams): Promise
 
 export async function addNewRating(storyId: string, star: number, title: string, content: string): Promise<ServiceResult<Rating>> {
   try {
-    const res = await api.post(`/stories/${storyId ?? ""}/ratings`, {
+    const res = await api.post(`/ratings/story/${storyId ?? ""}`, {
       star: star,
       title: title,
       content: content,
