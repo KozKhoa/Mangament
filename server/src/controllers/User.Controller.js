@@ -97,7 +97,6 @@ export async function ChangeUserPassword(req, res, next) {
       },
     });
   } catch (error) {
-    if (!error.status) console.error("❌ [User.Controller.js] Error change user password:", error);
     next(error);
   }
 }

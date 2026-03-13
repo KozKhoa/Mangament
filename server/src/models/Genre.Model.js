@@ -30,7 +30,6 @@ export async function FindAllStoryGenres(where = { story_id }) {
     });
     return { success: true, data: storyGenres };
   } catch (error) {
-    console.error("❌ [Genre.Model.js] Error finding all story genres:", error);
     return { success: false, error: error.code };
   }
 }
@@ -40,7 +39,6 @@ export async function AddManyStoryGenres(data = {}) {
     const storyGenre = await db.story_Genre.createMany({ data: data });
     return { success: true, data: storyGenre };
   } catch (error) {
-    console.error("❌ [Genre.Model.js] Error adding story genre:", error);
     return { success: false, error: error.code };
   }
 }
@@ -50,7 +48,6 @@ export async function HardDeleteStoryGenre(where = { story_id }) {
     const deleting = await db.story_Genre.deleteMany({ where: where });
     return { success: true };
   } catch (error) {
-    console.error("❌ [Genre.Model.js] Error hadrd deleting story genre:", error);
     return { success: false, error: error.code };
   }
 }

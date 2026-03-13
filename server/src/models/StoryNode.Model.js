@@ -323,10 +323,10 @@ export async function UpdateStoryNode(
       },
     })
     .catch(async (error) => {
-      console.log(error);
-
       const storyNode = await db.storyNode.findUnique({ where: { id: storyNodeId } });
       if (!storyNode) throw CreateError(400, "Story node not found");
+
+      throw new Error(error);
     });
 
   redisService.storyNodes(updating.story_id).incr();
@@ -345,8 +345,6 @@ export async function SoftDeleteStoryNode(storyNodeId) {
       data: { is_deleted: true },
     })
     .catch(async (error) => {
-      console.log(error);
-
       const storyNode = await db.storyNode.findUnique({ where: { id: storyNodeId } });
       if (!storyNode) throw CreateError(400, "Story node not found");
 
@@ -368,8 +366,6 @@ export async function HardDeleteStoryNode(storyNodeId) {
       where: { id: storyNodeId },
     })
     .catch(async (error) => {
-      console.log(error);
-
       const storyNode = await db.storyNode.findUnique({ where: { id: storyNodeId } });
       if (!storyNode) throw CreateError(400, "Story node not found");
 

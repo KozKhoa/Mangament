@@ -64,7 +64,6 @@ export async function AddNewReadingHistory(req, res, next) {
       },
     });
   } catch (error) {
-    if (!error.status) console.error("❌ [ReadingHistory.Controller.js] Error posting reading history:", error);
     next(error);
   }
 }
@@ -84,7 +83,6 @@ export async function DeleteReadingHistory(req, res, next) {
       message: "Delete reading history successfully",
     });
   } catch (error) {
-    if (!error.status) console.error("❌ [ReadingHistory.Controller.js] Error deleting reading history:", error);
     next(error);
   }
 }

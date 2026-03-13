@@ -40,6 +40,7 @@ export function FavouritePage() {
   }
 
   useEffect(() => {
+    if (!page) return;
     fetchFavourites();
   }, [page]);
 
@@ -56,7 +57,6 @@ export function FavouritePage() {
         {/* Main grid with sort */}
         <div className="flex flex-col gap-2 justify-start items-center py-2 w-full">
           {/* Sort and fiter */}
-          {/* <FilterSortHistories className="w-full" onChange={setParams} isResetAll={isResetFilterSort}></FilterSortHistories> */}
 
           <div>
             {loading ? (

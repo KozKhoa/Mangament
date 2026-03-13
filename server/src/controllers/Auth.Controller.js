@@ -142,7 +142,6 @@ export const Logout = async (req, res, next) => {
       message: "Logout success",
     });
   } catch (error) {
-    if (!error.status) console.error("❌ [Auth.Controller.js] Error logout:", error);
     next(error);
   }
 };
@@ -195,7 +194,6 @@ export const Refresh = async (req, res, next) => {
       },
     });
   } catch (error) {
-    if (!error.status) console.error("❌ [Auth.Controller.js] Error refresh:", error);
     next(error);
   }
 };

@@ -130,7 +130,7 @@ function NavBar({ duration = 100, autoHide = true, className }: NavBarProps) {
           {!openSidebar && <SwitchTheme />}
 
           {/* Search */}
-          <SearchStories className="w-[320px]"></SearchStories>
+          <SearchStories className="w-[320px]" />
 
           <ButtonDropdown
             openOnLeft={false}
@@ -194,7 +194,7 @@ function NavBar({ duration = 100, autoHide = true, className }: NavBarProps) {
                   </button>
                 </div>
 
-                <SearchStories className="w-full"></SearchStories>
+                <SearchStories className="w-full" />
 
                 {/* Content in navbar */}
                 <div className="flex flex-col gap-2.5 ">

@@ -27,8 +27,6 @@ export async function listAllFiles() {
 
     files.push(...res.data.files);
     pageToken = res.data.nextPageToken;
-
-    console.log("Getting ", files.length, " files ...");
   } while (pageToken);
 
   return files;
@@ -63,7 +61,6 @@ export async function walkFolder(folderId = "root", depth = 0, callback = (child
   const children = await listChildren(folderId);
 
   for (const child of children) {
-    console.log(" ".repeat(depth * 2) + "- " + child.name);
     callback(child);
 
     if (child.mimeType === "application/vnd.google-apps.folder") {

@@ -67,7 +67,6 @@ export const AuthorizationRole = (req, res, next) => {
     // If you are the admin
     next();
   } catch (error) {
-    console.error("❌ [Auth.Controller.js] Error getting user info:", error);
     res.status(ErrorCodes.INTERNAL_SERVER_ERROR.status).json({
       success: false,
       message: ErrorCodes.INTERNAL_SERVER_ERROR.message,
