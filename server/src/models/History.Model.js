@@ -62,7 +62,7 @@ export async function FindAllReadingHistories({
     ...((fromDate || toDate) && {
       updated_at: {
         ...(fromDate && { gte: fromDate }),
-        ...(toDate && { lt: toDate }),
+        ...(toDate && { lte: toDate }),
       },
     }),
 

@@ -84,9 +84,12 @@ export default function HistoryCard({ history, onClickRemove, className }: { his
       </div>
 
       <div className="flex flex-col justify-between gap-1 h-full w-full">
-        {/* Tittle */}
-        <div onClick={() => navigateToStory()} className="text-[1.2em] font-bold leading-tight cursor-pointer line-clamp-2">
-          {"[" + snakeCaseToCapitalizeWord(story?.type ?? "") + "] " + story?.title}
+        {/* Title */}
+        <div onClick={() => navigateToStory()} className="text-[1.2em] leading-tight cursor-pointer line-clamp-2">
+          <p className="font-semibold">
+            <span className="font-normal">{"[" + snakeCaseToCapitalizeWord(story?.type ?? "") + "] "}</span>
+            {story?.title}
+          </p>
         </div>
 
         <div className="flex flex-col gap-2 w-full">
@@ -94,12 +97,15 @@ export default function HistoryCard({ history, onClickRemove, className }: { his
           <div className="flex flex-row flex-wrap justify-between items-center gap-1">
             <div className="flex flex-row flex-wrap gap-1">
               {storyNodeArray.map((node, i) => (
-                <p key={i} className="font-semibold">
+                <p key={i} className="font-semibold text-lg">
                   {snakeCaseToCapitalizeWord(node.type)} {node.order_index} {i < storyNodeArray.length - 1 && " ➤ "}
                 </p>
               ))}
             </div>
-            <p className="italic">{convertDateTo_yyyMMddHHmm(history?.updated_at ? new Date(history?.updated_at) : null)}</p>
+            <div className="flex flex-row gap-1 justify-between w-full">
+              <p className="italic">{history?.updated_at ? new Date(history?.updated_at).toLocaleDateString("vi") : null}</p>
+              <p className="font-semibold">{history?.updated_at ? new Date(history?.updated_at).toLocaleTimeString("vi").slice(0, -3) : ""}</p>
+            </div>
           </div>
 
           {/* Remove history card */}
