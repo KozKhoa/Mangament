@@ -5,6 +5,7 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 
 import { corsOptions } from "./src/configs/cors.js";
+import { initRedis } from "./src/configs/redis.js";
 
 import authRouter from "./src/routes/Auth.Route.js";
 import userRoute from "./src/routes/User.Route.js";
@@ -16,11 +17,8 @@ import storyRoute from "./src/routes/Story.Routes.js";
 import storyNodeRoute from "./src/routes/StoryNode.Route.js";
 import authorRoute from "./src/routes/Author.Route.js";
 import genreRoute from "./src/routes/Genre.Route.js";
-import { initRedis } from "./src/configs/redis.js";
 import adminRoute from "./src/routes/Admin.Route.js";
 import commentRoute from "./src/routes/Comment.Route.js";
-import cloudinaryRoute from "./src/routes/Cloudinary.Route.js";
-import uploadMulter from "./src/configs/multer.js";
 import uploadRoute from "./src/routes/Upload.Route.js";
 
 import swaggerJsdoc from "swagger-jsdoc";
@@ -245,7 +243,6 @@ app.use("/authors", authorRoute);
 app.use("/genres", genreRoute);
 app.use("/comments", commentRoute);
 app.use("/admin", adminRoute);
-app.use("/cloudinary", cloudinaryRoute);
 app.use("/uploads", uploadRoute);
 
 // Let render ping after amount of time for preventing container to idle

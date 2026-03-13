@@ -141,11 +141,14 @@ const uploadRoute = express.Router();
  *         $ref: '#/components/responses/Unauthorized'
  */
 
+// Upload Avatar
 uploadRoute.post("/user/me/avatar", AuthenticationToken, upload.single("image"), uploadController.UploadAvatar);
 uploadRoute.post("/user/:userId/avatar", AuthenticationToken, AuthorizationRole, upload.single("image"), uploadController.UploadAvatar);
 
+// Upload cover art for story
 uploadRoute.post("/story/:storyId/cover-art", AuthenticationToken, AuthorizationRole, upload.single("image"), uploadController.UploadStoryCoverArt);
 
+// Upload many contents for certain story node
 uploadRoute.post(
   "/story/:storyId/story-node/:storyNodeId/contents",
   AuthenticationToken,
@@ -154,6 +157,7 @@ uploadRoute.post(
   uploadController.UploadManyContentsForStoryNode,
 );
 
+// Upload single content for certain story node
 uploadRoute.post(
   "/story/:storyId/story-node/:storyNodeId/content",
   AuthenticationToken,

@@ -348,7 +348,7 @@ export async function ToggleActiveStory(req, res, next) {
 
     if (!storyId) throw CreateError(400, "'id' for story is required");
 
-    const active = await storiesModel.ActiveStory({ storyId: storyId, isActived: isActived });
+    const active = await storiesModel.ActiveStory(storyId, isActived);
 
     if (!active.success) throw CreateError();
 

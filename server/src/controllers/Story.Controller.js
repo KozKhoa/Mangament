@@ -1,6 +1,6 @@
 import path from "path";
 import { CreateError } from "../utils/ErrorHandle.js";
-import ErrorCodes from "../constants/Error.js";
+
 import { ValidateStoryType, ValidateStoryStatus } from "../models/Enum.Model.js";
 
 import { ValidateGenre } from "../models/Genre.Model.js";
@@ -182,50 +182,6 @@ export async function AddOneViewForStory(req, res, next) {
           id: storyId,
         },
       },
-    });
-  } catch (error) {
-    next(error);
-  }
-}
-
-export async function PostStory(req, res, next) {
-  try {
-    // Get information from body
-    const userId = req.user.id;
-    const title = req.body?.title;
-    const type = req.body?.type;
-
-    // Check valid title and story type
-    if (!title || !type) throw CreateError(400, "'title' and 'type' are required");
-    if (!ValidateStoryType(type)) throw CreateError(400, "Invalid story type");
-
-    const { nation, status } = req.body;
-    const genre = req?.body?.genre ? req.body.genre.split(",") : null;
-    if (!ValidateStoryStatus(status) || !ValidateGenre(genre)) throw CreateError(400, "Invalid status or genre");
-
-    const isStoryExist = await FindStory({ title: title });
-    if (isStoryExist.data) throw CreateError(400, "Story title already exists");
-
-    // Create and add cover art for story
-    if (req.file) {
-      const newFileName = "cover_art" + path.extname(req.file.filename);
-      const newFolderPath = `${DIRECTORY.UPLOADS_STORY}/${type}/${title}`;
-      const newFilePath = `${newFolderPath}/${newFileName}`;
-      await CreateNewFolder(newFolderPath);
-      await MoveFile(req.file.path, newFilePath);
-
-      var image = await AddImage({ url: newFilePath }); // Update image to db
-    }
-
-    // Add new story
-    const story = await AddStory({ title: title, type: type, nation: nation, status: status, posterId: userId, genres: genre, coverArtId: image.data.id });
-
-    if (!story || !story.success || !story.data) throw CreateError();
-
-    return res.status(200).json({
-      success: true,
-      message: "Post new story successfully",
-      data: story.data,
     });
   } catch (error) {
     next(error);
