@@ -14,8 +14,6 @@ export default function FilterDate({
   defaultValue?: Date;
   className?: string;
 }) {
-  console.log(defaultValue);
-
   const [date, setDate] = useState<string>(defaultValue ? convertDateTo_yyyMMdd(new Date(defaultValue)) : "");
 
   useEffect(() => {

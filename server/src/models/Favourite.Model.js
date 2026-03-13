@@ -14,6 +14,7 @@ export async function FindAllFavouriteStories({
   userId,
   storyId,
   storyType = [],
+  nations = [],
   authorsId = [],
   genres = [],
   star = [],
@@ -37,6 +38,7 @@ export async function FindAllFavouriteStories({
     "userId=" + userId,
     "storyId=" + storyId,
     "storyType=" + storyType,
+    "nations=" + nations,
     "authorsId=" + authorsId,
     "genres=" + genres,
     "star=" + star,
@@ -54,6 +56,7 @@ export async function FindAllFavouriteStories({
       is_deleted: false,
       ...(storyId && { id: storyId }),
       ...(storyType && storyType.length > 0 && { type: { in: storyType } }),
+      ...(nations && nations.length > 0 && { nation: { name: { in: nations } } }),
       ...(genres &&
         genres.length > 0 && {
           genres: { some: { genre: { in: genres } } },

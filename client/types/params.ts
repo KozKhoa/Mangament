@@ -54,10 +54,13 @@ export interface FavoureiteParams {
   limit?: number;
 
   type?: string;
+
   author?: string[];
   star?: string[];
   view?: string[];
   genre?: string[];
+  status?: string[];
+  nation?: string[];
 
   sort?: string;
 }

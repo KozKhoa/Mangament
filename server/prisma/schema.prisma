@@ -228,13 +228,13 @@ model Image {
 model Author {
   id        String  @id @default(uuid()) @db.Uuid
   name      String
-  avatar_id String?  @db.Uuid()
+  avatar_id String? @db.Uuid()
   nation_id String? @db.Uuid()
 
-  nation Nation?        @relation(fields: [nation_id], references: [id], onDelete: SetNull)
-  avatar Image?         @relation(fields: [avatar_id], references: [id], onDelete: SetNull)
+  nation Nation? @relation(fields: [nation_id], references: [id], onDelete: SetNull)
+  avatar Image?  @relation(fields: [avatar_id], references: [id], onDelete: SetNull)
 
-  story  Story_Author[]
+  story Story_Author[]
 }
 
 model Story_Author {
@@ -267,6 +267,7 @@ model FavouriteStory {
   user_id    String   @db.Uuid
   story_id   String   @db.Uuid
   created_at DateTime @default(now())
+  updated_at DateTime @default(now())
 
   user  User  @relation(fields: [user_id], references: [id], onDelete: Cascade)
   story Story @relation(fields: [story_id], references: [id], onDelete: Cascade)

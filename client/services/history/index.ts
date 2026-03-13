@@ -7,9 +7,16 @@ import { Pagination } from "@/types/pagination";
 type ServiceResult<T> = { success: boolean; data?: T; message?: string; pagination?: Pagination };
 
 export async function getHistories({ page = 1, limit = 10, sort = "created_at:desc", fromDate, toDate }: HistoryParams): Promise<ServiceResult<History[]>> {
+  console.log(fromDate, toDate);
   try {
     const res = await api.get(`/histories/user/me`, {
-      params: { page, limit, sort, fromDate, toDate },
+      params: {
+        page,
+        limit,
+        sort,
+        ...(fromDate && { fromDate: fromDate }),
+        ...(toDate && { toDate: toDate }),
+      },
       paramsSerializer: (params) => qs.stringify(params, { arrayFormat: "comma" }),
     });
     return res.data;

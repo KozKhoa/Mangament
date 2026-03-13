@@ -27,9 +27,12 @@ export function HistoriesPage() {
   const searchParams = useSearchParams();
 
   const page = Number(searchParams.get("page") ?? 1);
+  const limit = Number(searchParams.get("limit") ?? LIMIT);
   const sort = searchParams.get("sort") ?? "updated_at:desc";
   const fromDate = searchParams.get("fromDate") ?? "";
   const toDate = searchParams.get("toDate") ?? "";
+
+  console.log(fromDate, toDate);
 
   const [histories, setHistories] = useState<History[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -39,10 +42,10 @@ export function HistoriesPage() {
     setLoading(true);
     const res = await historyService.getHistories({
       page: page,
-      limit: LIMIT,
+      limit: limit,
       sort: sort,
       ...(fromDate && { fromDate: new Date(fromDate) }),
-      ...(toDate && { toDate: new Date(fromDate) }),
+      ...(toDate && { toDate: new Date(toDate) }),
     });
 
     if (!res.success) return toast.warning(res.message);
@@ -93,6 +96,7 @@ export function HistoriesPage() {
         <div className="flex flex-col gap-2 justify-start items-center py-2 w-full">
           {/* Sort and fiter */}
           <div className="w-full flex flex-row flex-wrap gap-1 justify-between">
+            {/* Filter */}
             <div className="flex flex-row flex-wrap gap-2 px-2 my-1">
               <SortTime value={sort} onSort={(value) => handleNavigate("sort", value)} />
               <FilterDate
@@ -103,6 +107,7 @@ export function HistoriesPage() {
               <FilterDate label="To" defaultValue={toDate ? new Date(toDate) : undefined} onChange={(date) => handleNavigate("toDate", date.toISOString())} />
             </div>
 
+            {/* Sort */}
             <div>
               {searchParams.size > 2 && (
                 <div
@@ -130,7 +135,7 @@ export function HistoriesPage() {
                     ))}
                   </div>
                 ) : (
-                  <NoFilterResult />
+                  <NoFilterResult onResetFilter={handleResetSearchParams} />
                 )}
               </>
             )}
