@@ -30,18 +30,15 @@ export default function SearchStories({ className, delay = 500 }: { className?: 
 
   useEffect(() => {
     if (!keyword || keyword.length < 3) {
+      setStories(null);
       return;
     }
 
-    const timeout = setTimeout(fetchSearchStories, delay);
-
-    setStories(null);
-
-    return () => clearTimeout(timeout);
+    fetchSearchStories();
   }, [keyword]);
 
   return (
-    <SearchBar className={`${className}`} onType={setKeyword} placeHolder="Nhập tối thiểu 3 ký tự">
+    <SearchBar className={`${className}`} onType={setKeyword} delay={delay} placeHolder="Nhập tối thiểu 3 ký tự">
       {(isLoading || stories) && (
         <>
           {isLoading && <Loading className="h-32 w-[30px] m-auto" />}

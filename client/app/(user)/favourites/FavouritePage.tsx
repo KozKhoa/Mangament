@@ -142,7 +142,7 @@ export function FavouritePage() {
                     {favourites && favourites.map((favourite, i) => <StoryCard key={favourite.id} data={favourite.story}></StoryCard>)}
                   </div>
                 ) : (
-                  <NoFilterResult />
+                  <NoFilterResult onResetFilter={handleResetSearchParams} />
                 )}
               </>
             )}

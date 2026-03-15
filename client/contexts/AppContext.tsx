@@ -8,10 +8,12 @@ import KEY from "@/constants/key";
 import genreService from "@/services/genre";
 import { toast } from "sonner";
 import authorService from "@/services/author";
+import NATIONS from "@/constants/nations";
 
 interface AppContextProps {
-  genres?: string[];
-  authors?: string[];
+  genres: string[];
+  authors: string[];
+  nations: { name: string; flag_icon: string }[];
   font?: string;
   textSize?: number;
   readingFont: string;
@@ -31,6 +33,8 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(false);
 
   const [genres, setGenres] = useState<string[]>([]);
+  const [nations, setNations] = useState<{ name: string; flag_icon: string }[]>([]);
+
   const [authors, setAuthors] = useState<string[]>([]);
   const [textSize, setTextSize] = useState<number>(DEFAULT.textSize);
   const [font, setFont] = useState<string>(DEFAULT.font.id);
@@ -98,6 +102,11 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
       setAuthors(res.data ?? []);
     }
 
+    async function fetchNations() {
+      setNations(NATIONS);
+    }
+
+    fetchNations();
     fetchAuthors();
     fetchGenres();
   }, []);
@@ -111,6 +120,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
       value={{
         authors,
         genres,
+        nations,
         font,
         textSize,
         readingFont,

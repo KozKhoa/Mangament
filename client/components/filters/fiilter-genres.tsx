@@ -5,11 +5,11 @@ import Tag from "../tags/tag";
 
 import ButtonDropdown from "../buttons/dropdown/btn-dropdown";
 import Checkbox from "../inputs/checkbox";
-import React, { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { snakeCaseToCapitalizeWord } from "@/utils/string";
-import FilterProps from "@/types/filter";
 import useApp from "@/contexts/AppContext";
+import SearchBar from "../search/search";
 
 interface FilterGenresProps {
   value: string[];
@@ -19,10 +19,13 @@ interface FilterGenresProps {
 const FilterGenres = ({ value, onChange }: FilterGenresProps) => {
   const app = useApp();
 
-  const [genres, setGenres] = useState<string[]>([]);
+  const genres = app?.genres ?? [];
+
+  const [beautyGenres, setBeautyGenres] = useState(genres.map((genre) => snakeCaseToCapitalizeWord(genre)));
 
   const [selectedIndexs, setSelectedIndexs] = useState<Set<number>>(new Set());
   const [finalSelectedIndex, setFinalSelectedIndex] = useState<Set<number>>(new Set());
+  const [hidden, setHidden] = useState<Set<number>>(new Set());
 
   const resetAllField = useCallback(() => {
     setSelectedIndexs(new Set());
@@ -46,10 +49,8 @@ const FilterGenres = ({ value, onChange }: FilterGenresProps) => {
   function handleFinish() {
     const result: string[] = [];
 
-    const genresArr = [...genres];
-
     [...selectedIndexs].forEach((index) => {
-      result.push(genresArr[index]);
+      result.push(genres[index]);
     });
 
     setFinalSelectedIndex(new Set(selectedIndexs));
@@ -57,9 +58,23 @@ const FilterGenres = ({ value, onChange }: FilterGenresProps) => {
     onChange?.(result);
   }
 
-  useEffect(() => {
-    setGenres(app?.genres ?? []);
-  }, [app?.genres]);
+  function handleSearch(keyword: string) {
+    if (!keyword) {
+      setHidden(new Set());
+      return;
+    }
+
+    const newSet = new Set<number>();
+
+    beautyGenres?.forEach((genre, i) => {
+      console.log(genre.toLowerCase());
+      if (!genre.toLowerCase().includes(keyword.toLowerCase())) {
+        newSet.add(i);
+      }
+    });
+
+    setHidden(newSet);
+  }
 
   useEffect(() => {
     const selected: number[] = [];
@@ -75,6 +90,10 @@ const FilterGenres = ({ value, onChange }: FilterGenresProps) => {
     setSelectedIndexs(new Set(selected));
     setFinalSelectedIndex(new Set(selected));
   }, [genres, value]);
+
+  useEffect(() => {
+    setBeautyGenres(genres.map((genre) => snakeCaseToCapitalizeWord(genre)));
+  }, [genres]);
 
   return (
     <ButtonDropdown
@@ -100,15 +119,21 @@ const FilterGenres = ({ value, onChange }: FilterGenresProps) => {
         </div>
       }
     >
-      <div className="grid grid-cols-2 gap-2.5 w-[300px] sm:w-[400px] lg:grid-cols-3 lg:w-[600px]">
-        {genres?.map((genre, i) => (
-          <div key={i} className="flex w-full h-fit justify-start items-center">
-            <Checkbox value={selectedIndexs.has(i)} onChange={(isChecked) => toggleCheckbox(i, isChecked)}>
-              {snakeCaseToCapitalizeWord(genre)}
-            </Checkbox>
-          </div>
-        ))}
-      </div>
+      <>
+        <div className="grid grid-cols-2 gap-2.5 w-[300px] sm:w-[400px] lg:grid-cols-3 lg:w-[600px] mt-12">
+          {beautyGenres?.map((genre, i) => (
+            <div key={i} className={`flex w-full h-fit justify-start items-center ${hidden.has(i) ? "hidden" : ""}`}>
+              <Checkbox value={selectedIndexs.has(i)} onChange={(isChecked) => toggleCheckbox(i, isChecked)}>
+                {genre}
+              </Checkbox>
+            </div>
+          ))}
+        </div>
+
+        <div className="absolute top-0 left-0 w-full p-2">
+          <SearchBar placeHolder="Tìm kiếm: (vd: japan)" onType={handleSearch} delay={200} />
+        </div>
+      </>
     </ButtonDropdown>
   );
 };
