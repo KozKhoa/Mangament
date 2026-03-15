@@ -27,9 +27,13 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
+    console.log(originalRequest);
+
     // If status code is 401 and there are no request being rejected by token expired before
     if (error.response?.status === 401 && !originalRequest?._retry) {
       originalRequest._retry = true;
+
+      console.log("sfaosjdk fadfa");
 
       try {
         // Call api refresh token

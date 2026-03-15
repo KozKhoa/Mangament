@@ -72,6 +72,10 @@ export async function FindAllComments({ userId, storyId, storyNodeId, sort = { u
 }
 
 export async function FindComment(id) {
+  if (!id) throw CreateError(400, "Require 'id'");
+
+  if (!isUUID(id)) throw CreateError("'id' must be uuid");
+
   const commentVer = await redisService.comments(id).get();
 
   const REDIS_KEY = ["FindComment", "commentVer=" + commentVer, "id=" + id].join(":");
@@ -80,7 +84,6 @@ export async function FindComment(id) {
   if (cached) return JSON.parse(cached);
 
   // This func do not need to cached because it is hardly called
-  if (!id) throw CreateError(400, "Require 'id'");
 
   const comment = await db.comment.findFirst({
     where: { is_deleted: false, id: id },
@@ -199,13 +202,14 @@ export async function UpdateComment(id, { title, content }) {
 export async function SoftDeleteComment(id) {
   if (!id) throw CreateError(400, "Require 'id'");
 
+  if (!isUUID(id)) throw CreateError(400, "'id' must be uuid");
+
   const softRemove = await db.comment
     .update({
       where: { id: id },
       data: { is_deleted: true },
     })
     .catch(async (error) => {
-      if (!isUUID(id)) throw CreateError(400, "'id' must be UUID");
       const comment = await db.comment.findFirst({ where: { id: id } });
       if (!comment) throw CreateError(400, "Comment not found");
 

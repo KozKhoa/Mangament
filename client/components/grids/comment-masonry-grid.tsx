@@ -11,6 +11,9 @@ import commentService from "@/services/comment";
 import Comment from "@/types/comment";
 import { Pagination } from "@/types/pagination";
 import { modal } from "../modal/modal.store";
+import useAuth from "@/contexts/AuthContext";
+import Image from "next/image";
+import Link from "next/link";
 
 interface StoryNodeCommentsGridProps {
   className?: string;
@@ -47,6 +50,9 @@ function CommentButton({ storyId, storyNodeId, onSubmit }: { storyId: string; st
 }
 
 export default function CommentMasonryGrid({ className, storyNodeId, storyId, elementPerPage = 8 }: StoryNodeCommentsGridProps) {
+  const auth = useAuth();
+  const user = auth?.user;
+
   const page = useRef(1);
   const [comments, setComments] = useState<Comment[]>([]);
   const [pagination, setPagination] = useState<Pagination>();
@@ -78,6 +84,17 @@ export default function CommentMasonryGrid({ className, storyNodeId, storyId, el
     const newComment: Comment[] = res.data ?? [];
 
     setComments((prevComments) => [...prevComments, ...newComment]);
+  }
+
+  // call api to remove user's comment
+  async function deleteComment(comment: Comment) {
+    const res = await commentService.deleteComment(comment.id);
+
+    if (!res.success) return toast.warning(res.message);
+
+    setComments((prev) => prev.filter((prevComment) => prevComment.id !== comment.id));
+
+    toast.message("Xóa bình luận thành công");
   }
 
   async function handleGetMoreComments() {
@@ -146,13 +163,15 @@ export default function CommentMasonryGrid({ className, storyNodeId, storyId, el
           </span>
         </h2>
 
-        <CommentButton
-          storyId={storyId}
-          storyNodeId={storyNodeId}
-          onSubmit={(neComment) => {
-            neComment && updateUiWithNewComment(neComment);
-          }}
-        ></CommentButton>
+        {user && (
+          <CommentButton
+            storyId={storyId}
+            storyNodeId={storyNodeId}
+            onSubmit={(neComment) => {
+              neComment && updateUiWithNewComment(neComment);
+            }}
+          />
+        )}
       </div>
 
       {comments.length > 0 ? (
@@ -160,13 +179,23 @@ export default function CommentMasonryGrid({ className, storyNodeId, storyId, el
           {comments.length > elementPerPage ? (
             <MasonryGrid breakpointCols={breakpointColumnsObj}>
               {comments.map((commment, i) => (
-                <CommentCard key={commment.id} comment={commment}></CommentCard>
+                <CommentCard
+                  key={commment.id}
+                  comment={commment}
+                  className={`w-full border-2 ${user?.id == commment.user?.id ? "border-purple-500" : "border-transparent"}`}
+                  onDelete={commment.user?.id == user?.id ? () => deleteComment(commment) : undefined}
+                />
               ))}
             </MasonryGrid>
           ) : (
             <div className="grid grid-cols-2 gap-2 w-full">
               {comments.map((commment, i) => (
-                <CommentCard className="w-full" key={commment.id} comment={commment}></CommentCard>
+                <CommentCard
+                  key={commment.id ?? i}
+                  comment={commment}
+                  className={`w-full border-2 ${user?.id == commment.user?.id ? "border-purple-500" : "border-transparent"}`}
+                  onDelete={commment.user?.id == user?.id ? () => deleteComment(commment) : undefined}
+                />
               ))}
             </div>
           )}
@@ -175,14 +204,25 @@ export default function CommentMasonryGrid({ className, storyNodeId, storyId, el
         <>
           {!loading && (
             <div className="flex flex-col justify-center items-center gap-2 md:text-[1.2em]">
-              <p className="text-center p-10 py-5">Chưa có bình luận nào, hãy trở thành người bình luận đầu tiên</p>
-              <CommentButton
-                storyId={storyId}
-                storyNodeId={storyNodeId}
-                onSubmit={(neComment) => {
-                  neComment && updateUiWithNewComment(neComment);
-                }}
-              ></CommentButton>
+              <div className="text-center p-10 py-5">
+                {user ? (
+                  "Chưa có bình luận nào, hãy trở thành người bình luận đầu tiên"
+                ) : (
+                  <Link href={"/login"} className="my-2">
+                    <Image src="/login.png" alt="Require login" width={100} height={100} className="m-auto px-5 pt-5 pb-2 rounded-lg bg-white/80" />
+                    <p className="m-auto my-3">Đăng nhập để để lại bình luận</p>
+                  </Link>
+                )}
+              </div>
+              {user && (
+                <CommentButton
+                  storyId={storyId}
+                  storyNodeId={storyNodeId}
+                  onSubmit={(neComment) => {
+                    neComment && updateUiWithNewComment(neComment);
+                  }}
+                />
+              )}
             </div>
           )}
         </>

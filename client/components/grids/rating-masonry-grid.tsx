@@ -12,6 +12,8 @@ import ratingService from "@/services/rating";
 import { modal } from "../modal/modal.store";
 import RatingInputForm from "../forms/rating-input-form";
 import useAuth from "@/contexts/AuthContext";
+import Link from "next/link";
+import Image from "next/image";
 interface RatingGridProps {
   className?: string;
   storyId: string;
@@ -46,6 +48,8 @@ function RatingButton({ storyId, onSubmit }: { storyId: string; onSubmit?: (newR
 
 export default function RatingMasonryGrid({ className, storyId, elementPerPage = 8, allowAddNewRating = true }: RatingGridProps) {
   const auth = useAuth();
+
+  const user = auth?.user;
 
   const page = useRef(1);
   const [ratings, setRatings] = useState<Rating[]>([]);
@@ -117,7 +121,7 @@ export default function RatingMasonryGrid({ className, storyId, elementPerPage =
           </span>
         </h2>
 
-        {allowAddNewRating && (
+        {allowAddNewRating && user && (
           <RatingButton
             storyId={storyId}
             onSubmit={(newRating) => {
@@ -155,13 +159,24 @@ export default function RatingMasonryGrid({ className, storyId, elementPerPage =
         <>
           {!loading && allowAddNewRating && (
             <div className="flex flex-col justify-center items-center gap-2 md:text-[1.2em]">
-              <p className="text-center p-10 py-5">Chưa có đánh giá nào, hãy trở thành người đánh giá đầu tiên</p>
-              <RatingButton
-                storyId={storyId}
-                onSubmit={(newRating) => {
-                  newRating && updateUiWithNewRating(newRating);
-                }}
-              />
+              <div className="text-center p-10 py-5">
+                {user ? (
+                  "Chưa có đánh giá nào, hãy trở thành người đánh giá đầu tiên"
+                ) : (
+                  <Link href={"/login"} className="my-2">
+                    <Image src="/login.png" alt="Require login" width={100} height={100} className="m-auto px-5 pt-5 pb-2 rounded-lg bg-white/80" />
+                    <p className="m-auto my-3">Đăng nhập để để lại đánh giá</p>
+                  </Link>
+                )}
+              </div>
+              {user && (
+                <RatingButton
+                  storyId={storyId}
+                  onSubmit={(newRating) => {
+                    newRating && updateUiWithNewRating(newRating);
+                  }}
+                />
+              )}
             </div>
           )}
         </>

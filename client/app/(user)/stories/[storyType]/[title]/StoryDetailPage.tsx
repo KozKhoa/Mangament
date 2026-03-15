@@ -127,11 +127,13 @@ export default function StoryDetailPage() {
         </div>
       </div>
 
-      {/* Rating */}
-      <RatingMasonryGrid storyId={story?.id ?? ""} allowAddNewRating={story?.rating ? false : true}></RatingMasonryGrid>
+      <div className="flex flex-col gap-5">
+        {/* Rating */}
+        <RatingMasonryGrid storyId={story?.id ?? ""} allowAddNewRating={story?.rating ? false : true}></RatingMasonryGrid>
 
-      {/* Comment */}
-      <CommentMasonryGrid storyId={story?.id ?? ""}></CommentMasonryGrid>
+        {/* Comment */}
+        <CommentMasonryGrid storyId={story?.id ?? ""}></CommentMasonryGrid>
+      </div>
 
       <RecommendStories className="max-w-[1800] mx-auto"></RecommendStories>
     </div>

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 import SearchBar from "@/components/search/search";
@@ -17,7 +17,7 @@ import ArrowDownIcon from "@/public/arrows/down-v.svg";
 import ButtonDropdown from "@/components/buttons/dropdown/btn-dropdown";
 import genreService from "@/services/genre";
 import { toast } from "sonner";
-import { snakeCaseToCapitalizeWord, snakeCaseToNormal } from "@/utils/string";
+import { snakeCaseToCapitalizeWord } from "@/utils/string";
 import { useParams, useRouter } from "next/navigation";
 import useAuth from "@/contexts/AuthContext";
 
@@ -135,8 +135,15 @@ function NavBar({ duration = 100, autoHide = true, className }: NavBarProps) {
           <ButtonDropdown
             openOnLeft={false}
             icon={
-              <div className="flex gap-1.5 min-w-10 aspect-square rounded-full overflow-hidden">
-                <Image src={user?.avatar?.url ?? "/avatar.png"} className="rounded-full shrink-0 " alt="Avatar" width={40} height={40} unoptimized />
+              <div className="flex gap-1.5 min-w-10 aspect-square rounded-full overflow-hidden shrink-0">
+                <Image
+                  src={[process.env.NEXT_PUBLIC_CDN_URL, user?.avatar?.key].join("/") ?? "/avatar.png"}
+                  className="rounded-full shrink-0 "
+                  alt="Avatar"
+                  width={40}
+                  height={40}
+                  unoptimized
+                />
               </div>
             }
           >

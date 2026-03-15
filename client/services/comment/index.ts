@@ -55,6 +55,16 @@ export async function postStoryNodeComment(storyId: string, storyNodeId: string,
   }
 }
 
-const commentService = { getStoryComments, getStoryNodeComments, postStoryComment, postStoryNodeComment };
+export async function deleteComment(id: string): Promise<ServiceResult<null>> {
+  try {
+    const res = await api.delete(`/comments/${id}`);
+    return res.data;
+  } catch (error) {
+    console.error(error);
+    return { success: false, message: error?.toString() };
+  }
+}
+
+const commentService = { getStoryComments, getStoryNodeComments, postStoryComment, postStoryNodeComment, deleteComment };
 
 export default commentService;
