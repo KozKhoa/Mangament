@@ -56,8 +56,6 @@ export default function StoryGrid({ label, storyType, elementsPerPage, className
       isGettingSummary: true,
     };
 
-    console.log(params);
-
     const res = await storyService.getStories(storyParams);
 
     if (!res) return toast.warning("Cannot connect with server");
@@ -130,7 +128,6 @@ export default function StoryGrid({ label, storyType, elementsPerPage, className
           <FilterSortStories
             className="w-full"
             onChange={(newParams) => {
-              console.log("reset page");
               setPage(1);
               handleUpdateParams(newParams);
             }}

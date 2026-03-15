@@ -32,8 +32,6 @@ export function HistoriesPage() {
   const fromDate = searchParams.get("fromDate") ?? "";
   const toDate = searchParams.get("toDate") ?? "";
 
-  console.log(fromDate, toDate);
-
   const [histories, setHistories] = useState<History[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [pagination, setPagination] = useState<Pagination>();

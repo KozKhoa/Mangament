@@ -13,9 +13,9 @@ export async function getRatings(storyId: string, params: RatingParams): Promise
       paramsSerializer: (params) => qs.stringify(params, { arrayFormat: "comma" }),
     });
     return res.data;
-  } catch (error) {
+  } catch (error: any) {
     console.error(error);
-    return { success: false, message: error?.toString() };
+    return { success: false, message: error?.response?.data?.message || error?.message || "Unknown error" };
   }
 }
 
@@ -27,9 +27,9 @@ export async function addNewRating(storyId: string, star: number, title: string,
       content: content,
     });
     return res.data;
-  } catch (error) {
+  } catch (error: any) {
     console.error(error);
-    return { success: false, message: error?.toString() };
+    return { success: false, message: error?.response?.data?.message || error?.message || "Unknown error" };
   }
 }
 

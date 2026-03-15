@@ -48,12 +48,12 @@ export const VerifyAccessToken = (token) => {
   }
 };
 
-export const SaveTokenOnCookies = (res, token) => {
-  res.cookie(COOKIES_REFRESH_TOKEN_KEY, token, {
+export function SaveTokenOnCookies(res, token) {
+  res.cookie(process.env.COOKIES_REFRESH_TOKEN_KEY, token, {
     httpOnly: true,
     // secure: true,     // bắt buộc khi dùng HTTPS
     secure: false,
-    sameSite: "strict",
+    sameSite: "lax",
     //   path: ["/api/auth/refresh", "api/auth/logout"]
   });
-};
+}

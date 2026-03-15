@@ -16,8 +16,6 @@ export default function CommentInput({ onFinish, className }: CommentInputProps)
   const [errMsg, setErrMsg] = useState<string>();
 
   function handleFinish() {
-    console.log(text);
-
     if (!text || text === "") {
       setErrMsg("Your can not leave it blank");
       return toast.message("Your can not leave it blank");

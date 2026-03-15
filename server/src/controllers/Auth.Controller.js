@@ -1,12 +1,10 @@
-import { AddUser, SoftDeleteUser, UpdateUser, FindUser, ChangePassword } from "../models/User.Model.js";
+import { AddUser, FindUser, ChangePassword } from "../models/User.Model.js";
 import { CheckEmailAndPasswordFormat } from "../utils/Validators.js";
 import { CreateError } from "../utils/ErrorHandle.js";
 import { ComparePassword, HashPassword, RandomPassword } from "../utils/PasswordHandle.js";
-import { GenAccessToken, GenRefreshToken, SaveTokenOnCookies, VerifyRefreshToken } from "../utils/TokenHandle.js";
-import ErrorCodes from "../constants/Error.js";
+import { GenAccessToken, GenRefreshToken, VerifyRefreshToken } from "../utils/TokenHandle.js";
 
 import { COOKIES_REFRESH_TOKEN_KEY } from "../configs/env.js";
-import logger from "../models/LogReport.Model.js";
 
 import * as otpService from "../services/otp.service.js";
 import * as mailService from "../services/mail.service.js";
@@ -48,7 +46,14 @@ export const Login = async (req, res, next) => {
     await AddRefreshToken({ userId: user.id, token: refreshToken });
 
     // Add refresh token to http only
-    SaveTokenOnCookies(res, refreshToken);
+    res.cookie(process.env.COOKIES_REFRESH_TOKEN_KEY, refreshToken, {
+      httpOnly: true,
+      // secure: true,     // bắt buộc khi dùng HTTPS
+      secure: false,
+      sameSite: "lax",
+      path: "/auth/refresh",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
 
     // response access token to user
     res.status(200).json({
@@ -66,9 +71,6 @@ export const Login = async (req, res, next) => {
       },
     });
   } catch (error) {
-    if (!error.status) {
-      logger.error("❌ [Auth.Controller.js] Error login:", error);
-    }
     next(error);
   }
 };
@@ -101,9 +103,6 @@ export const Register = async (req, res, next) => {
 
     // Save refresh token to db
     await AddRefreshToken({ userId: user.data.id, token: refreshToken });
-
-    // Save refresh token to http only
-    SaveTokenOnCookies(res, refreshToken);
 
     delete user.data.password;
     // Response to user
@@ -148,8 +147,8 @@ export const Logout = async (req, res, next) => {
 
 export const Refresh = async (req, res, next) => {
   try {
-    const refreshToken = req.cookies[COOKIES_REFRESH_TOKEN_KEY]; // Get refreh token from cookies
-    if (!refreshToken) throw CreateError(401, "Token is invalid");
+    const refreshToken = req.cookies[process.env.COOKIES_REFRESH_TOKEN_KEY]; // Get refreh token from cookies
+    if (!refreshToken) throw CreateError(401, "Cannot find refresh token");
 
     const { decodedToken, isExpire } = VerifyRefreshToken(refreshToken);
 

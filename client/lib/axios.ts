@@ -5,7 +5,6 @@ import * as token from "@/lib/token";
 // Create instance
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
-  validateStatus: (status) => status < 500,
   timeout: 20000,
 });
 
@@ -23,28 +22,25 @@ api.interceptors.request.use(
 
 // If access token is expired
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    return response;
+  },
   async (error) => {
     const originalRequest = error.config;
-
-    console.log(originalRequest);
 
     // If status code is 401 and there are no request being rejected by token expired before
     if (error.response?.status === 401 && !originalRequest?._retry) {
       originalRequest._retry = true;
 
-      console.log("sfaosjdk fadfa");
-
       try {
         // Call api refresh token
         const res = await axios.post(
-          `${process.env.NEXT_PUBLIC_API_URL}auth/refresh`,
+          `${process.env.NEXT_PUBLIC_API_URL}/auth/refresh`,
           {},
           { withCredentials: true }, // gửi cookie refresh token
         );
 
         const newAccessToken = res.data.data.token;
-        console.log(newAccessToken);
         token.setAccessToken(newAccessToken);
 
         // Cập nhật token mới và gửi lại request cũ

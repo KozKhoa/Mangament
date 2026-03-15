@@ -1,4 +1,3 @@
-import { group } from "console";
 import { HTMLAttributes, useEffect, useRef } from "react";
 
 export interface ColumnChartProps {

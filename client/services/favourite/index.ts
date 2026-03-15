@@ -13,9 +13,9 @@ export async function getFavouriteStories(params: FavoureiteParams): Promise<Ser
       paramsSerializer: (params) => qs.stringify(params, { arrayFormat: "comma" }),
     });
     return res.data;
-  } catch (error) {
+  } catch (error: any) {
     console.log(error);
-    return { success: false, message: error?.toString() };
+    return { success: false, message: error?.response?.data?.message || error?.message || "Unknown error" };
   }
 }
 
@@ -25,9 +25,9 @@ export async function addNewFavouriteStory(storyId: string): Promise<ServiceResu
       storyId: storyId,
     });
     return res.data;
-  } catch (error) {
+  } catch (error: any) {
     console.log(error);
-    return { success: false, message: error?.toString() };
+    return { success: false, message: error?.response?.data?.message || error?.message || "Unknown error" };
   }
 }
 
@@ -35,9 +35,9 @@ export async function removeFavouriteStory(favouriteId: string): Promise<Service
   try {
     const res = await api.delete(`/favourites/${favouriteId}`);
     return res.data;
-  } catch (error) {
+  } catch (error: any) {
     console.log(error);
-    return { success: false, message: error?.toString() };
+    return { success: false, message: error?.response?.data?.message || error?.message || "Unknown error" };
   }
 }
 

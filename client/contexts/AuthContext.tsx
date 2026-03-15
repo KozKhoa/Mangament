@@ -100,8 +100,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       key: res.data?.avatar?.key,
     };
 
-    console.log(newUser);
-
     setUser(newUser);
 
     if (!res.success) toast.warning(res.message);

@@ -9,9 +9,9 @@ export async function me(): Promise<ServiceResult<User>> {
   try {
     const res = await api.get("/auth/me");
     return res.data;
-  } catch (error) {
+  } catch (error: any) {
     console.error(error);
-    return { success: false, message: error?.toString() };
+    return { success: false, message: error?.response?.data?.message || error?.message || "Unknown error" };
   }
 }
 
@@ -20,19 +20,19 @@ export async function register(name: string, email: string, password: string): P
     const res = await api.post("/auth/register", { name, email, password });
 
     return res.data;
-  } catch (error) {
+  } catch (error: any) {
     console.error(error);
-    return { success: false, message: error?.toString() };
+    return { success: false, message: error?.response?.data?.message || error?.message || "Unknown error" };
   }
 }
 
 export async function login(email: string, password: string): Promise<ServiceResult<{ accessToken: string; user: User }>> {
   try {
-    const res = await api.post("/auth/login", { email, password });
+    const res = await api.post("/auth/login", { email, password }, { withCredentials: true });
     return res.data;
-  } catch (error) {
+  } catch (error: any) {
     console.error(error);
-    return { success: false, message: error?.toString() };
+    return { success: false, message: error?.response?.data?.message || error?.message || "Unknown error" };
   }
 }
 
@@ -40,9 +40,9 @@ export async function logout(): Promise<ServiceResult<any[]>> {
   try {
     const res = await api.post("/auth/logout");
     return res.data;
-  } catch (error) {
+  } catch (error: any) {
     console.error(error);
-    return { success: false, message: error?.toString() };
+    return { success: false, message: error?.response?.data?.message || error?.message || "Unknown error" };
   }
 }
 
@@ -54,9 +54,9 @@ export async function refresh(): Promise<ServiceResult<{ token: string; user: Us
       { withCredentials: true }, // gửi cookie refresh token
     );
     return res.data;
-  } catch (error) {
+  } catch (error: any) {
     console.error(error);
-    return { success: false, message: error?.toString() };
+    return { success: false, message: error?.response?.data?.message || error?.message || "Unknown error" };
   }
 }
 
@@ -65,9 +65,9 @@ export async function forgotPassword(email: string): Promise<ServiceResult<any>>
     const res = await api.post("/auth/forgot-password", { email });
 
     return await res.data;
-  } catch (error) {
+  } catch (error: any) {
     console.error(error);
-    return { success: false, message: error?.toString() };
+    return { success: false, message: error?.response?.data?.message || error?.message || "Unknown error" };
   }
 }
 
@@ -76,9 +76,9 @@ export async function resetPassword(email: string, otp: string): Promise<Service
     const res = await api.post("/auth/reset-password", { email, otp });
 
     return await res.data;
-  } catch (error) {
+  } catch (error: any) {
     console.error(error);
-    return { success: false, message: error?.toString() };
+    return { success: false, message: error?.response?.data?.message || error?.message || "Unknown error" };
   }
 }
 

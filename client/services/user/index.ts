@@ -29,9 +29,9 @@ export async function updateUser(user: User): Promise<ServiceResult<User>> {
     console.log(res.data);
 
     return res.data;
-  } catch (error) {
+  } catch (error: any) {
     console.error(error);
-    return { success: false, message: error?.toString() };
+    return { success: false, message: error?.response?.data?.message || error?.message || "Unknown error" };
   }
 }
 

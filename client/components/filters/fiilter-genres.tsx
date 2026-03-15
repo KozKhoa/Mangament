@@ -67,7 +67,6 @@ const FilterGenres = ({ value, onChange }: FilterGenresProps) => {
     const newSet = new Set<number>();
 
     beautyGenres?.forEach((genre, i) => {
-      console.log(genre.toLowerCase());
       if (!genre.toLowerCase().includes(keyword.toLowerCase())) {
         newSet.add(i);
       }
