@@ -12,8 +12,6 @@ export async function GetAllFavouriteStories(req, res, next) {
 
     const { limit, page, sort, type, authors, genres, star, view, nations } = ConvertQuery(req.query);
 
-    console.log(sort);
-
     const favouriteStories = await FindAllFavouriteStories({
       userId: userId,
       limit: limit,

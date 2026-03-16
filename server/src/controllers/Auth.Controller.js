@@ -183,7 +183,7 @@ export const Refresh = async (req, res, next) => {
       success: true,
       message: "Get new access token success",
       data: {
-        token: accessToken,
+        accessToken: accessToken,
         user: {
           id: user.id,
           name: user.name || "",

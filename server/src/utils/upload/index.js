@@ -72,8 +72,6 @@ async function handleAdd(filePath) {
 
     const coverArtResJson = await coverArtRes.json();
 
-    console.log(coverArtResJson);
-
     const { url: coverArtUrl, key: coverArtKey, id: coverArtId } = coverArtResJson.data;
 
     // Update cover art for story

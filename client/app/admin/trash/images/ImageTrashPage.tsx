@@ -274,7 +274,7 @@ export function ImageTrashPage() {
                 <Image
                   className={`object-contain ${selected.has(image.id ?? "") ? "opacity-40" : ""}`}
                   onClick={(e) => handleToggleSelectedImage(image.id ?? "", e as any)}
-                  src={[process.env.NEXT_PUBLIC_CDN_URL, image.key].join("/")}
+                  src={[process.env.NEXT_PUBLIC_CDN_URL, image.key].join("/") ?? image.url}
                   alt={image.key ?? ""}
                   width={300}
                   height={400}

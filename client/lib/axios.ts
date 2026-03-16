@@ -12,13 +12,30 @@ const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     const accessToken = token.getAccessToken();
+
     if (accessToken) {
       config.headers.Authorization = `Bearer ${accessToken}`;
     }
+
+    // Gắn API KEY vào headers
+    config.headers["x-api-key"] = process.env.API_KEY;
+
     return config;
   },
   (error) => Promise.reject(error),
 );
+
+let isRefreshing = false;
+let refreshQueue: any[] = [];
+
+function processRefreshQueue(error: any, accessToken: string | null) {
+  refreshQueue.forEach((prom) => {
+    if (error) prom.reject(error);
+    else prom.resolve(accessToken);
+  });
+
+  refreshQueue = [];
+}
 
 // If access token is expired
 api.interceptors.response.use(
@@ -30,6 +47,15 @@ api.interceptors.response.use(
 
     // If status code is 401 and there are no request being rejected by token expired before
     if (error.response?.status === 401 && !originalRequest?._retry) {
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          refreshQueue.push({ resolve, reject });
+        }).then((accessToken) => {
+          originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+          return api(originalRequest);
+        });
+      }
+
       originalRequest._retry = true;
 
       try {
@@ -40,14 +66,18 @@ api.interceptors.response.use(
           { withCredentials: true }, // gửi cookie refresh token
         );
 
-        const newAccessToken = res.data.data.token;
+        const newAccessToken = res.data.data.accessToken;
+
+        processRefreshQueue(null, newAccessToken);
+
         token.setAccessToken(newAccessToken);
 
         // Cập nhật token mới và gửi lại request cũ
         originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
-        return api(originalRequest);
+        return axios(originalRequest);
       } catch (error: unknown) {
         console.warn("Refresh token failed:", error);
+        processRefreshQueue(error, null);
         token.removeAccessToken();
       }
     }

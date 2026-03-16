@@ -1,6 +1,19 @@
 import ErrorCodes from "../constants/Error.js";
 import { VerifyAccessToken } from "../utils/TokenHandle.js";
 import { FindUser } from "../models/User.Model.js";
+import { CreateError } from "../utils/ErrorHandle.js";
+
+export async function verifyApiKey(req, res, next) {
+  try {
+    const apiKey = req.headers["x-api-key"];
+
+    if (!apiKey || apiKey !== process.env.API_KEY) {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+  } catch (error) {
+    next(error);
+  }
+}
 
 export const AuthenticationToken = async (req, res, next) => {
   // Determine who you are (your id, name, email,...)
@@ -45,7 +58,7 @@ export const AuthenticationToken = async (req, res, next) => {
   }
 };
 
-export const AuthorizationRole = (req, res, next) => {
+export async function AuthorizationRole(req, res, next) {
   // Determine you permistion, if you are not admin, you cannto access this request
   try {
     const role = req?.user?.role;
@@ -72,7 +85,7 @@ export const AuthorizationRole = (req, res, next) => {
       message: ErrorCodes.INTERNAL_SERVER_ERROR.message,
     });
   }
-};
+}
 
 // Verify user, if not user, still be able to call api
 export const OptionalAuth = async (req, res, next) => {
@@ -89,13 +102,13 @@ export const OptionalAuth = async (req, res, next) => {
     // Decoded token
     const { decodedToken, isExpire } = VerifyAccessToken(token);
     if (isExpire || !decodedToken || !decodedToken.id) {
-      return next();
+      return res.status(401).json({ success: false, message: ErrorCodes.UNAUTHORIZED.message });
     }
 
     // Check if user exist
     const checkUser = await FindUser({ id: decodedToken.id });
     if (!checkUser || !checkUser.success || !checkUser.data) {
-      return next();
+      throw CreateError(401, "User not found");
     }
 
     // Put user info into reqeust

@@ -17,7 +17,7 @@ export async function getStoryById(storyId: string, params: StoryParams): Promis
     });
     return res.data;
   } catch (error: any) {
-    console.log(error);
+    console.error(error);
     return { success: false, message: error?.response?.data?.message || error?.message || "Unknown error" };
   }
 }
@@ -32,7 +32,7 @@ export async function getStoryByTitle(title: string, params: StoryParams): Promi
     });
     return res.data;
   } catch (error: any) {
-    console.log(error);
+    console.error(error);
     return { success: false, message: error?.response?.data?.message || error?.message || "Unknown error" };
   }
 }
@@ -45,7 +45,7 @@ export async function getStories(params?: StoryParams): Promise<ServiceResult<St
     });
     return res.data;
   } catch (error: any) {
-    console.log(error);
+    console.error(error);
     return { success: false, message: error?.response?.data?.message || error?.message || "Unknown error" };
   }
 }
@@ -56,7 +56,7 @@ export async function getReview(storyId: string): Promise<ServiceResult<string[]
 
     return res.data;
   } catch (error: any) {
-    console.log(error);
+    console.error(error);
     return { success: false, message: error?.response?.data?.message || error?.message || "Unknown error" };
   }
 }
@@ -66,7 +66,7 @@ export async function getRandomStory(): Promise<ServiceResult<Story>> {
     const res = await api.get(`/stories/random`);
     return res.data;
   } catch (error: any) {
-    console.log(error);
+    console.error(error);
     return { success: false, message: error?.response?.data?.message || error?.message || "Unknown error" };
   }
 }
@@ -79,7 +79,7 @@ export async function countStories(params?: StoryParams): Promise<ServiceResult<
     });
     return res.data;
   } catch (error: any) {
-    console.log(error);
+    console.error(error);
     return { success: false, message: error?.response?.data?.message || error?.message || "Unknown error" };
   }
 }
@@ -89,7 +89,7 @@ export async function addOneView(storyId: string) {
     const res = await api.patch(`/stories/${storyId}/view`);
     return res.data;
   } catch (error: any) {
-    console.log(error);
+    console.error(error);
     return { success: false, message: error?.response?.data?.message || error?.message || "Unknown error" };
   }
 }

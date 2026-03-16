@@ -9,7 +9,7 @@ export async function getAuthors(number?: number | null): Promise<ServiceResult<
     const res = await api.get("/authors", { params: { page: 1, limit: number ?? 2147483647 } });
     return res.data;
   } catch (error: any) {
-    console.log(error);
+    console.error(error);
     return { success: false, message: error?.response?.data?.message || error?.message || "Unknown error" };
   }
 }

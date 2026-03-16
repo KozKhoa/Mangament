@@ -26,8 +26,6 @@ export async function updateUser(user: User): Promise<ServiceResult<User>> {
       ...(avatar && { avatar: avatar }),
     });
 
-    console.log(res.data);
-
     return res.data;
   } catch (error: any) {
     console.error(error);
