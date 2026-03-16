@@ -43,14 +43,10 @@ export interface CommentParams {
 export interface HistoryParams {
   page?: number;
   limit?: number;
-
-  type?: string;
-  author?: string[];
-  star?: string[];
-  view?: string[];
-  genre?: string[];
-
   sort?: string;
+
+  fromDate?: Date;
+  toDate?: Date;
 }
 
 export interface FavoureiteParams {
@@ -58,10 +54,13 @@ export interface FavoureiteParams {
   limit?: number;
 
   type?: string;
+
   author?: string[];
   star?: string[];
   view?: string[];
   genre?: string[];
+  status?: string[];
+  nation?: string[];
 
   sort?: string;
 }

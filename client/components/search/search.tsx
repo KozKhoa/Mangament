@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import SearchIcon from "@/public/search.svg";
 import { useFloating, offset, flip, shift } from "@floating-ui/react-dom";
 import { AnimatePresence, motion } from "framer-motion";
@@ -8,12 +8,14 @@ interface SearchBarProps {
   onType?: (text: string) => void;
   children?: React.ReactNode;
 
+  delay?: number;
+
   placeHolder?: string;
   styles?: React.CSSProperties;
   className?: string;
 }
 
-function SearchBar({ onSearch, onType, children, placeHolder = "Tìm kiếm", styles = {}, className }: SearchBarProps) {
+function SearchBar({ onSearch, onType, children, placeHolder = "Tìm kiếm", styles = {}, className, delay = 0 }: SearchBarProps) {
   const { refs, floatingStyles } = useFloating({
     middleware: [offset(10), flip(), shift()],
   });
@@ -27,8 +29,13 @@ function SearchBar({ onSearch, onType, children, placeHolder = "Tìm kiếm", st
 
   function handleTyping(text: string) {
     setText(text);
-    onType?.(text);
   }
+
+  useEffect(() => {
+    const timeout = setTimeout(() => onType?.(text), delay);
+
+    return () => clearTimeout(timeout);
+  }, [text]);
 
   return (
     <div onFocus={() => setIsFocus(true)} onBlur={() => setIsFocus(false)} className={`${className}`}>
@@ -41,6 +48,7 @@ function SearchBar({ onSearch, onType, children, placeHolder = "Tìm kiếm", st
         <input
           className={`w-full h-fit border-0 outline-none   text-black`}
           type="text"
+          value={text}
           placeholder={placeHolder}
           onChange={(e) => handleTyping(e.target.value)}
           onKeyDown={(e) => {

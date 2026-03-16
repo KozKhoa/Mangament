@@ -1,12 +1,9 @@
-import { PutObjectCommand } from "@aws-sdk/client-s3";
 import crypto from "crypto";
 
 import * as imageModel from "../models/Image.Model.js";
 
 import pLimit from "p-limit";
 import sharp from "sharp";
-
-import { r2 } from "../configs/r2.js";
 
 import * as r2CloudflareService from "../services/r2-cloudflare.service.js";
 
@@ -18,7 +15,9 @@ export async function UploadAvatar(req, res, next) {
 
     const file = req.file;
 
-    const key = `user/${userId}/avatar/_avatar_${userId}.jpg`;
+    const id = crypto.randomUUID();
+
+    const key = `user/${userId}/avatar/_avatar_${userId}_${id}.jpg`;
 
     const url = `${process.env.CDN_URL}/${key}`;
 
@@ -46,7 +45,9 @@ export async function UploadStoryCoverArt(req, res, next) {
 
     const storyId = req.params?.storyId;
 
-    const key = `story/${storyId}/cover-art/_cover-art_${storyId}.jpg`;
+    const id = crypto.randomUUID();
+
+    const key = `story/${storyId}/cover-art/_cover-art_${storyId}_${id}.jpg`;
 
     const url = `${process.env.CDN_URL}/${key}`;
 

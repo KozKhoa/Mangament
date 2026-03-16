@@ -43,7 +43,6 @@ export default function RankingStoryPage() {
   const [stories, setStories] = useState<Story[]>([]);
 
   function handleNavigate(rankBy: string) {
-    console.log(rankBy);
     router.replace(`?page=${page}&rankBy=${rankBy ?? "hottest"}`);
   }
 

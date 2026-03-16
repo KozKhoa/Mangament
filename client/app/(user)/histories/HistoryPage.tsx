@@ -2,7 +2,9 @@
 
 import { toast } from "sonner";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+
+import XIcon from "@/public/x-icon.svg";
 
 import History from "@/types/history";
 
@@ -14,6 +16,8 @@ import withAuth from "@/hoc/withAuth";
 import SwitchPageSmall from "@/components/switch-page/small";
 import NoFilterResult from "@/components/cards/no-filter";
 import Loading from "@/components/loadings/loading";
+import SortTime from "@/components/sorts/sort-time";
+import FilterDate from "@/components/filters/filter-date";
 
 const LIMIT = 30;
 
@@ -23,6 +27,10 @@ export function HistoriesPage() {
   const searchParams = useSearchParams();
 
   const page = Number(searchParams.get("page") ?? 1);
+  const limit = Number(searchParams.get("limit") ?? LIMIT);
+  const sort = searchParams.get("sort") ?? "updated_at:desc";
+  const fromDate = searchParams.get("fromDate") ?? "";
+  const toDate = searchParams.get("toDate") ?? "";
 
   const [histories, setHistories] = useState<History[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -30,7 +38,13 @@ export function HistoriesPage() {
 
   async function fetchHistories() {
     setLoading(true);
-    const res = await historyService.getHistories({ page: page, limit: LIMIT });
+    const res = await historyService.getHistories({
+      page: page,
+      limit: limit,
+      sort: sort,
+      ...(fromDate && { fromDate: new Date(fromDate) }),
+      ...(toDate && { toDate: new Date(toDate) }),
+    });
 
     if (!res.success) return toast.warning(res.message);
 
@@ -44,9 +58,27 @@ export function HistoriesPage() {
     setHistories(histories.filter((x) => x !== history));
   }
 
+  function handleNavigate(key: string, value: string) {
+    const params = new URLSearchParams(searchParams.toString());
+
+    params.set("page", "1");
+
+    if (!value) {
+      params.delete(key);
+    } else {
+      params.set(key, value);
+    }
+
+    router.push(`?${params.toString()}`);
+  }
+
+  function handleResetSearchParams() {
+    router.push(`?page=1&sort=${sort}`);
+  }
+
   useEffect(() => {
     fetchHistories();
-  }, [page]);
+  }, [searchParams]);
 
   return (
     <div className="px-2">
@@ -61,7 +93,30 @@ export function HistoriesPage() {
         {/* Main grid with sort */}
         <div className="flex flex-col gap-2 justify-start items-center py-2 w-full">
           {/* Sort and fiter */}
-          {/* <FilterSortHistories className="w-full" onChange={setParams} isResetAll={isResetFilterSort}></FilterSortHistories> */}
+          <div className="w-full flex flex-row flex-wrap gap-1 justify-between">
+            {/* Filter */}
+            <div className="flex flex-row flex-wrap gap-2 px-2 my-1">
+              <SortTime value={sort} onSort={(value) => handleNavigate("sort", value)} />
+              <FilterDate
+                label="From"
+                defaultValue={fromDate ? new Date(fromDate) : undefined}
+                onChange={(date) => handleNavigate("fromDate", date.toISOString())}
+              />
+              <FilterDate label="To" defaultValue={toDate ? new Date(toDate) : undefined} onChange={(date) => handleNavigate("toDate", date.toISOString())} />
+            </div>
+
+            {/* Sort */}
+            <div>
+              {searchParams.size > 2 && (
+                <div
+                  onClick={handleResetSearchParams}
+                  className="h-full my-auto w-fit flex justify-center items-center font-semibold gap-1 text-error cursor-pointer"
+                >
+                  <XIcon className="w-5 h-5 text-error" /> Xóa bộ lọc
+                </div>
+              )}
+            </div>
+          </div>
 
           <div>
             {loading ? (
@@ -78,7 +133,7 @@ export function HistoriesPage() {
                     ))}
                   </div>
                 ) : (
-                  <NoFilterResult />
+                  <NoFilterResult onResetFilter={handleResetSearchParams} />
                 )}
               </>
             )}

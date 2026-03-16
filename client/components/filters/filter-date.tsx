@@ -14,10 +14,10 @@ export default function FilterDate({
   defaultValue?: Date;
   className?: string;
 }) {
-  const [date, setDate] = useState<string>(convertDateTo_yyyMMdd(defaultValue ? new Date(defaultValue) : new Date()));
+  const [date, setDate] = useState<string>(defaultValue ? convertDateTo_yyyMMdd(new Date(defaultValue)) : "");
 
   useEffect(() => {
-    setDate(convertDateTo_yyyMMdd(defaultValue ? new Date(defaultValue) : new Date()));
+    setDate(defaultValue ? convertDateTo_yyyMMdd(new Date(defaultValue)) : "");
   }, [defaultValue]);
 
   return (

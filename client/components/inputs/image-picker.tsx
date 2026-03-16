@@ -1,12 +1,10 @@
-import { useCallback, useEffect, useState } from "react";
-import { useDropzone } from "react-dropzone";
+import { useEffect, useState } from "react";
 
 import ErrorExclamationIcon from "@/public/error-exclamation.svg";
 import ReloadIcon from "@/public/reload.svg";
 import TickIcon from "@/public/tick-o.svg";
 import UploadPhotoIcon from "@/public/upload/upload-photo.svg";
 import Image from "next/image";
-import { audio } from "framer-motion/client";
 
 export interface ImagePickerProps {
   className?: string;
@@ -64,14 +62,6 @@ export default function ImagePicker({
     }
   }
 
-  // const { getRootProps, getInputProps, isDragActive } = useDropzone({
-  //   onDrop,
-  //   accept: { "image/*": [] },
-  //   multiple: false,
-  //   disabled: disabled,
-  //   useFsAccessApi: false,
-  // });
-
   function handleResetImage() {
     setImage(defaultValue ? (typeof defaultValue === "string" ? defaultValue : URL.createObjectURL(defaultValue)) : "");
     onReset?.(defaultValue ?? "");
@@ -118,11 +108,9 @@ export default function ImagePicker({
       )}
 
       <label
-        // {...getRootProps()}
         className={` ${disabled ? "" : "cursor-pointer"} ${false ? "opacity-70 w-full scale-[0.98] border-2 border-dashed border-blue-500 bg-blue-50/10" : ""} transition-all duration-200 block h-full`}
       >
         <input
-          // {...getInputProps()}
           disabled={disabled}
           type="file"
           accept="image/*"

@@ -5,6 +5,7 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 
 import { corsOptions } from "./src/configs/cors.js";
+import { initRedis } from "./src/configs/redis.js";
 
 import authRouter from "./src/routes/Auth.Route.js";
 import userRoute from "./src/routes/User.Route.js";
@@ -16,16 +17,16 @@ import storyRoute from "./src/routes/Story.Routes.js";
 import storyNodeRoute from "./src/routes/StoryNode.Route.js";
 import authorRoute from "./src/routes/Author.Route.js";
 import genreRoute from "./src/routes/Genre.Route.js";
-import { initRedis } from "./src/configs/redis.js";
 import adminRoute from "./src/routes/Admin.Route.js";
 import commentRoute from "./src/routes/Comment.Route.js";
-import cloudinaryRoute from "./src/routes/Cloudinary.Route.js";
-import uploadMulter from "./src/configs/multer.js";
 import uploadRoute from "./src/routes/Upload.Route.js";
 
 import swaggerJsdoc from "swagger-jsdoc";
 import swaggerUi from "swagger-ui-express";
 import db from "./src/configs/db.js";
+import ratingRoute from "./src/routes/Rating.Route.js";
+import historyRoute from "./src/routes/History.Route.js";
+import favouriteRoute from "./src/routes/Favourite.Route.js";
 
 initRedis();
 
@@ -227,25 +228,33 @@ app.get("/openapi.json", (req, res) => {
 
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
 
-app.use(cors(corsOptions));
-
 app.use(cookieParser());
 app.use(express.json());
 app.use(RequestLogger);
+
+app.use(cors(corsOptions));
 
 // Dùng để đo thời gian thực hiện request
 app.use(PerformanceMiddleware.MeasureRequestTime);
 
 // Main routes
 app.use("/auth", authRouter);
+
 app.use("/users", userRoute);
+
 app.use("/stories", storyRoute);
 app.use("/story-nodes", storyNodeRoute);
+
 app.use("/authors", authorRoute);
 app.use("/genres", genreRoute);
+
 app.use("/comments", commentRoute);
+app.use("/ratings", ratingRoute);
+app.use("/histories", historyRoute);
+app.use("/favourites", favouriteRoute);
+
 app.use("/admin", adminRoute);
-app.use("/cloudinary", cloudinaryRoute);
+
 app.use("/uploads", uploadRoute);
 
 // Let render ping after amount of time for preventing container to idle

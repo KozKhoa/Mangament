@@ -62,7 +62,7 @@ export async function FindAllReadingHistories({
     ...((fromDate || toDate) && {
       updated_at: {
         ...(fromDate && { gte: fromDate }),
-        ...(toDate && { lt: toDate }),
+        ...(toDate && { lte: toDate }),
       },
     }),
 
@@ -171,8 +171,6 @@ export async function AddReadingHistory({ userId, storyId, storyNodeId }) {
       },
     })
     .catch(async (error) => {
-      console.log(error);
-
       const user = await db.user.findUnique({ where: { id: userId } });
       if (!user) throw CreateError(400, "User not found");
 

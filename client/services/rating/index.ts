@@ -8,28 +8,28 @@ type ServiceResult<T> = { success: boolean; data?: T; message?: string; paginati
 
 export async function getRatings(storyId: string, params: RatingParams): Promise<ServiceResult<Rating[]>> {
   try {
-    const res = await api.get(`/stories/${storyId ?? ""}/ratings`, {
+    const res = await api.get(`/ratings/story/${storyId ?? ""}`, {
       params: params,
       paramsSerializer: (params) => qs.stringify(params, { arrayFormat: "comma" }),
     });
     return res.data;
-  } catch (error) {
+  } catch (error: any) {
     console.error(error);
-    return { success: false, message: error?.toString() };
+    return { success: false, message: error?.response?.data?.message || error?.message || "Unknown error" };
   }
 }
 
 export async function addNewRating(storyId: string, star: number, title: string, content: string): Promise<ServiceResult<Rating>> {
   try {
-    const res = await api.post(`/stories/${storyId ?? ""}/ratings`, {
+    const res = await api.post(`/ratings/story/${storyId ?? ""}`, {
       star: star,
       title: title,
       content: content,
     });
     return res.data;
-  } catch (error) {
+  } catch (error: any) {
     console.error(error);
-    return { success: false, message: error?.toString() };
+    return { success: false, message: error?.response?.data?.message || error?.message || "Unknown error" };
   }
 }
 

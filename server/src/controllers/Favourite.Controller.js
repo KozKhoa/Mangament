@@ -1,16 +1,16 @@
-import { FindAllFavouriteStories, AddFavouriteStory, RemoveFavouriteStory } from "../models/Favourite.Model.js";
+import { FindAllFavouriteStories, AddFavouriteStory, RemoveFavouriteStory, FindFavouriteStory } from "../models/Favourite.Model.js";
+import { FindUser } from "../models/User.Model.js";
 
 import { CreateError } from "../utils/ErrorHandle.js";
-import ErrorCodes from "../constants/Error.js";
 
 import { ConvertQuery } from "../utils/QueryConvert.js";
 
+// GET /favourites/user/me
 export async function GetAllFavouriteStories(req, res, next) {
   try {
-    // It is not neccessary to check user exist because authentication already did it
     const userId = req.user?.id;
 
-    const { limit, page, sort, type, authors, genres, star, view } = ConvertQuery(req.query);
+    const { limit, page, sort, type, authors, genres, star, view, nations } = ConvertQuery(req.query);
 
     const favouriteStories = await FindAllFavouriteStories({
       userId: userId,
@@ -20,6 +20,7 @@ export async function GetAllFavouriteStories(req, res, next) {
       sort: sort,
       star: star,
       view: view,
+      nations: nations,
       authorsId: authors,
       genres: genres,
     });
@@ -41,16 +42,15 @@ export async function GetAllFavouriteStories(req, res, next) {
   }
 }
 
-export async function PostFavouriteStory(req, res, next) {
+// POST /favourite/story/:id
+export async function AddNewFavouriteStory(req, res, next) {
   try {
-    // It is not neccessary to check user exist because authentication already did it
     const userId = req.user?.id;
-    const storyId = req.body?.storyId;
+    const storyId = req.params?.id;
 
     if (!storyId) throw CreateError(400, "'storyId' is required");
 
     const favouriteStory = await AddFavouriteStory({ userId: userId, storyId: storyId });
-    if (!favouriteStory || !favouriteStory.success) throw CreateError();
 
     delete favouriteStory.data.is_deleted;
 
@@ -60,23 +60,25 @@ export async function PostFavouriteStory(req, res, next) {
       data: favouriteStory.data,
     });
   } catch (error) {
-    if (!error.status) console.error("❌ [User.Controller.js] Error posting user favourite story:", error);
     next(error);
   }
 }
 
+// DELETE /favourites/:id
 export async function DeleteFavouriteStory(req, res, next) {
   try {
-    // It is not neccessary to check user exist because authentication already did it
     const userId = req.user?.id;
 
     const favouriteId = req.params?.id;
 
     if (!favouriteId) throw CreateError(400, "'id' for favourite story is required");
 
-    const removing = await RemoveFavouriteStory(favouriteId);
+    const user = await FindUser({ id: userId });
+    const favourite = await FindFavouriteStory(favouriteId);
 
-    if (!removing) throw CreateError();
+    if (user.data.id !== favourite.data.user_id) throw CreateError(400, "You don't have permisson to remove other people's favourite story");
+
+    await RemoveFavouriteStory(favouriteId);
 
     return res.status(200).json({
       success: true,

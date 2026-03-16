@@ -17,10 +17,10 @@ interface AuthContextProps {
 
   setUser: (user: User) => void;
 
-  updateGender: (newGender: string) => void;
-  updateUsername: (name: string) => void;
-  updateBirthday: (date: Date) => void;
-  updateAvatar: (avatar: File) => void;
+  updateGender: (newGender: string) => Promise<any>;
+  updateUsername: (name: string) => Promise<any>;
+  updateBirthday: (date: Date) => Promise<any>;
+  updateAvatar: (avatar: File) => Promise<any>;
 
   login: (email: string, password: string) => Promise<any>;
   register: (name: string, email: string, password: string) => Promise<any>;
@@ -91,11 +91,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     const newUser: User = { ...user, avatar: { file: avatarFile, url: undefined } };
 
-    console.log(newUser);
-
     setLoading(true);
     const res = await userService.updateUser(newUser);
     setLoading(false);
+
+    newUser.avatar = {
+      url: res.data?.avatar?.key ? [process.env.NEXT_PUBLIC_CDN_URL, res.data?.avatar?.key].join("/") : res.data?.avatar?.url,
+      key: res.data?.avatar?.key,
+    };
+
+    setUser(newUser);
 
     if (!res.success) toast.warning(res.message);
 

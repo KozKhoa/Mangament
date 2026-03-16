@@ -16,9 +16,9 @@ export async function getStoryById(storyId: string, params: StoryParams): Promis
       paramsSerializer: (params) => qs.stringify(params, { arrayFormat: "comma" }),
     });
     return res.data;
-  } catch (error) {
-    console.log(error);
-    return { success: false, message: error?.toString() };
+  } catch (error: any) {
+    console.error(error);
+    return { success: false, message: error?.response?.data?.message || error?.message || "Unknown error" };
   }
 }
 
@@ -31,9 +31,9 @@ export async function getStoryByTitle(title: string, params: StoryParams): Promi
       paramsSerializer: (params) => qs.stringify(params, { arrayFormat: "comma" }),
     });
     return res.data;
-  } catch (error) {
-    console.log(error);
-    return { success: false, message: error?.toString() };
+  } catch (error: any) {
+    console.error(error);
+    return { success: false, message: error?.response?.data?.message || error?.message || "Unknown error" };
   }
 }
 
@@ -44,9 +44,9 @@ export async function getStories(params?: StoryParams): Promise<ServiceResult<St
       paramsSerializer: (params) => qs.stringify(params, { arrayFormat: "comma" }),
     });
     return res.data;
-  } catch (error) {
-    console.log(error);
-    return { success: false, message: error?.toString() };
+  } catch (error: any) {
+    console.error(error);
+    return { success: false, message: error?.response?.data?.message || error?.message || "Unknown error" };
   }
 }
 
@@ -55,9 +55,9 @@ export async function getReview(storyId: string): Promise<ServiceResult<string[]
     const res = await api.get(`/stories/${storyId}/review`);
 
     return res.data;
-  } catch (error) {
-    console.log(error);
-    return { success: false, message: error?.toString() };
+  } catch (error: any) {
+    console.error(error);
+    return { success: false, message: error?.response?.data?.message || error?.message || "Unknown error" };
   }
 }
 
@@ -65,9 +65,9 @@ export async function getRandomStory(): Promise<ServiceResult<Story>> {
   try {
     const res = await api.get(`/stories/random`);
     return res.data;
-  } catch (error) {
-    console.log(error);
-    return { success: false, message: error?.toString() };
+  } catch (error: any) {
+    console.error(error);
+    return { success: false, message: error?.response?.data?.message || error?.message || "Unknown error" };
   }
 }
 
@@ -78,9 +78,9 @@ export async function countStories(params?: StoryParams): Promise<ServiceResult<
       paramsSerializer: (params) => qs.stringify(params, { arrayFormat: "comma" }),
     });
     return res.data;
-  } catch (error) {
-    console.log(error);
-    return { success: false, message: error?.toString() };
+  } catch (error: any) {
+    console.error(error);
+    return { success: false, message: error?.response?.data?.message || error?.message || "Unknown error" };
   }
 }
 
@@ -88,11 +88,9 @@ export async function addOneView(storyId: string) {
   try {
     const res = await api.patch(`/stories/${storyId}/view`);
     return res.data;
-  } catch (error) {
-    if (axios.isAxiosError(error)) {
-      return error?.response?.data;
-    }
-    return error;
+  } catch (error: any) {
+    console.error(error);
+    return { success: false, message: error?.response?.data?.message || error?.message || "Unknown error" };
   }
 }
 

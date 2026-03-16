@@ -15,9 +15,9 @@ export async function getOverview(): Promise<ServiceResult<DashboardOverview>> {
   try {
     const res = await api.get("/admin/dashboard/overview");
     return res.data;
-  } catch (error) {
+  } catch (error: any) {
     console.error(error);
-    return { success: false, message: error?.toString() };
+    return { success: false, message: error?.response?.data?.message || error?.message || "Unknown error" };
   }
 }
 
@@ -37,9 +37,9 @@ export async function getStatsView({
       `/admin/dashboard/stats/views?fromDate=${from.toISOString()}&toDate=${to.toISOString()}&groupBy=${groupBy}${storyId ? `&storyId=${storyId}` : ""}`,
     );
     return res.data;
-  } catch (error) {
+  } catch (error: any) {
     console.error(error);
-    return { success: false, message: error?.toString() };
+    return { success: false, message: error?.response?.data?.message || error?.message || "Unknown error" };
   }
 }
 
@@ -61,9 +61,9 @@ export async function getStatsNewUsers({
       },
     });
     return res.data;
-  } catch (error) {
+  } catch (error: any) {
     console.error(error);
-    return { success: false, message: error?.toString() };
+    return { success: false, message: error?.response?.data?.message || error?.message || "Unknown error" };
   }
 }
 
@@ -102,9 +102,9 @@ export async function getUsers({
       paramsSerializer: (params) => qs.stringify(params, { arrayFormat: "comma" }),
     });
     return res.data;
-  } catch (error) {
-    console.log(error);
-    return { success: false, message: error?.toString() };
+  } catch (error: any) {
+    console.error(error);
+    return { success: false, message: error?.response?.data?.message || error?.message || "Unknown error" };
   }
 }
 
@@ -112,9 +112,9 @@ export async function updateUser({ userId, name, role }: { userId: string; name?
   try {
     const res = await api.put(`/admin/users/${userId}`, { name, role });
     return res.data;
-  } catch (error) {
-    console.log(error);
-    return { success: false, message: error?.toString() };
+  } catch (error: any) {
+    console.error(error);
+    return { success: false, message: error?.response?.data?.message || error?.message || "Unknown error" };
   }
 }
 
@@ -124,9 +124,9 @@ export async function banUser({ userId, isBanned }: { userId: string; isBanned: 
       isBanned: isBanned,
     });
     return res.data;
-  } catch (error) {
-    console.log(error);
-    return { success: false, message: error?.toString() };
+  } catch (error: any) {
+    console.error(error);
+    return { success: false, message: error?.response?.data?.message || error?.message || "Unknown error" };
   }
 }
 
@@ -134,9 +134,9 @@ export async function deleteUser(userId: string): Promise<ServiceResult<null>> {
   try {
     const res = await api.delete(`/admin/users/${userId}`);
     return res.data;
-  } catch (error) {
-    console.log(error);
-    return { success: false, message: error?.toString() };
+  } catch (error: any) {
+    console.error(error);
+    return { success: false, message: error?.response?.data?.message || error?.message || "Unknown error" };
   }
 }
 
@@ -147,9 +147,9 @@ export async function getStory(stroryId: string, params?: StoryParams): Promise<
       paramsSerializer: (params) => qs.stringify(params, { arrayFormat: "comma" }),
     });
     return res.data;
-  } catch (error) {
-    console.log(error);
-    return { success: false, message: error?.toString() };
+  } catch (error: any) {
+    console.error(error);
+    return { success: false, message: error?.response?.data?.message || error?.message || "Unknown error" };
   }
 }
 
@@ -160,9 +160,9 @@ export async function getStories(params?: StoryParams): Promise<ServiceResult<St
       paramsSerializer: (params) => qs.stringify(params, { arrayFormat: "comma" }),
     });
     return res.data;
-  } catch (error) {
-    console.log(error);
-    return { success: false, message: error?.toString() };
+  } catch (error: any) {
+    console.error(error);
+    return { success: false, message: error?.response?.data?.message || error?.message || "Unknown error" };
   }
 }
 
@@ -194,9 +194,9 @@ export async function addNewStory(story: Story, coverArtFile?: File): Promise<Se
     }
 
     return res.data;
-  } catch (error) {
-    console.log(error);
-    return { success: false, message: error?.toString() };
+  } catch (error: any) {
+    console.error(error);
+    return { success: false, message: error?.response?.data?.message || error?.message || "Unknown error" };
   }
 }
 
@@ -258,16 +258,12 @@ export async function updateStory(
 
       const uploadImages = await Promise.all(uploadPromise);
 
-      console.log(uploadImages);
-
       children.edit.content = children.edit.content.map((content, i) => ({
         ...content,
         image: { ...content.image, id: uploadImages[i]?.data?.data?.id, url: uploadImages[i]?.data?.data?.url, key: uploadImages[i]?.data?.data?.key },
         imageFile: undefined,
       }));
     }
-
-    console.log(children);
 
     const res = await api.put(`/admin/stories/${story.id}`, {
       title: story.title,
@@ -280,9 +276,9 @@ export async function updateStory(
       ...(children && { children: children }),
     });
     return res.data;
-  } catch (error) {
-    console.log(error);
-    return { success: false, message: error?.toString() };
+  } catch (error: any) {
+    console.error(error);
+    return { success: false, message: error?.response?.data?.message || error?.message || "Unknown error" };
   }
 }
 
@@ -290,9 +286,9 @@ export async function activeStory({ storyId, isActived }: { storyId: string; isA
   try {
     const res = await api.patch(`/admin/stories/${storyId}/active`, { isActived: isActived });
     return res.data;
-  } catch (error) {
-    console.log(error);
-    return { success: false, message: error?.toString() };
+  } catch (error: any) {
+    console.error(error);
+    return { success: false, message: error?.response?.data?.message || error?.message || "Unknown error" };
   }
 }
 
@@ -300,9 +296,9 @@ export async function deleteStory(storyId: string): Promise<ServiceResult<null>>
   try {
     const res = await api.delete(`/admin/stories/${storyId}`);
     return res.data;
-  } catch (error) {
-    console.log(error);
-    return { success: false, message: error?.toString() };
+  } catch (error: any) {
+    console.error(error);
+    return { success: false, message: error?.response?.data?.message || error?.message || "Unknown error" };
   }
 }
 
@@ -312,9 +308,9 @@ export async function getTrashImages({ page, limit }: { page?: number; limit?: n
       params: { page, limit },
     });
     return res.data;
-  } catch (error) {
-    console.log(error);
-    return { success: false, message: error?.toString() };
+  } catch (error: any) {
+    console.error(error);
+    return { success: false, message: error?.response?.data?.message || error?.message || "Unknown error" };
   }
 }
 
@@ -322,9 +318,9 @@ export async function deleteTrashImage(id: string): Promise<ServiceResult<null>>
   try {
     const res = await api.delete(`/admin/images/trash/${id}`);
     return res.data;
-  } catch (error) {
-    console.log(error);
-    return { success: false, message: error?.toString() };
+  } catch (error: any) {
+    console.error(error);
+    return { success: false, message: error?.response?.data?.message || error?.message || "Unknown error" };
   }
 }
 
@@ -334,9 +330,9 @@ export async function deleteManyTrashImages(ids: string[]): Promise<ServiceResul
       data: { ids: ids },
     });
     return res.data;
-  } catch (error) {
-    console.log(error);
-    return { success: false, message: error?.toString() };
+  } catch (error: any) {
+    console.error(error);
+    return { success: false, message: error?.response?.data?.message || error?.message || "Unknown error" };
   }
 }
 
@@ -346,9 +342,9 @@ export async function getAllTrashStories({ page, limit }: { page?: number; limit
       params: { page, limit },
     });
     return res.data;
-  } catch (error) {
-    console.log(error);
-    return { success: false, message: error?.toString() };
+  } catch (error: any) {
+    console.error(error);
+    return { success: false, message: error?.response?.data?.message || error?.message || "Unknown error" };
   }
 }
 
@@ -357,9 +353,9 @@ export async function deletePermanentTrashStory(id: string): Promise<ServiceResu
   try {
     const res = await api.delete(`/admin/stories/trash/${id}`);
     return res.data;
-  } catch (error) {
-    console.log(error);
-    return { success: false, message: error?.toString() };
+  } catch (error: any) {
+    console.error(error);
+    return { success: false, message: error?.response?.data?.message || error?.message || "Unknown error" };
   }
 }
 
@@ -370,9 +366,9 @@ export async function deletePermanentManyTrashStories(ids: string[]): Promise<Se
       data: { ids: ids },
     });
     return res.data;
-  } catch (error) {
-    console.log(error);
-    return { success: false, message: error?.toString() };
+  } catch (error: any) {
+    console.error(error);
+    return { success: false, message: error?.response?.data?.message || error?.message || "Unknown error" };
   }
 }
 
@@ -381,9 +377,9 @@ export async function restoreStory(id: string): Promise<ServiceResult<Story>> {
   try {
     const res = await api.patch(`/admin/stories/trash/${id}/restore`);
     return res.data;
-  } catch (error) {
-    console.log(error);
-    return { success: false, message: error?.toString() };
+  } catch (error: any) {
+    console.error(error);
+    return { success: false, message: error?.response?.data?.message || error?.message || "Unknown error" };
   }
 }
 
@@ -392,9 +388,9 @@ export async function restoreManyStories(ids: string[]): Promise<ServiceResult<S
   try {
     const res = await api.patch(`/admin/stories/trash/restore`, { ids: ids });
     return res.data;
-  } catch (error) {
-    console.log(error);
-    return { success: false, message: error?.toString() };
+  } catch (error: any) {
+    console.error(error);
+    return { success: false, message: error?.response?.data?.message || error?.message || "Unknown error" };
   }
 }
 

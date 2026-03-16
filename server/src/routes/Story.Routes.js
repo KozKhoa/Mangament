@@ -1,22 +1,9 @@
 import express from "express";
-import multer from "multer";
-import path from "path";
 
-import { AddOneViewForStory, GetAllStories, GetRandomStory, GetStory, GetStoryReview, PostStory } from "../controllers/Story.Controller.js";
+import { AddOneViewForStory, GetAllStories, GetRandomStory, GetStory, GetStoryReview } from "../controllers/Story.Controller.js";
 
-import { AuthenticationToken, AuthorizationRole, OptionalAuth } from "../middlewares/Auth.Middleware.js";
+import { AuthenticationToken, OptionalAuth } from "../middlewares/Auth.Middleware.js";
 import { DeleteRating, GetAllRatings, PostRating, PutRating } from "../controllers/Rating.Controller.js";
-
-const saveLocation = "uploads/image";
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, saveLocation), // save location
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname)); // file name
-  },
-});
-
-const upload = multer({ storage: storage });
 
 const storyRoute = express.Router();
 
@@ -218,12 +205,5 @@ storyRoute.get("/:id", OptionalAuth, GetStory);
 storyRoute.get("/title/:title", OptionalAuth, GetStory);
 storyRoute.get("/", OptionalAuth, GetAllStories);
 storyRoute.patch("/:id/view", AddOneViewForStory);
-storyRoute.post("/", AuthenticationToken, AuthorizationRole, upload.single("coverArt"), PostStory); // coverArt is the image for the cover art of the story
-
-// Rating
-storyRoute.post("/:id/ratings", AuthenticationToken, PostRating);
-storyRoute.get("/:id/ratings", GetAllRatings);
-storyRoute.put("/ratings/:id", AuthenticationToken, PutRating);
-storyRoute.delete("/ratings/:id", AuthenticationToken, DeleteRating);
 
 export default storyRoute;

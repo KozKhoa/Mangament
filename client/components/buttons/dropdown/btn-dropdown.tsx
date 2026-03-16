@@ -74,7 +74,7 @@ function ButtonDropdown({
           </button>
         )}
         {(children || icon) && (
-          <button className="cursor-pointer w-fit h-fit" onClick={toggleOpenDropdown}>
+          <button className="cursor-pointer w-fit h-fit shrink-0" onClick={toggleOpenDropdown}>
             {icon ? icon : <TriangleDownIcon className="w-4 h-4" />}
           </button>
         )}

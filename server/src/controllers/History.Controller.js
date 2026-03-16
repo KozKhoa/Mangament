@@ -3,6 +3,7 @@ import { FindAllReadingHistories, AddReadingHistory, SoftDeleteReadingHistory } 
 import { CreateError } from "../utils/ErrorHandle.js";
 import { ConvertQuery } from "../utils/QueryConvert.js";
 
+// GET /histories
 export async function GetAllReadingHistories(req, res, next) {
   try {
     // It is not neccessary to check user exist because authentication already did it
@@ -37,11 +38,13 @@ export async function GetAllReadingHistories(req, res, next) {
   }
 }
 
-export async function PostReadingHistory(req, res, next) {
+// POST /histories/story/:storyId/story-node/:storyNodeId
+export async function AddNewReadingHistory(req, res, next) {
   try {
     const userId = req.user?.id;
-    const storyId = req.body?.storyId;
-    const storyNodeId = req.body?.storyNodeId;
+
+    const storyId = req.params?.storyId;
+    const storyNodeId = req.params?.storyNodeId;
 
     // Position will be added later
 
@@ -61,14 +64,14 @@ export async function PostReadingHistory(req, res, next) {
       },
     });
   } catch (error) {
-    if (!error.status) console.error("❌ [ReadingHistory.Controller.js] Error posting reading history:", error);
     next(error);
   }
 }
 
+// DELETE /histories/:id
 export async function DeleteReadingHistory(req, res, next) {
   try {
-    const historyId = req.params?.historyId;
+    const historyId = req.params?.id;
 
     if (!historyId) throw CreateError(400, "'historyId' is required");
 
@@ -80,7 +83,6 @@ export async function DeleteReadingHistory(req, res, next) {
       message: "Delete reading history successfully",
     });
   } catch (error) {
-    if (!error.status) console.error("❌ [ReadingHistory.Controller.js] Error deleting reading history:", error);
     next(error);
   }
 }

@@ -1,6 +1,5 @@
 import Story from "@/types/story";
 import Button from "./button";
-import User from "@/types/user";
 import { useCallback, useEffect, useState } from "react";
 import favouriteService from "@/services/favourite";
 import { toast } from "sonner";

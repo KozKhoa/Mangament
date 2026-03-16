@@ -5,42 +5,11 @@ import { FindStory } from "../models/Story.Model.js";
 
 import { ConvertQuery } from "../utils/QueryConvert.js";
 
-// POST /stories/:id/ratings
-export async function PostRating(req, res, next) {
-  try {
-    const userId = req.user?.id;
-    const storyId = req.params?.id;
-    const star = req.body?.star ? Number(req.body?.star) : null;
-    const title = req.body?.title;
-    const content = req.body?.content;
-
-    if (!star || !title || !content) throw CreateError(400, '"star", "title" and "content" are required');
-
-    if (star < 1 || star > 5) throw CreateError(400, '"star" must be number in range (1, 5)');
-
-    if (title.length > 100) throw CreateError(400, "Title must less than 100 character");
-    const rating = await AddRatings({ userId: userId, storyId: storyId, star: star, title: title, content: content });
-
-    if (!rating) throw CreateError();
-
-    return res.status(200).json({
-      success: true,
-      message: "Add new rating successfully",
-      data: rating.data,
-    });
-  } catch (error) {
-    next(error);
-  }
-}
-
+// GET /ratings/story/:id
 export async function GetAllRatings(req, res, next) {
   try {
     const storyId = req.params?.id;
     if (!storyId) throw CreateError(400, "'id' is required");
-
-    // Make sure story exist
-    const story = await FindStory({ id: storyId });
-    if (!story || !story.data) throw CreateError(404, "Story not found");
 
     const { limit, page, star, sort } = ConvertQuery(req?.query);
 
@@ -59,6 +28,34 @@ export async function GetAllRatings(req, res, next) {
   }
 }
 
+// POST /ratings/story/:id
+export async function PostRating(req, res, next) {
+  try {
+    const userId = req.user?.id;
+    const storyId = req.params?.id;
+    const star = req.body?.star ? Number(req.body?.star) : null;
+    const title = req.body?.title;
+    const content = req.body?.content;
+
+    if (!star || !title || !content) throw CreateError(400, '"star", "title" and "content" are required');
+
+    if (star < 1 || star > 5) throw CreateError(400, '"star" must be number in range (1, 5)');
+
+    if (title.length > 100) throw CreateError(400, "Title must less than 100 character");
+
+    const rating = await AddRatings({ userId: userId, storyId: storyId, star: star, title: title, content: content });
+
+    return res.status(200).json({
+      success: true,
+      message: "Add new rating successfully",
+      data: rating.data,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+// PUT /ratings/:id
 export async function PutRating(req, res, next) {
   try {
     const userId = req.user.id;
@@ -96,6 +93,7 @@ export async function PutRating(req, res, next) {
   }
 }
 
+// DELETE /ratings/:id
 export async function DeleteRating(req, res, next) {
   try {
     const userId = req.user.id;
@@ -108,7 +106,7 @@ export async function DeleteRating(req, res, next) {
     if (rating.data[0].user.id !== userId) throw CreateError(403, "Forbidden");
 
     // Remove
-    const removing = await SoftDeleteRating({ id: ratingId });
+    const removing = await SoftDeleteRating(ratingId);
     if (!removing || !removing.success) throw CreateError();
     return res.status(200).json({
       success: true,

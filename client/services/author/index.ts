@@ -8,9 +8,9 @@ export async function getAuthors(number?: number | null): Promise<ServiceResult<
   try {
     const res = await api.get("/authors", { params: { page: 1, limit: number ?? 2147483647 } });
     return res.data;
-  } catch (error) {
-    console.log(error);
-    return { success: false, message: error?.toString() };
+  } catch (error: any) {
+    console.error(error);
+    return { success: false, message: error?.response?.data?.message || error?.message || "Unknown error" };
   }
 }
 

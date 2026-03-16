@@ -21,9 +21,9 @@ export async function getStoryNodeById(storyNodeId: string, params: StoryNodePar
       paramsSerializer: (params) => qs.stringify(params, { arrayFormat: "comma" }),
     });
     return res.data;
-  } catch (error) {
+  } catch (error: any) {
     console.error(error);
-    return { success: false, message: error?.toString() };
+    return { success: false, message: error?.response?.data?.message || error?.message || "Unknown error" };
   }
 }
 
@@ -33,9 +33,9 @@ export async function addOneView(storyNodeId: string): Promise<ServiceResult<num
 
     const res = await api.patch(`/story-nodes/${storyNodeId}/view`);
     return res.data;
-  } catch (error) {
+  } catch (error: any) {
     console.error(error);
-    return { success: false, message: error?.toString() };
+    return { success: false, message: error?.response?.data?.message || error?.message || "Unknown error" };
   }
 }
 

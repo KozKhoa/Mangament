@@ -5,12 +5,8 @@ import { toast } from "sonner";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Params } from "next/dist/server/request/params";
-
-import useAuth from "@/contexts/AuthContext";
 
 import storyService from "@/services/story";
-import favouriteService from "@/services/favourite";
 
 import Story from "@/types/story";
 import StoryNode from "@/types/story-node";
@@ -131,11 +127,13 @@ export default function StoryDetailPage() {
         </div>
       </div>
 
-      {/* Rating */}
-      <RatingMasonryGrid storyId={story?.id ?? ""} allowAddNewRating={story?.rating ? false : true}></RatingMasonryGrid>
+      <div className="flex flex-col gap-5">
+        {/* Rating */}
+        <RatingMasonryGrid storyId={story?.id ?? ""} allowAddNewRating={story?.rating ? false : true}></RatingMasonryGrid>
 
-      {/* Comment */}
-      <CommentMasonryGrid storyId={story?.id ?? ""}></CommentMasonryGrid>
+        {/* Comment */}
+        <CommentMasonryGrid storyId={story?.id ?? ""}></CommentMasonryGrid>
+      </div>
 
       <RecommendStories className="max-w-[1800] mx-auto"></RecommendStories>
     </div>
