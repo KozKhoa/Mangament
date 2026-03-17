@@ -18,6 +18,7 @@ import NoFilterResult from "@/components/cards/no-filter";
 import Loading from "@/components/loadings/loading";
 import SortTime from "@/components/sorts/sort-time";
 import FilterDate from "@/components/filters/filter-date";
+import { loadingBar } from "@/components/loadings/loading-bar/top-loading-bar.store";
 
 const LIMIT = 30;
 
@@ -59,6 +60,8 @@ export function HistoriesPage() {
   }
 
   function handleNavigate(key: string, value: string) {
+    loadingBar.open({});
+
     const params = new URLSearchParams(searchParams.toString());
 
     params.set("page", "1");
@@ -73,11 +76,15 @@ export function HistoriesPage() {
   }
 
   function handleResetSearchParams() {
+    loadingBar.open({});
+
     router.push(`?page=1&sort=${sort}`);
   }
 
   useEffect(() => {
     fetchHistories();
+
+    loadingBar.close();
   }, [searchParams]);
 
   return (
@@ -107,7 +114,7 @@ export function HistoriesPage() {
 
             {/* Sort */}
             <div>
-              {searchParams.size > 2 && (
+              {searchParams.size > 3 && (
                 <div
                   onClick={handleResetSearchParams}
                   className="h-full my-auto w-fit flex justify-center items-center font-semibold gap-1 text-error cursor-pointer"

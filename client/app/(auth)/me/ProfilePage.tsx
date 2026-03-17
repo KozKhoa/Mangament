@@ -17,8 +17,8 @@ import History from "@/types/history";
 import HistoryList from "@/components/list/history-list";
 import { useRouter } from "next/navigation";
 import withAuth from "@/hoc/withAuth";
-import InfinityScrollHorizontalList from "@/components/list/infinity-scroll-horizontal-list";
-import HistoryCard from "@/components/cards/history-card";
+
+import { loadingBar } from "@/components/loadings/loading-bar/top-loading-bar.store";
 
 const LIMIT = 20;
 const PAGE = 1;
@@ -54,6 +54,8 @@ export function ProfilePage() {
   useEffect(() => {
     fetchFavourite();
     fetchHistory();
+
+    loadingBar.close();
   }, []);
 
   return (

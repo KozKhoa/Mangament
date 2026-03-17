@@ -4,6 +4,7 @@ import GenreCategoryCard from "@/components/cards/categories/genre-category-card
 import StoryGenreCard from "@/components/cards/stories/story-genre-card";
 import MasonryGrid from "@/components/grids/masonry-grid";
 import Loading from "@/components/loadings/loading";
+import { loadingBar } from "@/components/loadings/loading-bar/top-loading-bar.store";
 import SwitchPageSmall from "@/components/switch-page/small";
 import DEFAULT from "@/constants/default";
 
@@ -49,6 +50,8 @@ export default function StoryGenreListPage() {
 
   useEffect(() => {
     fetchStories(page, LIMIT);
+
+    loadingBar.close();
   }, [page]);
 
   return (

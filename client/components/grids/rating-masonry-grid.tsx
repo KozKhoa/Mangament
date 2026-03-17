@@ -12,7 +12,7 @@ import ratingService from "@/services/rating";
 import { modal } from "../modal/modal.store";
 import RatingInputForm from "../forms/rating-input-form";
 import useAuth from "@/contexts/AuthContext";
-import Link from "next/link";
+import Link from "@/components/link/Link";
 import Image from "next/image";
 interface RatingGridProps {
   className?: string;

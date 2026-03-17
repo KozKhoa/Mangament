@@ -3,7 +3,9 @@
 import ArrowIcon from "@/public/arrows/right-v.svg";
 
 import withAdmin from "@/hoc/withAdmin";
-import Link from "next/link";
+import Link from "@/components/link/Link";
+import { useEffect } from "react";
+import { loadingBar } from "@/components/loadings/loading-bar/top-loading-bar.store";
 
 function Navigate({ children }: { children?: any }) {
   return (
@@ -18,6 +20,10 @@ function Navigate({ children }: { children?: any }) {
 }
 
 export function TrashPage() {
+  useEffect(() => {
+    loadingBar.close();
+  }, []);
+
   return (
     <div className="flex flex-col gap-5 py-5">
       <Link href={"/admin/trash/images"}>

@@ -29,6 +29,7 @@ import ButtonOfFavouriteStory from "@/components/buttons/favourite-button";
 import useAuth from "@/contexts/AuthContext";
 import CommentMasonryGrid from "@/components/grids/comment-masonry-grid";
 import Image from "next/image";
+import { loadingBar } from "@/components/loadings/loading-bar/top-loading-bar.store";
 
 function buildStoryNodeParent(tree: StoryNode[], targetNodeId: string) {
   const parentList: StoryNode[] = [];
@@ -122,7 +123,6 @@ export default function ReadingStoryPage() {
 
   const { storyType, storyTitle, storyNodes } = getParams();
 
-  const [storyId, setStoryId] = useState("");
   const [story, setStory] = useState<Story>();
 
   const [storyNodeId, setStoryNodeId] = useState("");
@@ -145,7 +145,6 @@ export default function ReadingStoryPage() {
     if (!res.success) toast.warning(res.message);
 
     setStory(res.data);
-    setStoryId(res.data?.id ?? "");
 
     let children = res.data?.children ?? [];
 
@@ -171,15 +170,19 @@ export default function ReadingStoryPage() {
   }
 
   const updateReadingHistory = useCallback(async () => {
-    const res = await historyService.addHistory(storyId, storyNodeId);
+    if (!story?.id) return;
+
+    const res = await historyService.addHistory(story?.id, storyNodeId);
 
     if (!res.success) return toast.warning(res.message);
 
     return res.data;
-  }, [storyId, storyNodeId]);
+  }, [story?.id, storyNodeId]);
 
   function handleNavigateStoryNode(storyNodes?: StoryNode[]) {
     if (!storyNodes || storyNodes?.at(-1)?.type !== "chapter") return;
+
+    loadingBar.open({});
 
     const routeDir = storyNodes.map((node) => `${node.type} ${node.order_index}`).join("/");
 
@@ -214,6 +217,8 @@ export default function ReadingStoryPage() {
 
   useEffect(() => {
     fetchStory();
+
+    loadingBar.close();
 
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
@@ -343,7 +348,7 @@ export default function ReadingStoryPage() {
       </div>
 
       {/* Comment */}
-      <CommentMasonryGrid className="my-2 mx-2.5" storyId={storyId} storyNodeId={storyNodeId}></CommentMasonryGrid>
+      <CommentMasonryGrid className="my-2 mx-2.5" storyId={story?.id ?? ""} storyNodeId={storyNodeId}></CommentMasonryGrid>
 
       {/* Recommend */}
       <div>

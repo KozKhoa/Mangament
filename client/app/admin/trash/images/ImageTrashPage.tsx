@@ -23,6 +23,7 @@ import Checkbox from "@/components/inputs/checkbox";
 import SwitchPageBig from "@/components/switch-page/big";
 import NumberInput from "@/components/inputs/number-input";
 import SwitchPageSmall from "@/components/switch-page/small";
+import { loadingBar } from "@/components/loadings/loading-bar/top-loading-bar.store";
 
 export function ImageTrashPage() {
   const router = useRouter();
@@ -181,6 +182,7 @@ export function ImageTrashPage() {
   }
 
   function handleNavigate(key: string, value: number) {
+    loadingBar.open({});
     const params = new URLSearchParams(searchParams.toString());
 
     params.set("page", "1");
@@ -201,6 +203,8 @@ export function ImageTrashPage() {
 
   useEffect(() => {
     fetchImages();
+
+    loadingBar.close();
   }, [searchParams]);
 
   return (

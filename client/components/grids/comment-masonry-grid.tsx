@@ -13,7 +13,7 @@ import { Pagination } from "@/types/pagination";
 import { modal } from "../modal/modal.store";
 import useAuth from "@/contexts/AuthContext";
 import Image from "next/image";
-import Link from "next/link";
+import Link from "@/components/link/Link";
 
 interface StoryNodeCommentsGridProps {
   className?: string;

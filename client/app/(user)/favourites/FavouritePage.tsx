@@ -23,6 +23,7 @@ import FilterViews from "@/components/filters/filter-views";
 import FilterStoryStatus from "@/components/filters/filter-story-status";
 import FilterNation from "@/components/filters/filter-nations";
 import SortTime from "@/components/sorts/sort-time";
+import { loadingBar } from "@/components/loadings/loading-bar/top-loading-bar.store";
 
 const LIMIT = 30;
 
@@ -88,6 +89,8 @@ export function FavouritePage() {
   useEffect(() => {
     if (!page) return;
     fetchFavourites();
+
+    loadingBar.close();
   }, [searchParams]);
 
   return (
@@ -118,7 +121,7 @@ export function FavouritePage() {
             <div className="flex flex-row w-full gap-2 justify-between">
               <SortTime value={sort} onSort={(sort) => handleNavigate("sort", sort)} sortKey="created_at" />
 
-              {searchParams.size > 2 && (
+              {searchParams.size > 3 && (
                 <div
                   onClick={handleResetSearchParams}
                   className="h-full my-auto w-fit flex justify-center items-center font-semibold gap-1 text-error cursor-pointer"

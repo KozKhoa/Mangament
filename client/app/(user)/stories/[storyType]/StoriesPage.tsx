@@ -28,6 +28,7 @@ import FilterAuthors from "@/components/filters/filter-authors";
 import FilterViews from "@/components/filters/filter-views";
 import FilterStoryStatus from "@/components/filters/filter-story-status";
 import FilterNation from "@/components/filters/filter-nations";
+import { loadingBar } from "@/components/loadings/loading-bar/top-loading-bar.store";
 
 const LIMIT = 30;
 
@@ -54,6 +55,8 @@ export default function StoriesPage() {
   const [pagination, setPagination] = useState<Pagination>();
 
   function handleNavigate(key: string, value: string) {
+    loadingBar.open({});
+
     const params = new URLSearchParams(searchParams.toString());
 
     params.set("page", "1");
@@ -68,12 +71,15 @@ export default function StoriesPage() {
   }
 
   const handleResetSearchParams = useCallback(() => {
+    loadingBar.open({});
+
     router.push(`?page=1&sort=${sort}`);
   }, [sort]);
 
   useEffect(() => {
     async function fetchStories() {
       setLoading(true);
+
       const res = await storyService.getStories({
         ...DEFAULT.params,
         page: page,
@@ -100,6 +106,8 @@ export default function StoriesPage() {
     }
 
     fetchStories();
+
+    loadingBar.close();
   }, [searchParams]);
 
   return (

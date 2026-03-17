@@ -1,11 +1,10 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/components/link/Link";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-import SearchBar from "@/components/search/search";
 import ButtonExpandable from "@/components/buttons/expandable/btn-expandable";
 import SwitchTheme from "@/components/switchs/switch-theme";
 
@@ -18,11 +17,12 @@ import ButtonDropdown from "@/components/buttons/dropdown/btn-dropdown";
 import genreService from "@/services/genre";
 import { toast } from "sonner";
 import { snakeCaseToCapitalizeWord } from "@/utils/string";
-import { useParams, useRouter } from "next/navigation";
 import useAuth from "@/contexts/AuthContext";
 
 import SearchStories from "../search/search-stories";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { loadingBar } from "../loadings/loading-bar/top-loading-bar.store";
+import useApp from "@/contexts/AppContext";
 
 interface NavBarProps {
   duration?: number;
@@ -30,30 +30,121 @@ interface NavBarProps {
   autoHide?: boolean;
 }
 
+function ProfileButton() {
+  return (
+    <Link href={"/me"}>
+      <ButtonExpandable className="w-full" label="Thông tin tài khoản" />
+    </Link>
+  );
+}
+
+function RankingButton() {
+  return (
+    <Link href="/ranking">
+      <ButtonDropdown className="h-full" label="Xếp hạng" />
+    </Link>
+  );
+}
+
+function RandomStoryButton() {
+  return (
+    <Link href="/stories/random">
+      <ButtonDropdown className="h-full" label="Random" />
+    </Link>
+  );
+}
+
+function FavouriteStoryButton() {
+  return (
+    <Link href="/favourites">
+      <ButtonExpandable className="w-full" label="Truyện yêu thích" />
+    </Link>
+  );
+}
+
+function HistoryButton() {
+  return (
+    <Link href="/histories">
+      <ButtonExpandable className="w-full" label="Lịch sử đọc" />
+    </Link>
+  );
+}
+
+function WebManagementButton() {
+  return (
+    <Link href={"/admin/dashboard"}>
+      <ButtonExpandable className="w-full" label="Quản lý Web" />
+    </Link>
+  );
+}
+
+function SettingButton() {
+  return <ButtonExpandable className="w-full" label="Cài đặt" />;
+}
+
+function LoginButton() {
+  return (
+    <Link href="/login">
+      <ButtonExpandable className="w-full" label="Đăng nhập" />
+    </Link>
+  );
+}
+
+function RegisterButton() {
+  return (
+    <Link href="/register">
+      <ButtonExpandable className="w-full" label="Đăng ký" />
+    </Link>
+  );
+}
+
+function LogoutButton() {
+  const auth = useAuth();
+  return (
+    <ButtonExpandable
+      className="w-full"
+      label="Đăng xuất"
+      onClick={() => {
+        loadingBar.open({});
+        auth?.logout();
+      }}
+    />
+  );
+}
+
+function GenreButton() {
+  const router = useRouter();
+  const app = useApp();
+  const genres = app?.genres ?? [];
+  return (
+    <ButtonDropdown className="h-full" label="Thể loại" onClick={() => router.push("/genre")}>
+      <div className="grid grid-cols-2 gap-x-5 gap-y-1 w-[300px] sm:w-[400px] lg:grid-cols-3 lg:w-[600px]">
+        {genres &&
+          genres.length > 0 &&
+          genres.map((genre, i) => (
+            <Link key={genre} href={`/genre/${genre}`} className="w-full text-start p-2 border-b hover:bg-foreground/30 rounded-t-md cursor-pointer">
+              {snakeCaseToCapitalizeWord(genre)}
+            </Link>
+          ))}
+      </div>
+    </ButtonDropdown>
+  );
+}
+
 function NavBar({ duration = 100, autoHide = true, className }: NavBarProps) {
   const pathName = usePathname();
-  const router = useRouter();
 
   const auth = useAuth();
 
   const user = auth?.user;
 
   const [hidden, setHidden] = useState(false);
-  const [genres, setGenres] = useState<string[]>([]);
 
   const [openSidebar, setOpenSidebar] = useState(false);
   const lastScrollY = useRef(0);
 
   function toggleSidebar() {
     setOpenSidebar(!openSidebar);
-  }
-
-  async function fetchGenres() {
-    const res = await genreService.get();
-
-    if (!res.success) return toast.warning(res.message);
-
-    setGenres(res.data);
   }
 
   useEffect(() => {
@@ -84,10 +175,6 @@ function NavBar({ duration = 100, autoHide = true, className }: NavBarProps) {
   }, [openSidebar, autoHide]);
 
   useEffect(() => {
-    fetchGenres();
-  }, []);
-
-  useEffect(() => {
     setOpenSidebar(false);
   }, [pathName]);
 
@@ -109,19 +196,9 @@ function NavBar({ duration = 100, autoHide = true, className }: NavBarProps) {
 
           {/* Desktop */}
           <div className="hidden lg:flex flex-row justify-center items-center gap-5 h-full">
-            <ButtonDropdown className="h-full" label="Random" onClick={() => router.push("/stories/random")} />
-            <ButtonDropdown className="h-full" label="Xếp hạng" onClick={() => router.push("/ranking")} />
-            <ButtonDropdown className="h-full" label="Thể loại" onClick={() => router.push("/genre")}>
-              <div className="grid grid-cols-2 gap-x-5 gap-y-1 w-[300px] sm:w-[400px] lg:grid-cols-3 lg:w-[600px]">
-                {genres &&
-                  genres.length > 0 &&
-                  genres.map((genre, i) => (
-                    <Link key={genre} href={`/genre/${genre}`} className="w-full text-start p-2 border-b hover:bg-foreground/30 rounded-t-md cursor-pointer">
-                      {snakeCaseToCapitalizeWord(genre)}
-                    </Link>
-                  ))}
-              </div>
-            </ButtonDropdown>
+            <RandomStoryButton />
+            <RankingButton />
+            <GenreButton />
           </div>
         </div>
 
@@ -149,20 +226,18 @@ function NavBar({ duration = 100, autoHide = true, className }: NavBarProps) {
           >
             {user ? (
               <>
-                <ButtonExpandable className="w-full" label="Thông tin tài khoản" onClick={() => router.push("/me")}></ButtonExpandable>
-                {user.role === "admin" && (
-                  <ButtonExpandable className="w-full" label="Quản lý Web" onClick={() => router.push("/admin/dashboard")}></ButtonExpandable>
-                )}
-                <ButtonExpandable className="w-full" label="Truyện yêu thích" onClick={() => router.push("/favourites")}></ButtonExpandable>
-                <ButtonExpandable className="w-full" label="Lịch sử đọc" onClick={() => router.push("/histories")}></ButtonExpandable>
-                <ButtonExpandable className="w-full" label="Cài đặt"></ButtonExpandable>
-                <ButtonExpandable className="w-full" label="Đăng xuất" onClick={() => auth?.logout()}></ButtonExpandable>
+                <ProfileButton />
+                {user.role === "admin" && <WebManagementButton />}
+                <FavouriteStoryButton />
+                <HistoryButton />
+                <SettingButton />
+                <LogoutButton />
               </>
             ) : (
               <>
-                <ButtonExpandable className="w-full" label="Cài đặt"></ButtonExpandable>
-                <ButtonExpandable className="w-full" label="Đăng nhập" onClick={() => router.push("/login")}></ButtonExpandable>
-                <ButtonExpandable className="w-full" label="Đăng ký" onClick={() => router.push("/register")}></ButtonExpandable>
+                <SettingButton />
+                <LoginButton />
+                <RegisterButton />
               </>
             )}
           </ButtonDropdown>
@@ -205,41 +280,22 @@ function NavBar({ duration = 100, autoHide = true, className }: NavBarProps) {
 
                 {/* Content in navbar */}
                 <div className="flex flex-col gap-2.5 ">
-                  {user && <ButtonExpandable onClick={() => router.push("/me")} label="Thông tin tài khoản" />}
-                  {user && user.role === "admin" && (
-                    <ButtonExpandable className="w-full" label="Quản lý Web" onClick={() => router.push("/admin/dashboard")}></ButtonExpandable>
-                  )}
-                  <ButtonExpandable onClick={() => router.push("/stories/random")} label="Random" />
-                  <ButtonExpandable onClick={() => router.push("/ranking")} label="Xếp hạng" />
-                  <ButtonExpandable label="Thể loại" onClick={() => router.push("/genre")}>
-                    <div className="flex flex-col gap-x-5 gap-y-1 w-full pt-1 max-h-[60vh] min-h-[300px] overflow-y-scroll no-scrollbar">
-                      {genres &&
-                        genres.length > 0 &&
-                        genres.map((genre, i) => (
-                          <Link
-                            key={genre}
-                            href={`/genre/${genre}`}
-                            className={`w-full text-start p-2 px-5  hover:bg-foreground/30 rounded-t-md cursor-pointer 
-                                ${i === genres.length - 1 ? "" : "border-b"}`}
-                          >
-                            {snakeCaseToCapitalizeWord(genre)}
-                          </Link>
-                        ))}
-                    </div>
-                  </ButtonExpandable>
-
-                  <ButtonExpandable label="Cài đặt" />
-
+                  {user && <ProfileButton />}
+                  {user && user.role === "admin" && <WebManagementButton />}
+                  <RankingButton />
+                  <RankingButton />
+                  <GenreButton />
+                  <SettingButton />
                   {user ? (
                     <>
-                      <ButtonExpandable onClick={() => router.push("/favourites")} label="Truyện yêu thích" />
-                      <ButtonExpandable onClick={() => router.push("/histories")} label="Lịch sử đọc" />
-                      <ButtonExpandable onClick={() => auth.logout()} label="Đăng xuất"></ButtonExpandable>
+                      <FavouriteStoryButton />
+                      <HistoryButton />
+                      <LogoutButton />
                     </>
                   ) : (
                     <>
-                      <ButtonExpandable onClick={() => router.push("/login")} label="Đăng nhập" />
-                      <ButtonExpandable onClick={() => router.push("/register")} label="Đăng ký" />
+                      <LoginButton />
+                      <RegisterButton />
                     </>
                   )}
                 </div>

@@ -1,5 +1,5 @@
 import CategoryCard from "@/components/cards/categories/category-card";
-import Link from "next/link";
+import Link from "@/components/link/Link";
 
 export const metadata = {
   title: "Truyện",

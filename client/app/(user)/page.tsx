@@ -1,7 +1,6 @@
 "use client";
 
 import StoriesRankingList from "@/components/list/stories-ranking-list";
-import StoryList from "@/components/list/stories-list";
 import { useRouter } from "next/navigation";
 
 import InfinityScrollHorizontalList from "@/components/list/infinity-scroll-horizontal-list";
@@ -18,8 +17,8 @@ import storyService from "@/services/story";
 import Story from "@/types/story";
 import StoryCard from "@/components/cards/stories/story-card";
 import RankingCard from "@/components/cards/ranking-card";
-import NoContent from "@/components/cards/no-content";
-import Link from "next/link";
+import Link from "@/components/link/Link";
+import { loadingBar } from "@/components/loadings/loading-bar/top-loading-bar.store";
 
 export default function Home() {
   const router = useRouter();
@@ -72,6 +71,8 @@ export default function Home() {
   useEffect(() => {
     fetchNewestStories();
     fetchBestRankingStories();
+
+    loadingBar.close();
   }, []);
 
   useEffect(() => {

@@ -1,8 +1,9 @@
 "use client";
 
+import { loadingBar } from "@/components/loadings/loading-bar/top-loading-bar.store";
 import genreService from "@/services/genre";
 import { snakeCaseToCapitalizeWord } from "@/utils/string";
-import Link from "next/link";
+import Link from "@/components/link/Link";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -49,6 +50,8 @@ export default function GenreListPage() {
 
   useEffect(() => {
     fetchGenre();
+
+    loadingBar.close();
   }, []);
 
   return (

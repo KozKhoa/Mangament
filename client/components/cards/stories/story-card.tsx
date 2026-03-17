@@ -11,6 +11,7 @@ import { beautifulView } from "@/utils/beautiful";
 import { snakeCaseToCapitalizeWord } from "@/utils/string";
 
 import DisplayStar from "@/components/displays/ratings/display-star";
+import { loadingBar } from "@/components/loadings/loading-bar/top-loading-bar.store";
 
 import useAuth from "@/contexts/AuthContext";
 
@@ -18,7 +19,7 @@ import favouriteService from "@/services/favourite";
 import { convertNewestChapter } from "@/utils/convert";
 import Image from "next/image";
 import Loading from "@/components/loadings/loading";
-import Link from "next/link";
+import Link from "@/components/link/Link";
 
 interface StoryCardProps {
   data: Story;
@@ -117,7 +118,7 @@ export default function StoryCard({ data, className }: StoryCardProps) {
 
       <div className="flex flex-col justify-between gap-1 w-full h-full">
         {/* Tittle */}
-        <Link href={hrefStory} className="text-[1.2em] text-start font-bold leading-tight cursor-pointer line-clamp-2">
+        <Link href={hrefStory} prefetch className="text-[1.2em] text-start font-bold leading-tight cursor-pointer line-clamp-2">
           {"[" + snakeCaseToCapitalizeWord(story?.type ?? "") + "] " + story?.title}
         </Link>
 
