@@ -111,7 +111,7 @@ export default function StoriesPage() {
   }, [searchParams]);
 
   return (
-    <div className="w-full h-full flex flex-col font-afacad gap-12">
+    <div className="w-full h-full flex flex-col font-afacad gap-12 px-2.5">
       <div className={`w-full flex flex-row justify-center items-start gap-5 `}>
         <div className="w-full">
           {/* Header use to display story type and page index */}

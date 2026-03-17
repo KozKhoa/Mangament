@@ -10,19 +10,21 @@ import { loadingBar } from "@/components/loadings/loading-bar/top-loading-bar.st
 export default function StoryRandomPage() {
   const router = useRouter();
 
+  async function fetchRandomStory() {
+    loadingBar.open({});
+
+    console.log("random");
+
+    const res = await storyService.getRandomStory();
+
+    if (!res.success) return toast.warning(res.message);
+
+    const story = res.data;
+
+    router.replace(`/stories/${story?.type}/${story?.title}`);
+  }
+
   useEffect(() => {
-    async function fetchRandomStory() {
-      loadingBar.open({});
-
-      const res = await storyService.getRandomStory();
-
-      if (!res.success) return toast.warning(res.message);
-
-      const story = res.data;
-
-      router.replace(`/stories/${story?.type}/${story?.title}`);
-    }
-
     fetchRandomStory();
   }, []);
 

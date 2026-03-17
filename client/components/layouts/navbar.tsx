@@ -1,28 +1,25 @@
 "use client";
 
-import Link from "@/components/link/Link";
 import Image from "next/image";
+import Link from "@/components/link/Link";
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { usePathname, useRouter } from "next/navigation";
 
-import ButtonExpandable from "@/components/buttons/expandable/btn-expandable";
-import SwitchTheme from "@/components/switchs/switch-theme";
-
-import BurgerMenuIcon from "@/public/burger-menu.svg";
 import XCloseIcon from "@/public/x-close.svg";
 import ArrowUpIcon from "@/public/arrows/up-v.svg";
+import BurgerMenuIcon from "@/public/burger-menu.svg";
 import ArrowDownIcon from "@/public/arrows/down-v.svg";
 
+import SwitchTheme from "@/components/switchs/switch-theme";
+import SearchStories from "@/components/search/search-stories";
 import ButtonDropdown from "@/components/buttons/dropdown/btn-dropdown";
-import genreService from "@/services/genre";
-import { toast } from "sonner";
-import { snakeCaseToCapitalizeWord } from "@/utils/string";
-import useAuth from "@/contexts/AuthContext";
 
-import SearchStories from "../search/search-stories";
-import { usePathname, useRouter } from "next/navigation";
-import { loadingBar } from "../loadings/loading-bar/top-loading-bar.store";
+import { snakeCaseToCapitalizeWord } from "@/utils/string";
+
 import useApp from "@/contexts/AppContext";
+import useAuth from "@/contexts/AuthContext";
+import ButtonExpandable from "../buttons/expandable/btn-expandable";
 
 interface NavBarProps {
   duration?: number;
@@ -30,25 +27,31 @@ interface NavBarProps {
   autoHide?: boolean;
 }
 
+const className = {
+  buttonDropdown: `flex flex-row justify-between items-center gap-1 px-5 py-1.5 
+    border-b border-foreground w-full rounded-t-md hover:bg-foreground/20`,
+  buttonNavBar: `flex flex-col relative justify-center items-start p-px text-foreground bg-background-items h-fit w-full`,
+};
+
 function ProfileButton() {
   return (
-    <Link href={"/me"}>
-      <ButtonExpandable className="w-full" label="Thông tin tài khoản" />
+    <Link href={"/me"} className={className.buttonDropdown}>
+      Thông tin tài khoản
     </Link>
   );
 }
 
-function RankingButton() {
+function RankingButton({ isMobile = false }: { isMobile?: boolean }) {
   return (
-    <Link href="/ranking">
-      <ButtonDropdown className="h-full" label="Xếp hạng" />
+    <Link href="/ranking" className={isMobile ? className.buttonDropdown : className.buttonNavBar}>
+      Xếp hạng
     </Link>
   );
 }
 
-function RandomStoryButton() {
+function RandomStoryButton({ isMobile = false }: { isMobile?: boolean }) {
   return (
-    <Link href="/stories/random">
+    <Link href="/stories/random" className={isMobile ? className.buttonDropdown : className.buttonNavBar}>
       <ButtonDropdown className="h-full" label="Random" />
     </Link>
   );
@@ -56,44 +59,40 @@ function RandomStoryButton() {
 
 function FavouriteStoryButton() {
   return (
-    <Link href="/favourites">
-      <ButtonExpandable className="w-full" label="Truyện yêu thích" />
+    <Link href="/favourites" className={className.buttonDropdown}>
+      Truyện yêu thích
     </Link>
   );
 }
 
 function HistoryButton() {
   return (
-    <Link href="/histories">
-      <ButtonExpandable className="w-full" label="Lịch sử đọc" />
+    <Link href="/histories" className={className.buttonDropdown}>
+      Lịch sử đọc
     </Link>
   );
 }
 
 function WebManagementButton() {
   return (
-    <Link href={"/admin/dashboard"}>
-      <ButtonExpandable className="w-full" label="Quản lý Web" />
+    <Link href={"/admin/dashboard"} className={className.buttonDropdown}>
+      Quản lý Web
     </Link>
   );
 }
 
-function SettingButton() {
-  return <ButtonExpandable className="w-full" label="Cài đặt" />;
-}
-
 function LoginButton() {
   return (
-    <Link href="/login">
-      <ButtonExpandable className="w-full" label="Đăng nhập" />
+    <Link href="/login" className={className.buttonDropdown}>
+      Đăng nhập
     </Link>
   );
 }
 
 function RegisterButton() {
   return (
-    <Link href="/register">
-      <ButtonExpandable className="w-full" label="Đăng ký" />
+    <Link href="/register" className={className.buttonDropdown}>
+      Đăng ký
     </Link>
   );
 }
@@ -101,34 +100,46 @@ function RegisterButton() {
 function LogoutButton() {
   const auth = useAuth();
   return (
-    <ButtonExpandable
-      className="w-full"
-      label="Đăng xuất"
-      onClick={() => {
-        loadingBar.open({});
-        auth?.logout();
-      }}
-    />
+    <Link href="/" className={className.buttonDropdown}>
+      Đăng xuất
+    </Link>
   );
 }
 
-function GenreButton() {
+function GenreButton({ isMobile = false }: { isMobile?: boolean }) {
   const router = useRouter();
   const app = useApp();
   const genres = app?.genres ?? [];
-  return (
-    <ButtonDropdown className="h-full" label="Thể loại" onClick={() => router.push("/genre")}>
-      <div className="grid grid-cols-2 gap-x-5 gap-y-1 w-[300px] sm:w-[400px] lg:grid-cols-3 lg:w-[600px]">
-        {genres &&
-          genres.length > 0 &&
-          genres.map((genre, i) => (
-            <Link key={genre} href={`/genre/${genre}`} className="w-full text-start p-2 border-b hover:bg-foreground/30 rounded-t-md cursor-pointer">
-              {snakeCaseToCapitalizeWord(genre)}
-            </Link>
-          ))}
-      </div>
-    </ButtonDropdown>
-  );
+
+  if (isMobile) {
+    return (
+      <ButtonExpandable className="w-full" label="Thể loại" onClick={() => router.push("/genre")}>
+        <div className="flex flex-col gap-2 w-full">
+          {genres &&
+            genres.length > 0 &&
+            genres.map((genre, i) => (
+              <Link key={genre} href={`/genre/${genre}`} className="w-full text-start p-2 px-5 border-b hover:bg-foreground/30 rounded-t-md cursor-pointer">
+                {snakeCaseToCapitalizeWord(genre)}
+              </Link>
+            ))}
+        </div>
+      </ButtonExpandable>
+    );
+  } else {
+    return (
+      <ButtonDropdown className="w-full" label="Thể loại" onClick={() => router.push("/genre")}>
+        <div className="grid grid-cols-2 gap-x-5 gap-y-1 w-[300px] sm:w-[400px] lg:grid-cols-3 lg:w-[600px]">
+          {genres &&
+            genres.length > 0 &&
+            genres.map((genre, i) => (
+              <Link key={genre} href={`/genre/${genre}`} className="w-full text-start p-2 border-b hover:bg-foreground/30 rounded-t-md cursor-pointer">
+                {snakeCaseToCapitalizeWord(genre)}
+              </Link>
+            ))}
+        </div>
+      </ButtonDropdown>
+    );
+  }
 }
 
 function NavBar({ duration = 100, autoHide = true, className }: NavBarProps) {
@@ -195,7 +206,7 @@ function NavBar({ duration = 100, autoHide = true, className }: NavBarProps) {
           </Link>
 
           {/* Desktop */}
-          <div className="hidden lg:flex flex-row justify-center items-center gap-5 h-full">
+          <div className="hidden lg:flex flex-row justify-center items-center gap-5 h-full min-w-[280px]">
             <RandomStoryButton />
             <RankingButton />
             <GenreButton />
@@ -230,12 +241,10 @@ function NavBar({ duration = 100, autoHide = true, className }: NavBarProps) {
                 {user.role === "admin" && <WebManagementButton />}
                 <FavouriteStoryButton />
                 <HistoryButton />
-                <SettingButton />
                 <LogoutButton />
               </>
             ) : (
               <>
-                <SettingButton />
                 <LoginButton />
                 <RegisterButton />
               </>
@@ -282,10 +291,9 @@ function NavBar({ duration = 100, autoHide = true, className }: NavBarProps) {
                 <div className="flex flex-col gap-2.5 ">
                   {user && <ProfileButton />}
                   {user && user.role === "admin" && <WebManagementButton />}
-                  <RankingButton />
-                  <RankingButton />
-                  <GenreButton />
-                  <SettingButton />
+                  <RandomStoryButton isMobile />
+                  <RankingButton isMobile />
+                  <GenreButton isMobile />
                   {user ? (
                     <>
                       <FavouriteStoryButton />

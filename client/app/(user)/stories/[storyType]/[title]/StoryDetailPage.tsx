@@ -80,10 +80,10 @@ export default function StoryDetailPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         {/* Story info */}
         <div className="lg:flex-1 flex flex-col gap-3 ">
-          <StoryCardAllInfo className="bg-background-items shadow-[2px_2px_12px_4px_var(--foreground)]/25 " story={story}></StoryCardAllInfo>
+          <StoryCardAllInfo className="bg-background-items shadow-[2px_2px_12px_4px_var(--foreground)]/25 " story={story} />
 
           {/* Button */}
-          <div className="grid grid-cols-2 md:grid-cols-4 justify-center items-center gap-2">
+          <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 justify-center items-center gap-2">
             <Button onClick={() => story?.children[0] && handleNavigateStoryNode([story?.children[0]])} className="w-full font-semibold">
               Đọc từ đầu
             </Button>

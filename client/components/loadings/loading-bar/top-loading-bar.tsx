@@ -23,8 +23,6 @@ export default function TopLoadingRoot() {
     document.addEventListener("keydown", onEsc);
     document.body.style.overflow = "hidden";
 
-    console.log(stack.speed);
-
     const interval = setInterval(() => {
       setProcess((prev) => {
         if (prev >= 100) return prev;
