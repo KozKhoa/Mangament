@@ -15,7 +15,7 @@ import TextArea from "@/components/inputs/text-area";
 import Button from "@/components/buttons/button";
 import { modal } from "@/components/modal/modal.store";
 import { snakeCaseToCapitalizeWord } from "@/utils/string";
-import Link from "next/link";
+import Link from "@/components/link/Link";
 import FullScreenLoading from "@/components/loadings/full-screen-loading";
 import NationSelection from "@/components/selections/nation-selection";
 import Nation from "@/types/nation";
@@ -24,6 +24,7 @@ import { isEqual } from "lodash";
 import StoryNodeContainerDraggable from "@/components/draggable/story-node-container-draggable";
 import StoryNode, { StoryNodeContent } from "@/types/story-node";
 import withAdmin from "@/hoc/withAdmin";
+import { loadingBar } from "@/components/loadings/loading-bar/top-loading-bar.store";
 
 export function EditStory() {
   const params = useParams();
@@ -256,6 +257,7 @@ export function EditStory() {
 
   useEffect(() => {
     fetchStory();
+    loadingBar.close();
   }, []);
 
   useEffect(() => {

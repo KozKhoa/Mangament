@@ -34,8 +34,9 @@ import FilterStoryType from "@/components/filters/filter-story-type";
 import { modal } from "@/components/modal/modal.store";
 import FilterNation from "@/components/filters/filter-nations";
 import Button from "@/components/buttons/button";
-import Link from "next/link";
+import Link from "@/components/link/Link";
 import withAdmin from "@/hoc/withAdmin";
+import { loadingBar } from "@/components/loadings/loading-bar/top-loading-bar.store";
 
 const STORIES_PIE_CHART_COLORS = [
   "#6A4E42", // warm brown
@@ -92,6 +93,7 @@ export function StoriesManagementPage() {
 
   const handleNavigate = useCallback(
     (key: string, value: string) => {
+      loadingBar.open({});
       const params = new URLSearchParams(searchParams);
 
       params.set("page", "1");
@@ -108,6 +110,7 @@ export function StoriesManagementPage() {
   );
 
   const handleResetSearchParams = useCallback(() => {
+    loadingBar.open({});
     router.push(`?page=1&sort=updated_at:desc`);
   }, []);
 
@@ -136,6 +139,8 @@ export function StoriesManagementPage() {
     }
 
     fetchStories();
+
+    loadingBar.close();
   }, [searchParams]);
 
   return (

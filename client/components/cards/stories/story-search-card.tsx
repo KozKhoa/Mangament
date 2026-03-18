@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/link/Link";
 
 import Story from "@/types/story";
 

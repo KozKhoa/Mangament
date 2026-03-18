@@ -1,10 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import Link from "@/components/link/Link";
 
 import { validateEmailFormat, validatePasswordFormat } from "@/lib/validation";
 
@@ -13,10 +12,10 @@ import useAuth from "@/contexts/AuthContext";
 import Input from "@/components/inputs/input";
 
 import Button from "@/components/buttons/button";
+import { loadingBar } from "@/components/loadings/loading-bar/top-loading-bar.store";
 
 function RegisterPage() {
   const auth = useAuth();
-  const router = useRouter();
 
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
@@ -60,6 +59,10 @@ function RegisterPage() {
 
     setIsProcessing(false);
   };
+
+  useEffect(() => {
+    loadingBar.close();
+  }, []);
 
   return (
     <div className="flex w-full min-h-[80vh] justify-center items-center">

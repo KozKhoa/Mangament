@@ -1,5 +1,4 @@
 import { CreateError } from "../utils/ErrorHandle.js";
-import ErrorCodes from "../constants/Error.js";
 
 import { Gender, Genre, Role, StoryStatus, StoryType } from "../configs/db.js";
 
@@ -37,6 +36,10 @@ export function IsJsonString(string) {
 export function isUUID(str) {
   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
   return uuidRegex.test(str);
+}
+
+export function isPrismaError(error) {
+  return error?.code !== undefined && typeof error.code === "string" && error?.clientVersion !== undefined;
 }
 
 export function throwErrorIfInvalidGenres(genres = []) {

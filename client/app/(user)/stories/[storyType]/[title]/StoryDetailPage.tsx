@@ -3,7 +3,7 @@
 import path from "path";
 import { toast } from "sonner";
 import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import storyService from "@/services/story";
@@ -19,22 +19,24 @@ import StoryCardAllInfo from "@/components/cards/stories/story-card-all-info";
 import ButtonOfFavouriteStory from "@/components/buttons/favourite-button";
 import CommentMasonryGrid from "@/components/grids/comment-masonry-grid";
 import RatingMasonryGrid from "@/components/grids/rating-masonry-grid";
-import { modal } from "@/components/modal/modal.store";
-import RatingInputForm from "@/components/forms/rating-input-form";
+
 import Image from "next/image";
+import { loadingBar } from "@/components/loadings/loading-bar/top-loading-bar.store";
 
 export default function StoryDetailPage() {
   const router = useRouter();
   const params = useParams();
 
-  const storyType = params.storyType?.toString().split(",");
-  const title = params.title?.toString();
+  const storyType = useMemo(() => params.storyType?.toString(), [params]);
+  const title = useMemo(() => params.title?.toString(), [params]);
 
   const [story, setStory] = useState<Story>();
   const [review, setReview] = useState<string[]>();
 
   async function fetchStory() {
-    const res = await storyService.getStoryByTitle(title ?? "", { isGettingChildren: true, isGettingSummary: true, type: storyType });
+    if (!title || !storyType) return;
+
+    const res = await storyService.getStoryByTitle(title ?? "", { isGettingChildren: true, isGettingSummary: true, type: [storyType] });
 
     if (!res.success) return toast.warning(res.message);
 
@@ -43,6 +45,7 @@ export default function StoryDetailPage() {
 
   async function fetchStoryReview() {
     if (!story) return;
+
     const res = await storyService.getReview(story?.id);
 
     if (!res.success) return toast.warning(res.message);
@@ -53,15 +56,11 @@ export default function StoryDetailPage() {
   function handleNavigateStoryNode(storyNode: StoryNode[]) {
     if (storyNode[storyNode.length - 1].type !== "chapter") return;
 
+    loadingBar.open({});
+
     let routeDir = "";
     storyNode.forEach((node, i) => (routeDir = path.join(routeDir, `${node.type} ${node.order_index}`)));
     router.push(path.join(`/stories/${storyType}/${title}/`, routeDir));
-  }
-
-  function handleOpenRatingForm() {
-    modal.open("custom", {
-      content: <RatingInputForm onCancel={modal.close} onSubmit={modal.close} storyId={story?.id ?? ""}></RatingInputForm>,
-    });
   }
 
   useEffect(() => {
@@ -69,18 +68,22 @@ export default function StoryDetailPage() {
   }, [story]);
 
   useEffect(() => {
+    if (!title || !storyType || title == "undefined" || storyType == "undefined") return;
+
     fetchStory();
-  }, []);
+
+    loadingBar.close();
+  }, [storyType, title]);
 
   return (
     <div className="flex flex-col gap-10 px-2.5">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         {/* Story info */}
         <div className="lg:flex-1 flex flex-col gap-3 ">
-          <StoryCardAllInfo className="bg-background-items shadow-[2px_2px_12px_4px_var(--foreground)]/25 " story={story}></StoryCardAllInfo>
+          <StoryCardAllInfo className="bg-background-items shadow-[2px_2px_12px_4px_var(--foreground)]/25 " story={story} />
 
           {/* Button */}
-          <div className="grid grid-cols-2 md:grid-cols-4 justify-center items-center gap-2">
+          <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 justify-center items-center gap-2">
             <Button onClick={() => story?.children[0] && handleNavigateStoryNode([story?.children[0]])} className="w-full font-semibold">
               Đọc từ đầu
             </Button>

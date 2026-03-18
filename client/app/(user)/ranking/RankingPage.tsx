@@ -1,10 +1,14 @@
 "use client";
 
 import CategoryCard from "@/components/cards/categories/category-card";
-import { useRouter } from "next/navigation";
+import { loadingBar } from "@/components/loadings/loading-bar/top-loading-bar.store";
+import Link from "@/components/link/Link";
+import { useEffect } from "react";
 
 export default function RankingPage() {
-  const router = useRouter();
+  useEffect(() => {
+    loadingBar.close();
+  }, []);
 
   return (
     <>
@@ -20,13 +24,13 @@ export default function RankingPage() {
         </div>
 
         <div className="flex flex-row flex-wrap justify-center items-center gap-x-20 gap-y-10 m-auto w-fit py-10">
-          <CategoryCard className="hover:scale-115" imageSource="/manga.jpg" label="MANGA" onClick={() => router.push("/ranking/manga")}></CategoryCard>
-          <CategoryCard
-            className="hover:scale-115"
-            imageSource="/light_novel.jpg"
-            label="LIGHT NOVEL"
-            onClick={() => router.push("/ranking/light_novel")}
-          ></CategoryCard>
+          <Link href={"/ranking/manga"}>
+            <CategoryCard className="hover:scale-115" imageSource="/manga.jpg" label="MANGA" />
+          </Link>
+
+          <Link href={"/ranking/light_novel"}>
+            <CategoryCard className="hover:scale-115" imageSource="/light_novel.jpg" label="LIGHT NOVEL"></CategoryCard>
+          </Link>
         </div>
       </div>
     </>

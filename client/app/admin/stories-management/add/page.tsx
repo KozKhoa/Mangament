@@ -21,6 +21,7 @@ import NationSelection from "@/components/selections/nation-selection";
 import StoryTypeSelection from "@/components/selections/story-type-selection";
 import Nation from "@/types/nation";
 import withAdmin from "@/hoc/withAdmin";
+import { loadingBar } from "@/components/loadings/loading-bar/top-loading-bar.store";
 
 export function AddNewStoryPage() {
   const params = useParams();
@@ -130,7 +131,9 @@ export function AddNewStoryPage() {
     });
   }
 
-  useEffect(() => {}, []);
+  useEffect(() => {
+    loadingBar.close();
+  }, []);
 
   return (
     <div className="relative w-full ">

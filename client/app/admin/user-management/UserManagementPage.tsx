@@ -24,6 +24,7 @@ import XIcon from "@/public/x-icon.svg";
 import SortUsers from "@/components/sorts/sort-users";
 import SwitchPageSmall from "@/components/switch-page/small";
 import withAdmin from "@/hoc/withAdmin";
+import { loadingBar } from "@/components/loadings/loading-bar/top-loading-bar.store";
 
 const LIMIT = 15;
 
@@ -46,11 +47,13 @@ export function UserManagement() {
   const [usersPagination, setUsersPagination] = useState<Pagination>();
 
   const handleResetSearchParams = useCallback(() => {
+    loadingBar.open({});
     router.push(`?page=1&sort=join_date:desc`, { scroll: false });
   }, []);
 
   const handleNavigate = useCallback(
     (key: string, value: string) => {
+      loadingBar.open({});
       const params = new URLSearchParams(searchParams);
 
       params.set("page", "1");
@@ -79,6 +82,8 @@ export function UserManagement() {
     }
 
     fetchUsers();
+
+    loadingBar.close();
   }, [searchParams]);
 
   return (

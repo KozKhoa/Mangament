@@ -16,6 +16,7 @@ import ButtonDropdownRadio from "@/components/buttons/dropdown/btn-drop-down-rad
 import { capitalizeWords } from "@/utils/string";
 import PieChart from "@/components/chart/pie-chart";
 import useAdmin from "@/contexts/AdminContext";
+import { loadingBar } from "@/components/loadings/loading-bar/top-loading-bar.store";
 
 const USER_PIE_CHART_COLORS = [
   "#405D5D",
@@ -189,6 +190,10 @@ export default function Dashboard() {
 
     fetchStatsNewUsers();
   }, [newUsersStartDate, newUsersEndDate, newUsersGroup]);
+
+  useEffect(() => {
+    loadingBar.close();
+  }, []);
 
   return (
     <div className="relative mt-5">

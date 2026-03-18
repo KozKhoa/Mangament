@@ -1,6 +1,5 @@
 import api from "@/lib/axios";
 import User from "@/types/user";
-import axios from "axios";
 import { Pagination } from "@/types/pagination";
 
 type ServiceResult<T> = { success: boolean; data?: T; message?: string; pagination?: Pagination };

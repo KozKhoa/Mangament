@@ -1,6 +1,6 @@
 import { nanoid } from "nanoid";
 
-export type ModalType = "confirm" | "form" | "custom";
+export type ModalType = "confirm" | "custom";
 
 export type ModalItem = {
   id: string;

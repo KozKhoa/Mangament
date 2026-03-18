@@ -10,6 +10,7 @@ import { Afacad, Holtwood_One_SC, Geist_Mono, Geist, Roboto, Aclonica } from "./
 import "./globals.css";
 
 import { ModalRoot } from "@/components/modal/modal-root";
+import TopLoadingRoot from "@/components/loadings/loading-bar/top-loading-bar";
 
 export const metadata: Metadata = {
   title: {
@@ -33,14 +34,16 @@ export default function RootLayout({
         `}
       >
         <AppProvider>
-          <AuthProvider>
-            <ThemeProvider attribute="class" defaultTheme="system" enableSystem={true}>
+          <ThemeProvider attribute="class" defaultTheme="system" enableSystem={true}>
+            <AuthProvider>
+              <TopLoadingRoot />
+
               <div>{children}</div>
 
               <Toaster position="top-center" />
               <ModalRoot />
-            </ThemeProvider>
-          </AuthProvider>
+            </AuthProvider>
+          </ThemeProvider>
         </AppProvider>
       </body>
     </html>

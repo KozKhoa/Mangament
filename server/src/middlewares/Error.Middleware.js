@@ -1,9 +1,15 @@
+import { isPrismaError } from "../utils/Validators.js";
+
 const ErrorMiddleware = (err, req, res, next) => {
   try {
     console.log(err);
 
-    if (err.code == "P1001") {
-      err.message = "Cannot connect with database";
+    if (isPrismaError(err)) {
+      if (err.code == "P1001") {
+        err.message = "Cannot connect with database";
+      }
+
+      err.message = "Database error";
     }
 
     res.status(err.status || 500).json({

@@ -3,7 +3,7 @@
 import Footer from "@/components/layouts/footer";
 import NavBar from "@/components/layouts/navbar";
 import { snakeCaseToCapitalizeWord } from "@/utils/string";
-import Link from "next/link";
+import Link from "@/components/link/Link";
 import { usePathname } from "next/navigation";
 
 // app/(user)/layout.tsx

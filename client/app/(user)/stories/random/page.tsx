@@ -5,11 +5,16 @@ import storyService from "@/services/story";
 import { toast } from "sonner";
 import { useEffect } from "react";
 import Loading from "@/components/loadings/loading";
+import { loadingBar } from "@/components/loadings/loading-bar/top-loading-bar.store";
 
 export default function StoryRandomPage() {
   const router = useRouter();
 
   async function fetchRandomStory() {
+    loadingBar.open({});
+
+    console.log("random");
+
     const res = await storyService.getRandomStory();
 
     if (!res.success) return toast.warning(res.message);
@@ -22,6 +27,7 @@ export default function StoryRandomPage() {
   useEffect(() => {
     fetchRandomStory();
   }, []);
+
   return (
     <div className="w-full h-[80vh] flex flex-col justify-center items-center gap-5">
       <h2>Đang random truyện cho bạn</h2>

@@ -29,6 +29,7 @@ import { snakeCaseToCapitalizeWord } from "@/utils/string";
 import TrashStoryCard from "@/components/cards/stories/trash-story-card";
 import DisplayStar from "@/components/displays/ratings/display-star";
 import { beautifulView } from "@/utils/beautiful";
+import { loadingBar } from "@/components/loadings/loading-bar/top-loading-bar.store";
 
 export function StoriesTrashPage() {
   const router = useRouter();
@@ -254,6 +255,7 @@ export function StoriesTrashPage() {
   }
 
   function handleNavigate(key: string, value: number) {
+    loadingBar.open({});
     const params = new URLSearchParams(searchParams.toString());
 
     params.set("page", "1");
@@ -275,6 +277,8 @@ export function StoriesTrashPage() {
 
   useEffect(() => {
     fetchTrashStories();
+
+    loadingBar.close();
   }, [searchParams]);
 
   return (

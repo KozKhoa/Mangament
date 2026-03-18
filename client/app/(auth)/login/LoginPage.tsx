@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
-import Link from "next/link";
+import Link from "@/components/link/Link";
 import { useRouter } from "next/navigation";
 
 import { validateEmailFormat, validatePasswordFormat } from "@/lib/validation";
@@ -14,6 +14,7 @@ import useAuth from "@/contexts/AuthContext";
 import Input from "@/components/inputs/input";
 import Checkbox from "@/components/inputs/checkbox";
 import Button from "@/components/buttons/button";
+import { loadingBar } from "@/components/loadings/loading-bar/top-loading-bar.store";
 
 export default function LoginPage() {
   const auth = useAuth();
@@ -56,6 +57,10 @@ export default function LoginPage() {
 
     setIsProcessing(false);
   }
+
+  useEffect(() => {
+    loadingBar.close();
+  }, []);
 
   return (
     <div className="w-full min-h-[80vh] flex justify-center items-center">

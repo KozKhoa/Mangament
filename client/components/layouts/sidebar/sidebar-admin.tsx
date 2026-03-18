@@ -6,7 +6,8 @@ import ArrowLeftIcon from "@/public/arrows/left-v.svg";
 import ArrowDownIcon from "@/public/arrows/down-v.svg";
 import { useEffect, useRef, useState } from "react";
 import useResize from "@/hooks/useResize";
-import Link from "next/link";
+
+import Link from "@/components/link/Link";
 
 import { useParams, usePathname, useRouter, useSearchParams } from "next/navigation";
 

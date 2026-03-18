@@ -1,5 +1,5 @@
 import { snakeCaseToCapitalizeWord } from "@/utils/string";
-import Link from "next/link";
+import Link from "@/components/link/Link";
 
 export default function GenreTag({ tagName, className }: { className?: string; tagName?: string }) {
   return (

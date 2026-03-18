@@ -17,7 +17,7 @@ import { modal } from "../modal/modal.store";
 import StoryStatusTag from "../tags/story-status-tag";
 import StoryTypeTag from "../tags/story-type-tag";
 import { roundTo } from "@/utils/math";
-import Link from "next/link";
+import Link from "@/components/link/Link";
 import Image from "next/image";
 
 export interface StoriesTableProps {

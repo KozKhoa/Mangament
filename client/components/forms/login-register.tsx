@@ -4,7 +4,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import Input from "../inputs/input";
-import Link from "next/link";
+import Link from "@/components/link/Link";
 import { useRouter } from "next/navigation";
 
 import Checkbox from "../inputs/checkbox";
