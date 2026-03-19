@@ -37,8 +37,6 @@ enum StoryStatus {
 enum StoryType {
   manga
   light_novel
-  web_novel
-  anime
 }
 
 enum StoryNodeType {

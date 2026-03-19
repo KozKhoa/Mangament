@@ -15,7 +15,7 @@ export default async function main() {
   await db.story_Genre.deleteMany({ where: { genre: { in: genres } } });
 
   await db.story_Genre.createMany({
-    data: Array.from({ length: 10000 }).map((_, i) => ({
+    data: Array.from({ length: 600 }).map((_, i) => ({
       story_id: stories[randomInt(stories.length) % stories.length].id,
       genre: genres[randomInt(genres.length) % genres.length],
     })),

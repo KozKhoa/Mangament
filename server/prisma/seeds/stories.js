@@ -16,6 +16,9 @@ export default async function main() {
 
   const images = await db.image.findMany();
 
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+
   await db.story.createMany({
     data: Array.from({ length: 111 }).map((_, i) => ({
       title: faker.book.title(),

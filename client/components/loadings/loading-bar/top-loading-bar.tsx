@@ -50,7 +50,7 @@ export default function TopLoadingRoot() {
         className=" fixed top-0 left-0 w-[99vw] z-40"
       >
         <div className="w-full">
-          <div className="rounded-full" style={{ width: process + "%", backgroundColor: stack.color ?? "#B0AFAF", height: (stack.height ?? 3) + "px" }}></div>
+          <div className="rounded-full" style={{ width: process + "%", backgroundColor: stack.color ?? "#0078D4", height: (stack.height ?? 3) + "px" }}></div>
         </div>
       </motion.div>
     </AnimatePresence>
