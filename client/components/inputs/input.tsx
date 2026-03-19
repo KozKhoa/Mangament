@@ -70,11 +70,11 @@ export default function Input({
       )}
 
       <div
-        className={`flex gap-0.5 items-center px-3 py-2 border
+        className={`flex gap-0.5 items-center px-3 py-2 border bg-background-items
           ${error ? "border-error" : "border-foreground/30"} rounded-sm `}
       >
         <input
-          className="w-full outline-none bg-none"
+          className="w-full outline-none"
           type={isShowPassword ? "text" : type}
           placeholder={placeHolder}
           name={name}

@@ -285,28 +285,21 @@ export function EditStory() {
             </div>
 
             <div className="flex flex-col gap-2 w-full lg:col-span-2">
-              <Input label="Title" placeHolder={story?.title} defaultValue={story?.title} onChange={setTitle} onReset={setTitle}></Input>
+              <Input label="Title" placeHolder={story?.title} defaultValue={story?.title} onChange={setTitle} onReset={setTitle} />
               <NationSelection
                 defaultValue={story?.nation ? [story?.nation?.flag_icon, story?.nation?.name].join(" ") : null}
                 onChange={(nation) => setNation({ name: nation?.name ?? "", flag_icon: nation?.flag_icon })}
                 onReset={(nation) => setNation({ name: nation?.name ?? "", flag_icon: nation?.flag_icon })}
-              ></NationSelection>
-              <StoryStatusSelection
-                defaultValue={story?.status as TargetStoryStatus}
-                onChange={(status) => setStoryStatus(status ?? "")}
-              ></StoryStatusSelection>
-              <StoryGenreMultiSelection defaultValue={story?.genres} onChange={setGenres}></StoryGenreMultiSelection>
+              />
+              <StoryStatusSelection defaultValue={story?.status as TargetStoryStatus} onChange={(status) => setStoryStatus(status ?? "")} />
+              <StoryGenreMultiSelection defaultValue={story?.genres} onChange={setGenres} />
 
-              <TextArea label="Tóm tắt / Mô tả truyện" placeHolder={story?.summary} defaultValue={story?.summary} onChange={setSummary}></TextArea>
+              <TextArea label="Tóm tắt / Mô tả truyện" placeHolder={story?.summary} defaultValue={story?.summary} onChange={setSummary} />
             </div>
           </div>
 
           {/* Content */}
-          <div>
-            {story?.children && (
-              <StoryNodeContainerDraggable storyId={storyId} onChange={setChildren} storyNodes={story.children}></StoryNodeContainerDraggable>
-            )}
-          </div>
+          <div>{story?.children && <StoryNodeContainerDraggable storyId={storyId} onChange={setChildren} storyNodes={story.children} />}</div>
 
           <div>
             <Button className="font-semibold text-lg w-full" onClick={onConfirmUpdate}>

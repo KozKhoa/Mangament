@@ -34,7 +34,7 @@ export function TrashPage() {
         <Navigate>Story</Navigate>
       </Link>
 
-      <Navigate>Story Node</Navigate>
+      {/* <Navigate>Story Node</Navigate> */}
     </div>
   );
 }

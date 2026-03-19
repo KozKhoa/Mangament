@@ -21,7 +21,7 @@ export default function ButtonOfFavouriteStory({ className, story }: { className
 
     if (!res.success) return toast.warning(res.message);
 
-    toast.message("Add successfully");
+    toast.message(`Thêm ${story.title} danh sách yêu thích thành công`);
 
     setFavouriteId(res.data?.id ?? null);
 
@@ -37,7 +37,7 @@ export default function ButtonOfFavouriteStory({ className, story }: { className
 
     if (!res.success) return toast.warning(res.message);
 
-    toast.message("Remove successfully");
+    toast.message(`Xóa ${story?.title} khỏi danh sách yêu thích thành công`);
 
     setFavouriteId(null);
   }, [favouriteId]);
