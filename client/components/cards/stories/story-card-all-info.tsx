@@ -41,7 +41,18 @@ export default function StoryCardAllInfo({ story, className }: StoryCardAllInfoP
 
           <div className="flex flex-col gap-1 justify-start items-start">
             {/* Tittle */}
-            <h2 className="font-bold leading-tight">{"[" + snakeCaseToCapitalizeWord(story?.type || "") + "] " + story?.title}</h2>
+            <h2 className="flex flex-row items-center gap-1.5 font-bold leading-tight">
+              {story?.nation && (
+                <span className="shrink-0">
+                  {story.nation.flag_image?.url ? (
+                    <Image src={story.nation.flag_image.url} alt={story.nation.name} width={24} height={16} className="object-contain"></Image>
+                  ) : (
+                    <span className="text-[1.2rem]">{story.nation.flag_icon}</span>
+                  )}
+                </span>
+              )}
+              {"[" + snakeCaseToCapitalizeWord(story?.type || "") + "] " + story?.title}
+            </h2>
 
             <Line></Line>
 

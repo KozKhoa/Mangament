@@ -1,7 +1,7 @@
 "use client";
 
 import { toast } from "sonner";
-import { useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 import XIcon from "@/public/x-icon.svg";
@@ -26,6 +26,7 @@ export function HistoriesPage() {
   const router = useRouter();
 
   const searchParams = useSearchParams();
+  const pathName = usePathname();
 
   const page = Number(searchParams.get("page") ?? 1);
   const limit = Number(searchParams.get("limit") ?? LIMIT);
@@ -65,6 +66,7 @@ export function HistoriesPage() {
     const params = new URLSearchParams(searchParams.toString());
 
     params.set("page", "1");
+    handleNavigate;
 
     if (!value) {
       params.delete(key);
@@ -72,13 +74,13 @@ export function HistoriesPage() {
       params.set(key, value);
     }
 
-    router.push(`?${params.toString()}`);
+    router.push(`${pathName.toString()}?${params.toString()}`);
   }
 
   function handleResetSearchParams() {
     loadingBar.open({});
 
-    router.push(`?page=1&sort=${sort}`);
+    router.push(`${pathName.toString()}?page=1&sort=${sort}`);
   }
 
   useEffect(() => {
@@ -153,7 +155,7 @@ export function HistoriesPage() {
             defaultPage={1}
             maxPage={pagination?.totalPages ?? 0}
             page={page}
-            onChange={(pageIndex) => router.push(`/histories?page=${pageIndex}`)}
+            onChange={(pageIndex) => handleNavigate("page", pageIndex.toString())}
           />
         </div>
       </div>

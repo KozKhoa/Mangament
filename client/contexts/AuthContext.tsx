@@ -170,7 +170,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     authService.logout();
     setUser(null);
     token.removeAccessToken();
-    router.replace("/");
+    router.refresh();
   }
 
   useEffect(function () {

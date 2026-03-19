@@ -39,6 +39,21 @@ export default function TrashStoryCard({
           height={300}
         />
         <p className="text-[1.2em] text-start leading-tight font-semibold line-clamp-2">
+          {story.nation && (
+            <span className="inline-block mr-1.5 align-middle">
+              {story.nation.flag_image?.url ? (
+                <Image
+                  src={story.nation.flag_image.url}
+                  alt={story.nation.name}
+                  width={20}
+                  height={14}
+                  className="object-contain inline-block"
+                ></Image>
+              ) : (
+                <span className="text-[1.2rem]">{story.nation.flag_icon}</span>
+              )}
+            </span>
+          )}
           <span className="text-foreground/60">{"[" + snakeCaseToCapitalizeWord(story?.type ?? "") + "] "}</span>
           {story?.title}
         </p>

@@ -24,8 +24,22 @@ export default function StorySearchCard({ story, className }: { story: Story; cl
       </div>
 
       <div className="flex flex-col gap-1 w-full h-full">
-        {/* Tittle */}
         <div className="text-[1.1em] text-start font-bold leading-tight line-clamp-2">
+          {story.nation && (
+            <span className="inline-block mr-1.5 align-middle">
+              {story.nation.flag_image?.url ? (
+                <Image
+                  src={story.nation.flag_image.url}
+                  alt={story.nation.name}
+                  width={20}
+                  height={14}
+                  className="object-contain inline-block"
+                ></Image>
+              ) : (
+                <span className="text-[1.2rem]">{story.nation.flag_icon}</span>
+              )}
+            </span>
+          )}
           {"[" + snakeCaseToCapitalizeWord(story?.type ?? "") + "] " + story?.title}
         </div>
 

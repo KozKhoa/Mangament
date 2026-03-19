@@ -85,7 +85,7 @@ export default function NumberInput({
   }, [number]);
 
   return (
-    <div className={`border rounded-md px-2 w-fit text-center flex justify-between gap-1   ${className}`}>
+    <div className={`border border-foreground/30 rounded-sm px-2 w-fit text-center flex justify-between gap-1 bg-background-items  ${className}`}>
       <button className=" cursor-pointer " onClick={() => handleChange((Number(number) - 1).toString())}>
         <MinusIcon className={`w-[${width}] h-[${height}]`}></MinusIcon>
       </button>

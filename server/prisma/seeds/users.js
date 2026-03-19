@@ -15,10 +15,11 @@ export default async function main() {
       admin,
       ...Array.from({ length: 500 }).map((_, i) => {
         const name = faker.person.lastName() + " " + faker.person.firstName();
+        const email = faker.internet.email();
 
         return {
           name: name,
-          email: `${name}@gmail.com`,
+          email: email,
           password: hashedPassword,
           role: i % 12 === 0 ? "admin" : "user",
           avatar_id: avatar.id,

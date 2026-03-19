@@ -39,12 +39,14 @@ function ButtonExpandable({
         className={`flex flex-row justify-between items-center gap-1 px-5 py-1.5 border-b border-foreground 
           w-full rounded-t-md hover:bg-foreground/20 ${className}`}
       >
-        <button className="cursor-pointer w-full text-start" onClick={handleClick}>
-          {typeof label === "string" && label}
-        </button>
+        {typeof label === "string" && (
+          <button className="cursor-pointer w-full text-start" onClick={handleClick}>
+            {label}
+          </button>
+        )}
         {children && (
-          <button className="cursor-pointer h-full justify-center items-center" onClick={toggleOpenList}>
-            {typeof label === "string" ? <TriangleDownIcon className="text-foreground w-4 h-4" /> : label}
+          <button className="cursor-pointer h-full w-full justify-center items-center" onClick={toggleOpenList}>
+            {typeof label === "string" ? <TriangleDownIcon className="text-foreground w-4 h-4 shrink-0" /> : label}
           </button>
         )}
       </div>
