@@ -33,7 +33,7 @@ export default function StoryGenreCard({ story, className }: { story: Story; cla
 
     setFavouriteId(res.data?.id ?? null);
 
-    toast.message(`Added successfully`);
+    toast.message(`Thêm ${story.title} vào danh sách yêu thích thành công`);
   }, [story.id]);
 
   const removeFavourite = useCallback(async () => {
@@ -44,7 +44,7 @@ export default function StoryGenreCard({ story, className }: { story: Story; cla
 
     setFavouriteId(null);
 
-    toast.message(`Removed successfully`);
+    toast.message(`Xóa ${story.title} khỏi danh sách yêu thích thành công`);
   }, [favouriteId]);
 
   const handleClickFavourite = useCallback(() => {
@@ -98,13 +98,7 @@ export default function StoryGenreCard({ story, className }: { story: Story; cla
           {story.nation && (
             <span className="inline-block mr-1.5 align-middle">
               {story.nation.flag_image?.url ? (
-                <Image
-                  src={story.nation.flag_image.url}
-                  alt={story.nation.name}
-                  width={20}
-                  height={14}
-                  className="object-contain inline-block"
-                ></Image>
+                <Image src={story.nation.flag_image.url} alt={story.nation.name} width={20} height={14} className="object-contain inline-block"></Image>
               ) : (
                 <span className="text-[1.2rem]">{story.nation.flag_icon}</span>
               )}

@@ -233,6 +233,11 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(RequestLogger);
 
+// Let render ping after amount of time for preventing container to idle
+app.get("/health", (req, res) => {
+  res.status(200).send("ok");
+});
+
 app.use(cors(corsOptions));
 
 app.use(authMiddleware.verifyApiKey);
@@ -259,11 +264,6 @@ app.use("/favourites", favouriteRoute);
 app.use("/admin", adminRoute);
 
 app.use("/uploads", uploadRoute);
-
-// Let render ping after amount of time for preventing container to idle
-app.get("/health", (req, res) => {
-  res.status(200).send("ok");
-});
 
 // Middlewares
 app.use(ErrorMiddleware);
