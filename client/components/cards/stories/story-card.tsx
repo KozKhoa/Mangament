@@ -78,12 +78,12 @@ export default function StoryCard({ data, className }: StoryCardProps) {
 
   return (
     <div
-      className={`flex flex-col text-foreground gap-2.5 p-1.5 rounded-[5]
-        border-transparent border-2 transition-all duration-50 ease-linear
+      className={`flex flex-col text-foreground gap-2.5 p-1.5 rounded-sm
+        border-transparent border transition-all duration-50 ease-linear
         shadow-md max-w-sm w-full h-full bg-background-items
         ${className} `}
     >
-      <div className={`relative rounded-[5] w-full h-fit cursor-pointer`}>
+      <div className={`relative rounded-sm w-full h-fit cursor-pointer`}>
         {/* Cover art */}
         <div className="rounded-sm overflow-hidden">
           {story.cover_art?.url && (

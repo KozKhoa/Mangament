@@ -55,8 +55,8 @@ export default function HistoryCard({ history, onClickRemove, className }: { his
 
   return (
     <div
-      className={`flex flex-col justify-start items-center bg-background-items text-foreground gap-2.5 p-1.5 rounded-[5]
-        border-transparent border-2 transition-all duration-100 ease-linear shadow-md
+      className={`flex flex-col justify-start items-center bg-background-items text-foreground gap-2.5 p-1.5 rounded-sm
+        border-transparent border transition-all duration-100 ease-linear shadow-md
         max-w-sm w-full h-full
         ${className} `}
     >

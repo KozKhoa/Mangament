@@ -29,7 +29,7 @@ interface NavBarProps {
 
 const className = {
   buttonDropdown: `flex flex-row justify-between items-center gap-1 px-5 py-1.5 
-    border-b border-foreground w-full rounded-t-md hover:bg-foreground/20`,
+    border-b border-foreground w-full hover:bg-foreground/20`,
   buttonNavBar: `flex flex-col relative justify-center items-start p-px text-foreground bg-background-items h-fit w-full`,
 };
 
@@ -99,8 +99,16 @@ function RegisterButton() {
 
 function LogoutButton() {
   const auth = useAuth();
+
   return (
-    <Link href="/" className={className.buttonDropdown}>
+    <Link
+      href="/"
+      className={className.buttonDropdown}
+      onClick={() => {
+        console.log("Logout");
+        auth?.logout();
+      }}
+    >
       Đăng xuất
     </Link>
   );
@@ -118,7 +126,11 @@ function GenreButton({ isMobile = false }: { isMobile?: boolean }) {
           {genres &&
             genres.length > 0 &&
             genres.map((genre, i) => (
-              <Link key={genre} href={`/genre/${genre}`} className="w-full text-start p-2 px-5 border-b hover:bg-foreground/30 rounded-t-md cursor-pointer">
+              <Link
+                key={genre}
+                href={`/genre/${genre}`}
+                className={`w-full text-start p-2 px-5 ${i !== genres.length - 1 ? "border-b" : ""} hover:bg-foreground/30 cursor-pointer`}
+              >
                 {snakeCaseToCapitalizeWord(genre)}
               </Link>
             ))}
@@ -127,12 +139,12 @@ function GenreButton({ isMobile = false }: { isMobile?: boolean }) {
     );
   } else {
     return (
-      <ButtonDropdown className="w-full" label="Thể loại" onClick={() => router.push("/genre")}>
+      <ButtonDropdown className="w-full h-full" label="Thể loại" onClick={() => router.push("/genre")}>
         <div className="grid grid-cols-2 gap-x-5 gap-y-1 w-[300px] sm:w-[400px] lg:grid-cols-3 lg:w-[600px]">
           {genres &&
             genres.length > 0 &&
             genres.map((genre, i) => (
-              <Link key={genre} href={`/genre/${genre}`} className="w-full text-start p-2 border-b hover:bg-foreground/30 rounded-t-md cursor-pointer">
+              <Link key={genre} href={`/genre/${genre}`} className="w-full text-start p-2 border-b hover:bg-foreground/20 rounded-t-sm cursor-pointer">
                 {snakeCaseToCapitalizeWord(genre)}
               </Link>
             ))}
@@ -194,7 +206,7 @@ function NavBar({ duration = 100, autoHide = true, className }: NavBarProps) {
       <div
         className={`flex flex-row justify-between text-center text-foreground 
           items-center px-2.5 py-1 h-fit bg-background-items z-20 transition-transform duration-300
-          rounded-b-md border-b-3 border-x-2 border-foreground
+          rounded-b-md border-b-2 border-x border-foreground/40
           ${openSidebar ? "shadow-[5px_8px_4px_rgba(0,0,0,0.3)]" : "drop-shadow-[5px_8px_4px_rgba(0,0,0,0.3)]"}
           ${hidden ? "-translate-y-full" : ""} 
           ${className}
@@ -225,12 +237,11 @@ function NavBar({ duration = 100, autoHide = true, className }: NavBarProps) {
             icon={
               <div className="flex gap-1.5 min-w-10 aspect-square rounded-full overflow-hidden shrink-0">
                 <Image
-                  src={[process.env.NEXT_PUBLIC_CDN_URL, user?.avatar?.key].join("/") ?? "/avatar.png"}
+                  src={user?.avatar?.key ? [process.env.NEXT_PUBLIC_CDN_URL, user?.avatar?.key].join("/") : "/avatar.png"}
                   className="rounded-full shrink-0 "
                   alt="Avatar"
                   width={40}
                   height={40}
-                  unoptimized
                 />
               </div>
             }
@@ -276,7 +287,7 @@ function NavBar({ duration = 100, autoHide = true, className }: NavBarProps) {
               <div
                 className="flex fixed top-5 bottom-5 right-0 flex-col gap-2.5 min-w-3/5 w-full max-w-[500px] bg-background-items
                 px-2.5 py-4 rounded-l-lg shadow-[10px_13px_5px_rgba(0,0,0,0.3) overflow-y-scroll
-                border-foreground border-l-2 border-t-2 border-b-2 "
+                border-foreground/40 border-l-2 border-t-2 border-b-2 "
               >
                 <div className="flex flex-row justify-between ">
                   <SwitchTheme />
@@ -321,7 +332,7 @@ function NavBar({ duration = 100, autoHide = true, className }: NavBarProps) {
 
           <div
             className="relative shadow-[5px_8px_4px_rgba(0,0,0,0.3)] cursor-pointer aspect-square w-11 h-11
-                bg-foreground [clip-path:polygon(50%_50%,0_0,100%_0)] transition-all duration-300
+                bg-background-items [clip-path:polygon(50%_50%,0_0,100%_0)] transition-all duration-300
                 hover:scale-150 hover:translate-y-1/4
                 peer-hover:scale-150 peer-hover:translate-y-1/4"
             onClick={() => setHidden(false)}

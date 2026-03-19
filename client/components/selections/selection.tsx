@@ -73,7 +73,7 @@ export default function Selection({ className, defaultIndex = null, label, optio
           ref={refs.setReference}
           onClick={() => setOpen(!open)}
           className="flex gap-0.5 items-center justify-between
-            px-3 py-2 border bg-background-items rounded-[5] min-h-10.5 cursor-pointer"
+            px-3 py-2 border border-foreground/30 bg-background-items rounded-sm min-h-10.5 cursor-pointer"
         >
           <div className="flex flex-row flex-wrap gap-1">{selectedIndex !== null ? options.at(selectedIndex) : ""}</div>
 
@@ -92,8 +92,8 @@ export default function Selection({ className, defaultIndex = null, label, optio
               <div
                 ref={refs.setFloating}
                 style={floatingStyles}
-                className={`flex absolute bg-background-items flex-col justify-center items-start w-full h-fit rounded-[4]
-                border-2 border-foreground gap-2.5 pb-1 px-0.5 shadow-[11px_13px_5px_rgba(0,0,0,0.3)]
+                className={`flex absolute bg-background-items flex-col justify-center items-start w-full h-fit rounded-sm
+                border border-foreground/30 gap-2.5 pb-1 px-0.5 shadow-[0px_5px_12px_5px_rgba(0,0,0,0.2)]
               `}
               >
                 <div className="flex flex-col md:grid md:grid-cols-2 gap-2 max-h-[60vh] w-full h-full overflow-y-scroll no-scrollbar p-1 min-w-64">

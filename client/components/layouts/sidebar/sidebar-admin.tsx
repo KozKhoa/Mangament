@@ -96,21 +96,21 @@ export default function AdminSidebar({ className }: AdminSidebarProps) {
             /* ===== Desktop ===== */
             md:relative md:left-0 md:top-16 md:bottom-auto md:w-[280px] md:h-full
 
-            drop-shadow-[2px_-4px_4px_rgba(0,0,0,0.3)]
-            md:drop-shadow-[10px_8px_4px_rgba(0,0,0,0.3)]
+            drop-shadow-[0px_4px_10px_rgba(0,0,0,0.1)]
+            md:drop-shadow-[4px_0px_15px_rgba(0,0,0,0.1)]
 
             ${open ? "translate-y-0 md:translate-x-0" : "translate-y-full md:-translate-x-full md:translate-y-0"}
           `}
         >
           <div
-            className={`flex flex-col bg-background-items px-2.5 py-4 shadow-[10px_13px_5px_rgba(0,0,0,0.3)
-              border-foreground/50 gap-2
+            className={`flex flex-col bg-background-items px-2.5 py-4 shadow-lg
+              border-foreground/20 gap-2
 
               /* ===== Mobile ===== */
-              w-full h-[70vh] border-x-2 border-t-2 rounded-t-lg 
+              w-full h-[70vh] border-x border-t rounded-t-lg 
 
               /* ===== Desktop ===== */
-              md:h-full md:border-r-2 md:border-t-2 md:border-b-2 md:rounded-r-lg md:rounded-t-none md:border-x-0
+              md:h-full md:border-r md:border-t md:border-b md:rounded-r-lg md:rounded-t-none md:border-x-0
         
               ${className}`}
           >

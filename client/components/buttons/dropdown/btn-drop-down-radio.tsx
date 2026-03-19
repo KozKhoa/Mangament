@@ -27,7 +27,7 @@ function ButtonDropdownRadio({ onChange, name, label, options, selectedIndex, cl
   return (
     <ButtonDropdown
       openOnLeft={true}
-      className={`border-foreground/50 border rounded-[5] py-[3px] text-foreground ${className}`}
+      className={`border-foreground/30 border rounded-sm py-[3px] text-foreground ${className}`}
       acceptButtonLabel="Finish"
       icon={
         <div

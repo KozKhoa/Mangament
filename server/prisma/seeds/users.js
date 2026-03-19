@@ -1,7 +1,7 @@
 import db from "../../src/configs/db.js";
 import { HashPassword } from "../../src/utils/PasswordHandle.js";
 
-const AVATAR_ID = "001139d8-972f-4863-9609-154be6d4f120";
+import { faker } from "@faker-js/faker";
 
 export default async function main() {
   const avatar = await db.image.findUnique({ where: { key: "user/avatar/avatar.png" } });
@@ -13,13 +13,17 @@ export default async function main() {
   await db.user.createMany({
     data: [
       admin,
-      ...Array.from({ length: 1000 }).map((_, i) => ({
-        name: `user_${i}`,
-        email: `user_${i}@gmail.com`,
-        password: hashedPassword,
-        role: i % 12 === 0 ? "admin" : "user",
-        avatar_id: avatar.id,
-      })),
+      ...Array.from({ length: 500 }).map((_, i) => {
+        const name = faker.person.lastName() + " " + faker.person.firstName();
+
+        return {
+          name: name,
+          email: `${name}@gmail.com`,
+          password: hashedPassword,
+          role: i % 12 === 0 ? "admin" : "user",
+          avatar_id: avatar.id,
+        };
+      }),
     ],
     skipDuplicates: true,
   });

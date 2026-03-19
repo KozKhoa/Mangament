@@ -33,10 +33,10 @@ export default function Button({
     return "bg-background-items";
   }
 
-  function borderColorMapping(type: ButtonType) {
-    if (type === "default") return "border-foreground";
-    return "border-transparent";
-  }
+  // function borderColorMapping(type: ButtonType) {
+  //   if (type === "default") return "border-foreground";
+  //   return "border-transparent";
+  // }
 
   function textColorMapping(type: ButtonType) {
     if (type === "default") return "text-background-items";
@@ -49,9 +49,8 @@ export default function Button({
       type={type}
       tabIndex={tabIndex}
       disabled={disable}
-      className={`w-fit py-1 px-8 border-2 text-center rounded-sm flex justify-center items-center gap-2
+      className={`w-fit py-1 px-8 border border-transparent text-center rounded-sm flex justify-center items-center gap-2
       ${bgColorMapping(buttonType)} 
-      ${borderColorMapping(buttonType)}  
       ${textColorMapping(buttonType)}
         ${disable ? " opacity-50" : " cursor-pointer "}
         ${className}`}

@@ -35,7 +35,7 @@ export default function RatingInput({ onFinish, className }: RatingInputProps) {
         </div>
 
         {/* Finish button */}
-        <button onClick={handleFinish} className="text-center px-3 py-2 bg-foreground text-background-items font-semibold rounded-md">
+        <button onClick={handleFinish} className="text-center px-3 py-2 bg-foreground text-background-items font-semibold rounded-sm">
           Hoàn tất
         </button>
       </div>
@@ -58,7 +58,7 @@ export default function RatingInput({ onFinish, className }: RatingInputProps) {
             setText(e.target.value);
             setErrMsg("");
           }}
-          className="w-full h-full min-h-10 outline-none p-2 border-2 border-foreground rounded-md"
+          className="w-full h-full min-h-10 outline-none p-2 border border-foreground/30 rounded-sm"
           placeholder="Nhập đánh giá của bạn về bộ truyện này"
         ></textarea>
       </div>

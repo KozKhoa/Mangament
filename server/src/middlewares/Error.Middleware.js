@@ -5,7 +5,7 @@ const ErrorMiddleware = (err, req, res, next) => {
     console.log(err);
 
     if (isPrismaError(err)) {
-      if (err.code == "P1001") {
+      if (err.code == "P1001" || err.code == "P2024") {
         err.message = "Cannot connect with database";
       }
 

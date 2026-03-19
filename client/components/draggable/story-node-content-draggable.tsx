@@ -59,7 +59,7 @@ const StoryNodeContentDraggable = React.memo(function StoryNodeContentDraggable(
   return (
     <div
       className={`flex flex-col justify-start items-center gap-1 
-        bg-background-items rounded-sm p-1 shadow-md w-full border-2
+        bg-background-items rounded-sm p-1 shadow-md w-full border
         ${content.isDeleted ? "border-red-500" : content.isNew ? "border-green-500" : content.isEdited ? "border-yellow-500" : "border-transparent"}
         ${className} `}
       ref={setNodeRef}

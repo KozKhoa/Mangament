@@ -42,7 +42,7 @@ export default function LabelInput({
     <div className={`p-2.5 ${className}`}>
       {/* Label */}
       <p className="text-[0.9em] font-semibold">{label}</p>
-      <div className="flex flex-row gap-3 justify-between items-center   w-full border-b px-5 py-0.5">
+      <div className="flex flex-row gap-3 justify-between items-center w-full border-b border-foreground/30 px-5 py-0.5">
         <input
           className="w-full outline-none"
           name={label}

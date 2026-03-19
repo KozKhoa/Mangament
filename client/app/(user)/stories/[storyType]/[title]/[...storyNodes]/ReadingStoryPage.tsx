@@ -30,6 +30,8 @@ import useAuth from "@/contexts/AuthContext";
 import CommentMasonryGrid from "@/components/grids/comment-masonry-grid";
 import Image from "next/image";
 import { loadingBar } from "@/components/loadings/loading-bar/top-loading-bar.store";
+import Link from "next/link";
+import { modal } from "@/components/modal/modal.store";
 
 function buildStoryNodeParent(tree: StoryNode[], targetNodeId: string) {
   const parentList: StoryNode[] = [];
@@ -127,57 +129,11 @@ export default function ReadingStoryPage() {
 
   const [storyNodeId, setStoryNodeId] = useState("");
   const [storyNode, setStoryNode] = useState<StoryNode>();
-  const [openStoryNodeList, setOpenStoryNodeList] = useState<boolean>(false);
+
+  const [nextNode, setNextNode] = useState<StoryNode | null>(null);
+  const [prevNode, setPrevNode] = useState<StoryNode | null>(null);
 
   const content = storyNode?.content;
-
-  const fetchStoryNode = useCallback(async () => {
-    const res = await storyNodeService.getStoryNodeById(storyNodeId, { isGettingContent: true });
-
-    if (!res.success) toast.warning(res.message);
-
-    setStoryNode(res.data);
-  }, [storyNodeId]);
-
-  const fetchStory = useCallback(async () => {
-    const res = await storyService.getStoryByTitle(storyTitle ?? "", { isGettingChildren: true });
-
-    if (!res.success) toast.warning(res.message);
-
-    setStory(res.data);
-
-    let children = res.data?.children ?? [];
-
-    let currentStoryNode: StoryNode | null = null;
-    for (const node of storyNodes) {
-      for (const child of children) {
-        if (node.storyNodeType === child.type && node.orderIndex === child.order_index) {
-          currentStoryNode = child;
-          children = child.children ?? [];
-          break;
-        }
-      }
-    }
-
-    const storyNodeId = currentStoryNode?.id ?? "";
-    setStoryNodeId(storyNodeId);
-  }, [storyTitle, storyNodes]);
-
-  async function updateOneViewForStoryNode(storyNodeId: string) {
-    const res = await storyNodeService.addOneView(storyNodeId);
-
-    if (!res.success) toast.warning(res.message);
-  }
-
-  const updateReadingHistory = useCallback(async () => {
-    if (!story?.id) return;
-
-    const res = await historyService.addHistory(story?.id, storyNodeId);
-
-    if (!res.success) return toast.warning(res.message);
-
-    return res.data;
-  }, [story?.id, storyNodeId]);
 
   function handleNavigateStoryNode(storyNodes?: StoryNode[]) {
     if (!storyNodes || storyNodes?.at(-1)?.type !== "chapter") return;
@@ -189,22 +145,70 @@ export default function ReadingStoryPage() {
     router.push(`/stories/${story?.type}/${story?.title}/${routeDir}`);
   }
 
-  const goToPrevChapter = useCallback(() => {
-    const prevChapter = findPrevChapter(story?.children ?? [], storyNodeId);
-    if (!prevChapter) return;
-    const storyNodes = buildStoryNodeParent(story?.children ?? [], prevChapter.id);
-    handleNavigateStoryNode(storyNodes);
-  }, [storyNodeId, story]);
+  function handleOpenStoryNodeList() {
+    modal.open("custom", {
+      content: (
+        <div className="min-w-[350px] w-[90vw] h-[80vh]">
+          <StoryNodeList
+            onClickItem={(nodeList) => {
+              handleNavigateStoryNode(nodeList);
+              modal.close();
+            }}
+            storyNodes={story?.children}
+            size={story?.number_of_children}
+          ></StoryNodeList>
 
-  const goToNextChapter = useCallback(() => {
-    const nextChapter = findNextChapter(story?.children ?? [], storyNodeId);
-    if (!nextChapter) return;
-    const storyNodes = buildStoryNodeParent(story?.children ?? [], nextChapter.id);
+          <Button onClick={() => modal.close()} className="my-2 ml-auto">
+            Đóng
+          </Button>
+        </div>
+      ),
+      onClickOutside: modal.close,
+    });
+  }
+
+  function goToPrevChapter() {
+    if (!prevNode) return;
+    const storyNodes = buildStoryNodeParent(story?.children ?? [], prevNode.id);
     handleNavigateStoryNode(storyNodes);
-  }, [storyNodeId, story]);
+  }
+
+  function goToNextChapter() {
+    if (!nextNode) return;
+    const storyNodes = buildStoryNodeParent(story?.children ?? [], nextNode.id);
+    handleNavigateStoryNode(storyNodes);
+  }
 
   useEffect(() => {
     if (!storyNodeId) return;
+
+    async function fetchStoryNode() {
+      const res = await storyNodeService.getStoryNodeById(storyNodeId, { isGettingContent: true });
+
+      if (!res.success) toast.warning(res.message);
+
+      setPrevNode(findPrevChapter(story?.children ?? [], res.data?.id ?? ""));
+      setNextNode(findNextChapter(story?.children ?? [], res.data?.id ?? ""));
+
+      setStoryNode(res.data);
+    }
+
+    async function updateReadingHistory() {
+      if (!story?.id) return;
+
+      const res = await historyService.addHistory(story?.id, storyNodeId);
+
+      if (!res.success) return toast.warning(res.message);
+
+      return res.data;
+    }
+
+    async function updateOneViewForStoryNode(storyNodeId: string) {
+      const res = await storyNodeService.addOneView(storyNodeId);
+
+      if (!res.success) toast.warning(res.message);
+    }
+
     fetchStoryNode();
 
     const timer = setTimeout(() => {
@@ -216,6 +220,30 @@ export default function ReadingStoryPage() {
   }, [storyNodeId]);
 
   useEffect(() => {
+    async function fetchStory() {
+      const res = await storyService.getStoryByTitle(storyTitle ?? "", { isGettingChildren: true });
+
+      if (!res.success) toast.warning(res.message);
+
+      setStory(res.data);
+
+      let children = res.data?.children ?? [];
+
+      let currentStoryNode: StoryNode | null = null;
+      for (const node of storyNodes) {
+        for (const child of children) {
+          if (node.storyNodeType === child.type && node.orderIndex === child.order_index) {
+            currentStoryNode = child;
+            children = child.children ?? [];
+            break;
+          }
+        }
+      }
+
+      const storyNodeId = currentStoryNode?.id ?? "";
+      setStoryNodeId(storyNodeId);
+    }
+
     fetchStory();
 
     loadingBar.close();
@@ -226,30 +254,31 @@ export default function ReadingStoryPage() {
   return (
     <div className="flex flex-col gap-5">
       {/* Header - Story title  */}
-      <div className="flex flex-row flex-wrap justify-around gap-2">
-        <div>
-          <h3 onClick={() => router.push(`/stories/${story?.type}/${story?.title}`)} className="font-bold cursor-pointer">
-            [{snakeCaseToCapitalizeWord(story?.type ?? "")}] {story?.title}
-          </h3>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-2 px-2 justify-center items-center gap-x-2 gap-y-5 my-5">
+        <div className="m-auto">
+          [{snakeCaseToCapitalizeWord(story?.type ?? "")}]
+          <Link href={`/stories/${story?.type}/${story?.title}`}>
+            <h3 className="font-bold cursor-pointer">{story?.title}</h3>
+          </Link>
           <div className="flex flex-row flex-wrap gap-1 text-foreground">
             {storyNodes.map((node, i) => (
               <h4 key={i}>
                 {capitalizeWords(node.storyNodeType)} {node.orderIndex} {i < storyNodes.length - 1 && "➤"}
               </h4>
             ))}
-            <h4>:{storyNode?.title} Tiêu đề</h4>
+            <h4>:{storyNode?.title}</h4>
           </div>
-
           <div>
             <span className="italic font-bold text-foreground">Lượt xem:</span> {storyNode?.view}
           </div>
         </div>
+
         <div className="flex flex-row gap-3 justify-center items-center">
           <div onClick={goToPrevChapter}>
             <ArrowLeftIcon className="w-6 h-6 cursor-pointer"></ArrowLeftIcon>
           </div>
 
-          <h3 className=" cursor-pointer" onClick={() => setOpenStoryNodeList(!openStoryNodeList)}>
+          <h3 className=" cursor-pointer" onClick={handleOpenStoryNodeList}>
             {capitalizeWords(storyNode?.type ?? "")} {storyNode?.order_index}
           </h3>
 
@@ -257,24 +286,6 @@ export default function ReadingStoryPage() {
             <ArrowRightIcon className="w-6 h-6 cursor-pointer"></ArrowRightIcon>
           </div>
         </div>
-        <AnimatePresence>
-          {openStoryNodeList && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "fit-content", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.1, ease: "linear" }}
-              className="w-full bg-background-items"
-            >
-              <StoryNodeList
-                className="shadow-2xs"
-                onClickItem={(nodeList) => handleNavigateStoryNode(nodeList)}
-                storyNodes={story?.children}
-                size={story?.number_of_children}
-              ></StoryNodeList>
-            </motion.div>
-          )}
-        </AnimatePresence>
       </div>
 
       {/* Button favourite, download */}
@@ -337,12 +348,16 @@ export default function ReadingStoryPage() {
         </div>
 
         {/* Button switch page */}
-        <div className="grid grid-cols-2 flex-wrap justify-center items-center gap-2 px-2 max-w-96 m-auto">
+        <div className="grid grid-cols-2 flex-wrap justify-center items-center gap-10 px-2 m-auto my-5 text-lg">
           <div className="flex-1" onClick={goToPrevChapter}>
-            <Button className="font-semibold w-full">Chapter trước</Button>
+            <Button className="font-semibold w-full py-2" disable={!prevNode}>
+              <ArrowLeftIcon className="w-5 h-5" /> Chapter trước
+            </Button>
           </div>
           <div className="flex-1" onClick={goToNextChapter}>
-            <Button className="font-semibold w-full">Chapter sau</Button>
+            <Button className="font-semibold w-full py-2" disable={!nextNode}>
+              Chapter sau <ArrowRightIcon className="w-5 h-5" />
+            </Button>
           </div>
         </div>
       </div>

@@ -140,7 +140,7 @@ export default function UserTable({ className, data }: UserTableProps) {
   }, [data]);
 
   return (
-    <div className={`bg-background-items rounded-lg  overflow-hidden ${className}`}>
+    <div className={`bg-background-items rounded-lg border border-foreground/10 overflow-hidden ${className}`}>
       {users.length > 0 ? (
         <table className="w-full">
           <colgroup className=" ">
@@ -154,7 +154,7 @@ export default function UserTable({ className, data }: UserTableProps) {
             <col className="border-r border-l border-foreground/10" />
             <col className="border-l border-foreground/10" />
           </colgroup>
-          <thead className="bg-black/10 text-[1.2em] text-foreground/80 ">
+          <thead className="bg-foreground/5 text-[1.1em] text-foreground/70 border-b border-foreground/10">
             <tr>
               <th>Avatar</th>
               <th>Name</th>

@@ -55,8 +55,8 @@ export default function OtpInput({
     <div className={`grid grid-cols-6 gap-2 w-fit text-[1.5em] lg:text-[2em] ${className}`}>
       {otp.map((value, i) => (
         <input
-          className={`border-2 rounded-md aspect-square w-[1.8em]  text-center outline-none no-spinner
-          focus:-translate-y-1 focus:shadow-[2px_4px_1px_var(--foreground)]/80
+          className={`border border-foreground/30 rounded-sm aspect-square w-[1.8em]  text-center outline-none no-spinner
+          focus:-translate-y-1 focus:shadow-[2px_4px_1px_var(--foreground)]/50
         
           ${disableAll ? " opacity-40 " : ""}
           `}

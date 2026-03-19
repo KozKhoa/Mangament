@@ -22,8 +22,8 @@ const labelContainerStyle = "flex flex-row flex-wrap justify-start items-start g
 export default function StoryCardAllInfo({ story, className }: StoryCardAllInfoProps) {
   return (
     <div
-      className={` flex justify-center items-center bg-background text-foreground p-1.5 rounded-[5]
-        border-foreground border-2 w-full h-fit 
+      className={` flex justify-center items-center bg-background text-foreground p-1.5 rounded-sm
+        border-foreground/30 border w-full h-fit 
         ${className} `}
     >
       {!story ? (
@@ -36,7 +36,7 @@ export default function StoryCardAllInfo({ story, className }: StoryCardAllInfoP
         >
           {/* Cover art */}
           <div className="w-full min-w-[100] md:row-span-2 flex justify-center m-auto">
-            <Image className="object-cover rounded-[5] justify-center" src={story?.cover_art?.url ?? ""} alt="Cover Art" width={500} height={500}></Image>
+            <Image className="object-cover rounded-sm justify-center" src={story?.cover_art?.url ?? ""} alt="Cover Art" width={500} height={500}></Image>
           </div>
 
           <div className="flex flex-col gap-1 justify-start items-start">

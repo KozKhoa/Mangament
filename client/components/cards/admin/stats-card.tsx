@@ -18,7 +18,7 @@ export default function StatsCard({ label, subLabel, value, icon, onClick, class
       className={` 
         flex flex-row gap-1 justify-center items-center
         bg-background-items px-5 py-2.5 rounded-md 
-        border-2 border-foreground/50 shadow-[10px_10px_4px_rgba(0,0,0,0.2)]
+        border border-foreground/30 shadow-[0px_5px_12px_rgba(0,0,0,0.1)]
         ${className}`}
     >
       {/* Content for stats card */}

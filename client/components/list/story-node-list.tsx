@@ -17,7 +17,7 @@ export default function StoryNodeList({ storyNodes, size, onClickItem, className
 
   return (
     <div
-      className={`flex flex-col border-2 border-foreground rounded-sm px-2.5 
+      className={`flex flex-col border border-foreground/30 rounded-sm px-2.5 
        h-fit ${className}`}
     >
       {!storyNodes ? (
@@ -25,7 +25,7 @@ export default function StoryNodeList({ storyNodes, size, onClickItem, className
       ) : (
         <div className="w-full">
           {/* Header */}
-          <div className="px-2.5 py-1.5 border-b-2 border-foreground text-[1.2em] flex flex-row">
+          <div className="px-2.5 py-1.5 border-b border-foreground text-[1.2em] flex flex-row">
             <div className="flex flex-row justify-between w-full h-full">
               <p>Số chap / {size}</p>
               <div className="flex flex-row gap-3">
@@ -36,7 +36,7 @@ export default function StoryNodeList({ storyNodes, size, onClickItem, className
           </div>
 
           {/* List */}
-          <div className="w-full overflow-y-scroll max-h-[60vh] no-scrollbar">
+          <div className="w-full overflow-y-scroll max-h-[70vh] no-scrollbar">
             <div className="flex flex-col gap-2 py-2 w-full h-fit">
               {storyNodes?.map((node, i) => (
                 <ButtonStoryNodeExpandable onClick={handleClick} key={node.id} className="w-full" storyNode={node}></ButtonStoryNodeExpandable>

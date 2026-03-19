@@ -10,6 +10,8 @@ export async function verifyApiKey(req, res, next) {
     if (!apiKey || apiKey !== process.env.API_KEY) {
       return res.status(403).json({ message: "Forbidden" });
     }
+
+    next();
   } catch (error) {
     next(error);
   }

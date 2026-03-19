@@ -26,7 +26,7 @@ export default function ForgotPasswordForm({ onSubmit }: { onSubmit?: (email: st
     <form
       onSubmit={handleSubmit}
       className={`bg-background text-foreground flex flex-col gap-5 justify-center 
-        w-full max-w-3xl py-8 px-4 lg:p-8 pt-5 border-2 rounded-[5] shadow-[11px_13px_5px_rgba(0,0,0,0.3)]
+        w-full max-w-3xl py-8 px-4 lg:p-8 pt-5 border border-foreground/30 rounded-sm shadow-lg
         
         `}
     >

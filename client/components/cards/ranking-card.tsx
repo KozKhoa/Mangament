@@ -21,7 +21,7 @@ export default function RankingCard({ top, story, className, ref }: { top?: numb
   }
 
   return (
-    <div ref={ref} className={`relative bg-background-items rounded-md h-full`}>
+    <div ref={ref} className={`relative bg-background-items rounded-sm h-full`}>
       {top && (
         <>
           <StoryCard

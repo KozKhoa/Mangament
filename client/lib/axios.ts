@@ -18,7 +18,7 @@ api.interceptors.request.use(
     }
 
     // Gắn API KEY vào headers
-    config.headers["x-api-key"] = process.env.API_KEY;
+    config.headers["x-api-key"] = process.env.NEXT_PUBLIC_API_KEY;
 
     return config;
   },

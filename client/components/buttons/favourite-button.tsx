@@ -64,7 +64,7 @@ export default function ButtonOfFavouriteStory({ className, story }: { className
       onClick={toggleFavourite}
       isProcessing={processing}
       disable={processing}
-      className={`${favouriteId ? "bg-red-400 text-white" : "bg-background-items"} font-semibold ${className}`}
+      className={`${favouriteId ? "bg-red-500 text-white" : "bg-background-items"} font-semibold ${className}`}
     >
       {favouriteId ? "Đã yêu thích" : "Yêu thích"}
     </Button>

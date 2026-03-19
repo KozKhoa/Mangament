@@ -42,7 +42,7 @@ function ButtonDropdownCheckbox({ onFinishCheck, label, options, className, name
   return (
     <ButtonDropdown
       openOnLeft={true}
-      className={`border-foreground border rounded-[5] relative
+      className={`border-foreground/30 border rounded-sm relative
           text-foreground ${className}`}
       acceptButtonLabel="Finish"
       onClickAcceptButton={handleFinish}
