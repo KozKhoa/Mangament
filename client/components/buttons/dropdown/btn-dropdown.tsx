@@ -93,8 +93,8 @@ function ButtonDropdown({
             <div
               ref={refs.setFloating}
               style={floatingStyles}
-              className={`flex absolute bg-background-items flex-col justify-center items-start w-fit h-fit rounded-[4]
-                border-2 border-foreground p-2.5 gap-2.5 shadow-[11px_13px_5px_rgba(0,0,0,0.3)]
+              className={`flex absolute bg-background-items flex-col justify-center items-start w-fit h-fit rounded-sm
+                border-foreground/30 border p-2.5 gap-2.5 shadow-[0px_5px_12px_5px_rgba(0,0,0,0.2)]
               `}
             >
               {/* List */}
@@ -104,7 +104,7 @@ function ButtonDropdown({
                 {/* Accept button */}
                 {onClickAcceptButton && (
                   <button
-                    className="px-5 text-[1.2em] font-semibold w-full h-fit border-background border rounded-md 
+                    className="px-5 text-[1.1em] font-semibold w-full h-fit border-background border rounded-sm 
                   cursor-pointer text-center bg-foreground text-background-items"
                     onClick={() => {
                       toggleOpenDropdown?.();
@@ -117,9 +117,9 @@ function ButtonDropdown({
                 {/* Close button */}
                 {onClickCloseButton && (
                   <button
-                    className="px-5 text-[1.2em] font-semibold w-full h-fit 
+                    className="px-5 text-[1.1em] font-semibold w-full h-fit 
                     text-foreground
-                    border-foreground border rounded-md cursor-pointer text-center"
+                    border-foreground/30 border rounded-sm cursor-pointer text-center"
                     onClick={() => {
                       toggleOpenDropdown?.();
                       onClickCloseButton?.();

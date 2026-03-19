@@ -26,16 +26,16 @@ export default function StoryInfoCard({ story, className }: StoryInfoCardProps) 
 
   return (
     <div
-      className={`flex flex-col   bg-background border-2 rounded-[5] p-2.5
+      className={`flex flex-col bg-background border border-foreground/30 rounded-sm p-2.5
         w-[300px] lg:w-[400px] h-fit
         ${className}`}
     >
       {/* Title */}
-      <p className="text-[1.8em] font-bold  border-b ">
+      <p className="text-[1.8em] font-bold border-b border-foreground/30">
         [{capitalizeFirstChar(story?.type || "")}] {story?.title}
       </p>
 
-      <div className="flex flex-col justify-center items-start gap-1 py-1 border-b">
+      <div className="flex flex-col justify-center items-start gap-1 py-1 border-b border-foreground/30">
         {/* Status */}
         <div className={subContainerClassName}>
           <p className={labelClassName}>Tình trạng: </p>
@@ -64,7 +64,7 @@ export default function StoryInfoCard({ story, className }: StoryInfoCardProps) 
 
       {/* Summary */}
       {story?.summary && (
-        <div className="flex flex-col justify-center items-center gap-1 py-1 border-b">
+        <div className="flex flex-col justify-center items-center gap-1 py-1 border-b border-foreground/30">
           <p className={labelClassName}>Tóm tắt</p>
           <p>{story?.summary}</p>
         </div>

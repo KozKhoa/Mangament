@@ -118,7 +118,7 @@ export default function ColumnChart({ className, data, height = 500 }: ColumnCha
   }, [data]);
 
   return (
-    <div className="bg-background-items px-1 md:px-2 lg:px-5 py-1">
+    <div className="bg-background-items px-1 md:px-2 lg:px-5 py-6 rounded-md border border-foreground/10 shadow-sm">
       {/* Toàn bộ biểu đồ */}
       <div className="flex flex-row gap-7 pb-14">
         {/* Range value in left */}

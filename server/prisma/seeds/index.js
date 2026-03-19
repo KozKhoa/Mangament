@@ -6,11 +6,11 @@ import * as storyNodeSeeding from "./story-nodes.js";
 import * as storyGenreSeeding from "./story-genres.js";
 import * as storyNodeContentSeeding from "./story-node-contents.js";
 
-await imageSeeding.default();
+// await imageSeeding.default();
 
-await userSeeding.default();
+// await nationSeeding.default();
 
-await nationSeeding.default();
+// await userSeeding.default();
 
 await storySeeding.default();
 

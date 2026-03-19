@@ -13,12 +13,12 @@ export default function StorySearchCard({ story, className }: { story: Story; cl
   return (
     <Link
       href={`/stories/${story.type}/${story.title}`}
-      className={`flex flex-row justify-start items-center bg-background text-foreground gap-2 p-1 rounded-[5]
-        border-transparent border-2 transition-all duration-50 ease-linear  h-24
+      className={`flex flex-row justify-start items-center bg-background text-foreground gap-2 p-1 rounded-sm
+        border-transparent border transition-all duration-50 ease-linear  h-24
         hover:bg-hover-background w-full cursor-pointer
         ${className} `}
     >
-      <div className={`relative aspect-2/3 rounded-[5] h-full`}>
+      <div className={`relative aspect-2/3 rounded-sm h-full`}>
         {/* Cover art */}
         <Image src={story?.cover_art?.url ?? ""} alt="Cover Art" width={100} height={100}></Image>
       </div>

@@ -65,7 +65,7 @@ export default function FilterRoles({ value, onChange }: FilterRolesProps) {
   return (
     <ButtonDropdown
       openOnLeft={true}
-      className={`border-foreground/50 border rounded-[5] relative text-foreground`}
+      className={`border-foreground/30 border rounded-sm relative text-foreground`}
       acceptButtonLabel="Finish"
       onClickAcceptButton={handleFinish}
       closeButtonLabel="Reset"

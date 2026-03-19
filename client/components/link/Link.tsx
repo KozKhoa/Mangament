@@ -16,13 +16,13 @@ export default function Link({ children, ...props }: LinkProps) {
 
   return (
     <NextJSLink
-      {...props}
       onClick={() => {
         if (pathName === props.href) {
           return;
         }
         loadingBar.open({});
       }}
+      {...props}
     >
       {children}
     </NextJSLink>

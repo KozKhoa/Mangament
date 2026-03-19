@@ -306,7 +306,7 @@ const StoryNodeDraggable = React.memo(function StoryNodeDraggable({
     <div className={`flex flex-col gap-2 `}>
       <div
         className={`flex gap-0.5 items-center justify-between bg-background-items
-            px-3 py-2 border-2 rounded-[5] min-h-10.5 
+            px-3 py-2 border rounded-sm min-h-10.5 
             ${storyNode.is_deleted ? "border-red-500 opacity-20" : storyNode.is_new ? "border-green-500" : storyNode.is_edited ? "border-yellow-500" : "border-transparent"}`}
       >
         <div className="flex flex-row  items-center gap-2 w-full ">
@@ -316,6 +316,10 @@ const StoryNodeDraggable = React.memo(function StoryNodeDraggable({
 
           <div>
             {snakeCaseToCapitalizeWord(storyNode.type)} <span className="">{storyNode.order_index}</span> : {storyNode.title}
+          </div>
+
+          <div>
+            {storyNode.children?.length} - {storyNode.content?.length}
           </div>
         </div>
 

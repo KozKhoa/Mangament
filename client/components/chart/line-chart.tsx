@@ -112,7 +112,7 @@ export default function LineChart({ className, value, lineColor = "#1f3eb6", uni
   }, [value]);
 
   return (
-    <div className="bg-background-items px-1 md:px-2 lg:px-5 py-1 rounded-md">
+    <div className="bg-background-items px-1 md:px-2 lg:px-5 py-4 rounded-md border border-foreground/10 shadow-sm">
       {/* Toàn bộ biểu đồ */}
       <div className="flex flex-row gap-8 ">
         {/* Range value in left */}

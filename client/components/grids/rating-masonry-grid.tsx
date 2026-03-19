@@ -139,7 +139,7 @@ export default function RatingMasonryGrid({ className, storyId, elementPerPage =
                 <RatingCard
                   key={rating.id}
                   rating={rating}
-                  className={`w-full border-2 ${auth?.user?.id == rating.user?.id ? "border-amber-500" : "border-transparent"}`}
+                  className={`w-full border ${auth?.user?.id == rating.user?.id ? "border-amber-500" : "border-transparent"}`}
                 />
               ))}
             </MasonryGrid>
@@ -148,7 +148,7 @@ export default function RatingMasonryGrid({ className, storyId, elementPerPage =
               {ratings.map((rating, i) => (
                 <RatingCard
                   key={rating.id}
-                  className={`w-full border-2 ${auth?.user?.id == rating.user?.id ? "border-amber-500" : "border-transparent"}`}
+                  className={`w-full border ${auth?.user?.id == rating.user?.id ? "border-amber-500" : "border-transparent"}`}
                   rating={rating}
                 />
               ))}

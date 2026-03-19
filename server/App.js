@@ -10,6 +10,7 @@ import { initRedis } from "./src/configs/redis.js";
 import authRouter from "./src/routes/Auth.Route.js";
 import userRoute from "./src/routes/User.Route.js";
 import ErrorMiddleware from "./src/middlewares/Error.Middleware.js";
+import * as authMiddleware from "./src/middlewares/Auth.Middleware.js";
 import RequestLogger from "./src/middlewares/LogReport.Middleware.js";
 import * as PerformanceMiddleware from "./src/middlewares/Performance.Middleware.js";
 
@@ -233,6 +234,8 @@ app.use(express.json());
 app.use(RequestLogger);
 
 app.use(cors(corsOptions));
+
+app.use(authMiddleware.verifyApiKey);
 
 // Dùng để đo thời gian thực hiện request
 app.use(PerformanceMiddleware.MeasureRequestTime);

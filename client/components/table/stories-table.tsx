@@ -113,7 +113,7 @@ export default function StoriesTable({ className, data, pagination }: StoriesTab
   }, [data]);
 
   return (
-    <div className={` rounded-lg  overflow-hidden bg-background-items ${className}`}>
+    <div className={`rounded-lg border border-foreground/10 overflow-hidden bg-background-items ${className}`}>
       {stories.length > 0 ? (
         <table className="w-full rounded-lg ">
           <colgroup>
@@ -128,7 +128,7 @@ export default function StoriesTable({ className, data, pagination }: StoriesTab
             <col className="border-r border-l border-foreground/10" />
             <col className="border-l border-foreground/10" />
           </colgroup>
-          <thead className="bg-black/10 text-[1.2em] text-foreground/80 rounded-lg overflow-hidden">
+          <thead className="bg-black/20 text-[1.1em] text-foreground/70 rounded-lg overflow-hidden border-b border-foreground/10">
             <tr>
               <th>Cover art</th>
               <th>Title</th>
@@ -144,7 +144,7 @@ export default function StoriesTable({ className, data, pagination }: StoriesTab
           </thead>
           <tbody>
             {stories.map((story, i) => (
-              <tr key={story.id} className={`hover:bg-foreground/5 ${i % 2 === 0 ? "" : "bg-foreground/2"}`}>
+              <tr key={story.id} className={`hover:bg-foreground/10 ${i % 2 === 0 ? "" : "bg-foreground/2"}`}>
                 <TD>
                   <Link href={`/stories/${story.type}/${story.title}`}>
                     {story.cover_art?.url && (

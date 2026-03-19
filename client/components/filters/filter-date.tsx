@@ -22,7 +22,7 @@ export default function FilterDate({
 
   return (
     <div
-      className={`flex flex-row flex-wrap relative justify-center items-start p-[3px] border-foreground/50 border rounded-[5]
+      className={`flex flex-row flex-wrap relative justify-center items-start p-[3px] border-foreground/30 border rounded-sm
           text-foreground h-fit w-fit bg-background-items px-2 gap-1 ${className}`}
     >
       <DateIcon className="w-6 h-6 stroke-foreground"></DateIcon>

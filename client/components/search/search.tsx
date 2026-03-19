@@ -41,7 +41,7 @@ function SearchBar({ onSearch, onType, children, placeHolder = "Tìm kiếm", st
     <div onFocus={() => setIsFocus(true)} onBlur={() => setIsFocus(false)} className={`${className}`}>
       <div
         className={`flex flex-row justify-center items-center text-black w-full
-        h-10 px-2.5 border border-foreground rounded-md bg-white relative ${className}`}
+        h-10 px-2.5 border border-foreground/30 rounded-md bg-white relative ${className}`}
         style={styles}
       >
         {/* Input field */}
@@ -74,8 +74,8 @@ function SearchBar({ onSearch, onType, children, placeHolder = "Tìm kiếm", st
             <div
               ref={refs.setFloating}
               style={floatingStyles}
-              className={`flex absolute flex-col w-full h-fit rounded-[5] overflow-y-scroll no-scrollbar max-h-[70vh]
-                        border-2 border-foreground p-1 bg-background shadow-[5px_5px_5px_rgba(0,0,0,0.3)] mt-2.5
+              className={`flex absolute flex-col w-full h-fit rounded-sm overflow-y-scroll no-scrollbar max-h-[70vh]
+                        border border-foreground/30 p-1 bg-background shadow-[0px_5px_12px_rgba(0,0,0,0.1)] mt-2.5
                       `}
             >
               {children}

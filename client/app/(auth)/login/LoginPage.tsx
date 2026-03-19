@@ -67,7 +67,7 @@ export default function LoginPage() {
       <form
         onSubmit={handleSubmit}
         className={`bg-background-items  text-foreground flex flex-col gap-5 justify-center 
-        w-full max-w-3xl p-8 pt-5 border-2 rounded-[5] shadow-[11px_13px_5px_rgba(0,0,0,0.3)]     `}
+        w-full max-w-3xl p-8 pt-5 border border-foreground/30 rounded-sm shadow-lg     `}
       >
         <h2 className="text-[1.8em] text-center ">Đăng nhập</h2>
 

@@ -68,10 +68,10 @@ export default function UserCard({ className }: { className?: string }) {
     <div>
       {/* User card */}
       <div
-        className={`flex flex-row flex-wrap justify-center items-center p-5 border-2 rounded-md gap-2
-        shadow-[11px_13px_4px_0px_rgba(0,0,0,0.3)] ${className}`}
+        className={`flex flex-row flex-wrap justify-center items-center p-5 border border-foreground/20 rounded-sm gap-2
+        shadow-lg ${className}`}
       >
-        <div className="flex flex-1 h-full min-w-xs aspect-square p-3 border-2 rounded-full relative">
+        <div className="flex flex-1 h-full min-w-xs aspect-square p-3 border border-foreground/20 rounded-full relative">
           {/* <ImagePicker
             className="flex justify-center items-center w-full"
             defaultValue={user?.avatar?.url ?? ""}

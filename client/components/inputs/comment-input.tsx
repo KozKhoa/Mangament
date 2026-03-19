@@ -28,7 +28,7 @@ export default function CommentInput({ onFinish, className }: CommentInputProps)
     <div className={`w-full h-full flex flex-col gap-1 ${className}`}>
       <div className="flex flex-row items-center justify-between gap-2">
         {/* Finish button */}
-        <button onClick={handleFinish} className="text-center px-3 py-2 bg-foreground text-background-items font-semibold rounded-md">
+        <button onClick={handleFinish} className="text-center px-3 py-2 bg-foreground text-background-items font-semibold rounded-sm">
           Hoàn tất
         </button>
       </div>
@@ -51,7 +51,7 @@ export default function CommentInput({ onFinish, className }: CommentInputProps)
             setText(e.target.value);
             setErrMsg("");
           }}
-          className="w-full h-full min-h-10 outline-none p-2 border-2 border-foreground rounded-md"
+          className="w-full h-full min-h-10 outline-none p-2 border border-foreground/30 rounded-sm"
           placeholder="Nhập bình luận của bạn về bộ truyện này"
         ></textarea>
       </div>

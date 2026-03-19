@@ -182,7 +182,7 @@ export default function CommentMasonryGrid({ className, storyNodeId, storyId, el
                 <CommentCard
                   key={commment.id}
                   comment={commment}
-                  className={`w-full border-2 ${user?.id == commment.user?.id ? "border-purple-500" : "border-transparent"}`}
+                  className={`w-full border ${user?.id == commment.user?.id ? "border-purple-500" : "border-transparent"}`}
                   onDelete={commment.user?.id == user?.id ? () => deleteComment(commment) : undefined}
                 />
               ))}
@@ -193,7 +193,7 @@ export default function CommentMasonryGrid({ className, storyNodeId, storyId, el
                 <CommentCard
                   key={commment.id ?? i}
                   comment={commment}
-                  className={`w-full border-2 ${user?.id == commment.user?.id ? "border-purple-500" : "border-transparent"}`}
+                  className={`w-full border ${user?.id == commment.user?.id ? "border-purple-500" : "border-transparent"}`}
                   onDelete={commment.user?.id == user?.id ? () => deleteComment(commment) : undefined}
                 />
               ))}
