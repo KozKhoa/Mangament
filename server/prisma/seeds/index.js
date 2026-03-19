@@ -10,18 +10,18 @@ import * as storyNodeContentSeeding from "./story-node-contents.js";
 
 // await imageSeeding.default();
 
-await nationSeeding.default();
+// await nationSeeding.default();
 
 // await userSeeding.default();
 
-await storySeeding.default();
+// await storySeeding.default();
 
-await storyGenreSeeding.default();
+// await storyGenreSeeding.default();
 
-await storyNodeSeeding.default();
+// await storyNodeSeeding.default();
 
-await historySeeding.default();
+// await historySeeding.default();
 
-await favouriteSeeding.default();
+// await favouriteSeeding.default();
 
-await storyNodeContentSeeding.default();
+// await storyNodeContentSeeding.default();

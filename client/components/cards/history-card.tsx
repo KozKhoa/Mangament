@@ -87,6 +87,21 @@ export default function HistoryCard({ history, onClickRemove, className }: { his
         {/* Title */}
         <div onClick={() => navigateToStory()} className="text-[1.2em] leading-tight cursor-pointer line-clamp-2">
           <p className="font-semibold">
+            {story?.nation && (
+              <span className="inline-block mr-1.5 align-middle">
+                {story.nation.flag_image?.url ? (
+                  <Image
+                    src={story.nation.flag_image.url}
+                    alt={story.nation.name}
+                    width={20}
+                    height={14}
+                    className="object-contain inline-block"
+                  ></Image>
+                ) : (
+                  <span className="text-[1.2rem]">{story.nation.flag_icon}</span>
+                )}
+              </span>
+            )}
             <span className="font-normal">{"[" + snakeCaseToCapitalizeWord(story?.type ?? "") + "] "}</span>
             {story?.title}
           </p>

@@ -150,7 +150,7 @@ export default function ReadingStoryPage() {
   function handleOpenStoryNodeList() {
     modal.open("custom", {
       content: (
-        <div className="min-w-[350px] w-[90vw] h-[80vh]">
+        <div className="min-w-[350px] w-[80vw] h-[80vh] flex flex-col gap-2 justify-between">
           <StoryNodeList
             onClickItem={(nodeList) => {
               handleNavigateStoryNode(nodeList);
@@ -257,11 +257,11 @@ export default function ReadingStoryPage() {
       {/* Header - Story title  */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-2 px-2 justify-center items-center gap-x-2 gap-y-5 my-5">
         <div className="m-auto">
-          [{snakeCaseToCapitalizeWord(story?.type ?? "")}]
+          <p>[{snakeCaseToCapitalizeWord(story?.type ?? "")}]</p>
           <Link href={`/stories/${story?.type}/${story?.title}`}>
-            <h3 className="font-bold cursor-pointer">{story?.title}</h3>
+            <p className="font-bold text-4xl cursor-pointer py-5">{story?.title}</p>
           </Link>
-          <div className="flex flex-row flex-wrap gap-1 text-foreground">
+          <div className="flex flex-row flex-wrap gap-1 text-foreground py-2">
             {storyNodes.map((node, i) => (
               <h4 key={i}>
                 {capitalizeWords(node.storyNodeType)} {node.orderIndex} {i < storyNodes.length - 1 && "➤"}

@@ -25,8 +25,9 @@ import SortUsers from "@/components/sorts/sort-users";
 import SwitchPageSmall from "@/components/switch-page/small";
 import withAdmin from "@/hoc/withAdmin";
 import { loadingBar } from "@/components/loadings/loading-bar/top-loading-bar.store";
+import NumberInput from "@/components/inputs/number-input";
 
-const LIMIT = 15;
+const LIMIT = 20;
 
 export function UserManagement() {
   const admin = useAdmin();
@@ -36,6 +37,7 @@ export function UserManagement() {
   const searchParams = useSearchParams();
 
   const page = Number(searchParams.get("page") ?? 1);
+  const limit = Number(searchParams.get("limit") ?? LIMIT);
   const sort = searchParams.get("sort") ?? "join_date:desc";
   const isBanned = searchParams.get("isBanned") == "true" ? true : searchParams.get("isBanned") == "false" ? false : undefined;
   const gender = searchParams.get("gender")?.split(",");
@@ -115,7 +117,12 @@ export function UserManagement() {
                 <FilterRoles value={role ?? []} onChange={(roles) => handleNavigate("role", roles?.join(","))} />
                 <FilterBanned value={isBanned ?? null} onChange={(value) => handleNavigate("isBanned", value === null ? "" : value.toString())} />
 
-                {searchParams.size > 2 && (
+                <div className="flex flex-row gap-2 items-center mx-2">
+                  Page size
+                  <NumberInput value={limit} onChange={(value) => handleNavigate("limit", value.toString())} delay={500} />
+                </div>
+
+                {searchParams.size > 3 && (
                   <div
                     onClick={handleResetSearchParams}
                     className="h-full my-auto w-fit flex justify-center items-center font-semibold gap-1 text-error cursor-pointer"
@@ -132,7 +139,7 @@ export function UserManagement() {
                 ></SwitchPageSmall>
                 {/* Search */}
                 <SearchBar
-                  className="border-foreground/30 w-[300px]"
+                  className="border-foreground/30 w-[300px] bg-background-items"
                   placeHolder="Tìm theo tên hoặc email"
                   onSearch={(text) => {
                     handleNavigate("search", text);

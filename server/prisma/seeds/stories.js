@@ -11,6 +11,8 @@ export default async function main() {
   //     stdio: "inherit",
   //   },
 
+  const nations = await db.nation.findMany();
+
   const storyStatus = Object.values(StoryStatus);
   const storyType = Object.values(StoryType);
 
@@ -27,6 +29,7 @@ export default async function main() {
       star: randomInt(5) + randomInt(10) / 10,
       view: randomInt(1000000),
       cover_art_id: images[randomInt(images.length) % images.length].id,
+      nation_id: nations[randomInt(nations.length) % nations.length].id,
     })),
     skipDuplicates: true,
   });

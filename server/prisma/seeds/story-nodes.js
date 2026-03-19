@@ -8,10 +8,14 @@ export default async function main() {
   //   { stdio: "inherit" },
   // );
 
+  console.log("Seeding story node ...");
+
   const yesterday = new Date();
   yesterday.setDate(yesterday.getDate() - 1);
 
   const stories = await db.story.findMany({ where: { created_at: { gte: yesterday } } });
+
+  console.log(stories.map((story) => story.title));
 
   for (const story of stories) {
     if (randomInt(12) % 5 === 0) {

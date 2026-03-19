@@ -10,6 +10,16 @@ import XCloseIcon from "@/public/x-close.svg";
 import ArrowUpIcon from "@/public/arrows/up-v.svg";
 import BurgerMenuIcon from "@/public/burger-menu.svg";
 import ArrowDownIcon from "@/public/arrows/down-v.svg";
+import LoginIcon from "@/public/auth/login.svg";
+import LogoutIcon from "@/public/auth/logout.svg";
+import SignUpIcon from "@/public/auth/sign-up.svg";
+import HistoryIcon from "@/public/history.svg";
+import FavouriteIcon from "@/public/favourite.svg";
+import ProfileIcon from "@/public/people/people.svg";
+import ManageIcon from "@/public/manage.svg";
+import RankingIcon from "@/public/ranking.svg";
+import RandomIcom from "@/public/random.svg";
+import GenreIcon from "@/public/layer.svg";
 
 import SwitchTheme from "@/components/switchs/switch-theme";
 import SearchStories from "@/components/search/search-stories";
@@ -28,7 +38,7 @@ interface NavBarProps {
 }
 
 const className = {
-  buttonDropdown: `flex flex-row justify-between items-center gap-1 px-5 py-1.5 
+  buttonDropdown: `flex flex-row justify-start items-center gap-2 px-5 py-1.5 text-start
     border-b border-foreground w-full hover:bg-foreground/20`,
   buttonNavBar: `flex flex-col relative justify-center items-start p-px text-foreground bg-background-items h-fit w-full`,
 };
@@ -36,30 +46,50 @@ const className = {
 function ProfileButton() {
   return (
     <Link href={"/me"} className={className.buttonDropdown}>
+      <ProfileIcon className="w-5 h-5" />
       Thông tin tài khoản
     </Link>
   );
 }
 
 function RankingButton({ isMobile = false }: { isMobile?: boolean }) {
-  return (
-    <Link href="/ranking" className={isMobile ? className.buttonDropdown : className.buttonNavBar}>
-      Xếp hạng
-    </Link>
-  );
+  if (isMobile) {
+    return (
+      <Link href="/ranking" className={className.buttonDropdown}>
+        <RankingIcon className="w-5 h-5" />
+        Xếp hạng
+      </Link>
+    );
+  } else {
+    return (
+      <Link href="/ranking" className={className.buttonNavBar}>
+        Xếp hạng
+      </Link>
+    );
+  }
 }
 
 function RandomStoryButton({ isMobile = false }: { isMobile?: boolean }) {
-  return (
-    <Link href="/stories/random" className={isMobile ? className.buttonDropdown : className.buttonNavBar}>
-      <ButtonDropdown className="h-full" label="Random" />
-    </Link>
-  );
+  if (isMobile) {
+    return (
+      <Link href="/stories/random" className={className.buttonDropdown}>
+        <RandomIcom className="w-5 h-5" />
+        Random
+      </Link>
+    );
+  } else {
+    return (
+      <Link href="/stories/random" className={className.buttonNavBar}>
+        Random
+      </Link>
+    );
+  }
 }
 
 function FavouriteStoryButton() {
   return (
     <Link href="/favourites" className={className.buttonDropdown}>
+      <FavouriteIcon className="w-5 h-5" />
       Truyện yêu thích
     </Link>
   );
@@ -68,6 +98,7 @@ function FavouriteStoryButton() {
 function HistoryButton() {
   return (
     <Link href="/histories" className={className.buttonDropdown}>
+      <HistoryIcon className="w-5 h-5" />
       Lịch sử đọc
     </Link>
   );
@@ -76,6 +107,7 @@ function HistoryButton() {
 function WebManagementButton() {
   return (
     <Link href={"/admin/dashboard"} className={className.buttonDropdown}>
+      <ManageIcon className="w-5 h-5" />
       Quản lý Web
     </Link>
   );
@@ -84,6 +116,7 @@ function WebManagementButton() {
 function LoginButton() {
   return (
     <Link href="/login" className={className.buttonDropdown}>
+      <LoginIcon className="w-5 h-5" />
       Đăng nhập
     </Link>
   );
@@ -92,6 +125,7 @@ function LoginButton() {
 function RegisterButton() {
   return (
     <Link href="/register" className={className.buttonDropdown}>
+      <SignUpIcon className="w-5 h-5" />
       Đăng ký
     </Link>
   );
@@ -99,7 +133,6 @@ function RegisterButton() {
 
 function LogoutButton() {
   const auth = useAuth();
-
   return (
     <Link
       href="/"
@@ -109,6 +142,7 @@ function LogoutButton() {
         auth?.logout();
       }}
     >
+      <LogoutIcon className="w-5 h-5" />
       Đăng xuất
     </Link>
   );
@@ -121,7 +155,15 @@ function GenreButton({ isMobile = false }: { isMobile?: boolean }) {
 
   if (isMobile) {
     return (
-      <ButtonExpandable className="w-full" label="Thể loại" onClick={() => router.push("/genre")}>
+      <ButtonExpandable
+        className="w-full"
+        label={
+          <div className="flex flex-row gap-2 w-full justify-start">
+            <GenreIcon className="w-5 h-5" /> Thể loại
+          </div>
+        }
+        onClick={() => router.push("/genre")}
+      >
         <div className="flex flex-col gap-2 w-full">
           {genres &&
             genres.length > 0 &&

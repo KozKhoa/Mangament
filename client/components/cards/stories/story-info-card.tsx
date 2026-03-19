@@ -7,6 +7,7 @@ import Tag from "@/components/tags/tag";
 import GenreTag from "@/components/tags/genre-tag";
 import { useEffect, useState } from "react";
 import { convertNewestChapter } from "@/utils/convert";
+import Image from "next/image";
 
 interface StoryInfoCardProps {
   story?: Story;
@@ -32,6 +33,21 @@ export default function StoryInfoCard({ story, className }: StoryInfoCardProps) 
     >
       {/* Title */}
       <p className="text-[1.8em] font-bold border-b border-foreground/30">
+        {story?.nation && (
+          <span className="inline-block mr-1.5 align-middle">
+            {story.nation.flag_image?.url ? (
+              <Image
+                src={story.nation.flag_image.url}
+                alt={story.nation.name}
+                width={28}
+                height={20}
+                className="object-contain inline-block"
+              ></Image>
+            ) : (
+              <span className="text-[1.5rem]">{story.nation.flag_icon}</span>
+            )}
+          </span>
+        )}
         [{capitalizeFirstChar(story?.type || "")}] {story?.title}
       </p>
 

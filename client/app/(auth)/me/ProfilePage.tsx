@@ -63,7 +63,7 @@ export function ProfilePage() {
       {user ? (
         <div className="flex flex-col gap-10 ">
           {/* User card */}
-          <UserCard className="max-w-5xl m-auto"></UserCard>
+          <UserCard className="max-w-5xl m-auto bg-background-items"></UserCard>
           {/* Favourite story */}
           <StoryList label="Truyện yêu thích" stories={favourite} onClickLabel={() => router.push("/favourites")}></StoryList>
 

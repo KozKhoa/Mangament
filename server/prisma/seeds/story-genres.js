@@ -8,6 +8,8 @@ export default async function main() {
   // });
   // console.log("Seeded Story Genres from CSV");
 
+  await db.story_Genre.deleteMany();
+
   const stories = await db.story.findMany();
 
   const genres = Object.values(Genre);

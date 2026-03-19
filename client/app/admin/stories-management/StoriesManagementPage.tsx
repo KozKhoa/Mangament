@@ -37,6 +37,7 @@ import Button from "@/components/buttons/button";
 import Link from "@/components/link/Link";
 import withAdmin from "@/hoc/withAdmin";
 import { loadingBar } from "@/components/loadings/loading-bar/top-loading-bar.store";
+import NumberInput from "@/components/inputs/number-input";
 
 const STORIES_PIE_CHART_COLORS = [
   "#6A4E42", // warm brown
@@ -67,7 +68,7 @@ const STORIES_PIE_CHART_COLORS = [
   "#E1DDD8",
 ];
 
-const LIMIT = 10;
+const LIMIT = 20;
 
 export function StoriesManagementPage() {
   const admin = useAdmin();
@@ -81,6 +82,7 @@ export function StoriesManagementPage() {
   const [loadingStoies, setLoadingStories] = useState(true);
 
   const page = Number(searchParams.get("page") ?? 1);
+  const limit = Number(searchParams.get("limit") ?? LIMIT);
   const sort = searchParams.get("sort") ?? "updated_at:desc";
   const searchStories = searchParams.get("search") ?? "";
   const genres = searchParams.get("genre")?.split(",");
@@ -121,7 +123,7 @@ export function StoriesManagementPage() {
         keyword: searchStories,
         type: storyType,
         page: page,
-        limit: LIMIT,
+        limit: limit,
         sort: sort,
         genre: genres,
         author: author,
@@ -173,22 +175,28 @@ export function StoriesManagementPage() {
               <div className="flex flex-col gap-2">
                 {/* Filter story */}
                 <div className="flex flex-row flex-wrap gap-2">
-                  <FilterStoryType value={storyType ?? []} onChange={(type) => handleNavigate("type", type?.join(","))}></FilterStoryType>
-                  <FilterRatings value={star ?? []} onChange={(stars) => handleNavigate("star", stars?.join(","))}></FilterRatings>
-                  <FilterGenres value={genres ?? []} onChange={(genres) => handleNavigate("genre", genres.join(","))}></FilterGenres>
-                  <FilterAuthors value={author ?? []} onChange={(authors) => handleNavigate("author", authors.join(","))}></FilterAuthors>
+                  <FilterStoryType value={storyType ?? []} onChange={(type) => handleNavigate("type", type?.join(","))} />
+                  <FilterRatings value={star ?? []} onChange={(stars) => handleNavigate("star", stars?.join(","))} />
+                  <FilterGenres value={genres ?? []} onChange={(genres) => handleNavigate("genre", genres.join(","))} />
+                  <FilterAuthors value={author ?? []} onChange={(authors) => handleNavigate("author", authors.join(","))} />
 
-                  <FilterViews value={view ?? []} onChange={(view) => handleNavigate("view", view.join(","))}></FilterViews>
+                  <FilterViews value={view ?? []} onChange={(view) => handleNavigate("view", view.join(","))} />
 
-                  <FilterStoryStatus value={status ?? []} onChange={(status) => handleNavigate("status", status.join(","))}></FilterStoryStatus>
+                  <FilterStoryStatus value={status ?? []} onChange={(status) => handleNavigate("status", status.join(","))} />
 
-                  <FilterNation value={nation ?? []} onChange={(nations) => handleNavigate("nation", nations.join(","))}></FilterNation>
+                  <FilterNation value={nation ?? []} onChange={(nations) => handleNavigate("nation", nations.join(","))} />
                 </div>
 
                 {/* Sort story and reset params */}
-                <div className="flex flex-row flex-wrap gap-2">
-                  <SortStories value={sort} onSort={(sort) => handleNavigate("sort", sort)}></SortStories>
-                  {searchParams.size > 2 && (
+                <div className="flex flex-row flex-wrap gap-5">
+                  <SortStories value={sort} onSort={(sort) => handleNavigate("sort", sort)} />
+
+                  <div className="flex flex-row gap-2 items-center">
+                    Page size
+                    <NumberInput value={limit} onChange={(value) => handleNavigate("limit", value.toString())} delay={500} />
+                  </div>
+
+                  {searchParams.size > 3 && (
                     <div
                       onClick={handleResetSearchParams}
                       className="h-full my-auto w-fit flex justify-center items-center font-semibold gap-1 text-red-500 cursor-pointer"
@@ -207,7 +215,7 @@ export function StoriesManagementPage() {
               ></SwitchPageSmall>
               {/* Search */}
               <SearchBar
-                className="border-foreground/30 w-[300px] "
+                className="border-foreground/30 w-[300px] bg-background-items "
                 placeHolder="Tìm theo title"
                 onSearch={(text) => {
                   handleNavigate("search", text);
