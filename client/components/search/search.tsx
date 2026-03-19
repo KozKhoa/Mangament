@@ -40,13 +40,13 @@ function SearchBar({ onSearch, onType, children, placeHolder = "Tìm kiếm", st
   return (
     <div onFocus={() => setIsFocus(true)} onBlur={() => setIsFocus(false)} className={`${className}`}>
       <div
-        className={`flex flex-row justify-center items-center text-black w-full
-        h-10 px-2.5 border border-foreground/30 rounded-md bg-white relative ${className}`}
+        className={`flex flex-row justify-center items-center w-full text-foreground
+        h-10 px-2.5 border border-foreground/30 rounded-md bg-background   relative ${className}`}
         style={styles}
       >
         {/* Input field */}
         <input
-          className={`w-full h-fit border-0 outline-none   text-black`}
+          className={`w-full h-fit border-0 outline-none  `}
           type="text"
           value={text}
           placeholder={placeHolder}

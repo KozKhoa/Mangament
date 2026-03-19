@@ -130,7 +130,7 @@ const FilterGenres = ({ value, onChange }: FilterGenresProps) => {
         </div>
 
         <div className="absolute top-0 left-0 w-full p-2">
-          <SearchBar placeHolder="Tìm kiếm: (vd: japan)" onType={handleSearch} delay={200} />
+          <SearchBar placeHolder="Tìm kiếm: (vd: Slice of life)" onType={handleSearch} delay={200} />
         </div>
       </>
     </ButtonDropdown>

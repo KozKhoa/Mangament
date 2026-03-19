@@ -142,6 +142,8 @@ export default function ReadingStoryPage() {
 
     const routeDir = storyNodes.map((node) => `${node.type} ${node.order_index}`).join("/");
 
+    modal.close();
+
     router.push(`/stories/${story?.type}/${story?.title}/${routeDir}`);
   }
 
@@ -152,7 +154,6 @@ export default function ReadingStoryPage() {
           <StoryNodeList
             onClickItem={(nodeList) => {
               handleNavigateStoryNode(nodeList);
-              modal.close();
             }}
             storyNodes={story?.children}
             size={story?.number_of_children}

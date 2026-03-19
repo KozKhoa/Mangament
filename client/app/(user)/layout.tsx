@@ -27,9 +27,7 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
                 <Link
                   key={i}
                   href={path.slice(0, i + 1).join("/")}
-                  className={`w-fit cursor-pointer p-1 px-4 hover:bg-foreground/20 bg-foreground/10 
-                  ${i === 1 ? "rounded-l-md" : ""}
-                  ${i === path.length - 1 ? "rounded-r-md" : ""}`}
+                  className={`w-fit cursor-pointer p-1 px-4 hover:bg-foreground/20 bg-foreground/10 rounded-md`}
                 >
                   {snakeCaseToCapitalizeWord(decodeURIComponent(p))}
                 </Link>
@@ -37,7 +35,7 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
           })}
         </div>
 
-        <div className="">{children}</div>
+        <div className="max-w-[1600px] m-auto">{children}</div>
       </div>
 
       <Footer></Footer>

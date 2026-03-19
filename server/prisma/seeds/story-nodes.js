@@ -8,10 +8,13 @@ export default async function main() {
   //   { stdio: "inherit" },
   // );
 
-  const stories = await db.story.findMany();
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+
+  const stories = await db.story.findMany({ where: { created_at: { gte: yesterday } } });
 
   for (const story of stories) {
-    if (randomInt(3) % 2 === 0) {
+    if (randomInt(12) % 5 === 0) {
       const storyNodes = await db.storyNode.createManyAndReturn({
         data: Array.from({ length: randomInt(10) }).map((_, i) => ({ story_id: story.id, type: "volume", order_index: i })),
         skipDuplicates: true,
@@ -23,15 +26,11 @@ export default async function main() {
           skipDuplicates: true,
         });
       }
-
-      console.log(storyNodes);
     } else {
-      const storyNodes = await db.storyNode.createManyAndReturn({
+      await db.storyNode.createMany({
         data: Array.from({ length: randomInt(120) }).map((_, i) => ({ story_id: story.id, type: "chapter", order_index: i })),
         skipDuplicates: true,
       });
-
-      console.log(storyNodes);
     }
   }
 

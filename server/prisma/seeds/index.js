@@ -4,18 +4,24 @@ import * as storySeeding from "./stories.js";
 import * as imageSeeding from "./images.js";
 import * as storyNodeSeeding from "./story-nodes.js";
 import * as storyGenreSeeding from "./story-genres.js";
+import * as historySeeding from "./history.js";
+import * as favouriteSeeding from "./favourite.js";
 import * as storyNodeContentSeeding from "./story-node-contents.js";
 
 // await imageSeeding.default();
 
-// await nationSeeding.default();
+await nationSeeding.default();
 
 // await userSeeding.default();
 
 await storySeeding.default();
 
-// await storyGenreSeeding.default();
+await storyGenreSeeding.default();
 
-// await storyNodeSeeding.default();
+await storyNodeSeeding.default();
 
-// await storyNodeContentSeeding.default();
+await historySeeding.default();
+
+await favouriteSeeding.default();
+
+await storyNodeContentSeeding.default();
