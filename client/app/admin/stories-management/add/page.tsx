@@ -52,7 +52,7 @@ export function AddNewStoryPage() {
     modal.open("confirm", {
       title: "Xác nhận thêm truyện mới",
       content: (
-        <div className="max-w-[80vw] relative">
+        <div className="max-w-[80vw] min-w-[60vw] relative">
           <p>
             <span className="font-semibold">Tiêu đề : </span>
             {story?.title}
@@ -83,9 +83,16 @@ export function AddNewStoryPage() {
         </div>
       ),
       onConfirm: () => {
+        if (!story?.title || !story?.status || !story?.type) {
+          toast.warning("Vui lòng nhập đầy đủ thông tin");
+          return;
+        }
+
         handleAddNewStory();
         modal.close();
       },
+
+      onCancel: modal.close,
     });
   }
 
@@ -145,9 +152,9 @@ export function AddNewStoryPage() {
 
           <div className="flex flex-col gap-2 w-full lg:col-span-2">
             <Input require={true} label="Title" placeHolder={story?.title} onChange={setTitle}></Input>
-            <StoryTypeSelection onChange={(type) => setStoryType(type ?? "")}></StoryTypeSelection>
+            <StoryTypeSelection require={true} onChange={(type) => setStoryType(type ?? "")}></StoryTypeSelection>
+            <StoryStatusSelection require={true} onChange={(status) => setStoryStatus(status ?? "")}></StoryStatusSelection>
             <NationSelection onChange={(nation) => setNation({ name: nation?.name ?? "", flag_icon: nation?.flag_icon })}></NationSelection>
-            <StoryStatusSelection onChange={(status) => setStoryStatus(status ?? "")}></StoryStatusSelection>
             <StoryGenreMultiSelection onChange={setGenres}></StoryGenreMultiSelection>
 
             <TextArea label="Tóm tắt / Mô tả truyện" placeHolder={story?.summary} onChange={setSummary}></TextArea>

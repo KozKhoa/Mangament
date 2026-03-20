@@ -37,9 +37,14 @@ export default function StoryNodeList({ storyNodes, size, onClickItem, className
 
           {/* List */}
           <div className="w-full overflow-y-scroll max-h-[70vh] no-scrollbar">
-            <div className="flex flex-col gap-2 py-2 w-full h-fit">
+            <div className="flex flex-col py-2 w-full h-fit">
               {storyNodes?.map((node, i) => (
-                <ButtonStoryNodeExpandable onClick={handleClick} key={node.id} className="w-full" storyNode={node}></ButtonStoryNodeExpandable>
+                <ButtonStoryNodeExpandable
+                  onClick={handleClick}
+                  key={node.id}
+                  className={`w-full pt-1 text-foreground/90 ${i % 2 === 0 ? "" : "bg-foreground/3"}`}
+                  storyNode={node}
+                ></ButtonStoryNodeExpandable>
               ))}
             </div>
           </div>

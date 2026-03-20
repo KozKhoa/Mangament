@@ -148,14 +148,14 @@ export default function StoriesPage() {
               </div>
 
               <div className="flex flex-row flex-wrap justify-between gap-2 w-full">
-                <SortStories value={sort ?? ""} onSort={(sort) => handleNavigate("sort", sort)}></SortStories>
+                <SortStories value={sort ?? ""} onSort={(sort) => handleNavigate("sort", sort)} />
 
                 {searchParams.size > 2 && (
                   <div
                     onClick={handleResetSearchParams}
                     className="h-full my-auto w-fit flex justify-center items-center font-semibold gap-1 text-error cursor-pointer"
                   >
-                    <XIcon className="w-5 h-5 text-error"></XIcon> Xóa bộ lọc
+                    <XIcon className="w-5 h-5 text-error" /> Xóa bộ lọc
                   </div>
                 )}
               </div>

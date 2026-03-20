@@ -24,3 +24,21 @@ export function snakeCaseToCapitalizeWord(snake: string) {
 export function snakeCaseToAllCapital(str: string) {
   return str.replaceAll("_", " ").toLocaleUpperCase();
 }
+
+export function normalize(str: string) {
+  return str
+    .toLowerCase()
+    .normalize("NFD") // tách dấu
+    .replaceAll(/[\u0300-\u036f]/g, "") // xóa dấu
+    .replaceAll(/[^a-zA-Z0-9]/g, " ")
+    .replaceAll(/\s+/g, " ") // chuẩn hóa space
+    .trim();
+}
+
+export function isEqualFlexible(a: string, b: string) {
+  return normalize(a) === normalize(b);
+}
+
+export function isFitSearch(keyword: string, str: string) {
+  return normalize(str).includes(normalize(keyword));
+}

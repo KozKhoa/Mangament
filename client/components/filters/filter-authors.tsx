@@ -7,72 +7,99 @@ import React, { useCallback, useEffect, useState } from "react";
 
 import PeopleIcon from "@/public/people/people.svg";
 
-import { snakeCaseToCapitalizeWord } from "@/utils/string";
-
 import useApp from "@/contexts/AppContext";
+import Author from "@/types/author";
+import SwitchPageSmall from "../switch-page/small";
+import SearchBar from "../search/search";
+import { isEqualFlexible, isFitSearch, normalize } from "@/utils/string";
 
-interface FilterGenresProps {
+interface FilterAuthorProps {
   value: string[];
   onChange?: (value: string[]) => void;
 }
 
-const FilterAuthors = React.memo(({ value, onChange }: FilterGenresProps) => {
+const PAGE_SIZE = 100;
+
+const AuthorCheckBox = React.memo(
+  ({ author, isChecked, toggleCheckbox }: { author: Author; isChecked: boolean; toggleCheckbox: (id: string, checked: boolean) => void }) => {
+    return (
+      <div className="flex w-full h-fit justify-start items-center">
+        <Checkbox value={isChecked} onChange={(isChecked) => toggleCheckbox(author.id ?? "", isChecked)}>
+          {author.name}
+        </Checkbox>
+      </div>
+    );
+  },
+);
+
+const FilterAuthors = React.memo(({ value, onChange }: FilterAuthorProps) => {
   const app = useApp();
 
-  const [authors, setAuthors] = useState<string[]>([]);
+  const [authors, setAuthors] = useState<Set<Author>>(new Set(app?.authors ?? []));
 
-  const [selectedIndexs, setSelectedIndexs] = useState<Set<number>>(new Set());
-  const [finalSelectedIndex, setFinalSelectedIndex] = useState<Set<number>>(new Set());
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [finalSelectedIds, setFinalSelectedIds] = useState<Set<string>>(new Set());
 
-  const resetAllField = useCallback(() => {
-    setSelectedIndexs(new Set());
-    setFinalSelectedIndex(new Set());
-  }, []);
+  function resetAllField() {
+    setSelectedIds(new Set());
+    setFinalSelectedIds(new Set());
 
-  function toggleCheckbox(index: number, checked: boolean) {
-    const newSet = new Set(selectedIndexs);
-
-    if (checked) {
-      newSet.add(index);
-    } else {
-      newSet.delete(index);
-    }
-
-    setSelectedIndexs(newSet);
+    onChange?.([]);
   }
 
   function handleFinish() {
-    const result: string[] = [];
+    onChange?.([...selectedIds]);
 
-    const genresArr = [...authors];
-
-    [...selectedIndexs].forEach((index) => {
-      result.push(genresArr[index]);
-    });
-
-    onChange?.(result);
-
-    setFinalSelectedIndex(new Set(selectedIndexs));
+    setFinalSelectedIds(new Set(selectedIds));
   }
 
-  useEffect(() => {
-    setAuthors(app?.authors ?? []);
-  }, [app?.authors]);
+  function handleSearch(keyword: string) {
+    if (!keyword) {
+      setAuthors(new Set(app?.authors));
+      return;
+    }
+
+    const searchAuthors = new Set<Author>();
+
+    app?.authors?.forEach((author) => {
+      if (isFitSearch(keyword, author.name ?? "")) {
+        searchAuthors.add(author);
+      }
+    });
+
+    setAuthors(searchAuthors);
+  }
+
+  const toggleCheckbox = useCallback((id: string, checked: boolean) => {
+    setSelectedIds((prev) => {
+      const newSet = new Set(prev);
+
+      if (checked) {
+        newSet.add(id);
+      } else {
+        newSet.delete(id);
+      }
+
+      return newSet;
+    });
+  }, []);
 
   useEffect(() => {
-    const selected: number[] = [];
+    const selected: string[] = [];
 
     const valueSet = new Set(value);
 
-    let i = 0;
-    for (const author of authors) {
-      if (valueSet.has(author)) selected.push(i);
-      i++;
+    for (const author of app?.authors ?? []) {
+      if (valueSet.has(author.id ?? "")) selected.push(author.id ?? "");
     }
 
-    setSelectedIndexs(new Set(selected));
-    setFinalSelectedIndex(new Set(selected));
-  }, [authors, value]);
+    setSelectedIds(new Set(selected));
+    setFinalSelectedIds(new Set(selected));
+  }, [value]);
+
+  useEffect(() => {
+    setAuthors(new Set(app?.authors ?? []));
+  }, [app?.authors]);
 
   return (
     <ButtonDropdown
@@ -88,7 +115,7 @@ const FilterAuthors = React.memo(({ value, onChange }: FilterGenresProps) => {
               <PeopleIcon className="w-5 h-5 text-foreground stroke-0"></PeopleIcon>
               <p className="font-bold">Tác giả</p>
               <div className="flex flex-row flex-wrap gap-0.5">
-                {authors?.map((author, i) => finalSelectedIndex.has(i) && <Tag key={author}>{snakeCaseToCapitalizeWord(author)}</Tag>)}
+                {[...authors]?.map((author, i) => finalSelectedIds.has(author.id ?? "") && <Tag key={author.id}>{author.name}</Tag>)}
               </div>
             </div>
           }
@@ -98,14 +125,14 @@ const FilterAuthors = React.memo(({ value, onChange }: FilterGenresProps) => {
         </div>
       }
     >
-      <div className="grid grid-cols-2 gap-2.5 w-[300px] sm:w-[400px] lg:grid-cols-3 lg:w-[600px]">
-        {authors?.map((author, i) => (
-          <div key={i} className="flex w-full h-fit justify-start items-center">
-            <Checkbox value={selectedIndexs.has(i)} onChange={(isChecked) => toggleCheckbox(i, isChecked)}>
-              {snakeCaseToCapitalizeWord(author)}
-            </Checkbox>
-          </div>
+      <div className="grid grid-cols-2 gap-2.5 w-[300px] sm:w-[400px] lg:grid-cols-3 lg:w-[600px] mt-12">
+        {[...authors].map((author) => (
+          <AuthorCheckBox key={author.id} author={author} isChecked={selectedIds.has(author.id ?? "")} toggleCheckbox={toggleCheckbox} />
         ))}
+      </div>
+
+      <div className="absolute top-0 left-0 w-full p-2">
+        <SearchBar placeHolder="Tìm kiếm: (vd: Slice of life)" onType={handleSearch} delay={200} className="bg-background" />
       </div>
     </ButtonDropdown>
   );

@@ -225,6 +225,6 @@ export default function NationSelection({ className, defaultValue = null, onChan
       defaultIndex={defaultValue === null ? null : NATIONS.findIndex((nation) => nation.includes(defaultValue))}
       onChange={handleChange}
       onReset={onReset ? handleReset : undefined}
-    ></Selection>
+    />
   );
 }

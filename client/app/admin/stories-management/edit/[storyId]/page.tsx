@@ -61,7 +61,7 @@ export function EditStory() {
     modal.open("confirm", {
       title: "Xác nhận cập nhật thông tin",
       content: (
-        <div className="max-w-[80vw] relative">
+        <div className="max-w-[80vw] min-w-[60vw] relative">
           <p>
             <span className="font-semibold">Tiêu đề : </span>
             {story?.title} ➜ {editedStory?.title}

@@ -9,10 +9,11 @@ import genreService from "@/services/genre";
 import { toast } from "sonner";
 import authorService from "@/services/author";
 import NATIONS from "@/constants/nations";
+import Author from "@/types/author";
 
 interface AppContextProps {
   genres: string[];
-  authors: string[];
+  authors: Author[];
   nations: { name: string; flag_icon: string }[];
   font?: string;
   textSize?: number;
@@ -35,7 +36,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
   const [genres, setGenres] = useState<string[]>([]);
   const [nations, setNations] = useState<{ name: string; flag_icon: string }[]>([]);
 
-  const [authors, setAuthors] = useState<string[]>([]);
+  const [authors, setAuthors] = useState<Author[]>([]);
   const [textSize, setTextSize] = useState<number>(DEFAULT.textSize);
   const [font, setFont] = useState<string>(DEFAULT.font.id);
   const [readingFont, setReadingFont] = useState<string>(DEFAULT.font.id);
