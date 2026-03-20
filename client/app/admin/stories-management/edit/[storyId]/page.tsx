@@ -21,7 +21,7 @@ import NationSelection from "@/components/selections/nation-selection";
 import Nation from "@/types/nation";
 import { isEqual } from "lodash";
 
-import StoryNodeContainerDraggable from "@/components/draggable/story-node-container-draggable";
+import StoryNodeListEditable from "@/components/draggable/story-node-list-editable";
 import StoryNode, { StoryNodeContent } from "@/types/story-node";
 import withAdmin from "@/hoc/withAdmin";
 import { loadingBar } from "@/components/loadings/loading-bar/top-loading-bar.store";
@@ -299,7 +299,7 @@ export function EditStory() {
           </div>
 
           {/* Content */}
-          <div>{story?.children && <StoryNodeContainerDraggable storyId={storyId} onChange={setChildren} storyNodes={story.children} />}</div>
+          <div>{story?.children && <StoryNodeListEditable storyId={storyId} onChange={setChildren} storyNodes={story.children} />}</div>
 
           <div>
             <Button className="font-semibold text-lg w-full" onClick={onConfirmUpdate}>

@@ -109,7 +109,7 @@ export default function StoryDetailPage() {
           className="lg:flex-1 bg-background-items"
           storyNodes={story?.children}
           size={story?.number_of_children}
-        ></StoryNodeList>
+        />
       </div>
 
       {/* Review */}

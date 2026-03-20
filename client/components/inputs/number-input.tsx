@@ -29,7 +29,7 @@ export default function NumberInput({
   max = Infinity,
   defaultValue = 0,
   value,
-  delay = 500,
+  delay = 0,
   allowNegative = true,
   allowPositive = true,
   allowNumeric = true,

@@ -8,6 +8,8 @@ import * as historySeeding from "./history.js";
 import * as favouriteSeeding from "./favourite.js";
 import * as storyNodeContentSeeding from "./story-node-contents.js";
 import * as authorSeeding from "./author.js";
+import * as ratingSeeding from "./rating.js";
+import * as commentSeeding from "./comment.js";
 
 // await imageSeeding.default();
 
@@ -28,3 +30,7 @@ import * as authorSeeding from "./author.js";
 // await favouriteSeeding.default();
 
 // await storyNodeContentSeeding.default();
+
+await ratingSeeding.default();
+
+await commentSeeding.default();

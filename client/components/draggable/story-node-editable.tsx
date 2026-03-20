@@ -24,7 +24,7 @@ import useAuth from "@/contexts/AuthContext";
 
 import NumberInput from "../inputs/number-input";
 
-const StoryNodeDraggable = React.memo(function StoryNodeDraggable({
+const StoryNodeEditable = React.memo(function StoryNodeEditable({
   storyNode,
   onChange,
 }: {
@@ -173,6 +173,8 @@ const StoryNodeDraggable = React.memo(function StoryNodeDraggable({
   function handleAddMoreChildren(type: string, number: number = 1) {
     if (number < 1) return;
 
+    console.log(type);
+
     const children = [...(storyNode.children ?? [])];
     Array.from({ length: number }).forEach((_, i) => {
       children.push({
@@ -191,23 +193,19 @@ const StoryNodeDraggable = React.memo(function StoryNodeDraggable({
 
   function handleAddMoreContent(type: string, number: number = 1) {
     if (number < 1) return;
-    switch (type) {
-      case "image":
-        const next = [...(storyNode.content ?? [])];
-        Array.from({ length: number }).forEach((_, i) => {
-          next.push({
-            type: "image",
-            story_node_id: storyNode.id,
-            order_index: (storyNode.content?.length ?? 0) + i,
-            id: crypto.randomUUID(),
-            isDeleted: false,
-            isNew: true,
-          });
-        });
-        onChange?.({ ...storyNode, content: next, is_edited: true });
 
-        break;
-    }
+    const next = [...(storyNode.content ?? [])];
+    Array.from({ length: number }).forEach((_, i) => {
+      next.push({
+        type: type,
+        story_node_id: storyNode.id,
+        order_index: (storyNode.content?.length ?? 0) + i,
+        id: crypto.randomUUID(),
+        isDeleted: false,
+        isNew: true,
+      });
+    });
+    onChange?.({ ...storyNode, content: next, is_edited: true });
   }
 
   const handleAddManyImageContent = useCallback(
@@ -219,7 +217,7 @@ const StoryNodeDraggable = React.memo(function StoryNodeDraggable({
   );
 
   function handleAddNewThings() {
-    let numberOfContent: Record<string, number> = { image: 0 };
+    let numberOfContent: Record<string, number> = { image: 0, title: 0, header: 0, text: 0 };
 
     let numberOfNewChildren: Record<string, number> = { arc: 0, volume: 0, chapter: 0 };
 
@@ -272,15 +270,55 @@ const StoryNodeDraggable = React.memo(function StoryNodeDraggable({
 
           <div className="flex flex-col gap-2 justify-center item">
             <p className="text-xl font-semibold">Thêm mới content</p>
-            <div className="flex flex-row gap-2 p-4 shadow-[0px_4px_10px_rgb(0,0,0,0.2)] rounded-md">
-              <NumberInput
-                allowNegative={false}
-                allowNumeric={false}
-                defaultValue={numberOfContent.image ?? 0}
-                onChange={(number) => (numberOfContent.image = number)}
-              />
 
-              <p className="text-xl">Ảnh</p>
+            <div className="flex flex-row flex-wrap gap-2">
+              {/* Image */}
+              <div className="flex flex-row gap-2 p-4 shadow-[0px_4px_10px_rgb(0,0,0,0.2)] rounded-md">
+                <NumberInput
+                  allowNegative={false}
+                  allowNumeric={false}
+                  defaultValue={numberOfContent.image ?? 0}
+                  onChange={(number) => (numberOfContent.image = number)}
+                />
+
+                <p className="text-xl">Ảnh</p>
+              </div>
+
+              {/* Title */}
+              <div className="flex flex-row gap-2 p-4 shadow-[0px_4px_10px_rgb(0,0,0,0.2)] rounded-md">
+                <NumberInput
+                  allowNegative={false}
+                  allowNumeric={false}
+                  defaultValue={numberOfContent.title ?? 0}
+                  onChange={(number) => (numberOfContent.title = number)}
+                />
+
+                <p className="text-xl">Title</p>
+              </div>
+
+              {/* Header */}
+              <div className="flex flex-row gap-2 p-4 shadow-[0px_4px_10px_rgb(0,0,0,0.2)] rounded-md">
+                <NumberInput
+                  allowNegative={false}
+                  allowNumeric={false}
+                  defaultValue={numberOfContent.header ?? 0}
+                  onChange={(number) => (numberOfContent.header = number)}
+                />
+
+                <p className="text-xl">Header</p>
+              </div>
+
+              {/* Text */}
+              <div className="flex flex-row gap-2 p-4 shadow-[0px_4px_10px_rgb(0,0,0,0.2)] rounded-md">
+                <NumberInput
+                  allowNegative={false}
+                  allowNumeric={false}
+                  defaultValue={numberOfContent.text ?? 0}
+                  onChange={(number) => (numberOfContent.text = number)}
+                />
+
+                <p className="text-xl">Text</p>
+              </div>
             </div>
           </div>
         </div>
@@ -349,10 +387,9 @@ const StoryNodeDraggable = React.memo(function StoryNodeDraggable({
             <div className="flex flex-col gap-2">
               {storyNode.children &&
                 storyNode.children.length > 0 &&
-                storyNode.children?.map((child, i) => <StoryNodeDraggable key={child.id} storyNode={child} onChange={handleUpdateChild}></StoryNodeDraggable>)}
+                storyNode.children?.map((child, i) => <StoryNodeEditable key={child.id} storyNode={child} onChange={handleUpdateChild} />)}
             </div>
           </div>
-
           <div>
             {storyNode.content && storyNode.content.length > 0 && (
               <DndContext collisionDetection={closestCorners} onDragEnd={handleSortContent}>
@@ -361,6 +398,7 @@ const StoryNodeDraggable = React.memo(function StoryNodeDraggable({
                     {storyNode.content?.map((content, i) => {
                       return (
                         <StoryNodeContentDraggable
+                          // className={`${content.type === "image" ? "" : "col-span-10"}`}
                           onDelete={handleDeleteContent}
                           onDiscardDelete={handleDiscardDeleteContent}
                           onChange={handleUpdateContent}
@@ -383,4 +421,4 @@ const StoryNodeDraggable = React.memo(function StoryNodeDraggable({
   );
 });
 
-export default StoryNodeDraggable;
+export default StoryNodeEditable;

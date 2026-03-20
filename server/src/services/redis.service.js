@@ -57,11 +57,13 @@ const users = (userId) => {
 
 const admin = () => ({ get: () => version.get("admin"), incr: () => version.incr("admin") });
 
+const authors = () => ({ get: () => version.get("authors"), incr: () => version.incr("authors") });
+
 const image = (url) => {
   const key = `image:url=${url}`;
   return { get: () => version.get(key), incr: () => version.incr(key) };
 };
 
-const redisService = { stories, storyNodes, comments, ratings, histories, favourites, users, admin, image };
+const redisService = { stories, storyNodes, comments, ratings, histories, favourites, users, admin, image, authors };
 
 export default redisService;

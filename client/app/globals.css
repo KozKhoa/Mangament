@@ -101,11 +101,11 @@ h4 {
   display: -webkit-box; /* Not needed if autoprefixing */
   display: -ms-flexbox; /* Not needed if autoprefixing */
   display: flex;
-  margin-left: -5px; /* gutter size offset */
+  margin-left: -8px; /* gutter size offset */
   width: fit-content;
 }
 .my-masonry-grid_column {
-  padding-left: 5px; /* gutter size */
+  padding-left: 8px; /* gutter size */
   background-clip: padding-box;
   width: fit-content;
 }
@@ -113,8 +113,8 @@ h4 {
 /* Style your items */
 .my-masonry-grid_column > div {
   /* change div to reference your elements you put in <Masonry> */
-  margin-bottom: 5px;
-  width: fit-content;
+  margin-bottom: 8px;
+  width: 100%;
 }
 
 .clip-path-paper {

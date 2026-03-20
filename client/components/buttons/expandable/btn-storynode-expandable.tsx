@@ -17,18 +17,16 @@ interface ButtonStoryNodeExpandableProps {
 export default function ButtonStoryNodeExpandable({ onClick, storyNode, className }: ButtonStoryNodeExpandableProps) {
   const [open, setOpen] = useState<boolean>(false);
 
-  function handleClick(node: StoryNode[]) {
-    if ((storyNode.type !== "chapter" && storyNode.children?.length) ?? 0 > 0) setOpen(!open);
-    onClick?.(node);
-  }
-
   return (
     <div className={`flex flex-col w-full h-fit rounded-t-[5] overflow-hidden transition-all duration-100 ${className}`}>
       {/* Label*/}
       <button
         className={`flex flex-row justify-between items-center px-2 py-1.5 border-b border-foreground w-full cursor-pointer
           rounded-t-[5] hover:bg-foreground/20`}
-        onClick={() => handleClick([storyNode])}
+        onClick={() => {
+          setOpen(!open);
+          onClick?.([storyNode]);
+        }}
       >
         <div className="flex flex-row gap-1 overflow-hidden truncate">
           {storyNode.type !== "chapter" ? (
@@ -66,7 +64,7 @@ export default function ButtonStoryNodeExpandable({ onClick, storyNode, classNam
               <ul className="flex flex-col justify-center items-start w-full h-fit">
                 {storyNode.children.map((child, i) => (
                   <li key={i} className={`flex justify-start items-center w-full h-fit pt-2 ${i % 2 === 0 ? "" : "bg-foreground/3"} `}>
-                    <ButtonStoryNodeExpandable onClick={(node) => handleClick([storyNode].concat(node))} storyNode={child}></ButtonStoryNodeExpandable>
+                    <ButtonStoryNodeExpandable onClick={(node) => onClick?.([storyNode].concat(node))} storyNode={child}></ButtonStoryNodeExpandable>
                   </li>
                 ))}
               </ul>

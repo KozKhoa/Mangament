@@ -157,7 +157,7 @@ export default function ReadingStoryPage() {
             }}
             storyNodes={story?.children}
             size={story?.number_of_children}
-          ></StoryNodeList>
+          />
 
           <Button onClick={() => modal.close()} className="my-2 ml-auto">
             Đóng
@@ -320,6 +320,7 @@ export default function ReadingStoryPage() {
 
         {/* Content */}
         <div
+          className="flex flex-col gap-5 w-full"
           style={{
             fontSize: app?.readingTextSize + "px",
             fontFamily: capitalizeWords(app?.readingFont ?? ""),
@@ -327,7 +328,7 @@ export default function ReadingStoryPage() {
           }}
         >
           {content?.map((con, i) => (
-            <div key={i} className="flex flex-col justify-center items-center gap-2 w-full">
+            <div key={i} className="flex flex-col justify-center items-center gap-2 w-full text-foreground/80">
               {con.type === "image" && con?.image?.url ? (
                 <Image
                   className="max-w-[1200px]"
@@ -338,9 +339,9 @@ export default function ReadingStoryPage() {
                   style={{ width: "100%", height: "auto" }}
                 ></Image>
               ) : con.type === "title" ? (
-                <p className="w-full text-center font-bold text-[1.8em]">{con.content}</p>
+                <p className="w-full text-center font-bold text-[1.8em] ">{con.content}</p>
               ) : con.type === "header" ? (
-                <p className="w-full text-start font-semibold text-[1.2em]">{con.content}</p>
+                <p className="w-full text-start font-semibold text-[1.2em] ">{con.content}</p>
               ) : (
                 con.type === "text" && <p className="w-full text-start">{con.content}</p>
               )}

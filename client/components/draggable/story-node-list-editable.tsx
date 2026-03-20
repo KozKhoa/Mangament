@@ -2,7 +2,7 @@ import StoryNode from "@/types/story-node";
 import { DndContext, DragAbortEvent, DragEndEvent, closestCorners } from "@dnd-kit/core";
 import { arrayMove, SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import StoryNodeDraggable from "./story-node-draggable";
+import StoryNodeEditable from "./story-node-editable";
 
 import EditIcon from "@/public/edit/edit.svg";
 import PlusIcon from "@/public/plus.svg";
@@ -14,7 +14,7 @@ import { modal } from "../modal/modal.store";
 import NumberInput from "../inputs/number-input";
 import useAuth from "@/contexts/AuthContext";
 
-export default function StoryNodeContainerDraggable({
+export default function StoryNodeListEditable({
   storyId,
   storyNodes,
   onChange,
@@ -49,8 +49,8 @@ export default function StoryNodeContainerDraggable({
         <div className="flex flex-col gap-2 w-full min-w-[300px] max-w-[80vw]">
           <div className="flex flex-col gap-2 justify-center items-start  ">
             <p className="text-xl font-semibold">Thêm mới children</p>
-            {/* Arc */}
             <div className="flex flex-row flex-wrap gap-x-10 gap-y-3 p-4 shadow-[0px_4px_10px_rgb(0,0,0,0.2)] rounded-md">
+              {/* Arc */}
               <div className="flex flex-row gap-2">
                 <NumberInput
                   allowNegative={false}
@@ -139,9 +139,7 @@ export default function StoryNodeContainerDraggable({
       </div>
 
       <div className="flex flex-col gap-2">
-        {nodes &&
-          nodes.length > 0 &&
-          nodes?.map((node, i) => <StoryNodeDraggable key={node.id} storyNode={node} onChange={handleUpdateStoryNode}></StoryNodeDraggable>)}
+        {nodes && nodes.length > 0 && nodes?.map((node, i) => <StoryNodeEditable key={node.id} storyNode={node} onChange={handleUpdateStoryNode} />)}
       </div>
     </div>
   );

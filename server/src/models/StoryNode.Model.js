@@ -195,7 +195,7 @@ export async function FindStoryNode({ id, storyId, parentId, storyNodeType, orde
         include: {
           content: {
             where: { is_deleted: false },
-            select: { type: true, image: { where: { is_deleted: false } } },
+            select: { type: true, image: { where: { is_deleted: false } }, content: true, order_index: true },
             orderBy: { order_index: "asc" },
           },
         },

@@ -644,6 +644,7 @@ export async function UpdateStory(
             story_node_id: cont.story_node_id,
             order_index: cont.order_index,
             image_id: cont.image.id,
+            content: cont.content,
           })),
         });
       }
@@ -671,6 +672,18 @@ export async function UpdateStory(
               }
             });
             query += `    ELSE image_id\n  END`;
+          }
+
+          const hasContent = contents.some((c) => c.content !== undefined);
+          if (hasContent) {
+            query += `,\n  content = CASE\n`;
+            contents.forEach((c) => {
+              if (c.content !== undefined) {
+                params.push(c.id, c.content);
+                query += `    WHEN id = $${params.length - 1}::uuid THEN $${params.length}::text\n`;
+              }
+            });
+            query += `    ELSE content\n  END`;
           }
 
           const idPlaceholders = contents.map((c) => {
@@ -748,6 +761,18 @@ export async function UpdateStory(
                 }
               });
               contentQuery += `    ELSE type\n  END`;
+            }
+
+            const hasContent = nodeContents.some((c) => c.content !== undefined);
+            if (hasContent) {
+              contentQuery += `,\n  content = CASE\n`;
+              nodeContents.forEach((c) => {
+                if (c.content !== undefined) {
+                  contentParams.push(c.id, c.content);
+                  contentQuery += `    WHEN id = $${contentParams.length - 1}::uuid THEN $${contentParams.length}::text\n`;
+                }
+              });
+              contentQuery += `    ELSE content\n  END`;
             }
 
             const contentIdPlaceholders = nodeContents.map((c) => {

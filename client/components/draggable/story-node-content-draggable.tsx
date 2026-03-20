@@ -8,6 +8,7 @@ import RemoveIcon from "@/public/delete.svg";
 import ReturnIcon from "@/public/return.svg";
 import ImagePicker from "../inputs/image-picker";
 import ResetIcon from "@/public/reset.svg";
+import TextArea from "../inputs/text-area";
 
 const StoryNodeContentDraggable = React.memo(function StoryNodeContentDraggable({
   id,
@@ -43,11 +44,17 @@ const StoryNodeContentDraggable = React.memo(function StoryNodeContentDraggable(
 
   const isEdited = useRef(false);
 
-  function handleUpdateContent(image?: File | string) {
-    if (typeof image === "string") {
-      onChange?.({ ...content, type: "image", image: { url: image }, isEdited: isEdited.current });
+  function handleUpdateContent(newContent?: File | string) {
+    if (content.type === "image") {
+      if (typeof newContent === "string") {
+        onChange?.({ ...content, type: "image", image: { url: newContent }, isEdited: isEdited.current });
+      } else {
+        onChange?.({ ...content, type: "image", imageFile: newContent, isEdited: isEdited.current });
+      }
     } else {
-      onChange?.({ ...content, type: "image", imageFile: image, isEdited: isEdited.current });
+      if (typeof newContent === "string") {
+        onChange?.({ ...content, type: content.type ?? "text", content: newContent, isEdited: isEdited.current });
+      }
     }
   }
 
@@ -105,6 +112,48 @@ const StoryNodeContentDraggable = React.memo(function StoryNodeContentDraggable(
               handleUpdateContent(file);
             }}
           />
+        )}
+
+        {content.type === "text" && (
+          <div className="w-full h-full col-span-10">
+            <p className="m-auto font-semibold">Text</p>
+            <TextArea
+              defaultValue={content.content ?? ""}
+              onChange={(text) => {
+                isEdited.current = true;
+                handleUpdateContent(text);
+              }}
+              className="w-full h-full"
+            />
+          </div>
+        )}
+
+        {content.type === "title" && (
+          <div className="w-full h-full col-span-10">
+            <p className="m-auto font-semibold">Title</p>
+            <TextArea
+              defaultValue={content.content ?? ""}
+              onChange={(text) => {
+                isEdited.current = true;
+                handleUpdateContent(text);
+              }}
+              className="w-full h-full"
+            />
+          </div>
+        )}
+
+        {content.type === "header" && (
+          <div className="w-full h-full col-span-10">
+            <p className="m-auto font-semibold">Header</p>
+            <TextArea
+              defaultValue={content.content ?? ""}
+              onChange={(text) => {
+                isEdited.current = true;
+                handleUpdateContent(text);
+              }}
+              className="w-full h-full"
+            />
+          </div>
         )}
       </div>
     </div>

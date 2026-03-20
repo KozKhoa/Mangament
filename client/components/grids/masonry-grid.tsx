@@ -12,10 +12,10 @@ export default function MasonryGrid({
   children?: React.ReactNode[];
 }) {
   const breakpointColumnsObj = {
-    default: 6,
-    1400: 5,
-    1100: 4,
-    700: 3,
+    default: 5,
+    1400: 4,
+    1100: 3,
+    700: 2,
     500: 2,
     300: 1,
   };

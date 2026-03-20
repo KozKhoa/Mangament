@@ -6,15 +6,6 @@ import { AuthenticationToken, AuthorizationRole } from "../middlewares/Auth.Midd
 
 import { DeleteAuthor, GetAllAuthors, PostAuthor, PutAuthor } from "../controllers/Author.Controller.js";
 
-const saveLocation = "uploads/image";
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, saveLocation), // save location
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname)); // file name
-  },
-});
-
 const authorRoute = express.Router();
 
 /**

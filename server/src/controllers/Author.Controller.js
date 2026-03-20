@@ -8,6 +8,7 @@ export async function GetAllAuthors(req, res, next) {
     const page = req.query?.page ? Number(req.query.page) : 1;
     const limit = req.query?.limit ? Number(req.query.limit) : 1;
     const sort = {};
+
     if (req.query?.sort) {
       const [field, direction] = req.query.sort.split(":");
       sort[field.toLowerCase()] = direction.toLowerCase();
