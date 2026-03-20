@@ -37,7 +37,7 @@ export default function TextArea({ label, error, name, defaultValue, placeHolder
   }, [defaultValue]);
 
   return (
-    <label className={`flex flex-col gap-1 text-foreground   ${className}`}>
+    <label className={`flex flex-col gap-1 text-foreground  ${className}`}>
       <div className="flex flex-row flex-wrap items-center justify-between gap-1 px-1">
         <p className="font-semibold">{label}</p>
 
@@ -51,7 +51,7 @@ export default function TextArea({ label, error, name, defaultValue, placeHolder
         </div>
       )}
 
-      <div className={`flex gap-0.5 items-center border bg-background-items ${error ? "border-error" : "border-foreground/30"} rounded-sm `}>
+      <div className={`flex gap-0.5 items-center border ${error ? "border-error" : "border-foreground/30"} rounded-sm `}>
         <textarea
           className="w-full outline-none bg-none px-3 py-2"
           placeholder={placeHolder}
