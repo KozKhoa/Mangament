@@ -8,7 +8,7 @@ import * as historiesModel from "../models/History.Model.js";
 import * as imageModel from "../models/Image.Model.js";
 
 import { ConvertQuery } from "../utils/QueryConvert.js";
-import { ValidateGenre } from "../models/Genre.Model.js";
+
 import {
   isUUID,
   throwErrorIfInvalidGenders,

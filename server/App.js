@@ -47,6 +47,11 @@ const specs = swaggerJsdoc({
           scheme: "bearer",
           bearerFormat: "JWT",
         },
+        apiKeyAuth: {
+          type: "apiKey",
+          in: "header",
+          name: "x-api-key",
+        },
       },
       responses: {
         Unauthorized: {
@@ -219,6 +224,11 @@ const specs = swaggerJsdoc({
         },
       },
     },
+    security: [
+      {
+        apiKeyAuth: [],
+      },
+    ],
   },
   apis: ["./src/routes/*.js"],
 });

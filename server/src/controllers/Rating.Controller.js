@@ -63,9 +63,9 @@ export async function PutRating(req, res, next) {
 
     if (!ratingId) throw CreateError(400, "'id' is required");
 
-    const star = req.body?.star ? Number(req.body?.star) : null;
-    const message = req.body?.message || null;
-    if (!star || !message) throw CreateError(400, "Missing field");
+    const title = req.body?.title || null;
+    const content = req.body?.content || null;
+    if (!star || !title || !content) throw CreateError(400, "Missing field");
     if (star < 1 || star > 5) throw CreateError(400, '"star" must be number in range (1, 5)');
 
     // Make sure rating exist and belong to user
@@ -73,7 +73,7 @@ export async function PutRating(req, res, next) {
     if (!rating || !rating.success || rating.data.length <= 0) throw CreateError(404, "Rating not found");
     if (rating.data[0].user.id !== userId) throw CreateError(403, "Forbidden");
 
-    const updating = await UpdateRating({ id: ratingId }, { star: Number(star), message: message });
+    const updating = await UpdateRating(ratingId, { star: Number(star), title, content });
     if (!updating || !updating.success || !updating.data) throw CreateError();
     return res.status(200).json({
       success: true,
@@ -84,7 +84,8 @@ export async function PutRating(req, res, next) {
         rating: {
           id: updating.data.id,
           star: updating.data.star,
-          message: updating.data.message,
+          title: updating.data.title,
+          content: updating.data.content,
         },
       },
     });
