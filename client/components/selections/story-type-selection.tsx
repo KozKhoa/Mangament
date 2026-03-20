@@ -5,6 +5,8 @@ export type TargetStoryType = "manga" | "light_novel" | null;
 interface StoryStatusSelectionProps {
   className?: string;
 
+  require?: boolean;
+
   defaultValue?: TargetStoryType;
 
   onChange?: (status: TargetStoryType) => void;
@@ -36,7 +38,7 @@ const TYPE = [
   },
 ];
 
-export default function StoryTypeSelection({ className, defaultValue, onChange, onReset }: StoryStatusSelectionProps) {
+export default function StoryTypeSelection({ className, require, defaultValue, onChange, onReset }: StoryStatusSelectionProps) {
   function handleChange(index: number | null) {
     if (index !== null) {
       onChange?.(TYPE[index].code as TargetStoryType);
@@ -52,7 +54,12 @@ export default function StoryTypeSelection({ className, defaultValue, onChange, 
   return (
     <Selection
       className={className}
-      label="Loại truyện"
+      label={
+        <div className="flex flex-row gap-1">
+          <p>Loại truyện</p>
+          {require && <span className="text-red-500">*</span>}
+        </div>
+      }
       options={TYPE.map((type) => type.label)}
       defaultIndex={defaultIndex === -1 ? null : defaultIndex}
       onChange={handleChange}

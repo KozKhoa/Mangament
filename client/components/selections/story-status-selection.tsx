@@ -10,6 +10,8 @@ export type TargetStoryStatus = "ongoing" | "finished" | "postpone" | "upcoming"
 interface StoryStatusSelectionProps {
   className?: string;
 
+  require?: boolean;
+
   defaultValue?: TargetStoryStatus;
 
   onChange?: (status: TargetStoryStatus) => void;
@@ -60,7 +62,7 @@ const STATUS = [
   },
 ];
 
-export default function StoryStatusSelection({ className, defaultValue, onChange, onReset }: StoryStatusSelectionProps) {
+export default function StoryStatusSelection({ className, require, defaultValue, onChange, onReset }: StoryStatusSelectionProps) {
   function handleChange(index: number | null) {
     if (index !== null) {
       onChange?.(STATUS[index].code as TargetStoryStatus);
@@ -76,7 +78,12 @@ export default function StoryStatusSelection({ className, defaultValue, onChange
   return (
     <Selection
       className={className}
-      label="Tiến độ"
+      label={
+        <div className="flex flex-row gap-1">
+          <p>Tiến độ</p>
+          {require && <span className="text-red-500">*</span>}
+        </div>
+      }
       options={STATUS.map((status) => status.label)}
       defaultIndex={defaultIndex === -1 ? null : defaultIndex}
       onChange={handleChange}

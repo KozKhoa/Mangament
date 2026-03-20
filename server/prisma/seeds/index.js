@@ -7,6 +7,7 @@ import * as storyGenreSeeding from "./story-genres.js";
 import * as historySeeding from "./history.js";
 import * as favouriteSeeding from "./favourite.js";
 import * as storyNodeContentSeeding from "./story-node-contents.js";
+import * as authorSeeding from "./author.js";
 
 // await imageSeeding.default();
 
@@ -15,6 +16,8 @@ import * as storyNodeContentSeeding from "./story-node-contents.js";
 // await userSeeding.default();
 
 // await storySeeding.default();
+
+// await authorSeeding.default();
 
 // await storyGenreSeeding.default();
 

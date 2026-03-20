@@ -5,9 +5,9 @@ import Tag from "../tags/tag";
 
 import ButtonDropdown from "../buttons/dropdown/btn-dropdown";
 import Checkbox from "../inputs/checkbox";
-import { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 
-import { snakeCaseToCapitalizeWord } from "@/utils/string";
+import { isFitSearch, normalize, snakeCaseToCapitalizeWord } from "@/utils/string";
 import useApp from "@/contexts/AppContext";
 import SearchBar from "../search/search";
 
@@ -16,44 +16,66 @@ interface FilterGenresProps {
   onChange?: (value: string[]) => void;
 }
 
+const GenreCheckBox = React.memo(
+  ({
+    genre,
+    isChecked,
+    isHidden,
+    toggleCheckbox,
+  }: {
+    genre: string;
+    isChecked: boolean;
+    isHidden: boolean;
+    toggleCheckbox: (genre: string, checked: boolean) => void;
+  }) => {
+    return (
+      <div className={`flex w-full h-fit justify-start items-center ${isHidden ? "hidden" : ""}`}>
+        <Checkbox value={isChecked} onChange={(isChecked) => toggleCheckbox(genre, isChecked)}>
+          {snakeCaseToCapitalizeWord(genre)}
+        </Checkbox>
+      </div>
+    );
+  },
+);
+
 const FilterGenres = ({ value, onChange }: FilterGenresProps) => {
   const app = useApp();
 
   const genres = app?.genres ?? [];
 
-  const [beautyGenres, setBeautyGenres] = useState(genres.map((genre) => snakeCaseToCapitalizeWord(genre)));
-
-  const [selectedIndexs, setSelectedIndexs] = useState<Set<number>>(new Set());
-  const [finalSelectedIndex, setFinalSelectedIndex] = useState<Set<number>>(new Set());
-  const [hidden, setHidden] = useState<Set<number>>(new Set());
+  const [selectedGenres, setSelectedGenres] = useState<Set<string>>(new Set());
+  const [finalSelectedGenres, setFinalSelectedGenres] = useState<Set<string>>(new Set());
+  const [hidden, setHidden] = useState<Set<string>>(new Set());
 
   const resetAllField = useCallback(() => {
-    setSelectedIndexs(new Set());
-    setFinalSelectedIndex(new Set());
+    setSelectedGenres(new Set());
+    setFinalSelectedGenres(new Set());
 
     onChange?.([]);
   }, []);
 
-  function toggleCheckbox(index: number, checked: boolean) {
-    const newSet = new Set(selectedIndexs);
+  const toggleCheckbox = useCallback((genre: string, checked: boolean) => {
+    setSelectedGenres((prev) => {
+      const newSet = new Set(prev);
 
-    if (checked) {
-      newSet.add(index);
-    } else {
-      newSet.delete(index);
-    }
+      if (checked) {
+        newSet.add(genre);
+      } else {
+        newSet.delete(genre);
+      }
 
-    setSelectedIndexs(newSet);
-  }
+      return newSet;
+    });
+  }, []);
 
   function handleFinish() {
     const result: string[] = [];
 
-    [...selectedIndexs].forEach((index) => {
-      result.push(genres[index]);
+    [...selectedGenres].forEach((genre) => {
+      result.push(genre);
     });
 
-    setFinalSelectedIndex(new Set(selectedIndexs));
+    setFinalSelectedGenres(new Set(selectedGenres));
 
     onChange?.(result);
   }
@@ -64,11 +86,11 @@ const FilterGenres = ({ value, onChange }: FilterGenresProps) => {
       return;
     }
 
-    const newSet = new Set<number>();
+    const newSet = new Set<string>();
 
-    beautyGenres?.forEach((genre, i) => {
-      if (!genre.toLowerCase().includes(keyword.toLowerCase())) {
-        newSet.add(i);
+    genres?.forEach((genre) => {
+      if (!isFitSearch(keyword, genre)) {
+        newSet.add(genre);
       }
     });
 
@@ -76,23 +98,17 @@ const FilterGenres = ({ value, onChange }: FilterGenresProps) => {
   }
 
   useEffect(() => {
-    const selected: number[] = [];
+    const selected: string[] = [];
 
     const valueSet = new Set(value);
 
-    let i = 0;
     for (const genre of genres) {
-      if (valueSet.has(genre)) selected.push(i);
-      i++;
+      if (valueSet.has(genre)) selected.push(genre);
     }
 
-    setSelectedIndexs(new Set(selected));
-    setFinalSelectedIndex(new Set(selected));
+    setSelectedGenres(new Set(selected));
+    setFinalSelectedGenres(new Set(selected));
   }, [genres, value]);
-
-  useEffect(() => {
-    setBeautyGenres(genres.map((genre) => snakeCaseToCapitalizeWord(genre)));
-  }, [genres]);
 
   return (
     <ButtonDropdown
@@ -108,7 +124,7 @@ const FilterGenres = ({ value, onChange }: FilterGenresProps) => {
               <LayerIcon className="w-5 h-5 text-foreground stroke-0"></LayerIcon>
               <p className="font-bold">Thể loại</p>
               <div className="flex flex-row flex-wrap gap-0.5">
-                {genres?.map((genre, i) => finalSelectedIndex.has(i) && <Tag key={genre}>{snakeCaseToCapitalizeWord(genre)}</Tag>)}
+                {genres?.map((genre, i) => finalSelectedGenres.has(genre) && <Tag key={genre}>{snakeCaseToCapitalizeWord(genre)}</Tag>)}
               </div>
             </div>
           }
@@ -120,12 +136,8 @@ const FilterGenres = ({ value, onChange }: FilterGenresProps) => {
     >
       <>
         <div className="grid grid-cols-2 gap-2.5 w-[300px] sm:w-[400px] lg:grid-cols-3 lg:w-[600px] mt-12">
-          {beautyGenres?.map((genre, i) => (
-            <div key={i} className={`flex w-full h-fit justify-start items-center ${hidden.has(i) ? "hidden" : ""}`}>
-              <Checkbox value={selectedIndexs.has(i)} onChange={(isChecked) => toggleCheckbox(i, isChecked)}>
-                {genre}
-              </Checkbox>
-            </div>
+          {genres?.map((genre, i) => (
+            <GenreCheckBox key={genre} genre={genre} isChecked={selectedGenres.has(genre)} toggleCheckbox={toggleCheckbox} isHidden={hidden.has(genre)} />
           ))}
         </div>
 
