@@ -13,8 +13,6 @@ export default function StoryRandomPage() {
   async function fetchRandomStory() {
     loadingBar.open({});
 
-    console.log("random");
-
     const res = await storyService.getRandomStory();
 
     if (!res.success) return toast.warning(res.message);

@@ -173,8 +173,6 @@ const StoryNodeEditable = React.memo(function StoryNodeEditable({
   function handleAddMoreChildren(type: string, number: number = 1) {
     if (number < 1) return;
 
-    console.log(type);
-
     const children = [...(storyNode.children ?? [])];
     Array.from({ length: number }).forEach((_, i) => {
       children.push({

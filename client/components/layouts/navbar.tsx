@@ -138,7 +138,6 @@ function LogoutButton() {
       href="/"
       className={className.buttonDropdown}
       onClick={() => {
-        console.log("Logout");
         auth?.logout();
       }}
     >

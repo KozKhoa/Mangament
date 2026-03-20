@@ -1,7 +1,8 @@
+"use client";
+
 import History from "@/types/history";
 import path from "path";
 import StoryNode from "@/types/story-node";
-import { convertDateTo_yyyMMdd, convertDateTo_yyyMMddHHmm } from "@/utils/convert";
 
 import { snakeCaseToCapitalizeWord } from "@/utils/string";
 import { useRouter } from "next/navigation";
@@ -12,32 +13,36 @@ import Button from "@/components/buttons/button";
 import EyeIcon from "@/public/eye/open.svg";
 import { beautifulView } from "@/utils/beautiful";
 import Image from "next/image";
-
-async function removeHistory(historId: string) {
-  const res = await historyService.removeHistory(historId);
-
-  if (!res) return toast.warning("Cannot connect with server");
-  if (!res.success) return toast.warning(res.message);
-
-  toast.message("Remove reading history successfully");
-
-  return res.data;
-}
-
-function convertStoryNodeTreeToArray(storyNode: StoryNode | null) {
-  const arr: StoryNode[] = [];
-
-  while (storyNode) {
-    arr.push(storyNode);
-    storyNode = storyNode.parent ?? null;
-  }
-
-  return arr.reverse();
-}
+import { useState } from "react";
 
 export default function HistoryCard({ history, onClickRemove, className }: { history: History; onClickRemove?: () => void; className?: string }) {
   const story = history?.story;
   const router = useRouter();
+
+  const [deleting, setDeleting] = useState(false);
+
+  async function removeHistory(historId: string) {
+    setDeleting(true);
+
+    const res = await historyService.removeHistory(historId);
+
+    if (!res.success) return toast.warning(res.message);
+
+    toast.message(`Đã xóa ${history?.story?.title} khỏi lịch sử đọc`);
+
+    setDeleting(false);
+  }
+
+  function convertStoryNodeTreeToArray(storyNode: StoryNode | null) {
+    const arr: StoryNode[] = [];
+
+    while (storyNode) {
+      arr.push(storyNode);
+      storyNode = storyNode.parent ?? null;
+    }
+
+    return arr.reverse();
+  }
 
   const storyNodeArray = convertStoryNodeTreeToArray(history?.story_node);
 
@@ -90,13 +95,7 @@ export default function HistoryCard({ history, onClickRemove, className }: { his
             {story?.nation && (
               <span className="inline-block mr-1.5 align-middle">
                 {story.nation.flag_image?.url ? (
-                  <Image
-                    src={story.nation.flag_image.url}
-                    alt={story.nation.name}
-                    width={20}
-                    height={14}
-                    className="object-contain inline-block"
-                  ></Image>
+                  <Image src={story.nation.flag_image.url} alt={story.nation.name} width={20} height={14} className="object-contain inline-block"></Image>
                 ) : (
                   <span className="text-[1.2rem]">{story.nation.flag_icon}</span>
                 )}
@@ -126,8 +125,10 @@ export default function HistoryCard({ history, onClickRemove, className }: { his
           {/* Remove history card */}
           <Button
             buttonType="delete"
-            onClick={() => {
-              removeHistory(history.id);
+            disable={deleting}
+            isProcessing={deleting}
+            onClick={async () => {
+              await removeHistory(history.id);
               onClickRemove?.();
             }}
             className="w-full"
