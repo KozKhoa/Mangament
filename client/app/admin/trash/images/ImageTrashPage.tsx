@@ -102,6 +102,8 @@ export function ImageTrashPage() {
       return prev.filter((image) => !removed.has(image.id ?? ""));
     });
 
+    if (selected.size === images.length) setSelected(new Set());
+
     fetchImages();
 
     toast.message("Xóa nhiều ảnh thành công");
@@ -225,6 +227,7 @@ export function ImageTrashPage() {
             allowNumeric={false}
             value={limit}
             onChange={(value) => handleNavigate("limit", value)}
+            delay={500}
           />
         </div>
 

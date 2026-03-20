@@ -36,7 +36,20 @@ export default function StoryCardAllInfo({ story, className }: StoryCardAllInfoP
         >
           {/* Cover art */}
           <div className="w-full min-w-[100] md:row-span-2 flex justify-center m-auto">
-            <Image className="object-cover rounded-sm justify-center" src={story?.cover_art?.url ?? ""} alt="Cover Art" width={500} height={500}></Image>
+            <Image
+              className="object-cover rounded-sm justify-center"
+              src={
+                story.cover_art.key
+                  ? [(process.env.NEXT_PUBLIC_API_URL, story.cover_art.key)].join("/")
+                  : story.cover_art.url
+                    ? story.cover_art.url
+                    : "/blur-image.png"
+              }
+              alt="Cover Art"
+              width={500}
+              height={500}
+              priority
+            />
           </div>
 
           <div className="flex flex-col gap-1 justify-start items-start">
@@ -44,8 +57,14 @@ export default function StoryCardAllInfo({ story, className }: StoryCardAllInfoP
             <h2 className="flex flex-row items-center gap-1.5 font-bold leading-tight">
               {story?.nation && (
                 <span className="shrink-0">
-                  {story.nation.flag_image?.url ? (
-                    <Image src={story.nation.flag_image.url} alt={story.nation.name} width={24} height={16} className="object-contain"></Image>
+                  {story.nation.flag_image?.key ? (
+                    <Image
+                      src={[(process.env.NEXT_PUBLIC_API_URL, story.nation.flag_image.key)].join("/")}
+                      alt={story.nation.name}
+                      width={24}
+                      height={16}
+                      className="object-contain"
+                    />
                   ) : (
                     <span className="text-[1.2rem]">{story.nation.flag_icon}</span>
                   )}

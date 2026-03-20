@@ -6,8 +6,6 @@ export const corsOptions = {
       return callback(null, true);
     }
 
-    console.log("origin", origin);
-
     // Allow server-to-server request
     if (!origin) {
       return callback(null, true);
