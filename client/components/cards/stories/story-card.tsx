@@ -88,7 +88,7 @@ export default function StoryCard({ data, className }: StoryCardProps) {
         <div className="rounded-sm overflow-hidden">
           {story.cover_art?.url && (
             <Link href={hrefStory}>
-              <Image className="aspect-7/10 object-contain" src={story.cover_art?.url} alt="Cover Art" width={300} height={300}></Image>
+              <Image className="aspect-7/10 object-contain" src={story.cover_art?.url} alt="Cover Art" width={300} height={300} priority />
             </Link>
           )}
         </div>
@@ -122,7 +122,7 @@ export default function StoryCard({ data, className }: StoryCardProps) {
           {story.nation && (
             <span className="inline-block mr-1.5 align-middle">
               {story.nation.flag_image?.url ? (
-                <Image src={story.nation.flag_image.url} alt={story.nation.name} width={20} height={14} className="object-contain inline-block"></Image>
+                <Image src={story.nation.flag_image.url} alt={story.nation.name} width={20} height={14} className="object-contain inline-block" />
               ) : (
                 <span className="text-[1.2rem]">{story.nation.flag_icon}</span>
               )}
