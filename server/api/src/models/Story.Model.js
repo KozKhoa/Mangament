@@ -810,3 +810,30 @@ export async function AddOneViewForStory(id) {
 
   return { success: true, data: story };
 }
+
+export async function GetRecommendStory(storyId, userId) {
+  const story = await db.story.findUnique({
+    where: { id: storyId },
+    include: {
+      genres: { select: { genre: true } },
+      authors: { select: { author: { select: { id: true, name: true } } } },
+    },
+  });
+
+  if (!story) throw CreateError(404, "Story not found");
+
+  const recommendStories = await db.story.findMany({
+    where: {
+      id: { not: storyId },
+      status: "PUBLIC",
+      genres: { some: { genre: { in: story.genres.map((g) => g.genre) } } },
+      authors: { some: { author_id: { in: story.authors.map((a) => a.author_id) } } },
+    },
+    include: {
+      cover_art: { select: { url: true, width: true, height: true } },
+    },
+    take: 10,
+  });
+
+  return { success: true, data: recommendStories };
+}

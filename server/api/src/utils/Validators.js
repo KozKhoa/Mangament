@@ -1,4 +1,4 @@
-import { CreateError } from "../utils/ErrorHandle.js";
+import { CreateError } from "./ErrorHandle.js";
 
 import { Gender, Genre, Role, StoryStatus, StoryType } from "../configs/db.js";
 

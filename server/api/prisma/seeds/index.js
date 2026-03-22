@@ -31,6 +31,6 @@ import * as commentSeeding from "./comment.js";
 
 // await storyNodeContentSeeding.default();
 
-await ratingSeeding.default();
+// await ratingSeeding.default();
 
-await commentSeeding.default();
+// await commentSeeding.default();
