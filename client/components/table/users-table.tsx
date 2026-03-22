@@ -206,7 +206,7 @@ export default function UserTable({ className, data }: UserTableProps) {
                   </div>
                 </TD>
                 <TD>
-                  <div className="flex flex-row w-full justify-around items-center">
+                  <div className="flex flex-row gap-2 w-full justify-around items-center">
                     {/* Adjust user info */}
                     <button
                       onClick={() => updateUserInfo(user)}

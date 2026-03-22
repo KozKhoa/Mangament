@@ -151,7 +151,7 @@ export function UserManagement() {
               <Loading className="h-64"></Loading>
             ) : (
               <>
-                <UserTable className="w-full shadow-md" data={users} pagination={usersPagination}></UserTable>
+                <UserTable className="w-full shadow-md overflow-x-scroll" data={users} pagination={usersPagination} />
                 <SwitchPageBig
                   maxPage={usersPagination?.totalPages ?? 0}
                   page={page}

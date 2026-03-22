@@ -113,7 +113,7 @@ export default function StoriesTable({ className, data, pagination }: StoriesTab
   }, [data]);
 
   return (
-    <div className={`rounded-lg border border-foreground/10 overflow-hidden bg-background-items ${className}`}>
+    <div className={`rounded-lg border border-foreground/10 bg-background-items ${className}`}>
       {stories.length > 0 ? (
         <table className="w-full rounded-lg ">
           <colgroup>
@@ -128,7 +128,7 @@ export default function StoriesTable({ className, data, pagination }: StoriesTab
             <col className="border-r border-l border-foreground/10" />
             <col className="border-l border-foreground/10" />
           </colgroup>
-          <thead className="bg-black/20 text-[1.1em] text-foreground/70 rounded-lg overflow-hidden border-b border-foreground/10">
+          <thead className="bg-black/20 text-[1.1em] text-foreground/70 rounded-lg border-b border-foreground/10">
             <tr>
               <th>Cover art</th>
               <th>Title</th>
@@ -149,7 +149,7 @@ export default function StoriesTable({ className, data, pagination }: StoriesTab
                   <Link href={`/stories/${story.type}/${story.title}`}>
                     {story.cover_art?.url && (
                       <Image
-                        className="w-24 m-auto my-1 hover:w-48 duration-200 rounded-sm"
+                        className="w-24 m-auto my-1 hover:w-48 duration-200 rounded-sm min-w-[100px]"
                         src={story.cover_art?.url}
                         alt={story.title}
                         width={200}
@@ -196,12 +196,10 @@ export default function StoriesTable({ className, data, pagination }: StoriesTab
                   ></Switch>
                 </TD>
                 <TD>
-                  <div className="flex flex-row w-full justify-around items-center">
-                    {/* Adjust user info */}
+                  <div className="flex flex-row w-full gap-2 justify-around items-center">
                     <Link href={`/admin/stories-management/edit/${story.id}`} className={`w-5.5 h-5.5 cursor-pointer`}>
                       <EditIcon className="w-full h-full text-foreground/90"></EditIcon>
                     </Link>
-                    {/* Delete user */}
                     <div className={`w-6 h-6`}>
                       {processDeleteStory.has(story) ? (
                         <Loading className="w-full h-full"></Loading>
