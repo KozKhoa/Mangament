@@ -4,8 +4,6 @@ import { CreateError } from "../utils/ErrorHandle.js";
 import { ComparePassword, HashPassword, RandomPassword } from "../utils/PasswordHandle.js";
 import { GenAccessToken, GenRefreshToken, VerifyRefreshToken } from "../utils/TokenHandle.js";
 
-import { COOKIES_REFRESH_TOKEN_KEY } from "../configs/env.js";
-
 import * as otpService from "../services/otp.service.js";
 import * as mailService from "../services/mail.service.js";
 import { AddRefreshToken, FindRefreshToken, HardDeleteRefreshToken } from "../models/Token.Model.js";
@@ -121,7 +119,7 @@ export const Register = async (req, res, next) => {
 
 export const Logout = async (req, res, next) => {
   try {
-    const refreshToken = req.cookies[COOKIES_REFRESH_TOKEN_KEY]; // Get refresht token from http
+    const refreshToken = req.cookies[process.env.COOKIES_REFRESH_TOKEN_KEY]; // Get refresht token from http
 
     // If there are no refresh token => user still not login => alreay logout
     if (!refreshToken) {
@@ -133,7 +131,7 @@ export const Logout = async (req, res, next) => {
 
     // Delete refresh token in db and cookies
     await HardDeleteRefreshToken({ token: refreshToken });
-    res.clearCookie(COOKIES_REFRESH_TOKEN_KEY);
+    res.clearCookie(process.env.COOKIES_REFRESH_TOKEN_KEY);
 
     // Response to user
     res.status(200).json({

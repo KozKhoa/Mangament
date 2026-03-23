@@ -1,11 +1,9 @@
 import jwt from "jsonwebtoken";
 
-import { JWT_ACCESS_SECRET, JWT_ACCESS_EXPIRES_IN, JWT_REFRESH_SECRET, JWT_REFRESH_EXPIRES_IN, COOKIES_REFRESH_TOKEN_KEY } from "../configs/env.js";
-
 export const GenRefreshToken = ({ id, name, email, role }) => {
   try {
-    return jwt.sign({ id: id, name: name, email: email, role: role }, JWT_REFRESH_SECRET, {
-      expiresIn: JWT_REFRESH_EXPIRES_IN,
+    return jwt.sign({ id: id, name: name, email: email, role: role }, process.env.JWT_REFRESH_SECRET, {
+      expiresIn: process.env.JWT_REFRESH_EXPIRES_IN,
     });
   } catch (error) {
     console.error("❌ [TokenHandle.js] Error gen refresh token:", error);
@@ -14,8 +12,8 @@ export const GenRefreshToken = ({ id, name, email, role }) => {
 
 export const GenAccessToken = ({ id, name, email, role }) => {
   try {
-    return jwt.sign({ id: id, name: name, email: email, role: role }, JWT_ACCESS_SECRET, {
-      expiresIn: JWT_ACCESS_EXPIRES_IN,
+    return jwt.sign({ id: id, name: name, email: email, role: role }, process.env.JWT_ACCESS_SECRET, {
+      expiresIn: process.env.JWT_ACCESS_EXPIRES_IN,
     });
   } catch (error) {
     console.error("❌ [TokenHandle.js] Error gen asccess token:", error);
@@ -37,7 +35,7 @@ export const VerifyRefreshToken = (token) => {
 
 export const VerifyAccessToken = (token) => {
   try {
-    const decodedToken = jwt.verify(token, JWT_ACCESS_SECRET);
+    const decodedToken = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
     // Nếu verify thành công -> token còn hạn
     return { decodedToken: decodedToken, isExpire: false };
   } catch (err) {
