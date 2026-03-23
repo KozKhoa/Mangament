@@ -71,6 +71,16 @@ export async function getRandomStory(): Promise<ServiceResult<Story>> {
   }
 }
 
+export async function getRecommendStories(storyId: string, page: number = 1, limit: number = 10): Promise<ServiceResult<Story[]>> {
+  try {
+    const res = await api.get(`/stories/${storyId}/recommmed`, { params: { page, limit } });
+    return res.data;
+  } catch (error: any) {
+    console.error(error);
+    return { success: false, message: error?.response?.data?.message || error?.message || "Unknown error" };
+  }
+}
+
 export async function countStories(params?: StoryParams): Promise<ServiceResult<number>> {
   try {
     const res = await api.get("/stories/count", {
@@ -94,6 +104,6 @@ export async function addOneView(storyId: string) {
   }
 }
 
-const storyService = { getStoryById, getStoryByTitle, getRandomStory, getReview, getStories, countStories, addOneView };
+const storyService = { getStoryById, getStoryByTitle, getRandomStory, getReview, getStories, countStories, addOneView, getRecommendStories };
 
 export default storyService;

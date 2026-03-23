@@ -9,6 +9,7 @@ import { throwErrorIfInvalidGenres } from "../utils/Validators.js";
 
 import { validate as isUUID } from "uuid";
 import redisService from "../services/redis.service.js";
+import MLService from "../services/ml-service.js";
 
 const REDIS_TTL = 60 * 30; // 30 minutes
 
@@ -504,6 +505,23 @@ export async function ActiveStory(id, isActived = true) {
   return { success: true, data: active };
 }
 
+export async function UpdateEmbeddingStory(id) {
+  const story = await db.story.findUnique({ where: { id: id }, include: { genres: true } });
+  if (!story) throw CreateError(404, "Story not found");
+
+  const embed = await MLService.embedStory(
+    story.title,
+    story.summary,
+    story.genres.map((g) => g.genre),
+  );
+
+  await db.$executeRaw`
+    UPDATE "Story" SET embedding = ${`[${embed.join(",")}]`}::vector WHERE id = ${id}::uuid
+  `;
+
+  return { success: true, data: story };
+}
+
 export async function UpdateStory(
   id,
   {
@@ -567,7 +585,7 @@ export async function UpdateStory(
             ...(posterId && { poster: { connect: { id: posterId } } }),
           },
 
-          include: { cover_art: { select: { url: true, width: true, height: true } } },
+          include: { cover_art: { select: { url: true, width: true, height: true } }, genres: { select: { genre: true } } },
         })
         .catch(async (error) => {
           const uniqueTitle = title ? await db.story.findUnique({ where: { title: title } }) : undefined;
@@ -793,6 +811,10 @@ export async function UpdateStory(
     },
   );
 
+  if ((genres && genres.length > 0) || title || summary) {
+    await UpdateEmbeddingStory(story.id);
+  }
+
   redisService.stories().incr();
   redisService.stories(story.id).incr();
   redisService.stories(story.title).incr();
@@ -809,4 +831,60 @@ export async function AddOneViewForStory(id) {
   });
 
   return { success: true, data: story };
+}
+
+export async function GetRecommendStories({ storyId, userId, page = 1, limit = 10 }) {
+  if (!storyId) throw CreateError(400, "Require at least 'storyId'");
+
+  let ids = [];
+
+  const storiesVer = redisService.stories().get();
+
+  const REDIS_KEY = ["GetRecommendStories", "storiesVer=" + storiesVer, "storyId=" + storyId, "userId=" + userId, "page=" + page, "limit=" + limit].join(":");
+
+  const cached = await redis.get(REDIS_KEY);
+
+  if (cached) {
+    ids = JSON.parse(cached);
+  } else {
+    const story = (
+      await db.$queryRaw`
+    SELECT id, embedding::text
+    FROM "Story"
+    WHERE id::uuid = ${storyId}::uuid
+    LIMIT 1
+  `
+    )[0];
+
+    await db.$transaction(async (tx) => {
+      await tx.$executeRaw`SET ivfflat.probes = 20`;
+
+      const recommendStory = await db.$queryRaw`
+        SELECT id,
+              1 - (embedding <=> ${story.embedding}::vector) AS similarity
+        FROM "Story"
+        WHERE id::uuid != ${story.id}::uuid
+        ORDER BY embedding <=> ${story.embedding}::vector
+        LIMIT ${limit}
+      `;
+
+      ids = recommendStory.map((item) => item.id);
+    });
+
+    await redis.setex(REDIS_KEY, REDIS_TTL, JSON.stringify(ids));
+  }
+
+  const stories = await db.story.findMany({
+    where: { id: { in: ids } },
+    select: {
+      id: true,
+      title: true,
+      type: true,
+      view: true,
+      star: true,
+      cover_art: { select: { key: true, url: true, width: true, height: true } },
+    },
+  });
+
+  return { success: true, data: stories };
 }

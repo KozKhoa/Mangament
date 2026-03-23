@@ -138,7 +138,7 @@ export default function StoryDetailPage() {
         <CommentMasonryGrid storyId={story?.id ?? ""}></CommentMasonryGrid>
       </div>
 
-      <RecommendStories className="max-w-[1800] mx-auto"></RecommendStories>
+      {story && <RecommendStories story={story} className="max-w-[1800] mx-auto" />}
     </div>
   );
 }

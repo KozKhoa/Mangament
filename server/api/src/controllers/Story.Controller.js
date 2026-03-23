@@ -2,8 +2,8 @@ import { CreateError } from "../utils/ErrorHandle.js";
 
 import { FindAllStories, FindStory, UpdateStory, GetReview, FindRandomStory } from "../models/Story.Model.js";
 
+import * as storyModel from "../models/Story.Model.js";
 import * as favouriteModel from "../models/Favourite.Model.js";
-
 import * as ratingModel from "../models/Rating.Model.js";
 
 import { ConvertQuery } from "../utils/QueryConvert.js";
@@ -153,6 +153,29 @@ export async function GetAllStories(req, res, next) {
       message: "Get story list successfully",
       data: stories.data,
       pagination: stories.pagination,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+// GET /stories/:id/recommend
+export async function GetRecommendStories(req, res, next) {
+  try {
+    const userId = req?.user?.id;
+    const storyId = req?.params?.id;
+
+    const page = Number(req?.query?.page || 1);
+    const limit = Number(req?.query?.limit || 10);
+
+    if (!storyId) throw CreateError(400, "'id' is required");
+
+    const recommendStories = await storyModel.GetRecommendStories({ storyId, userId, page, limit });
+
+    return res.status(200).json({
+      success: true,
+      message: "Get recommend stories successfully",
+      data: recommendStories.data,
     });
   } catch (error) {
     next(error);

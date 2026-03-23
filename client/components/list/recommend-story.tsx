@@ -1,25 +1,25 @@
-import Story from "@/types/story";
-import User from "@/types/user";
-import StoryList from "./stories-list";
-import storyService from "@/services/story";
-import { StoryParams } from "@/types/params";
 import { toast } from "sonner";
 import { useEffect, useState } from "react";
 
+import Story from "@/types/story";
+
+import storyService from "@/services/story";
+
 import InfinityScrollHorizontalList from "./infinity-scroll-horizontal-list";
 import StoryCard from "../cards/stories/story-card";
+import Loading from "../loadings/loading";
 
-export default function RecommendStories({ user, story, className }: { user?: User; story?: Story; className?: string }) {
+const LIMIT = 20;
+
+export default function RecommendStories({ story, className }: { story: Story; className?: string }) {
   const [recommend, setRecommend] = useState<Story[]>([]);
+  const [loading, setLoading] = useState(false);
 
   async function fetchRecommendStory() {
-    const params: StoryParams = {
-      page: 1,
-      limit: 20,
-    };
-    const res = await storyService.getStories(params);
+    setLoading(true);
+    const res = await storyService.getRecommendStories(story?.id ?? "", 1, LIMIT);
+    setLoading(false);
 
-    if (!res) return toast.warning("Cannot connect with server");
     if (!res.success) toast.warning(res.message);
 
     setRecommend(res.data ?? []);
@@ -30,7 +30,7 @@ export default function RecommendStories({ user, story, className }: { user?: Us
   }, []);
 
   return (
-    <InfinityScrollHorizontalList label="Gợi ý cho bạn">
+    <InfinityScrollHorizontalList label="Gợi ý cho bạn" isLoading={loading} className={className}>
       {recommend.map((story, i) => (
         <div className="p-1 h-full">
           <StoryCard className="bg-background-items" key={story.id} data={story}></StoryCard>

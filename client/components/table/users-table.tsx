@@ -30,7 +30,7 @@ export interface UserTableProps {
 // This is tag <td/> of <table/> in html
 function TD({ className, children, style }: { className?: string; children?: React.ReactNode | React.ReactNode[]; style?: CSSProperties }) {
   return (
-    <td style={style} className={`text-start px-5 py-1 ${className}`}>
+    <td style={style} className={`text-start px-5 py-2 ${className}`}>
       {children}
     </td>
   );
@@ -206,7 +206,7 @@ export default function UserTable({ className, data }: UserTableProps) {
                   </div>
                 </TD>
                 <TD>
-                  <div className="flex flex-row w-full justify-around items-center">
+                  <div className="flex flex-row gap-2 w-full justify-around items-center">
                     {/* Adjust user info */}
                     <button
                       onClick={() => updateUserInfo(user)}

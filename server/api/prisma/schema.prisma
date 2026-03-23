@@ -5,14 +5,14 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client-js"
-  output   = "../src/generated/prisma"
+  provider        = "prisma-client-js"
+  output          = "../src/generated/prisma"
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  directUrl  = env("DIRECT_URL")
 }
 
 enum StoryNodeContentType {
@@ -130,23 +130,24 @@ model User {
 }
 
 model Story {
-  id                 String      @id @default(uuid()) @db.Uuid
-  title              String      @unique
-  view               Int         @default(0)
-  star               Float       @default(0)
-  rating_count       Int         @default(0) // Number of rating
+  id                 String                       @id @default(uuid()) @db.Uuid
+  title              String                       @unique
+  view               Int                          @default(0)
+  star               Float                        @default(0)
+  rating_count       Int                          @default(0) // Number of rating
   type               StoryType
-  status             StoryStatus @default(ongoing)
+  status             StoryStatus                  @default(ongoing)
   next_chapter_in    DateTime?
-  number_of_children Int         @default(0)
-  cover_art_id       String?     @db.Uuid
-  nation_id          String?     @db.Uuid()
-  is_deleted         Boolean     @default(false)
-  is_actived         Boolean     @default(true)
-  poster_id          String?     @db.Uuid // Admin who post this story on
-  created_at         DateTime    @default(now())
-  updated_at         DateTime    @default(now())
+  number_of_children Int                          @default(0)
+  cover_art_id       String?                      @db.Uuid
+  nation_id          String?                      @db.Uuid()
+  is_deleted         Boolean                      @default(false)
+  is_actived         Boolean                      @default(true)
+  poster_id          String?                      @db.Uuid // Admin who post this story on
+  created_at         DateTime                     @default(now())
+  updated_at         DateTime                     @default(now())
   summary            String?
+  embedding          Unsupported("vector(384)")?
 
   cover_art Image?  @relation(fields: [cover_art_id], references: [id], onDelete: SetNull)
   poster    User?   @relation(fields: [poster_id], references: [id], onDelete: SetNull) // admin who post this story on

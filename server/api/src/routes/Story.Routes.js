@@ -2,6 +2,8 @@ import express from "express";
 
 import { AddOneViewForStory, GetAllStories, GetRandomStory, GetStory, GetStoryReview } from "../controllers/Story.Controller.js";
 
+import * as storyController from "../controllers/Story.Controller.js";
+
 import { AuthenticationToken, OptionalAuth } from "../middlewares/Auth.Middleware.js";
 import { DeleteRating, GetAllRatings, PostRating, PutRating } from "../controllers/Rating.Controller.js";
 
@@ -202,6 +204,7 @@ storyRoute.get("/random", OptionalAuth, GetRandomStory);
 
 storyRoute.get("/:id/review", GetStoryReview);
 storyRoute.get("/:id", OptionalAuth, GetStory);
+storyRoute.get("/:id/recommmed", OptionalAuth, storyController.GetRecommendStories);
 storyRoute.get("/title/:title", OptionalAuth, GetStory);
 storyRoute.get("/", OptionalAuth, GetAllStories);
 storyRoute.patch("/:id/view", AddOneViewForStory);
