@@ -856,10 +856,10 @@ export async function GetRecommendStories({ storyId, userId, page = 1, limit = 1
   `
     )[0];
 
-    await db.$transaction(async (tx) => {
-      await tx.$executeRaw`SET ivfflat.probes = 20`;
+    ids = await db.$transaction(async (tx) => {
+      await tx.$executeRaw`SET LOCAL ivfflat.probes = 100`;
 
-      const recommendStory = await db.$queryRaw`
+      const recommendStory = await tx.$queryRaw`
         SELECT id,
               1 - (embedding <=> ${story.embedding}::vector) AS similarity
         FROM "Story"
@@ -868,11 +868,11 @@ export async function GetRecommendStories({ storyId, userId, page = 1, limit = 1
         LIMIT ${limit}
       `;
 
-      ids = recommendStory.map((item) => item.id);
+      return recommendStory.map((item) => item.id);
     });
-
-    await redis.setex(REDIS_KEY, REDIS_TTL, JSON.stringify(ids));
   }
+
+  await redis.setex(REDIS_KEY, REDIS_TTL, JSON.stringify(ids));
 
   const stories = await db.story.findMany({
     where: { id: { in: ids } },

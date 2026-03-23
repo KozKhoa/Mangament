@@ -1,6 +1,6 @@
 export class MLService {
   async embedStory(title, summary, genres) {
-    const embed = await fetch(`${process.env.ML_SERVICE_URL}:${process.env.ML_SERVICE_PORT}/embed`, {
+    const embed = await fetch(`${process.env.ML_SERVICE_URL}/embed`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
