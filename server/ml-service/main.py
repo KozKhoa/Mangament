@@ -1,14 +1,9 @@
 from fastapi import FastAPI
-from dotenv import load_dotenv
-
-load_dotenv()
+from api.embed import router as embed_router
 
 app = FastAPI()
-
-@app.get("/")
-def read_root():
-    return {"message": "Hello World"}
+app.include_router(embed_router)
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="[IP_ADDRESS]", port=8000)    
+    uvicorn.run(app, host="127.0.0.1", port=8000)

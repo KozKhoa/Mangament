@@ -147,7 +147,7 @@ model Story {
   created_at         DateTime                     @default(now())
   updated_at         DateTime                     @default(now())
   summary            String?
-  embedding          Unsupported("vector(1536)")?
+  embedding          Unsupported("vector(384)")?
 
   cover_art Image?  @relation(fields: [cover_art_id], references: [id], onDelete: SetNull)
   poster    User?   @relation(fields: [poster_id], references: [id], onDelete: SetNull) // admin who post this story on
