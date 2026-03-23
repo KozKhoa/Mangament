@@ -227,7 +227,7 @@ export function StoriesManagementPage() {
             <Loading className="h-64"></Loading>
           ) : (
             <>
-              <StoriesTable className="w-full shadow-md  overflow-x-scroll" data={stories} pagination={storiesPagination}></StoriesTable>
+              <StoriesTable className="w-full shadow-md  overflow-x-scroll no-scrollbar" data={stories} pagination={storiesPagination}></StoriesTable>
               <SwitchPageBig
                 maxPage={storiesPagination?.totalPages ?? 0}
                 page={page}

@@ -856,17 +856,20 @@ export async function GetRecommendStories({ storyId, userId, page = 1, limit = 1
   `
     )[0];
 
-    const recommendStory = await db.$queryRaw`
-    SELECT id,
-          1 - (embedding <=> ${story.embedding}::vector) AS similarity
-    FROM "Story"
-    WHERE id::uuid != ${story.id}::uuid
-    ORDER BY embedding <=> ${story.embedding}::vector
-    OFFSET ${(page - 1) * limit}
-    LIMIT ${limit}
-  `;
+    await db.$transaction(async (tx) => {
+      await tx.$executeRaw`SET ivfflat.probes = 20`;
 
-    ids = recommendStory.map((item) => item.id);
+      const recommendStory = await db.$queryRaw`
+        SELECT id,
+              1 - (embedding <=> ${story.embedding}::vector) AS similarity
+        FROM "Story"
+        WHERE id::uuid != ${story.id}::uuid
+        ORDER BY embedding <=> ${story.embedding}::vector
+        LIMIT ${limit}
+      `;
+
+      ids = recommendStory.map((item) => item.id);
+    });
 
     await redis.setex(REDIS_KEY, REDIS_TTL, JSON.stringify(ids));
   }
@@ -876,6 +879,7 @@ export async function GetRecommendStories({ storyId, userId, page = 1, limit = 1
     select: {
       id: true,
       title: true,
+      type: true,
       view: true,
       star: true,
       cover_art: { select: { key: true, url: true, width: true, height: true } },

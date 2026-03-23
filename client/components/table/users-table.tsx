@@ -30,7 +30,7 @@ export interface UserTableProps {
 // This is tag <td/> of <table/> in html
 function TD({ className, children, style }: { className?: string; children?: React.ReactNode | React.ReactNode[]; style?: CSSProperties }) {
   return (
-    <td style={style} className={`text-start px-5 py-1 ${className}`}>
+    <td style={style} className={`text-start px-5 py-2 ${className}`}>
       {children}
     </td>
   );
