@@ -28,6 +28,7 @@ export default interface StoryNode {
 }
 
 export interface StoryNodeContent {
+  id: string;
   type: string;
   order_index: Number;
   image?: Image;
@@ -35,7 +36,6 @@ export interface StoryNodeContent {
 
   story_node_id?: string;
 
-  id: string;
   isDeleted?: boolean;
   isNew?: boolean;
   isEdited?: boolean;

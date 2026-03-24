@@ -12,7 +12,7 @@ import storyService from "@/services/story";
 import storyNodeService from "@/services/story-node";
 
 import Story from "@/types/story";
-import StoryNode from "@/types/story-node";
+import StoryNode, { StoryNodeContent } from "@/types/story-node";
 
 import ArrowLeftIcon from "@/public/arrows/left-v.svg";
 import ArrowRightIcon from "@/public/arrows/right-v.svg";
@@ -32,6 +32,7 @@ import Image from "next/image";
 import { loadingBar } from "@/components/loadings/loading-bar/top-loading-bar.store";
 import Link from "next/link";
 import { modal } from "@/components/modal/modal.store";
+import InViewList from "@/components/list/inview-list";
 
 function buildStoryNodeParent(tree: StoryNode[], targetNodeId: string) {
   const parentList: StoryNode[] = [];
@@ -133,7 +134,10 @@ export default function ReadingStoryPage() {
   const [nextNode, setNextNode] = useState<StoryNode | null>(null);
   const [prevNode, setPrevNode] = useState<StoryNode | null>(null);
 
+  const [readingContents, setReadingContents] = useState<(StoryNodeContent | null)[]>([]);
+
   const content = storyNode?.content;
+  const continueReadingContentKey = `storyId=${story?.id}&storyNodeId=${storyNodeId}`;
 
   function handleNavigateStoryNode(storyNodes?: StoryNode[]) {
     if (!storyNodes || storyNodes?.at(-1)?.type !== "chapter") return;
@@ -195,6 +199,8 @@ export default function ReadingStoryPage() {
     }
 
     async function updateReadingHistory() {
+      console.log(readingContents);
+
       if (!story?.id) return;
 
       const res = await historyService.addHistory(story?.id, storyNodeId);
@@ -219,6 +225,18 @@ export default function ReadingStoryPage() {
 
     return () => clearTimeout(timer);
   }, [storyNodeId]);
+
+  useEffect(() => {
+    const continueReadingContentId = localStorage.getItem(continueReadingContentKey);
+
+    if (!continueReadingContentId) return;
+
+    const element = document.querySelector(`[data-content-id="${continueReadingContentId}"]`);
+
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [storyNode]);
 
   useEffect(() => {
     async function fetchStory() {
@@ -251,6 +269,18 @@ export default function ReadingStoryPage() {
 
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      const readingContent = readingContents[0];
+
+      if (!readingContent) return;
+
+      localStorage.setItem(continueReadingContentKey, readingContent.id.toString());
+    }, 2000);
+
+    return () => clearTimeout(timeout);
+  }, [readingContents]);
 
   return (
     <div className="flex flex-col gap-5">
@@ -327,26 +357,32 @@ export default function ReadingStoryPage() {
             lineHeight: app?.readingLineSpacing + "px",
           }}
         >
-          {content?.map((con, i) => (
-            <div key={i} className="flex flex-col justify-center items-center gap-2 w-full text-foreground/80">
-              {con.type === "image" && con?.image?.url ? (
-                <Image
-                  className="max-w-[1200px]"
-                  src={con.image?.url}
-                  alt="Cover Art"
-                  width={1200}
-                  height={1800}
-                  style={{ width: "100%", height: "auto" }}
-                ></Image>
-              ) : con.type === "title" ? (
-                <p className="w-full text-center font-bold text-[1.8em] ">{con.content}</p>
-              ) : con.type === "header" ? (
-                <p className="w-full text-start font-semibold text-[1.2em] ">{con.content}</p>
-              ) : (
-                con.type === "text" && <p className="w-full text-start">{con.content}</p>
-              )}
-            </div>
-          ))}
+          <InViewList
+            onInView={(indexs) => {
+              if (indexs && indexs.length > 0) setReadingContents(indexs.map((index) => content?.[index] ?? null));
+            }}
+          >
+            {[...(content ?? [])]?.map((con, i) => (
+              <div key={i} data-content-id={con.id} className="flex flex-col justify-center items-center gap-2 w-full text-foreground/80">
+                {con.type === "image" && con?.image?.url ? (
+                  <Image
+                    className="max-w-[1200px]"
+                    src={con.image?.url}
+                    alt="Cover Art"
+                    width={1200}
+                    height={1800}
+                    style={{ width: "100%", height: "auto" }}
+                  ></Image>
+                ) : con.type === "title" ? (
+                  <p className="w-full text-center font-bold text-[1.8em] ">{con.content}</p>
+                ) : con.type === "header" ? (
+                  <p className="w-full text-start font-semibold text-[1.2em] ">{con.content}</p>
+                ) : (
+                  con.type === "text" && <p className="w-full text-start">{con.content}</p>
+                )}
+              </div>
+            ))}
+          </InViewList>
         </div>
 
         {/* Button switch page */}

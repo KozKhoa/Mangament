@@ -46,8 +46,6 @@ export async function AddNewReadingHistory(req, res, next) {
     const storyId = req.params?.storyId;
     const storyNodeId = req.params?.storyNodeId;
 
-    // Position will be added later
-
     const histories = await AddReadingHistory({ userId: userId, storyId: storyId, storyNodeId: storyNodeId });
 
     if (!histories) throw CreateError();
