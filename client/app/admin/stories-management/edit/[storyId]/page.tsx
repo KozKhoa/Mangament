@@ -194,9 +194,9 @@ export function EditStory() {
             change.delete.content.push({ id: content.id });
           } else if (content.isNew && !content.isDeleted) {
             // This content is a new one
-            change.add.content.push({ ...content });
+            change.add.content.push({ ...content, order_index: i });
           } else if (!content.isNew && !content.isDeleted && content.isEdited) {
-            change.edit.content.push({ ...content });
+            change.edit.content.push({ ...content, order_index: i });
           }
         });
       }

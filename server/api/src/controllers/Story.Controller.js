@@ -69,6 +69,7 @@ export async function GetStory(req, res, next) {
   }
 }
 
+// GET stories/:id/review
 export async function GetStoryReview(req, res, next) {
   try {
     const storyId = req.params?.id;
@@ -77,12 +78,13 @@ export async function GetStoryReview(req, res, next) {
 
     const review = await GetReview(storyId, 4);
 
-    return res.status(200).json({ success: true, message: "Get story review successfully ", data: review });
+    return res.status(200).json({ success: true, message: "Get story review successfully ", data: review.data });
   } catch (error) {
     next(error);
   }
 }
 
+// GET stories/random
 export async function GetRandomStory(req, res, next) {
   try {
     const story = await FindRandomStory();
@@ -97,6 +99,7 @@ export async function GetRandomStory(req, res, next) {
   }
 }
 
+// GET stories
 export async function GetAllStories(req, res, next) {
   try {
     const userId = req?.user?.id;

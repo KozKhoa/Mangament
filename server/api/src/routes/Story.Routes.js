@@ -5,7 +5,6 @@ import { AddOneViewForStory, GetAllStories, GetRandomStory, GetStory, GetStoryRe
 import * as storyController from "../controllers/Story.Controller.js";
 
 import { AuthenticationToken, OptionalAuth } from "../middlewares/Auth.Middleware.js";
-import { DeleteRating, GetAllRatings, PostRating, PutRating } from "../controllers/Rating.Controller.js";
 
 const storyRoute = express.Router();
 

@@ -2,7 +2,6 @@ import db from "../configs/db.js";
 import { redis } from "../configs/redis.js";
 import { CreateError } from "../utils/ErrorHandle.js";
 import { randomInt } from "../utils/Number.js";
-import { ValidateStoryType } from "./Enum.Model.js";
 import { ValidateGenre } from "./Genre.Model.js";
 
 import { throwErrorIfInvalidGenres } from "../utils/Validators.js";
@@ -131,44 +130,14 @@ export async function GetReview(storyId, number = 1) {
   const cached = await redis.get(REDIS_KEY);
   if (cached) return JSON.parse(cached);
 
-  const imageUrl = [];
+  const storyNodes = await db.storyNode.findMany({ where: { story_id: storyId, type: "chapter" } });
 
-  const dfs = async (parentId) => {
-    const nodes = await db.storyNode.findMany({
-      where: {
-        parent_id: parentId,
-        story_id: storyId,
-      },
-      orderBy: {
-        order_index: "asc",
-      },
-      select: {
-        id: true,
-        type: true,
-        story_id: true,
-        parent_id: true,
-        content: true,
-      },
-    });
+  const storyNodeContents = await db.storyNodeContent.findMany({
+    where: { story_node_id: { in: storyNodes.map((node) => node.id) } },
+    select: { image: { select: { key: true, url: true, width: true, height: true } } },
+  });
 
-    for (const node of nodes) {
-      if (node.type === "chapter") {
-        const contents = node.content;
-        if (!contents || contents.length <= 0) return;
-
-        for (const content of contents) {
-          imageUrl.push(content.image_url);
-          if (imageUrl.length >= number) return;
-        }
-      } else {
-        await dfs(node.id);
-      }
-    }
-  };
-
-  await dfs(null);
-
-  const result = imageUrl.slice(0, 4);
+  const result = { success: true, data: storyNodeContents.map((content) => content.image) };
 
   await redis.setex(REDIS_KEY, REDIS_TTL, JSON.stringify(result));
 

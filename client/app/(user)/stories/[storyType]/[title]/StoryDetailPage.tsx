@@ -113,7 +113,7 @@ export default function StoryDetailPage() {
       </div>
 
       {/* Review */}
-      <div
+      {/* <div
         className="flex flex-col border border-foreground/30 rounded-sm px-5 py-2.5 gap-7 
           bg-background-items shadow-lg"
       >
@@ -128,7 +128,7 @@ export default function StoryDetailPage() {
             </div>
           ))}
         </div>
-      </div>
+      </div> */}
 
       <div className="flex flex-col gap-5">
         {/* Rating */}
