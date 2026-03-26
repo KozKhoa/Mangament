@@ -5,11 +5,7 @@ export async function AddRefreshToken({ userId, token }) {
 
   const result = await db.refreshToken.create({
     data: {
-      user: {
-        connect: {
-          id: userId,
-        },
-      },
+      user: { connect: { id: userId } },
       token: token,
     },
   });

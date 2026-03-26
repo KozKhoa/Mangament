@@ -3,15 +3,15 @@ import { CreateError } from "../utils/ErrorHandle.js";
 
 import { redis } from "../configs/redis.js";
 
-import redisService from "../services/redis.service.js";
+import redisUtils from "../utils/Redis.js";
 
 const REDIS_TTL = 60 * 30; // 30 minutes
 
 export async function FindAllRatings({ storyId, userId, star = [[0, 6]], sort = { updated_at: "desc" }, page = 1, limit = 10 }) {
-  const storyVer = await redisService.stories(storyId).get();
+  const storyVer = await redisUtils.stories(storyId).get();
 
-  const ratingStoryVer = await redisService.ratings(storyId).get();
-  const ratingUserVer = await redisService.ratings().get();
+  const ratingStoryVer = await redisUtils.ratings(storyId).get();
+  const ratingUserVer = await redisUtils.ratings().get();
 
   const REDIS_KEY = [
     "FindAllRatings",
@@ -77,7 +77,7 @@ export async function FindAllRatings({ storyId, userId, star = [[0, 6]], sort = 
 export async function FindRating(id) {
   if (!id) throw CreateError(400, "Require id");
 
-  const ratingVer = await redisService.ratings(id).get();
+  const ratingVer = await redisUtils.ratings(id).get();
 
   const REDIS_KEY = ["FindRating", "ratingVer=" + ratingVer, "id=" + id].join(":");
 
@@ -159,7 +159,7 @@ export async function AddRatings({ userId, storyId, star, title, content }) {
 
     delete newRating.is_deleted;
 
-    redisService.ratings(newRating.story_id).incr();
+    redisUtils.ratings(newRating.story_id).incr();
 
     return { success: true, data: newRating };
   });
@@ -178,8 +178,8 @@ export async function UpdateRating(id, { star, title, content }) {
     include: { user: { select: { id: true, name: true, avatar: true } } },
   });
 
-  redisService.ratings(updating.id).incr();
-  redisService.ratings(updating.story_id).incr();
+  redisUtils.ratings(updating.id).incr();
+  redisUtils.ratings(updating.story_id).incr();
 
   return { success: true, data: updating };
 }
@@ -190,8 +190,8 @@ export async function SoftDeleteRating(ratingId) {
     data: { is_deleted: true },
   });
 
-  redisService.ratings(removing.id).incr();
-  redisService.ratings(removing.story_id).incr();
+  redisUtils.ratings(removing.id).incr();
+  redisUtils.ratings(removing.story_id).incr();
 
   return { success: true, data: removing };
 }
@@ -201,8 +201,8 @@ export async function HardDeleteRating(ratingId) {
     where: { id: ratingId },
   });
 
-  redisService.ratings(remove.id).incr();
-  redisService.ratings(remove.story_id).incr();
+  redisUtils.ratings(remove.id).incr();
+  redisUtils.ratings(remove.story_id).incr();
 
   return { success: true, data: remove };
 }

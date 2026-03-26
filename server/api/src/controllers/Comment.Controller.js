@@ -1,7 +1,7 @@
 import ErrorCodes from "../constants/Error.js";
-import { AddComment, FindAllComments, SoftDeleteComment, UpdateComment } from "../models/Comment.Model.js";
+import { AddComment, FindAllComments, SoftDeleteComment, UpdateComment } from "../services/comment.service.js";
 
-import * as commentModel from "../models/Comment.Model.js";
+import * as commentService from "../services/comment.service.js";
 
 import { CreateError } from "../utils/ErrorHandle.js";
 import { ConvertQuery } from "../utils/QueryConvert.js";
@@ -96,12 +96,12 @@ export async function DeleteComment(req, res, next) {
     const commentId = req.params?.id;
     if (!commentId) throw CreateError(400, "'id' for comment is required");
 
-    const comment = await commentModel.FindComment(commentId);
+    const comment = await commentService.FindComment(commentId);
     if (!comment?.data) throw CreateError(400, "Comment not found");
 
     if (comment.data?.user.id !== userId) throw CreateError(401, "User is not allow to remove others' comment");
 
-    await commentModel.SoftDeleteComment(commentId);
+    await commentService.SoftDeleteComment(commentId);
 
     return res.status(200).json({
       success: true,

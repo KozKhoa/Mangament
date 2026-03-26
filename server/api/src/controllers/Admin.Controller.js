@@ -1,11 +1,10 @@
 import ErrorCodes from "../constants/Error.js";
 import { CreateError } from "../utils/ErrorHandle.js";
 
-import * as usersModel from "../models/User.Model.js";
-import * as storiesModel from "../models/Story.Model.js";
-import * as adminModel from "../models/AdminModel.js";
-import * as historiesModel from "../models/History.Model.js";
-import * as imageModel from "../models/Image.Model.js";
+import * as userService from "../services/user.service.js";
+import * as storyService from "../services/story.service.js";
+import * as adminService from "../services/admin.service.js";
+import * as imageService from "../services/image.service.js";
 
 import { ConvertQuery } from "../utils/QueryConvert.js";
 
@@ -21,7 +20,7 @@ import {
 // GET /admin/dashboard/overview
 export async function GetDashboardOverview(req, res, next) {
   try {
-    const dashboardOverview = await adminModel.GetDashboardOverview();
+    const dashboardOverview = await adminService.GetDashboardOverview();
 
     return res.json({
       success: true,
@@ -51,7 +50,7 @@ export async function GetDashboardViewInRange(req, res, next) {
     fromDate?.setUTCHours(0, 0, 0, 0);
     toDate?.setUTCHours(23, 59, 59, 999);
 
-    const viewByDate = await adminModel.GetDashboardViews({
+    const viewByDate = await adminService.GetDashboardViews({
       storyId: storyId,
       storyNodeId: storyNodeId,
       fromDate: fromDate,
@@ -79,7 +78,7 @@ export async function GetDashboardNewUsers(req, res, next) {
     fromDate?.setUTCHours(0, 0, 0, 0);
     toDate?.setUTCHours(23, 59, 59, 999);
 
-    const newUsersByDate = adminModel.GetDashboardNewUsers({ fromDate, toDate, groupBy: groupBy });
+    const newUsersByDate = adminService.GetDashboardNewUsers({ fromDate, toDate, groupBy: groupBy });
 
     return res.json({ success: true, data: (await newUsersByDate).data });
   } catch (error) {
@@ -106,7 +105,7 @@ export async function GetAllUsers(req, res, next) {
     throwErrorIfInvalidGenders(genders);
     throwErrorIfInvalidRoles(roles);
 
-    const users = await usersModel.FindAllUser({
+    const users = await userService.FindAllUser({
       search: search,
       roles: roles,
       genders: genders,
@@ -133,7 +132,7 @@ export async function GetUser(req, res, next) {
 
     if (!userId) throw CreateError(400, "'id' is required");
 
-    const user = await usersModel.FindUser({ id: userId });
+    const user = await userService.FindUser({ id: userId });
 
     if (!user) throw CreateError();
 
@@ -154,7 +153,7 @@ export async function BanUser(req, res, next) {
 
     if (!userId) throw CreateError(400, "'id' is required");
 
-    await usersModel.BannedUser({ id: userId, isBanned: isBanned });
+    await userService.BannedUser({ id: userId, isBanned: isBanned });
 
     return res.json({ success: true, message: `Banned ${userId}` });
   } catch (error) {
@@ -169,7 +168,7 @@ export async function DeleteUser(req, res, next) {
 
     if (!userId) throw CreateError(400, "'id' is required");
 
-    await usersModel.SoftDeleteUser({ id: userId });
+    await userService.SoftDeleteUser({ id: userId });
 
     return res.json({ success: true, message: `Delete user ${userId}` });
   } catch (error) {
@@ -189,7 +188,7 @@ export async function UpdateUserInfo(req, res, next) {
 
     if (!userId) throw CreateError(400, "'id' is required");
 
-    const update = await usersModel.UpdateUser({ id: userId, data: { role, name } });
+    const update = await userService.UpdateUser({ id: userId, data: { role, name } });
     if (!update) throw CreateError();
 
     delete update?.data?.password;
@@ -207,7 +206,7 @@ export async function GetStory(req, res, next) {
 
     const { isGettingChildren, isGettingContent } = ConvertQuery(req.query);
 
-    const story = await storiesModel.FindStory({ id: storyId, isGettingChildren: isGettingChildren, isGettingContent: isGettingContent });
+    const story = await storyService.FindStory({ id: storyId, isGettingChildren: isGettingChildren, isGettingContent: isGettingContent });
 
     if (!story) throw CreateError();
 
@@ -224,7 +223,7 @@ export async function GetAllStories(req, res, next) {
       req.query,
     );
 
-    const stories = await storiesModel.FindAllStories({
+    const stories = await storyService.FindAllStories({
       keyword: keyword,
       type: type,
       view: view,
@@ -279,7 +278,7 @@ export async function PostNewStory(req, res, next) {
     throwErrorIfInvalidStoryStatus(status);
     throwErrorIfInvalidStoryType(type);
 
-    const newStory = await storiesModel.AddStory({
+    const newStory = await storyService.AddStory({
       title: title,
       type: type,
       nation: nation,
@@ -322,7 +321,7 @@ export async function UpdateStory(req, res, next) {
     throwErrorIfInvalidStoryStatus(status);
     throwErrorIfInvalidStoryType(type);
 
-    const update = await storiesModel.UpdateStory(storyId, {
+    const update = await storyService.UpdateStory(storyId, {
       title: title,
       type: type,
       summary: summary,
@@ -348,7 +347,7 @@ export async function ToggleActiveStory(req, res, next) {
 
     if (!storyId) throw CreateError(400, "'id' for story is required");
 
-    const active = await storiesModel.ActiveStory(storyId, isActived);
+    const active = await storyService.ActiveStory(storyId, isActived);
 
     if (!active.success) throw CreateError();
 
@@ -368,7 +367,7 @@ export async function DeleteStory(req, res, next) {
 
     if (!isUUID(storyId)) throw CreateError(400, "'id' must be UUID");
 
-    const remove = await storiesModel.ToggleSoftDeleteStory(storyId, true);
+    const remove = await storyService.ToggleSoftDeleteStory(storyId, true);
     if (!remove.success) throw CreateError();
 
     return res.json({ success: true, message: "Remove successfully" });
@@ -383,7 +382,7 @@ export async function GetAllTrashImages(req, res, next) {
     const page = Number(req.query?.page ?? 1);
     const limit = Number(req.query?.limit ?? 10);
 
-    const trashImage = await imageModel.FindTrashImage({ page, limit });
+    const trashImage = await imageService.FindTrashImage({ page, limit });
 
     res.json({ success: true, data: trashImage.data, pagination: trashImage.pagination });
   } catch (error) {
@@ -398,7 +397,7 @@ export async function DeleteManyTrashImages(req, res, next) {
 
     if (!imageIds) throw CreateError(400, "'id' for image is required");
 
-    await imageModel.HardDeleteManyImages({ ids: imageIds });
+    await imageService.HardDeleteManyImages({ ids: imageIds });
 
     return res.json({ success: true, message: "Remove successfully" });
   } catch (error) {
@@ -413,7 +412,7 @@ export async function DeleteTrashImage(req, res, next) {
 
     if (!imageId) throw CreateError(400, "'id' for image is required");
 
-    await imageModel.HardDeleteImage({ id: imageId });
+    await imageService.HardDeleteImage({ id: imageId });
 
     return res.json({ success: true, message: "Remove successfully" });
   } catch (error) {
@@ -427,7 +426,7 @@ export async function GetAllTrashStories(req, res, next) {
     const page = Number(req.query?.page ?? 1);
     const limit = Number(req.query?.limit ?? 10);
 
-    const trashStories = await storiesModel.FindAllStories({ page: page, limit: limit, isDeleted: true });
+    const trashStories = await storyService.FindAllStories({ page: page, limit: limit, isDeleted: true });
 
     res.json({ success: true, data: trashStories.data, pagination: trashStories.pagination });
   } catch (error) {
@@ -443,7 +442,7 @@ export async function DeleteTrashStory(req, res, next) {
 
     if (!storyId) throw CreateError(400, "'id' for image is required");
 
-    await storiesModel.HardDeleteStory(storyId);
+    await storyService.HardDeleteStory(storyId);
 
     return res.json({ success: true, message: "Remove successfully" });
   } catch (error) {
@@ -459,7 +458,7 @@ export async function DeleteManyTrashStories(req, res, next) {
 
     if (!storyIds) throw CreateError(400, "'id' for image is required");
 
-    await storiesModel.HardDeleteManyStories(storyIds);
+    await storyService.HardDeleteManyStories(storyIds);
 
     return res.json({ success: true, message: "Remove successfully" });
   } catch (error) {
@@ -472,7 +471,7 @@ export async function RestoreManyTrashStories(req, res, next) {
   try {
     const storyIds = req.body?.ids;
 
-    const stories = await storiesModel.ToggleSoftDeleteManyStories(storyIds, false); // Restore
+    const stories = await storyService.ToggleSoftDeleteManyStories(storyIds, false); // Restore
 
     res.json({ success: true, message: "Restore successfully", data: stories });
   } catch (error) {
@@ -487,7 +486,7 @@ export async function RestoreTrashStory(req, res, next) {
 
     if (!isUUID(storyId)) throw CreateError(400, "'id' must be UUID");
 
-    const story = await storiesModel.ToggleSoftDeleteStory(storyId, false); // Restore
+    const story = await storyService.ToggleSoftDeleteStory(storyId, false); // Restore
 
     res.json({ success: true, message: "Restore successfully", data: story });
   } catch (error) {

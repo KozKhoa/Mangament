@@ -1,12 +1,12 @@
 import db from "../configs/db.js";
-import { RandomPassword } from "../utils/PasswordHandle.js";
-import { GetParentStoryNodeTree } from "./StoryNode.Model.js";
+import { RandomPassword } from "../utils/Password.js";
+import { GetParentStoryNodeTree } from "./story-node.service.js";
 
-import * as passwordService from "../utils/PasswordHandle.js";
+import * as passwordService from "../utils/Password.js";
 import { CreateError } from "../utils/ErrorHandle.js";
 import { redis } from "../configs/redis.js";
 import { throwErrorIfInvalidGenders } from "../utils/Validators.js";
-import redisService from "../services/redis.service.js";
+import redisUtils from "../utils/Redis.js";
 
 const REDIS_TTL = 60 * 30; // 30 minutes
 
@@ -22,7 +22,7 @@ export async function FindAllUser({
   isBanned,
   search,
 }) {
-  const version = await redisService.users().get();
+  const version = await redisUtils.users().get();
 
   const REDIS_KEY = ["FindAllUser", version, page, limit, genders, fromDate, toDate, roles, birthday, JSON.stringify(sort), isBanned, search].join(";");
 
@@ -88,7 +88,7 @@ export async function FindAllUser({
 export async function FindUser({ id, email }) {
   if (!id && !email) throw CreateError(400, "Require 'id' or 'email'");
 
-  const version = await redisService.users(id || email).get();
+  const version = await redisUtils.users(id || email).get();
 
   const REDIS_KEY = ["FindUser", version, id || email].join(":");
 
@@ -138,9 +138,9 @@ export async function BannedUser({ id, email, isBanned }) {
       throw new Error(error);
     });
 
-  await redisService.users().incr();
-  await redisService.users(bannedUser.id).incr();
-  await redisService.users(bannedUser.email).incr();
+  await redisUtils.users().incr();
+  await redisUtils.users(bannedUser.id).incr();
+  await redisUtils.users(bannedUser.email).incr();
 
   return { success: true, data: bannedUser };
 }
@@ -172,9 +172,9 @@ export async function UpdateUser(id, { name, birthday, gender, avatar }) {
 
   delete update?.password;
 
-  redisService.users(update.id).incr();
-  redisService.users(update.email).incr();
-  redisService.users().incr();
+  redisUtils.users(update.id).incr();
+  redisUtils.users(update.email).incr();
+  redisUtils.users().incr();
 
   return { success: true, data: update };
 }
@@ -213,7 +213,7 @@ export async function AddUser({ name, email, password, avatarUrl }) {
     },
   });
 
-  await redisService.users().incr();
+  await redisUtils.users().incr();
 
   return { success: true, data: user };
 }
@@ -246,9 +246,9 @@ export async function SoftDeleteUser({ id, email }) {
       throw new Error(error);
     });
 
-  redisService.users().incr();
-  redisService.users(softDelete.id).incr();
-  redisService.users(softDelete.email).incr();
+  redisUtils.users().incr();
+  redisUtils.users(softDelete.id).incr();
+  redisUtils.users(softDelete.email).incr();
 
   return { success: true, data: softDelete };
 }
@@ -270,9 +270,9 @@ export async function HardDeleteUser({ id, email }) {
       throw new Error(error);
     });
 
-  redisService.users().incr();
-  redisService.users(hardDelete.id).incr();
-  redisService.users(hardDelete.email).incr();
+  redisUtils.users().incr();
+  redisUtils.users(hardDelete.id).incr();
+  redisUtils.users(hardDelete.email).incr();
 
   return { success: true, data: hardDelete };
 }
@@ -295,7 +295,7 @@ export async function ChangePassword({ id, email, newPassword }) {
       throw new Error(error);
     });
 
-  await redisService.users().incr();
+  await redisUtils.users().incr();
 
   return { success: !!updateUser, data: updateUser };
 }
@@ -308,7 +308,7 @@ export async function ResetPassword({ id }) {
 
   const resetPassword = await db.user.update({ where: { id: id }, data: { password: newPassword } });
 
-  await redisService.users().incr();
+  await redisUtils.users().incr();
 
   return { success: true, data: resetPassword };
 }

@@ -1,8 +1,8 @@
 import db from "../configs/db.js";
 import { redis } from "../configs/redis.js";
-import redisService from "../services/redis.service.js";
+import redisUtils from "../utils/Redis.js";
 import { CreateError } from "../utils/ErrorHandle.js";
-import { GetParentStoryNodeTree } from "./StoryNode.Model.js";
+import { GetParentStoryNodeTree } from "./story-node.service.js";
 
 const REDIS_TTL = 60 * 30; // 30 minutes
 
@@ -21,11 +21,11 @@ export async function FindAllReadingHistories({
   fromDate,
   toDate,
 }) {
-  const storiesVer = await redisService.stories(storyId).get(); // This is used to update cache when story is updated
-  const userVer = await redisService.users(userId).get(); // This is used to update cache when user is updated
+  const storiesVer = await redisUtils.stories(storyId).get(); // This is used to update cache when story is updated
+  const userVer = await redisUtils.users(userId).get(); // This is used to update cache when user is updated
 
-  const historiesUserVer = await redisService.histories(userId).get(); // This is used to update cache when user's histories is updated
-  const historiesVer = await redisService.histories().get(); // This is used to update cache when histories is updated
+  const historiesUserVer = await redisUtils.histories(userId).get(); // This is used to update cache when user's histories is updated
+  const historiesVer = await redisUtils.histories().get(); // This is used to update cache when histories is updated
 
   const REDIS_KEY = [
     "FindAllReadingHistories",
@@ -139,7 +139,7 @@ export async function FindAllReadingHistories({
 export async function FindReadingHistory(id) {
   if (!id) throw CreateError(400, "Require id");
 
-  const historiesVer = await redisService.histories(id).get();
+  const historiesVer = await redisUtils.histories(id).get();
 
   const REDIS_KEY = ["FindReadingHistory", "historiesVer=" + historiesVer, "id=" + id].join(":");
 
@@ -183,7 +183,7 @@ export async function AddReadingHistory({ userId, storyId, storyNodeId }) {
       throw new Error(error);
     });
 
-  redisService.histories(history.user_id).incr();
+  redisUtils.histories(history.user_id).incr();
 
   return { success: true, data: history };
 }
@@ -193,8 +193,8 @@ export async function HardDeleteReadingHistory(id) {
 
   const hardRemove = await db.readingHistory.delete({ where: { id: id } });
 
-  redisService.histories(hardRemove.id).incr();
-  redisService.histories(hardRemove.user_id).incr();
+  redisUtils.histories(hardRemove.id).incr();
+  redisUtils.histories(hardRemove.user_id).incr();
 
   return { success: true, message: "Remove permanently" };
 }
@@ -207,8 +207,8 @@ export async function SoftDeleteReadingHistory(id) {
     data: { is_deleted: true },
   });
 
-  redisService.histories(softRemove.id).incr();
-  redisService.histories(softRemove.user_id).incr();
+  redisUtils.histories(softRemove.id).incr();
+  redisUtils.histories(softRemove.user_id).incr();
 
   return { success: true, data: softRemove };
 }

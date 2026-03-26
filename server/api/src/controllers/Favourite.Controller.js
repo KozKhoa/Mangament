@@ -1,5 +1,5 @@
-import { FindAllFavouriteStories, AddFavouriteStory, RemoveFavouriteStory, FindFavouriteStory } from "../models/Favourite.Model.js";
-import { FindUser } from "../models/User.Model.js";
+import { FindAllFavouriteStories, AddFavouriteStory, RemoveFavouriteStory, FindFavouriteStory } from "../services/favourite.service.js";
+import { FindUser } from "../services/user.service.js";
 
 import { CreateError } from "../utils/ErrorHandle.js";
 

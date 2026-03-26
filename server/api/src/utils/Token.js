@@ -6,7 +6,7 @@ export const GenRefreshToken = ({ id, name, email, role }) => {
       expiresIn: process.env.JWT_REFRESH_EXPIRES_IN,
     });
   } catch (error) {
-    console.error("❌ [TokenHandle.js] Error gen refresh token:", error);
+    console.error("Error gen refresh token:", error);
   }
 };
 
@@ -16,7 +16,7 @@ export const GenAccessToken = ({ id, name, email, role }) => {
       expiresIn: process.env.JWT_ACCESS_EXPIRES_IN,
     });
   } catch (error) {
-    console.error("❌ [TokenHandle.js] Error gen asccess token:", error);
+    console.error("Error gen asccess token:", error);
   }
 };
 
@@ -45,13 +45,3 @@ export const VerifyAccessToken = (token) => {
     return { decodedToken: null, isExpire: false }; // token sai hoặc hết hạn
   }
 };
-
-export function SaveTokenOnCookies(res, token) {
-  res.cookie(process.env.COOKIES_REFRESH_TOKEN_KEY, token, {
-    httpOnly: true,
-    // secure: true,     // bắt buộc khi dùng HTTPS
-    secure: false,
-    sameSite: "lax",
-    //   path: ["/api/auth/refresh", "api/auth/logout"]
-  });
-}

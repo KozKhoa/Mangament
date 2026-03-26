@@ -1,13 +1,13 @@
 import { CreateError } from "../utils/ErrorHandle.js";
 
-import { FindAllStories, FindStory, UpdateStory, GetReview, FindRandomStory } from "../models/Story.Model.js";
+import { FindAllStories, FindStory, UpdateStory, GetReview, FindRandomStory } from "../services/story.service.js";
 
-import * as storyModel from "../models/Story.Model.js";
-import * as favouriteModel from "../models/Favourite.Model.js";
-import * as ratingModel from "../models/Rating.Model.js";
+import * as storyService from "../services/story.service.js";
+import * as favouriteService from "../services/favourite.service.js";
+import * as ratingService from "../services/rating.service.js";
 
 import { ConvertQuery } from "../utils/QueryConvert.js";
-import { FindAllReadingHistories } from "../models/History.Model.js";
+import { FindAllReadingHistories } from "../services/history.service.js";
 import { throwErrorIfInvalidGenres } from "../utils/Validators.js";
 
 export async function GetStory(req, res, next) {
@@ -36,7 +36,7 @@ export async function GetStory(req, res, next) {
 
     // Is story in user favourites list
     if (userId) {
-      const favourite = await favouriteModel.FindAllFavouriteStories({ userId: userId, storyId: story.data.id, page: 1, limit: 1 });
+      const favourite = await favouriteService.FindAllFavouriteStories({ userId: userId, storyId: story.data.id, page: 1, limit: 1 });
 
       if (favourite && favourite.data.length > 0) {
         story.data.favourite = { id: favourite.data.at(0).id };
@@ -45,7 +45,7 @@ export async function GetStory(req, res, next) {
 
     //  If user already rate this story
     if (userId) {
-      const rating = await ratingModel.FindAllRatings({ userId: userId, storyId: story.data.id, limit: 1, page: 1 });
+      const rating = await ratingService.FindAllRatings({ userId: userId, storyId: story.data.id, limit: 1, page: 1 });
 
       if (rating && rating.data.length > 0) {
         story.data.rating = rating.data.at(0);
@@ -132,7 +132,7 @@ export async function GetAllStories(req, res, next) {
     }
 
     if (userId) {
-      const favourites = await favouriteModel.FindAllFavouriteStories({
+      const favourites = await favouriteService.FindAllFavouriteStories({
         userId: userId,
         limit: 2147483647,
         page: 1,
@@ -173,7 +173,7 @@ export async function GetRecommendStories(req, res, next) {
 
     if (!storyId) throw CreateError(400, "'id' is required");
 
-    const recommendStories = await storyModel.GetRecommendStories({ storyId, userId, page, limit });
+    const recommendStories = await storyService.GetRecommendStories({ storyId, userId, page, limit });
 
     return res.status(200).json({
       success: true,

@@ -3,7 +3,7 @@ import { execSync } from "child_process";
 
 import { faker } from "@faker-js/faker";
 import { randomBytes, randomInt } from "crypto";
-import { UpdateEmbeddingStory } from "../../src/models/Story.Model.js";
+import { UpdateEmbeddingStory } from "../../src/services/story.service.js";
 
 export default async function main() {
   // execSync(

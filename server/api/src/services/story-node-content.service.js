@@ -3,8 +3,6 @@ import { StoryNodeType } from "../configs/db.js";
 import { redis } from "../configs/redis.js";
 import { CreateError } from "../utils/ErrorHandle.js";
 
-import { BuildStoryTree, UpdateStory } from "./Story.Model.js";
-
 const REDIS_TTL = 60 * 30; // 30 minutes
 
 // Đây là hàm lấy version redis. Khi adim thêm mới story thì sẽ update version lên

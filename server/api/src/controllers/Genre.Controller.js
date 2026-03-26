@@ -1,11 +1,11 @@
-import * as genreModel from "../models/Genre.Model.js";
+import * as genreService from "../services/genre.service.js";
 
 import { CreateError } from "../utils/ErrorHandle.js";
 import ErrorCodes from "../constants/Error.js";
 
 export async function GetAllGenre(req, res, next) {
   try {
-    const genres = genreModel.GetAllGenre();
+    const genres = genreService.GetAllGenre();
 
     return res.status(200).json({
       success: true,
