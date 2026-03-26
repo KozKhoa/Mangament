@@ -361,6 +361,7 @@ export default function ReadingStoryPage() {
             onInView={(indexs) => {
               if (indexs && indexs.length > 0) setReadingContents(indexs.map((index) => content?.[index] ?? null));
             }}
+            threshold={0.5}
           >
             {[...(content ?? [])]?.map((con, i) => (
               <div key={i} data-content-id={con.id} className="flex flex-col justify-center items-center gap-2 w-full text-foreground/80">
