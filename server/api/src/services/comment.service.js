@@ -1,19 +1,20 @@
 import db from "../configs/db.js";
 import { CreateError } from "../utils/ErrorHandle.js";
 import { redis } from "../configs/redis.js";
-import redisService from "../services/redis.service.js";
+import redisUtils from "../utils/Redis.js";
+
 import { isUUID } from "../utils/Validators.js";
 
 const REDIS_TTL = 60 * 15; // 15 minutes
 
 export async function FindAllComments({ userId, storyId, storyNodeId, sort = { updated_at: "desc" }, page = 1, limit = 10 }) {
-  const storiesVer = await redisService.stories(storyId).get(); // This use to update when a story being updated like it being deleted
-  const storyNodeVer = await redisService.storyNodes(storyNodeId).get(); // This use to update when a story node being updated like it being deleted
+  const storiesVer = await redisUtils.stories(storyId).get(); // This use to update when a story being updated like it being deleted
+  const storyNodeVer = await redisUtils.storyNodes(storyNodeId).get(); // This use to update when a story node being updated like it being deleted
 
-  const commentUserVer = await redisService.comments(userId).get(); // This use to update when a comment of a user being update like when somebody add new comment
-  const commentStoryVer = await redisService.comments(storyId).get(); // This use to update when a comment of a story being update like when somebody add new comment
-  const commentStoryNodeVer = await redisService.comments(storyNodeId).get(); // This use to update when a comment of a story node being update like when somebody add new comment
-  const commentVer = await redisService.comments().get(); // This use update when there are any case want to update the whole comment not care which story its belong to
+  const commentUserVer = await redisUtils.comments(userId).get(); // This use to update when a comment of a user being update like when somebody add new comment
+  const commentStoryVer = await redisUtils.comments(storyId).get(); // This use to update when a comment of a story being update like when somebody add new comment
+  const commentStoryNodeVer = await redisUtils.comments(storyNodeId).get(); // This use to update when a comment of a story node being update like when somebody add new comment
+  const commentVer = await redisUtils.comments().get(); // This use update when there are any case want to update the whole comment not care which story its belong to
 
   const REDIS_KEY = [
     "FindAllComments",
@@ -76,7 +77,7 @@ export async function FindComment(id) {
 
   if (!isUUID(id)) throw CreateError("'id' must be uuid");
 
-  const commentVer = await redisService.comments(id).get();
+  const commentVer = await redisUtils.comments(id).get();
 
   const REDIS_KEY = ["FindComment", "commentVer=" + commentVer, "id=" + id].join(":");
 
@@ -160,13 +161,13 @@ export async function AddComment({ userId, storyId, storyNodeId, title, content 
 
   delete newComment.is_deleted;
 
-  redisService.comments(newComment.story_id).incr(); // This will remove the cached for list of all comment belonging to story
-  redisService.comments(newComment.user_id).incr(); // This will remove the cached for list of all comment belonging to story
+  redisUtils.comments(newComment.story_id).incr(); // This will remove the cached for list of all comment belonging to story
+  redisUtils.comments(newComment.user_id).incr(); // This will remove the cached for list of all comment belonging to story
 
   if (newComment.story_node_id) {
-    redisService.comments(newComment.story_node_id).incr(); // This will remove the cached for list of all comment belonging to story
+    redisUtils.comments(newComment.story_node_id).incr(); // This will remove the cached for list of all comment belonging to story
   } else {
-    redisService.comments(newComment.story_id).incr(); // This will remove the cached for list of all comment belonging to story
+    redisUtils.comments(newComment.story_id).incr(); // This will remove the cached for list of all comment belonging to story
   }
 
   return { success: true, data: newComment };
@@ -188,12 +189,12 @@ export async function UpdateComment(id, { title, content }) {
       throw new Error(error);
     });
 
-  redisService.comments(update.id).incr();
+  redisUtils.comments(update.id).incr();
 
   if (update.story_node_id) {
-    redisService.comments(update.story_node_id).incr();
+    redisUtils.comments(update.story_node_id).incr();
   } else {
-    redisService.comments(update.story_id).incr();
+    redisUtils.comments(update.story_id).incr();
   }
 
   return { success: true, data: update };
@@ -216,12 +217,12 @@ export async function SoftDeleteComment(id) {
       throw new Error(error);
     });
 
-  redisService.comments(softRemove.id).incr();
+  redisUtils.comments(softRemove.id).incr();
 
   if (softRemove.story_node_id) {
-    redisService.comments(softRemove.story_node_id).incr();
+    redisUtils.comments(softRemove.story_node_id).incr();
   } else {
-    redisService.comments(softRemove.story_id).incr();
+    redisUtils.comments(softRemove.story_id).incr();
   }
 
   return { success: true, data: softRemove };
@@ -242,12 +243,12 @@ export async function HardDeleteComment(id) {
       throw new Error(error);
     });
 
-  redisService.comments(hardRemove.id).incr();
+  redisUtils.comments(hardRemove.id).incr();
 
   if (hardRemove.story_node_id) {
-    redisService.comments(hardRemove.story_node_id).incr();
+    redisUtils.comments(hardRemove.story_node_id).incr();
   } else {
-    redisService.comments(hardRemove.story_id).incr();
+    redisUtils.comments(hardRemove.story_id).incr();
   }
 
   return { success: true, data: hardRemove };

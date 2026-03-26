@@ -1,47 +1,16 @@
-import { AddUser, FindUser, ChangePassword } from "../models/User.Model.js";
-import { CheckEmailAndPasswordFormat } from "../utils/Validators.js";
+import { AddUser, FindUser, ChangePassword } from "../services/user.service.js";
+import { throwErrorIfInvalidEmailAndPassword } from "../utils/Validators.js";
 import { CreateError } from "../utils/ErrorHandle.js";
-import { ComparePassword, HashPassword, RandomPassword } from "../utils/PasswordHandle.js";
-import { GenAccessToken, GenRefreshToken, VerifyRefreshToken } from "../utils/TokenHandle.js";
 
-import * as otpService from "../services/otp.service.js";
-import * as mailService from "../services/mail.service.js";
-import { AddRefreshToken, FindRefreshToken, HardDeleteRefreshToken } from "../models/Token.Model.js";
+import authService from "../services/auth.service.js";
 
-export const Login = async (req, res, next) => {
+export async function Login(req, res, next) {
   try {
     const { email, password } = req.body; // Get email and password from request
 
-    CheckEmailAndPasswordFormat(email, password); // Check email and email format
+    throwErrorIfInvalidEmailAndPassword(email, password); // Check email and email format
 
-    const result = await FindUser({ email: email }); // Check if user exist in db
-
-    if (!result.success || !result.data) {
-      throw CreateError(404, "User not found");
-    }
-    const user = result.data; // Get user from the result
-
-    if (!(await ComparePassword(password, user.password))) {
-      // Compare password
-      throw CreateError(401, "Email or password is not correct");
-    }
-
-    // If password is correct => Generate refresh token
-    const refreshToken = GenRefreshToken({
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-    });
-    const accessToken = GenAccessToken({
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-    });
-
-    // Save refresh token to db
-    await AddRefreshToken({ userId: user.id, token: refreshToken });
+    const { user, accessToken, refreshToken } = (await authService.login(email, password)).data;
 
     // Add refresh token to http only
     res.cookie(process.env.COOKIES_REFRESH_TOKEN_KEY, refreshToken, {
@@ -71,53 +40,32 @@ export const Login = async (req, res, next) => {
   } catch (error) {
     next(error);
   }
-};
+}
 
-export const Register = async (req, res, next) => {
+export async function Register(req, res, next) {
   try {
     // Get user name, email, password from require
     const { name, email, password } = req?.body;
     if (!name || !email || !password) throw CreateError(400, "Require 'name', 'email' and 'password'");
 
-    CheckEmailAndPasswordFormat(email, password); // Check email and password format
+    throwErrorIfInvalidEmailAndPassword(email, password); // Check email and password format
 
-    // Add user to database
-    const user = await AddUser({ name: name, email: email, password: password, avatarUrl: "user/avatar/avatar.png" });
-    if (!user) throw CreateError();
+    const newUser = await authService.register(name, email, password);
+    if (!newUser) throw CreateError();
 
-    // If adding success =>  gen token
-    const refreshToken = GenRefreshToken({
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-    });
-    const accessToken = GenAccessToken({
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-    });
-
-    // Save refresh token to db
-    await AddRefreshToken({ userId: user.data.id, token: refreshToken });
-
-    delete user.data.password;
-    // Response to user
     res.status(200).json({
       success: true,
       message: "Register success",
       data: {
-        accessToken: accessToken,
-        user: user.data,
+        user: newUser.data,
       },
     });
   } catch (error) {
     next(error);
   }
-};
+}
 
-export const Logout = async (req, res, next) => {
+export async function Logout(req, res, next) {
   try {
     const refreshToken = req.cookies[process.env.COOKIES_REFRESH_TOKEN_KEY]; // Get refresht token from http
 
@@ -129,8 +77,8 @@ export const Logout = async (req, res, next) => {
       });
     }
 
-    // Delete refresh token in db and cookies
-    await HardDeleteRefreshToken({ token: refreshToken });
+    await authService.logout();
+
     res.clearCookie(process.env.COOKIES_REFRESH_TOKEN_KEY);
 
     // Response to user
@@ -141,77 +89,33 @@ export const Logout = async (req, res, next) => {
   } catch (error) {
     next(error);
   }
-};
+}
 
-export const Refresh = async (req, res, next) => {
+export async function Refresh(req, res, next) {
   try {
     const refreshToken = req.cookies[process.env.COOKIES_REFRESH_TOKEN_KEY]; // Get refreh token from cookies
     if (!refreshToken) throw CreateError(401, "Cannot find refresh token");
 
-    const { decodedToken, isExpire } = VerifyRefreshToken(refreshToken);
+    const { accessToken } = (await authService.refresh(refreshToken)).data;
 
-    // Token is expired
-    if (isExpire) {
-      throw CreateError(401, "Token has been expired");
-    } else if (!decodedToken || !decodedToken.id) {
-      throw CreateError(401, "Token is invalid");
-    }
-
-    const user = decodedToken; // Get user
-    // Check if refresh token is on db or user is real or not
-    const result = await FindRefreshToken({
-      user_id: user.id,
-      token: refreshToken,
-    });
-    // If token is not found in db
-    if (!result.success || !result.data) {
-      throw CreateError(401, "Token is invalid");
-    }
-
-    // Generate new access token
-    const accessToken = GenAccessToken({
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-    });
-
-    // Response access token to user
     res.status(200).json({
       success: true,
       message: "Get new access token success",
       data: {
         accessToken: accessToken,
-        user: {
-          id: user.id,
-          name: user.name || "",
-          email: user.email || "",
-          role: user.role || "user",
-        },
       },
     });
   } catch (error) {
     next(error);
   }
-};
+}
 
 export async function ForgotPassword(req, res, next) {
   try {
     const email = req?.body?.email;
     if (!email) throw CreateError(400, "'email' is required");
 
-    // const cooldownTime = await otpService.cooldownTimeLeft(email);
-    // if (cooldownTime > 0) {
-    //   const minutes = Math.floor(cooldownTime / 60);
-    //   const seconds = cooldownTime % 60;
-    //   throw CreateError({ status: 400, message: `OTP request is on cooldown. Please wait ${minutes} minutes and ${seconds} seconds.` });
-    // }
-
-    const otp = otpService.generateOtp(email);
-
-    await otpService.saveOtp(email, otp.toString());
-
-    mailService.sendOtpEmail(email, otp);
+    await authService.forgotPassword(email);
 
     return res.status(200).json({ success: true, message: "OTP has been sent to your email" });
   } catch (error) {
@@ -225,18 +129,7 @@ export async function ResetPassword(req, res, next) {
     const email = req?.body?.email;
     if (!otp || !email) throw CreateError(400, "Both 'otp' and 'email' is require");
 
-    const verify = await otpService.verifyOtp(email, otp);
-
-    if (!verify || !verify.success) {
-      return res.status(400).json({ success: false, message: verify.message });
-    }
-
-    // Reset password
-    const newPassword = RandomPassword(30);
-    const newHashPassword = await HashPassword(newPassword);
-    await ChangePassword({ email: email, newPassword: newHashPassword });
-
-    mailService.sendPasswordEmail(email, newPassword);
+    await authService.resetPassword(email, otp);
 
     return res.status(200).json({ success: true, message: "New password has been sent to your email" });
   } catch (err) {

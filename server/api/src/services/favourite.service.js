@@ -2,7 +2,7 @@ import db from "../configs/db.js";
 import { redis } from "../configs/redis.js";
 import { CreateError } from "../utils/ErrorHandle.js";
 
-import redisService from "../services/redis.service.js";
+import redisUtils from "../utils/Redis.js";
 
 import { isUUID } from "../utils/Validators.js";
 
@@ -21,11 +21,11 @@ export async function FindAllFavouriteStories({
   view = [],
   sort = { created_at: "desc" },
 }) {
-  const storyVer = await redisService.stories(storyId).get(); // This is used to update when a story being updated like it being deleted
-  const userVer = await redisService.users(userId).get(); // This is used to update when a user being update like changing their name, avatar,... or they are banned or deleted
+  const storyVer = await redisUtils.stories(storyId).get(); // This is used to update when a story being updated like it being deleted
+  const userVer = await redisUtils.users(userId).get(); // This is used to update when a user being update like changing their name, avatar,... or they are banned or deleted
 
-  const favouriteUserVer = await redisService.favourites(userId).get(); // This is used to update when user change their fav list like removing or adding one new story into their fav list
-  const favouriteVer = await redisService.favourites().get(); // This is used to update when there are any case want to update the whole favourite not care which user its belong to
+  const favouriteUserVer = await redisUtils.favourites(userId).get(); // This is used to update when user change their fav list like removing or adding one new story into their fav list
+  const favouriteVer = await redisUtils.favourites().get(); // This is used to update when there are any case want to update the whole favourite not care which user its belong to
 
   const REDIS_KEY = [
     "FindAllFavouriteStories",
@@ -117,7 +117,7 @@ export async function FindAllFavouriteStories({
 export async function FindFavouriteStory(id) {
   if (!id) throw CreateError(400, "Require 'id' or 'userId' and 'storyId'");
 
-  const favouriteVer = await redisService.favourites(id).get();
+  const favouriteVer = await redisUtils.favourites(id).get();
   const REDIS_KEY = ["FindFavouriteStory", "favouriteVer=" + favouriteVer, "id=" + id].join(":");
 
   const cached = await redis.get(REDIS_KEY);
@@ -155,8 +155,8 @@ export async function AddFavouriteStory({ userId, storyId }) {
       throw new Error(error);
     });
 
-  redisService.favourites(favourite.id).incr();
-  redisService.favourites(favourite.user_id).incr();
+  redisUtils.favourites(favourite.id).incr();
+  redisUtils.favourites(favourite.user_id).incr();
 
   return { success: true, data: favourite };
 }
@@ -166,8 +166,8 @@ export async function RemoveFavouriteStory(favouriteId) {
 
   const removedItem = await db.favouriteStory.delete({ where: { id: favouriteId } });
 
-  redisService.favourites(removedItem.id).incr();
-  redisService.favourites(removedItem.user_id).incr();
+  redisUtils.favourites(removedItem.id).incr();
+  redisUtils.favourites(removedItem.user_id).incr();
 
   return { success: true, message: "Remove permanently" };
 }

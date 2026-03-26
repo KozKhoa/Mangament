@@ -1,5 +1,5 @@
 import db from "../../src/configs/db.js";
-import { HashPassword } from "../../src/utils/PasswordHandle.js";
+import { HashPassword } from "../../src/utils/Password.js";
 
 import { faker } from "@faker-js/faker";
 

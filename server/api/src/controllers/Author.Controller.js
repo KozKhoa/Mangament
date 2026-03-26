@@ -1,5 +1,5 @@
 import ErrorCodes from "../constants/Error.js";
-import { AddAuthor, FindAllAuthors, FindAuthor, HardDeleteAuthor, UpdateAuthor } from "../models/Author.Model.js";
+import { AddAuthor, FindAllAuthors, FindAuthor, HardDeleteAuthor, UpdateAuthor } from "../services/author.service.js";
 
 import { CreateError } from "../utils/ErrorHandle.js";
 

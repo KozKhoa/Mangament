@@ -1,7 +1,5 @@
 import { CreateError } from "../utils/ErrorHandle.js";
-import ErrorCodes from "../constants/Error.js";
-import { AddRatings, FindAllRatings, SoftDeleteRating, UpdateRating } from "../models/Rating.Model.js";
-import { FindStory } from "../models/Story.Model.js";
+import { AddRatings, FindAllRatings, SoftDeleteRating, UpdateRating } from "../services/rating.service.js";
 
 import { ConvertQuery } from "../utils/QueryConvert.js";
 

@@ -1,16 +1,16 @@
 import db from "../configs/db.js";
 import { redis } from "../configs/redis.js";
-import redisService from "../services/redis.service.js";
+import redisUtils from "../utils/Redis.js";
 import { CreateError } from "../utils/ErrorHandle.js";
 
-import * as r2CloudflareService from "../services/r2-cloudflare.service.js";
+import r2CloudflareUtils from "../utils/R2Cloudflare.js";
 
 const REDIS_TTL = 60 * 30;
 
 export async function FindImage({ id, url }) {
   if (!id && !url) throw CreateError(400, "Require 'id' or 'url'");
 
-  const imageVer = await redisService.image(url || id).get();
+  const imageVer = await redisUtils.image(url || id).get();
   const REDIS_KEY = ["FindImage", imageVer, id, url].join(":");
 
   const cached = await redis.get(REDIS_KEY);
@@ -45,8 +45,8 @@ export async function SoftDeleteImage({ id, url }) {
     data: { is_deleted: true },
   });
 
-  redisService.image(id).incr();
-  redisService.image(url).incr();
+  redisUtils.image(id).incr();
+  redisUtils.image(url).incr();
 
   return { success: true, data: softDelete };
 }
@@ -61,13 +61,13 @@ export async function HardDeleteImage({ id, url }) {
 
   if (!image) throw CreateError(404, "Image not found");
 
-  await r2CloudflareService.deleteObject(image.key);
+  await r2CloudflareUtils.deleteObject(image.key);
 
   await db.image.delete({ where: { ...(id && { id: id }), ...(url && { url: url }) } });
 
-  redisService.image().incr();
-  redisService.image(id).incr();
-  redisService.image(url).incr();
+  redisUtils.image().incr();
+  redisUtils.image(id).incr();
+  redisUtils.image(url).incr();
 
   return { success: true, message: "Remove permanently" };
 }
@@ -81,20 +81,20 @@ export async function HardDeleteManyImages({ ids = [], urls = [] }) {
 
   if (images.length <= 0) throw CreateError(404, "Image not found");
 
-  await r2CloudflareService.deleteManyObjects(images.map((image) => image.key));
+  await r2CloudflareUtils.deleteManyObjects(images.map((image) => image.key));
 
   await db.image.deleteMany({ where: { ...(ids.length > 0 && { id: { in: ids } }), ...(urls.length > 0 && { url: { in: urls } }) } });
 
-  redisService.image().incr();
-  ids.forEach((id) => redisService.image(id).incr());
-  urls.forEach((url) => redisService.image(url).incr());
+  redisUtils.image().incr();
+  ids.forEach((id) => redisUtils.image(id).incr());
+  urls.forEach((url) => redisUtils.image(url).incr());
 
   return { success: true, message: "Remove permanently" };
 }
 
 // This will find the images that are not used by any user, story, nation or story node content
 export async function FindTrashImage({ page = 1, limit = 10 }) {
-  const imageVer = await redisService.image().get();
+  const imageVer = await redisUtils.image().get();
   const REDIS_KEY = ["FindTrashImage", "v=" + imageVer, "page=" + page, "limit=" + limit].join(":");
 
   const cached = await redis.get(REDIS_KEY);

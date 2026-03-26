@@ -1,6 +1,6 @@
 import ErrorCodes from "../constants/Error.js";
-import { VerifyAccessToken } from "../utils/TokenHandle.js";
-import { FindUser } from "../models/User.Model.js";
+import { VerifyAccessToken } from "../utils/Token.js";
+import { FindUser } from "../services/user.service.js";
 import { CreateError } from "../utils/ErrorHandle.js";
 
 export async function verifyApiKey(req, res, next) {

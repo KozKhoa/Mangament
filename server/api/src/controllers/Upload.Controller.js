@@ -1,11 +1,11 @@
 import crypto from "crypto";
 
-import * as imageModel from "../models/Image.Model.js";
+import * as imageService from "../services/image.service.js";
 
 import pLimit from "p-limit";
 import sharp from "sharp";
 
-import * as r2CloudflareService from "../services/r2-cloudflare.service.js";
+import r2CloudflareUtils from "../utils/R2Cloudflare.js";
 
 // POST /uploads/user/:userId/avatar
 // POST /uploads/user/me/avatar
@@ -30,7 +30,7 @@ export async function UploadAvatar(req, res, next) {
       })
       .toBuffer();
 
-    const result = await Promise.all([r2CloudflareService.uploadObject(key, optimizedBuffer, file.mimetype), imageModel.AddImage({ url, key })]);
+    const result = await Promise.all([r2CloudflareUtils.uploadObject(key, optimizedBuffer, file.mimetype), imageService.AddImage({ url, key })]);
 
     res.json({ success: true, data: { key, url, id: result[1].data.id } });
   } catch (err) {
@@ -60,7 +60,7 @@ export async function UploadStoryCoverArt(req, res, next) {
       })
       .toBuffer();
 
-    const result = await Promise.all([r2CloudflareService.uploadObject(key, optimizedBuffer, file.mimetype), imageModel.AddImage({ url, key })]);
+    const result = await Promise.all([r2CloudflareUtils.uploadObject(key, optimizedBuffer, file.mimetype), imageService.AddImage({ url, key })]);
 
     res.json({ success: true, data: { key, url, id: result[1].data.id } });
   } catch (err) {
@@ -95,7 +95,7 @@ export async function UploadManyContentsForStoryNode(req, res, next) {
           const key = `story/${storyId}/story-node/${storyNodeId}/${crypto.randomUUID()}.jpg`;
           const url = `${process.env.CDN_URL}/${key}`;
 
-          const result = await Promise.all([r2CloudflareService.uploadObject(key, optimized, "image/jpeg"), imageModel.AddImage({ url, key })]);
+          const result = await Promise.all([r2CloudflareUtils.uploadObject(key, optimized, "image/jpeg"), imageService.AddImage({ url, key })]);
 
           return { key, url, id: result[1].data.id };
         }),
@@ -130,7 +130,7 @@ export async function UploadContentForStoryNode(req, res, next) {
       })
       .toBuffer();
 
-    const result = await Promise.all([r2CloudflareService.uploadObject(key, optimized, "image/jpeg"), imageModel.AddImage({ url, key })]);
+    const result = await Promise.all([r2CloudflareUtils.uploadObject(key, optimized, "image/jpeg"), imageService.AddImage({ url, key })]);
 
     res.json({ success: true, data: { key, url, id: result[1].data.id } });
   } catch (err) {

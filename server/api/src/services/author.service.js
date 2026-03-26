@@ -1,11 +1,11 @@
 import db from "../configs/db.js";
 import { redis } from "../configs/redis.js";
-import redisService from "../services/redis.service.js";
+import redisUtils from "../utils/Redis.js";
 
 const REDIS_TTL = 60 * 30;
 
 export async function FindAllAuthors({ page = 1, limit = 10, sort = { name: "asc" } }) {
-  const authorsVer = redisService.authors().get();
+  const authorsVer = redisUtils.authors().get();
 
   const REDIS_KEY = ["FindAllAuthors", `ver=${authorsVer}`, `page=${page}`, `limit=${limit}`, `sort=${JSON.stringify(sort)}`].join(":");
 
@@ -39,7 +39,7 @@ export async function FindAllAuthors({ page = 1, limit = 10, sort = { name: "asc
 }
 
 export async function FindAuthor(id) {
-  const authorsVer = redisService.authors().get();
+  const authorsVer = redisUtils.authors().get();
 
   const REDIS_KEY = ["FindAuthor", `ver=${authorsVer}`, `id=${id}`].join(":");
 
@@ -58,7 +58,7 @@ export async function FindAuthor(id) {
 export async function AddAuthor({ name, nationId, avatarId }) {
   const author = await db.author.create({ data: { name, nationId, avatarId } });
 
-  redisService.authors().incr();
+  redisUtils.authors().incr();
 
   return { success: true, data: author };
 }
@@ -66,7 +66,7 @@ export async function AddAuthor({ name, nationId, avatarId }) {
 export async function HardDeleteAuthor(id) {
   const author = await db.author.delete({ where: { id: id } });
   s;
-  redisService.authors().incr();
+  redisUtils.authors().incr();
 
   return { success: true, data: author };
 }
@@ -74,7 +74,7 @@ export async function HardDeleteAuthor(id) {
 export async function UpdateAuthor(id, { name, nationId, avatarId }) {
   const author = await db.author.update({ where: { id: id }, data: { name: name, nation_id: nationId, avatar_id: avatarId } });
 
-  redisService.authors().incr();
+  redisUtils.authors().incr();
 
   return { success: true, data: author };
 }

@@ -1,6 +1,6 @@
 import { CreateError } from "../utils/ErrorHandle.js";
 
-import { FindStoryNode, IncreaseOneViewForStoryNodeAndItsParents } from "../models/StoryNode.Model.js";
+import { FindStoryNode, IncreaseOneViewForStoryNodeAndItsParents } from "../services/story-node.service.js";
 
 export async function GetStoryNode(req, res, next) {
   try {

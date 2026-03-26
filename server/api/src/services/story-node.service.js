@@ -1,10 +1,10 @@
 import db from "../configs/db.js";
 import { StoryNodeType } from "../configs/db.js";
 import { redis } from "../configs/redis.js";
-import redisService from "../services/redis.service.js";
+import redisUtils from "../utils/Redis.js";
 import { CreateError } from "../utils/ErrorHandle.js";
 
-import { BuildStoryTree, UpdateStory } from "./Story.Model.js";
+import * as storyService from "./story.service.js";
 
 import { isUUID } from "../utils/Validators.js";
 
@@ -12,8 +12,8 @@ const REDIS_TTL = 60 * 30; // 30 minutes
 
 // Lấy danh sách parent của mọt story node (không lấy bản thân story đó)
 export async function GetParentStoryNodeTree(storyId, storyNodeId, isGettingContent = false) {
-  const storiesVer = await redisService.stories(storyId).get();
-  const storyNodeVer = await redisService.storyNodes(storyNodeId).get();
+  const storiesVer = await redisUtils.stories(storyId).get();
+  const storyNodeVer = await redisUtils.storyNodes(storyNodeId).get();
 
   const REDIS_KEY = [
     "GetParentStoryNodeTree",
@@ -66,9 +66,9 @@ export async function GetParentStoryNodeTree(storyId, storyNodeId, isGettingCont
 }
 
 export async function FindAllStoryNodes({ storyId, parentId, sort = { updated_at: "desc" } }, page = 1, limit = 10, isGettingChildren = false) {
-  const storiesVer = await redisService.stories(storyId).get();
-  const storyNodesVer = await redisService.storyNodes(storyId).get();
-  const storyNodesParentVer = await redisService.storyNodes(parentId).get();
+  const storiesVer = await redisUtils.stories(storyId).get();
+  const storyNodesVer = await redisUtils.storyNodes(storyId).get();
+  const storyNodesParentVer = await redisUtils.storyNodes(parentId).get();
 
   const REDIS_KEY = [
     "FindAllStoryNodes",
@@ -135,7 +135,7 @@ export async function FindAllStoryNodes({ storyId, parentId, sort = { updated_at
 
   if (isGettingChildren) {
     for (const node of storyNodes) {
-      node.children = await BuildStoryTree(node.story_id, node.id);
+      node.children = await storyService.BuildStoryTree(node.story_id, node.id);
     }
   }
 
@@ -156,8 +156,8 @@ export async function FindAllStoryNodes({ storyId, parentId, sort = { updated_at
 }
 
 export async function FindStoryNode({ id, storyId, parentId, storyNodeType, orderIndex, isGettingChildren = false, isGettingContent = false }) {
-  const storiesVer = await redisService.stories(storyId).get();
-  const storyNodeVer = await redisService.storyNodes(storyId).get();
+  const storiesVer = await redisUtils.stories(storyId).get();
+  const storyNodeVer = await redisUtils.storyNodes(storyId).get();
 
   const REDIS_KEY = [
     "FindStoryNode",
@@ -218,7 +218,7 @@ export async function FindStoryNode({ id, storyId, parentId, storyNodeType, orde
     });
 
   if (isGettingChildren) {
-    storyNode.children = await BuildStoryTree(storyNode.story_id, storyNode.id, isGettingContent);
+    storyNode.children = await storyService.BuildStoryTree(storyNode.story_id, storyNode.id, isGettingContent);
   }
 
   const result = { success: true, data: storyNode };
@@ -268,9 +268,9 @@ export async function AddStoryNode(
         throw new Error(error);
       });
 
-    redisService.storyNodes(newStoryNode.story_id).incr();
-    redisService.stories(newStoryNode.story_id).incr();
-    if (newStoryNode.parent_id) redisService.storyNodes(newStoryNode.parent_id).incr();
+    redisUtils.storyNodes(newStoryNode.story_id).incr();
+    redisUtils.stories(newStoryNode.story_id).incr();
+    if (newStoryNode.parent_id) redisUtils.storyNodes(newStoryNode.parent_id).incr();
 
     // Update number of children for parent or story
     if (newStoryNode.parent_id) {
@@ -329,9 +329,9 @@ export async function UpdateStoryNode(
       throw new Error(error);
     });
 
-  redisService.storyNodes(updating.story_id).incr();
-  redisService.stories(updating.story_id).incr();
-  if (updating.parent_id) redisService.storyNodes(updating.parent_id).incr();
+  redisUtils.storyNodes(updating.story_id).incr();
+  redisUtils.stories(updating.story_id).incr();
+  if (updating.parent_id) redisUtils.storyNodes(updating.parent_id).incr();
 
   return { success: true, data: updating };
 }
@@ -351,9 +351,9 @@ export async function SoftDeleteStoryNode(storyNodeId) {
       throw new Error(error);
     });
 
-  redisService.storyNodes(storyNode.story_id).incr();
-  redisService.stories(storyNode.story_id).incr();
-  if (storyNode.parent_id) redisService.storyNodes(storyNode.parent_id).incr();
+  redisUtils.storyNodes(storyNode.story_id).incr();
+  redisUtils.stories(storyNode.story_id).incr();
+  if (storyNode.parent_id) redisUtils.storyNodes(storyNode.parent_id).incr();
 
   return { success: true, message: "Remove successfully" };
 }
@@ -372,9 +372,9 @@ export async function HardDeleteStoryNode(storyNodeId) {
       throw new Error(error);
     });
 
-  redisService.storyNodes(storyNode.story_id).incr();
-  redisService.stories(storyNode.story_id).incr();
-  if (storyNode.parent_id) redisService.storyNodes(storyNode.parent_id).incr();
+  redisUtils.storyNodes(storyNode.story_id).incr();
+  redisUtils.stories(storyNode.story_id).incr();
+  if (storyNode.parent_id) redisUtils.storyNodes(storyNode.parent_id).incr();
 
   return { success: true, message: "Remove successfully" };
 }

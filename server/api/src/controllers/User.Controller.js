@@ -1,17 +1,17 @@
-import { UpdateUser } from "../models/User.Model.js";
+import { UpdateUser } from "../services/user.service.js";
 
 import { CreateError } from "../utils/ErrorHandle.js";
-import { HashPassword, ComparePassword } from "../utils/PasswordHandle.js";
-import { CheckEmailAndPasswordFormat } from "../utils/Validators.js";
+import { HashPassword, ComparePassword } from "../utils/Password.js";
+import { throwErrorIfInvalidEmailAndPassword } from "../utils/Validators.js";
 
-import * as userModel from "../models/User.Model.js";
+import * as userService from "../services/user.service.js";
 
 // GET /user/me
 export async function GetUser(req, res, next) {
   try {
     const userId = req.user?.id;
 
-    const user = await userModel.FindUser({ id: userId });
+    const user = await userService.FindUser({ id: userId });
 
     delete user.data.password;
 
@@ -40,7 +40,7 @@ export async function UpdateUserInfo(req, res, next) {
     if (birthday == "Invalid Date") throw CreateError(400, "Invalid birthday format");
 
     // Update user infomation
-    const updateUser = await userModel.UpdateUser(userId, { name, birthday, gender, avatar });
+    const updateUser = await userService.UpdateUser(userId, { name, birthday, gender, avatar });
 
     delete updateUser.data.password;
 
@@ -69,7 +69,7 @@ export async function ChangeUserPassword(req, res, next) {
       throw CreateError(400, "Old password and new password cannot be the same");
 
     // Validate password format.
-    CheckEmailAndPasswordFormat("example@gmail.com", newPassword);
+    throwErrorIfInvalidEmailAndPassword("example@gmail.com", newPassword);
 
     // Find user and password
     const user = await GetUserPassword({ id: userId });

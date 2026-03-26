@@ -1,7 +1,5 @@
 import express from "express";
 
-import uploadMulter from "../configs/multer.js";
-
 import { AuthenticationToken, AuthorizationRole } from "../middlewares/Auth.Middleware.js";
 
 import * as adminController from "../controllers/Admin.Controller.js";

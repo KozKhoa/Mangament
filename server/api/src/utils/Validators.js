@@ -7,7 +7,7 @@ export const IsValidEmail = (email) => {
   return regex.test(email);
 };
 
-export const CheckEmailAndPasswordFormat = (email, password) => {
+export function throwErrorIfInvalidEmailAndPassword(email, password) {
   // Nếu email và passworđ sai format thì throw lỗi ra luôn
   // Kiểm tra có nhập đầy đủ email hay không
   if (!email) {
@@ -22,7 +22,7 @@ export const CheckEmailAndPasswordFormat = (email, password) => {
   if (password.length < 6) {
     throw CreateError(400, "Password must be at least 6 characters");
   }
-};
+}
 
 export function IsJsonString(string) {
   try {

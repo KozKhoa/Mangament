@@ -2,19 +2,21 @@ import db from "../configs/db.js";
 import { redis } from "../configs/redis.js";
 import { CreateError } from "../utils/ErrorHandle.js";
 import { randomInt } from "../utils/Number.js";
-import { ValidateGenre } from "./Genre.Model.js";
+import { ValidateGenre } from "./genre.service.js";
+
+import * as storyQueue from "../queues/story.queue.js";
 
 import { throwErrorIfInvalidGenres } from "../utils/Validators.js";
 
 import { validate as isUUID } from "uuid";
-import redisService from "../services/redis.service.js";
-import MLService from "../services/ml-service.js";
+import redisUtils from "../utils/Redis.js";
+import MLService from "./ml.service.js";
 
 const REDIS_TTL = 60 * 30; // 30 minutes
 
 export async function BuildStoryTree(storyId, storyNodeId, isGettingContent = false) {
-  const storiesVer = await redisService.stories(storyId).get();
-  const storyNodeVer = await redisService.storyNodes(storyId).get();
+  const storiesVer = await redisUtils.stories(storyId).get();
+  const storyNodeVer = await redisUtils.storyNodes(storyId).get();
 
   const REDIS_KEY = [
     "BuildStoryTree",
@@ -70,7 +72,7 @@ export async function BuildStoryTree(storyId, storyNodeId, isGettingContent = fa
 }
 
 export async function GetNewestChapter(storyId, number) {
-  const storyVer = await redisService.stories(storyId).get();
+  const storyVer = await redisUtils.stories(storyId).get();
 
   const REDIS_KEY = ["GetNewestChapter", "storyVer=" + storyVer, "storyId=" + storyId, "number=" + number].join(":");
 
@@ -123,7 +125,7 @@ export async function GetNewestChapter(storyId, number) {
 }
 
 export async function GetReview(storyId, number = 1) {
-  const storyVer = await redisService.stories(storyId).get();
+  const storyVer = await redisUtils.stories(storyId).get();
 
   const REDIS_KEY = ["GetReview:", "storyVer=" + storyVer, "storyId=" + storyId, "number=" + number].join(":");
 
@@ -161,7 +163,7 @@ export async function FindAllStories({
   isGettingChildren = false,
   isGettingNewestChapter = false,
 }) {
-  const storiesVer = await redisService.stories().get();
+  const storiesVer = await redisUtils.stories().get();
 
   const REDIS_KEY = [
     "FindAllStories",
@@ -262,7 +264,7 @@ export async function FindStory({
   isActived,
   isDeleted = false,
 }) {
-  const storiesVer = await redisService.stories(id || title).get();
+  const storiesVer = await redisUtils.stories(id || title).get();
 
   const REDIS_KEY = [
     "FindStory",
@@ -361,7 +363,7 @@ export async function AddStory({ title, type, nation, genres = [], authorIds, st
         throw new Error(error);
       });
 
-    redisService.stories().incr();
+    redisUtils.stories().incr();
 
     return { success: true, data: newStory };
   });
@@ -384,8 +386,8 @@ export async function ToggleSoftDeleteStory(id, isDeleted = false) {
       throw new Error(error);
     });
 
-  redisService.stories().incr();
-  redisService.stories(softDelete.id).incr();
+  redisUtils.stories().incr();
+  redisUtils.stories(softDelete.id).incr();
 
   return { success: true, data: softDelete };
 }
@@ -414,8 +416,8 @@ export async function ToggleSoftDeleteManyStories(ids = [], isDeleted = false) {
       throw new Error(error);
     });
 
-  redisService.stories().incr();
-  Promise.all(ids.map((id) => redisService.stories(id).incr()));
+  redisUtils.stories().incr();
+  Promise.all(ids.map((id) => redisUtils.stories(id).incr()));
 
   return { success: true, data: toggle };
 }
@@ -434,8 +436,8 @@ export async function HardDeleteStory(id) {
       throw new Error(error);
     });
 
-  redisService.stories().incr();
-  redisService.stories(hardRemove.id).incr();
+  redisUtils.stories().incr();
+  redisUtils.stories(hardRemove.id).incr();
 
   return { success: true, data: hardRemove };
 }
@@ -445,8 +447,8 @@ export async function HardDeleteManyStories(ids = []) {
 
   const hardRemoves = await db.story.deleteMany({ where: { id: { in: ids } } });
 
-  redisService.stories().incr();
-  Promise.all(ids.map((id) => redisService.stories(id).incr()));
+  redisUtils.stories().incr();
+  Promise.all(ids.map((id) => redisUtils.stories(id).incr()));
 
   return { success: true, data: hardRemoves };
 }
@@ -467,21 +469,22 @@ export async function ActiveStory(id, isActived = true) {
       throw new Error(error);
     });
 
-  redisService.stories().incr();
-  redisService.stories(active.id).incr();
-  redisService.stories(active.title).incr();
+  redisUtils.stories().incr();
+  redisUtils.stories(active.id).incr();
+  redisUtils.stories(active.title).incr();
 
   return { success: true, data: active };
 }
 
 export async function UpdateEmbeddingStory(id) {
-  const story = await db.story.findUnique({ where: { id: id }, include: { genres: true } });
+  const story = await db.story.findUnique({ where: { id: id }, include: { genres: true, authors: true } });
   if (!story) throw CreateError(404, "Story not found");
 
   const embed = await MLService.embedStory(
     story.title,
     story.summary,
     story.genres.map((g) => g.genre),
+    story.authors.map((author) => author.author_id),
   );
 
   await db.$executeRaw`
@@ -781,12 +784,12 @@ export async function UpdateStory(
   );
 
   if ((genres && genres.length > 0) || title || summary) {
-    await UpdateEmbeddingStory(story.id);
+    storyQueue.AddJobUpdateEmbeddingStory(story.id);
   }
 
-  redisService.stories().incr();
-  redisService.stories(story.id).incr();
-  redisService.stories(story.title).incr();
+  await redisUtils.stories().incr();
+  await redisUtils.stories(story.id).incr();
+  await redisUtils.stories(story.title).incr();
 
   return transactionRes;
 }
@@ -807,7 +810,7 @@ export async function GetRecommendStories({ storyId, userId, page = 1, limit = 1
 
   let ids = [];
 
-  const storiesVer = redisService.stories().get();
+  const storiesVer = redisUtils.stories().get();
 
   const REDIS_KEY = ["GetRecommendStories", "storiesVer=" + storiesVer, "storyId=" + storyId, "userId=" + userId, "page=" + page, "limit=" + limit].join(":");
 

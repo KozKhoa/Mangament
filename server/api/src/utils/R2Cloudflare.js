@@ -31,3 +31,10 @@ export async function deleteManyObjects(keys) {
     }),
   );
 }
+
+const r2CloudflareUtils = {
+  uploadObject,
+  deleteObject,
+  deleteManyObjects,
+};
+export default r2CloudflareUtils;
