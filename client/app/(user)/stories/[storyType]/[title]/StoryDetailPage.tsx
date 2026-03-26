@@ -22,6 +22,7 @@ import RatingMasonryGrid from "@/components/grids/rating-masonry-grid";
 
 import Image from "next/image";
 import { loadingBar } from "@/components/loadings/loading-bar/top-loading-bar.store";
+import ImageType from "@/types/image";
 
 export default function StoryDetailPage() {
   const router = useRouter();
@@ -31,7 +32,7 @@ export default function StoryDetailPage() {
   const title = useMemo(() => params.title?.toString(), [params]);
 
   const [story, setStory] = useState<Story>();
-  const [review, setReview] = useState<string[]>();
+  const [reviews, setReviews] = useState<ImageType[]>([]);
 
   async function fetchStory() {
     if (!title || !storyType) return;
@@ -50,7 +51,7 @@ export default function StoryDetailPage() {
 
     if (!res.success) return toast.warning(res.message);
 
-    setReview(res.data);
+    setReviews(res.data ?? []);
   }
 
   function handleNavigateStoryNode(storyNode: StoryNode[]) {
@@ -113,7 +114,7 @@ export default function StoryDetailPage() {
       </div>
 
       {/* Review */}
-      {/* <div
+      <div
         className="flex flex-col border border-foreground/30 rounded-sm px-5 py-2.5 gap-7 
           bg-background-items shadow-lg"
       >
@@ -122,13 +123,21 @@ export default function StoryDetailPage() {
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 
             gap-5"
         >
-          {review?.map((url, i) => (
+          {reviews?.map((review, i) => (
             <div key={i} className="border border-foreground/30 rounded-sm overflow-hidden">
-              {url && <Image src={url} alt={`review ${i}`} width={300} height={400} style={{ width: "100%", height: "auto" }}></Image>}
+              {review && (
+                <Image
+                  src={[process.env.NEXT_PUBLIC_CDN_URL, review.key].join("/")}
+                  alt={`review ${i}`}
+                  width={300}
+                  height={400}
+                  style={{ width: "100%", height: "auto" }}
+                ></Image>
+              )}
             </div>
           ))}
         </div>
-      </div> */}
+      </div>
 
       <div className="flex flex-col gap-5">
         {/* Rating */}

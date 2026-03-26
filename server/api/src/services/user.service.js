@@ -145,7 +145,7 @@ export async function BannedUser({ id, email, isBanned }) {
   return { success: true, data: bannedUser };
 }
 
-export async function UpdateUser(id, { name, birthday, gender, avatar }) {
+export async function UpdateUser(id, { name, birthday, gender, avatar, role }) {
   if (!id) throw CreateError(400, "'id' is required");
 
   gender && throwErrorIfInvalidGenders(gender);
@@ -159,6 +159,7 @@ export async function UpdateUser(id, { name, birthday, gender, avatar }) {
         ...(name && { name: name }),
         ...(birthday && { birthday: new Date(birthday) }),
         ...(gender && { gender: gender }),
+        ...(role && { role: role }),
         ...(avatar && { avatar: { connectOrCreate: { where: { url: avatar.url }, create: { url: avatar.url, key: avatar.key } } } }),
       },
       include: { avatar: true },

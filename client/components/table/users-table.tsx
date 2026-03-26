@@ -221,7 +221,7 @@ export default function UserTable({ className, data }: UserTableProps) {
                         <Loading className="w-full h-full"></Loading>
                       ) : (
                         <button disabled={user.role === "admin"} onClick={() => deleteUser(user)}>
-                          <DeleteIcon className="w-full h-full text-red-600 "></DeleteIcon>
+                          <DeleteIcon className="w-full h-full text-red-600"></DeleteIcon>
                         </button>
                       )}
                     </div>

@@ -72,15 +72,6 @@ export default function UserCard({ className }: { className?: string }) {
         shadow-lg ${className}`}
       >
         <div className="flex flex-1 h-full min-w-xs aspect-square p-3 border border-foreground/20 rounded-full relative">
-          {/* <ImagePicker
-            className="flex justify-center items-center w-full"
-            defaultValue={user?.avatar?.url ?? ""}
-            value={user?.avatar?.url}
-            onChange={(file) => {
-              if (typeof file !== "string") auth?.updateAvatar(file);
-            }}
-          /> */}
-
           <Image className="rounded-full overflow-hidden" src={image} alt="Avatar" fill />
 
           <label className="absolute bottom-1 right-1 cursor-pointer z-10">
