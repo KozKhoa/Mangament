@@ -3,6 +3,7 @@ import axios from "axios";
 import qs from "qs";
 import { StoryParams } from "@/types/params";
 import Story from "@/types/story";
+import Image from "@/types/image";
 
 type Pagination = { page: number; pageSize: number; totalItems: number; totalPages: number };
 type ServiceResult<T> = { success: boolean; data?: T; message?: string; pagination?: Pagination };
@@ -50,7 +51,7 @@ export async function getStories(params?: StoryParams): Promise<ServiceResult<St
   }
 }
 
-export async function getReview(storyId: string): Promise<ServiceResult<string[]>> {
+export async function getReview(storyId: string): Promise<ServiceResult<Image[]>> {
   try {
     const res = await api.get(`/stories/${storyId}/review`);
 

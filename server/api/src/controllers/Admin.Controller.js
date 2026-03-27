@@ -188,7 +188,7 @@ export async function UpdateUserInfo(req, res, next) {
 
     if (!userId) throw CreateError(400, "'id' is required");
 
-    const update = await userService.UpdateUser({ id: userId, data: { role, name } });
+    const update = await userService.UpdateUser(userId, { role, name });
     if (!update) throw CreateError();
 
     delete update?.data?.password;

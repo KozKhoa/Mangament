@@ -17,14 +17,14 @@ export async function verifyApiKey(req, res, next) {
   }
 }
 
-export const AuthenticationToken = async (req, res, next) => {
+export async function AuthenticationToken(req, res, next) {
   // Determine who you are (your id, name, email,...)
   try {
     // if user do not have token
     if (!req.headers.authorization || !req.headers.authorization.startsWith("Bearer")) {
-      return res.status(ErrorCodes.UNAUTHORIZED.status).json({
+      return res.status(401).json({
         success: false,
-        message: ErrorCodes.UNAUTHORIZED.message,
+        message: "Unauthorized access",
       });
     }
 
@@ -34,15 +34,15 @@ export const AuthenticationToken = async (req, res, next) => {
     // Decoded token
     const { decodedToken, isExpire } = VerifyAccessToken(token);
     if (isExpire) {
-      return res.status(ErrorCodes.TOKEN_EXPIRED.status).json({ success: false, message: ErrorCodes.TOKEN_EXPIRED.message });
+      return res.status(401).json({ success: false, message: "Token has been expired" });
     } else if (!decodedToken || !decodedToken.id) {
-      return res.status(ErrorCodes.TOKEN_INVALID.status).json({ success: false, message: ErrorCodes.TOKEN_INVALID.message });
+      return res.status(401).json({ success: false, message: "Token invalid" });
     }
 
     // Check if user exist
     const checkUser = await FindUser({ id: decodedToken.id });
     if (!checkUser || !checkUser.success || !checkUser.data) {
-      return res.status(ErrorCodes.TOKEN_INVALID.status).json({ success: false, message: ErrorCodes.TOKEN_INVALID.message });
+      return res.status(401).json({ success: false, message: "Token invalid" });
     }
 
     // Put user info into reqeust
@@ -58,7 +58,7 @@ export const AuthenticationToken = async (req, res, next) => {
   } catch (error) {
     next(error);
   }
-};
+}
 
 export async function AuthorizationRole(req, res, next) {
   // Determine you permistion, if you are not admin, you cannto access this request

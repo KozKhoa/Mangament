@@ -56,7 +56,7 @@ export default function LabelInput({
 
         {!disable && (
           <button onClick={toggleEdit} className="w-fit">
-            {isEdited ? <ConfirmIcon className="w-6 h-6"></ConfirmIcon> : <EditIcon className="w-6 h-6"></EditIcon>}
+            {isEdited ? <ConfirmIcon className="w-6 h-6 cursor-pointer"></ConfirmIcon> : <EditIcon className="w-6 h-6 cursor-pointer"></EditIcon>}
           </button>
         )}
       </div>

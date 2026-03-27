@@ -20,9 +20,9 @@ export const GenAccessToken = ({ id, name, email, role }) => {
   }
 };
 
-export const VerifyRefreshToken = (token) => {
+export function VerifyRefreshToken(token) {
   try {
-    const decodedToken = jwt.verify(token, JWT_REFRESH_SECRET);
+    const decodedToken = jwt.verify(token, process.env.JWT_REFRESH_SECRET);
     // Nếu verify thành công -> token còn hạn
     return { decodedToken: decodedToken, isExpire: false };
   } catch (err) {
@@ -31,7 +31,7 @@ export const VerifyRefreshToken = (token) => {
     }
     return { decodedToken: null, isExpire: true }; // token sai hoặc hết hạn
   }
-};
+}
 
 export const VerifyAccessToken = (token) => {
   try {

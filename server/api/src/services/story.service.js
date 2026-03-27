@@ -137,6 +137,7 @@ export async function GetReview(storyId, number = 1) {
   const storyNodeContents = await db.storyNodeContent.findMany({
     where: { story_node_id: { in: storyNodes.map((node) => node.id) } },
     select: { image: { select: { key: true, url: true, width: true, height: true } } },
+    take: number,
   });
 
   const result = { success: true, data: storyNodeContents.map((content) => content.image) };

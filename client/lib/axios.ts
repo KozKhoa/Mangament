@@ -63,7 +63,10 @@ api.interceptors.response.use(
         const res = await axios.post(
           `${process.env.NEXT_PUBLIC_API_URL}/auth/refresh`,
           {},
-          { withCredentials: true }, // gửi cookie refresh token
+          {
+            withCredentials: true,
+            headers: { "x-api-key": process.env.NEXT_PUBLIC_API_KEY },
+          }, // gửi cookie refresh token
         );
 
         const newAccessToken = res.data.data.accessToken;
