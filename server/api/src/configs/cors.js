@@ -1,4 +1,4 @@
-const WHITE_LIST = ["http://localhost:3000", "https://mangament.netlify.app"];
+const WHITE_LIST = ["http://localhost:3000", "https://mangament.netlify.app", "https://motivation-classes-wanting-apache.trycloudflare.com"];
 
 export const corsOptions = {
   origin: function (origin, callback) {
