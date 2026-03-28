@@ -1,10 +1,10 @@
-import ErrorCodes from "../constants/Error.js";
 import { CreateError } from "../utils/ErrorHandle.js";
 
 import * as userService from "../services/user.service.js";
 import * as storyService from "../services/story.service.js";
 import * as adminService from "../services/admin.service.js";
 import * as imageService from "../services/image.service.js";
+import * as storyNodeService from "../services/story-node.service.js";
 
 import { ConvertQuery } from "../utils/QueryConvert.js";
 
@@ -489,6 +489,53 @@ export async function RestoreTrashStory(req, res, next) {
     const story = await storyService.ToggleSoftDeleteStory(storyId, false); // Restore
 
     res.json({ success: true, message: "Restore successfully", data: story });
+  } catch (error) {
+    next(error);
+  }
+}
+
+// DELETE /admin/story-nodes/trash/:id
+// This is use to permanently remove story node
+export async function DeleteTrashStoryNode(req, res, next) {
+  try {
+    const storyNodeId = req.params?.id;
+
+    if (!storyNodeId) throw CreateError(400, "'id' for story node is required");
+
+    await storyNodeService.HardDeleteStoryNode(storyNodeId);
+
+    return res.json({ success: true, message: "Remove successfully" });
+  } catch (error) {
+    next(error);
+  }
+}
+
+//PATCH /admin/story-nodes/trash/:id/restore
+// This is use to restore story node
+export async function RestoreTrashStoryNode(req, res, next) {
+  try {
+    const storyNodeId = req.params?.id;
+
+    if (!storyNodeId) throw CreateError(400, "'id' for story node is required");
+
+    await storyNodeService.ToggleSoftDeleteStoryNode(storyNodeId, false);
+
+    return res.json({ success: true, message: "Restore successfully" });
+  } catch (error) {
+    next(error);
+  }
+}
+
+// PATCH /admin/story-nodes/trash/restore
+export async function RestoreManyTrashStoryNodes(req, res, next) {
+  try {
+    const storyNodeIds = req.body?.ids;
+
+    if (!storyNodeIds) throw CreateError(400, "'id' for story node is required");
+
+    await storyNodeService.ToggleSoftDeleteManyStoryNodes(storyNodeIds, false);
+
+    return res.json({ success: true, message: "Restore successfully" });
   } catch (error) {
     next(error);
   }

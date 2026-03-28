@@ -3,8 +3,3 @@ uploads/
 server/logs/
 
 
-# gitignore
-.gitignore
-client/.gitignore
-server/.gitignore
-server/.gitignore
