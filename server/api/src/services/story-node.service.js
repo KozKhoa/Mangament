@@ -335,16 +335,16 @@ export async function UpdateStoryNode(
   return { success: true, data: updating };
 }
 
-export async function SoftDeleteStoryNode(storyNodeId) {
-  if (!storyNodeId) throw CreateError(400, "Require 'storyNodeId'");
+export async function ToggleSoftDeleteStoryNode(id, isDeleted = false) {
+  if (!id) throw CreateError(400, "Require 'id'");
 
   const storyNode = await db.storyNode
     .update({
-      where: { id: storyNodeId },
-      data: { is_deleted: true },
+      where: { id: id },
+      data: { is_deleted: isDeleted },
     })
     .catch(async (error) => {
-      const storyNode = await db.storyNode.findUnique({ where: { id: storyNodeId } });
+      const storyNode = await db.storyNode.findUnique({ where: { id: id } });
       if (!storyNode) throw CreateError(400, "Story node not found");
 
       throw new Error(error);
@@ -352,28 +352,74 @@ export async function SoftDeleteStoryNode(storyNodeId) {
 
   redisUtils.storyNodes(storyNode.story_id).incr();
   redisUtils.stories(storyNode.story_id).incr();
-  if (storyNode.parent_id) redisUtils.storyNodes(storyNode.parent_id).incr();
+
+  if (storyNode.parent_id) {
+    redisUtils.storyNodes(storyNode.parent_id).incr();
+  }
+
+  return { success: true, message: isDeleted ? "Remove successfully" : "Restore successfully" };
+}
+
+export async function ToggleSoftDeleteManyStoryNodes(ids = [], isDeleted = false) {
+  if (ids.length <= 0) throw CreateError(400, "Require 'ids'");
+
+  const storyNodes = await db.storyNode
+    .updateManyAndReturn({
+      where: { id: { in: ids } },
+      data: { is_deleted: isDeleted },
+    })
+    .catch(async (error) => {
+      const storyNodes = await db.storyNode.findMany({ where: { id: { in: ids } } });
+      if (storyNodes.length !== ids.length) throw CreateError(400, "Story node not found");
+
+      throw new Error(error);
+    });
+
+  const storyIds = new Set(storyNodes.map((storyNode) => storyNode.story_id));
+  const parentIds = new Set(storyNodes.filter((storyNode) => storyNode.parent_id).map((storyNode) => storyNode.parent_id));
+
+  redisUtils.storyNodes().incr();
+
+  Promise.all(storyNodes.map((node) => redisUtils.storyNodes(node.id).incr()));
+  Promise.all([...parentIds].map((parentId) => redisUtils.storyNodes(parentId).incr()));
+  Promise.all([...storyIds].map((storyId) => redisUtils.stories(storyId).incr()));
+
+  return { success: true, message: isDeleted ? "Remove successfully" : "Restore successfully" };
+}
+
+export async function HardDeleteStoryNode(id) {
+  if (!id) throw CreateError(400, "Require 'id'");
+
+  const storyNode = await db.storyNode
+    .delete({
+      where: { id: id },
+    })
+    .catch(async (error) => {
+      const storyNode = await db.storyNode.findUnique({ where: { id: id } });
+      if (!storyNode) throw CreateError(400, "Story node not found");
+
+      throw new Error(error);
+    });
+
+  redisUtils.storyNodes().incr();
+
+  redisUtils.storyNodes(storyNode.id).incr();
+  redisUtils.stories(storyNode.story_id).incr();
+  if (storyNode.parent_id) {
+    redisUtils.storyNodes(storyNode.parent_id).incr();
+  }
 
   return { success: true, message: "Remove successfully" };
 }
 
-export async function HardDeleteStoryNode(storyNodeId) {
-  if (!storyNodeId) throw CreateError(400, "Require 'storyNodeId'");
+export async function HardDeleteManyStoryNodes(ids = []) {
+  if (ids.length <= 0) throw CreateError(400, "Require 'ids'");
 
-  const storyNode = await db.storyNode
-    .delete({
-      where: { id: storyNodeId },
-    })
-    .catch(async (error) => {
-      const storyNode = await db.storyNode.findUnique({ where: { id: storyNodeId } });
-      if (!storyNode) throw CreateError(400, "Story node not found");
+  const storyNodes = await db.storyNode.deleteMany({
+    where: { id: { in: ids } },
+  });
 
-      throw new Error(error);
-    });
-
-  redisUtils.storyNodes(storyNode.story_id).incr();
-  redisUtils.stories(storyNode.story_id).incr();
-  if (storyNode.parent_id) redisUtils.storyNodes(storyNode.parent_id).incr();
+  await redisUtils.storyNodes().incr();
 
   return { success: true, message: "Remove successfully" };
 }

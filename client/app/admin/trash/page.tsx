@@ -34,7 +34,9 @@ export function TrashPage() {
         <Navigate>Story</Navigate>
       </Link>
 
-      {/* <Navigate>Story Node</Navigate> */}
+      <Link href={"/admin/trash/story-nodes"}>
+        <Navigate>Story Node</Navigate>
+      </Link>
     </div>
   );
 }

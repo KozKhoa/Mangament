@@ -394,6 +394,17 @@ export async function restoreManyStories(ids: string[]): Promise<ServiceResult<S
   }
 }
 
+// DELETE /admin/story-nodes/trash/:id
+export async function deletePermanentTrashStoryNode(id: string): Promise<ServiceResult<null>> {
+  try {
+    const res = await api.delete(`/admin/story-nodes/trash/${id}`);
+    return res.data;
+  } catch (error: any) {
+    console.error(error);
+    return { success: false, message: error?.response?.data?.message || error?.message || "Unknown error" };
+  }
+}
+
 const adminService = {
   getOverview,
   getStatsView,

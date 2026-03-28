@@ -704,6 +704,8 @@ adminRoute.patch("/stories/trash/restore", adminController.RestoreManyTrashStori
 // This is used to restored story soft-removed
 adminRoute.patch("/stories/trash/:id/restore", adminController.RestoreTrashStory);
 
+adminRoute.delete("/story-nodes/trash/:id", adminController.DeleteTrashStoryNode);
+
 //
 //
 //
