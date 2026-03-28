@@ -7,7 +7,7 @@ import { loadingBar } from "@/components/loadings/loading-bar/top-loading-bar.st
 import SwitchPageSmall from "@/components/switch-page/small";
 import { Pagination } from "@/types/pagination";
 import StoryNode from "@/types/story-node";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 import EyeIcon from "@/public/eye/open.svg";
@@ -15,9 +15,13 @@ import XICon from "@/public/x-icon.svg";
 import ZoomIcon from "@/public/zooom.svg";
 import TrashIcom from "@/public/trash.svg";
 import adminService from "@/services/admin";
+import { toast } from "sonner";
+import Checkbox from "@/components/inputs/checkbox";
+import SwitchPageBig from "@/components/switch-page/big";
 
 export default function StoryNodesTrashPage() {
   const searchParams = useSearchParams();
+  const router = useRouter();
 
   const [storyNodes, setStoryNodes] = useState<StoryNode[]>([]);
   const [pagination, setPagination] = useState<Pagination>();
@@ -38,31 +42,31 @@ export default function StoryNodesTrashPage() {
     storyNodes;
   }
 
-  async function handleDeleteTrashStoryNode(id: string) {
-    if (!id) return;
+  // async function handleDeleteTrashStoryNode(id: string) {
+  //   if (!id) return;
 
-    setDeleting((prev) => {
-      const newSet = new Set(prev);
-      newSet.add(id ?? "");
-      return newSet;
-    });
+  //   setDeleting((prev) => {
+  //     const newSet = new Set(prev);
+  //     newSet.add(id ?? "");
+  //     return newSet;
+  //   });
 
-    const res = await adminService.deletePermanentTrashStory(id);
+  //   const res = await adminService.deletePermanentManyTrashStories(id);
 
-    setDeleting((prev) => {
-      const newSet = new Set(prev);
-      newSet.delete(id ?? "");
-      return newSet;
-    });
+  //   setDeleting((prev) => {
+  //     const newSet = new Set(prev);
+  //     newSet.delete(id ?? "");
+  //     return newSet;
+  //   });
 
-    if (!res.success) return toast.warning(res.message);
+  //   if (!res.success) return toast.warning(res.message);
 
-    setStories((prev) => prev.filter((story) => story.id !== id));
+  //   setStories((prev) => prev.filter((story) => story.id !== id));
 
-    fetchTrashStories();
+  //   fetchTrashStories();
 
-    toast.message("Xóa truyện vĩnh viễn thành công");
-  }
+  //   toast.message("Xóa truyện vĩnh viễn thành công");
+  // }
 
   function handleNavigate(key: string, value: number) {
     loadingBar.open({});
@@ -118,7 +122,7 @@ export default function StoryNodesTrashPage() {
                 disable={deleting.size > 0}
                 buttonType="delete"
                 className="font-semibold"
-                onClick={() => handleDeleteManyTrashStories([...selected])}
+                // onClick={() => handleDeleteManyTrashStories([...selected])}
               >
                 Xóa
               </Button>
@@ -128,7 +132,7 @@ export default function StoryNodesTrashPage() {
                 disable={deleting.size > 0}
                 buttonType="add"
                 className="font-semibold"
-                onClick={() => handleRestoreManyStories([...selected])}
+                // onClick={() => handleRestoreManyStories([...selected])}
               >
                 Khôi phục
               </Button>
@@ -151,34 +155,34 @@ export default function StoryNodesTrashPage() {
               <div
                 key={i}
                 className={`border-4 relative rounded-lg overflow-hidden
-                ${deleting.has(storyNode.id ?? "") ? "border-red-500 opacity-20" : restoring.has(story.id ?? "") ? "border-blue-500 opacity-20" : selected.has(story.id ?? "") ? "border-green-500" : "border-transparent"}
+                ${deleting.has(storyNode.id ?? "") ? "border-red-500 opacity-20" : restoring.has(storyNode.id ?? "") ? "border-blue-500 opacity-20" : selected.has(storyNode.id ?? "") ? "border-green-500" : "border-transparent"}
               `}
               >
                 <button
-                  disabled={deleting.has(story.id) || restoring.has(story.id)}
+                  disabled={deleting.has(storyNode.id) || restoring.has(storyNode.id)}
                   className="absolute top-0 left-0 z-10 bg-background-items px-1 py-2 rounded-b-full cursor-pointer shadow-lg"
-                  onClick={() => handleZoomStory(story)}
+                  // onClick={() => handleZoomStory(story)}
                 >
                   <ZoomIcon className="w-7 h-7 text-foreground" />
                 </button>
 
                 <button
-                  disabled={deleting.has(story.id) || restoring.has(story.id)}
+                  disabled={deleting.has(storyNode.id) || restoring.has(storyNode.id)}
                   className="absolute top-0 right-0 z-10 p-2 bg-background-items px-1 py-2 rounded-b-full cursor-pointer shadow-lg"
-                  onClick={(e) => handleToggleSelectedStory(story.id, e as any)}
+                  // onClick={(e) => handleToggleSelectedStory(story.id, e as any)}
                 >
-                  <Checkbox value={selected.has(story.id ?? "")} />
+                  <Checkbox value={selected.has(storyNode.id ?? "")} />
                 </button>
 
                 {/* Story */}
-                <TrashStoryCard
+                {/* <Trash
                   className={`w-full h-full ${selected.has(story.id) ? "opacity-40" : ""}`}
                   story={story}
                   disable={deleting.has(story.id) || restoring.has(story.id)}
                   onClick={(e) => handleToggleSelectedStory(story.id, e as any)}
                   onDelete={() => handleDeleteTrashStory(story.id)}
                   onRestore={() => handleRestoreStory(story.id)}
-                />
+                /> */}
               </div>
             ))}
         </div>
