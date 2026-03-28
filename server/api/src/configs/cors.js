@@ -1,4 +1,4 @@
-const WHITE_LIST = ["http://localhost:3000", "https://mangament.netlify.app", "https://penn-dan-anti-quarters.trycloudflare.com"];
+const WHITE_LIST = ["http://localhost:3000", "https://mangament.netlify.app"];
 
 export const corsOptions = {
   origin: function (origin, callback) {
@@ -13,9 +13,14 @@ export const corsOptions = {
 
     if (WHITE_LIST.includes(origin)) {
       return callback(null, true);
-    } else {
-      return callback(new Error(`${origin} is not allowed by CORS`));
     }
+
+    // ✅ allow *.trycloudflare.com
+    if (/^https:\/\/.*\.trycloudflare\.com$/.test(origin)) {
+      return callback(null, true);
+    }
+
+    return callback(new Error(`${origin} is not allowed by CORS`));
   },
   credentials: true,
 
