@@ -14,9 +14,8 @@ export async function Login(req, res, next) {
     // Add refresh token to http only
     res.cookie(process.env.COOKIES_REFRESH_TOKEN_KEY, refreshToken, {
       httpOnly: true,
-      // secure: true,     // bắt buộc khi dùng HTTPS
-      secure: false,
-      sameSite: "lax",
+      secure: true, // bắt buộc khi dùng HTTPS
+      sameSite: "none",
       path: "/auth/refresh",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
