@@ -1,4 +1,4 @@
-const WHITE_LIST = ["http://localhost:3000", "https://mangament.netlify.app"];
+const WHITE_LIST = ["http://localhost:3000", "https://mangament.netlify.app", "http://100.79.140.6:3000"];
 
 export const corsOptions = {
   origin: function (origin, callback) {
