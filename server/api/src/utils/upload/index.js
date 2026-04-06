@@ -4,27 +4,15 @@ import { PrismaClient } from "../../generated/prisma/client.js";
 
 import fs from "fs";
 
-import { v2 as cloudinary } from "cloudinary";
 import { getAllFiles } from "../FileHandle.js";
 
-const CLOUDINARY_CLOUD_NAME = "dje88gzxb";
-const CLOUDINARY_URL = "cloudinary://831417615379221:Ak8cqj-yPxzqxjQgPtFpY4SQtFs@dje88gzxb";
-const CLOUDINARY_API_KEY = "831417615379221";
-const CLOUDINARY_API_SECRET = "Ak8cqj-yPxzqxjQgPtFpY4SQtFs";
-
 const ADMIN_TOKEN =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjFhYzU5ZGQ1LWMxMzUtNDJiMi05NDlmLWE1OTI3OWU4ZjMwMCIsIm5hbWUiOiJraG9hIiwiZW1haWwiOiJhQGEuYSIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzcyODU4MjgzLCJleHAiOjE3NzQxNTQyODN9.GMahHiBH4sgjexTrexbJe-bRhOO792Arldpva_HLelg";
-
-// Configuration
-cloudinary.config({
-  cloud_name: CLOUDINARY_CLOUD_NAME,
-  api_key: CLOUDINARY_API_KEY,
-  api_secret: CLOUDINARY_API_SECRET,
-});
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjFhYzU5ZGQ1LWMxMzUtNDJiMi05NDlmLWE1OTI3OWU4ZjMwMCIsIm5hbWUiOiJLaG9hIiwiZW1haWwiOiJhQGEuYSIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc3NTA2MDQxNiwiZXhwIjoxNzc3NjUyNDE2fQ.n_9Bwr461FyEhNIzsX5axDCnB7H9jStsBDwOeUndJP8";
 
 const db = new PrismaClient();
 
-const root = path.resolve("../../../../uploads/story");
+// const root = "/home/khoa/Code/Project/Mangament/uploads/story";
+const root = path.resolve("../../../../../uploads/story");
 
 const alreadyAddStories = new Map();
 const alreadyAddStoryNodes = new Map();
@@ -62,9 +50,11 @@ async function handleAdd(filePath) {
   if (path.parse(dir).name === "cover_art") {
     const coverArtFormData = new FormData();
     coverArtFormData.append("image", new Blob([fs.readFileSync(filePath)]), imageName);
+
     const coverArtRes = await fetch(`http://localhost:5000/uploads/story/${story.id}/cover-art`, {
       headers: {
         Authorization: `Bearer ${ADMIN_TOKEN}`,
+        "x-api-key": process.env.API_KEY,
       },
       method: "POST",
       body: coverArtFormData,
@@ -79,6 +69,16 @@ async function handleAdd(filePath) {
       where: { id: story.id },
       data: { cover_art: { connect: { url: coverArtUrl } } },
     });
+
+    // const covertArtKey = ["story", dir].join("/");
+
+    // const iamge = await db.image.create({ data: { url: ["http://localhost:5000", covertArtKey].join("/"), key: covertArtKey } });
+
+    // Update cover art for story
+    // await db.story.update({
+    //   where: { id: story.id },
+    //   data: { cover_art: { connect: { id: iamge.id } } },
+    // });
 
     console.log("Add cover art for " + storyName);
     return;
@@ -106,6 +106,7 @@ async function handleAdd(filePath) {
       method: "POST",
       headers: {
         Authorization: `Bearer ${ADMIN_TOKEN}`,
+        "x-api-key": process.env.API_KEY,
       },
       body: imageFormData,
     });
@@ -115,9 +116,28 @@ async function handleAdd(filePath) {
 
   const uploadJson = await Promise.all(uploadImages.map((upload) => upload.json()));
 
+  console.log(uploadJson);
+
   const addContent = await db.storyNodeContent.createMany({
     data: uploadJson.map((image, i) => ({ story_node_id: storyNodeId, image_id: image.data.id, type: "image", order_index: i })),
   });
+
+  // const imageIds = [];
+
+  // for (const file of files) {
+  //   const imageKey = ["story", file.replace(root, "")].join("/");
+  //   const image = await db.image.create({ data: { url: ["http://localhost:5000", imageKey].join("/"), key: imageKey } });
+  //   imageIds.push(image.id);
+  // }
+
+  // await db.storyNodeContent.createMany({
+  //   data: imageIds.map((image, i) => ({
+  //     story_node_id: storyNodeId,
+  //     image_id: image,
+  //     type: "image",
+  //     order_index: i,
+  //   })),
+  // });
 
   console.log("Update content for " + [storyName, ...storyNodeNames].join("/"));
 

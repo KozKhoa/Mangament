@@ -3,3 +3,6 @@ uploads/
 server/logs/
 
 
+.env*
+
+.trash

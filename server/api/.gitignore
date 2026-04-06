@@ -1,0 +1,15 @@
+.env*
+
+node_modules/
+
+logs/
+
+/src/generated/
+uploads/
+
+api-key/
+
+
+migrations/
+
+venv/
