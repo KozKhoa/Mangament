@@ -36,7 +36,7 @@ export async function FindAllComments({ userId, storyId, storyNodeId, sort = { u
   if (cached) return JSON.parse(cached);
 
   const where = {
-    is_deleted: false,
+    deleted_status: "not_deleted",
 
     user_id: userId,
     story_id: storyId,
@@ -87,7 +87,7 @@ export async function FindComment(id) {
   // This func do not need to cached because it is hardly called
 
   const comment = await db.comment.findFirst({
-    where: { is_deleted: false, id: id },
+    where: { deleted_status: "not_deleted", id: id },
     include: { user: { select: { id: true, name: true, avatar: true } } },
   });
 
@@ -140,26 +140,24 @@ export async function AddComment({ userId, storyId, storyNodeId, title, content 
 
       if (storyId) {
         if (!isUUID(storyId)) throw CreateError(400, "'storyId' must be UUID");
-        const story = await db.story.findFirst({ where: { is_deleted: false, id: storyId } });
+        const story = await db.story.findFirst({ where: { deleted_status: "not_deleted", id: storyId } });
         if (!story) throw CreateError(400, "Story not found");
       }
 
       if (userId) {
         if (!isUUID(userId)) throw CreateError(400, "'userId' must be UUID");
-        const user = await db.user.findFirst({ where: { is_deleted: false, id: userId } });
+        const user = await db.user.findFirst({ where: { deleted_status: "not_deleted", id: userId } });
         if (!user) throw CreateError(400, "User not found");
       }
 
       if (storyNodeId) {
         if (!isUUID(storyNodeId)) throw CreateError(400, "'storyNodeId' must be UUID");
-        const storyNode = await db.storyNode.findFirst({ where: { is_deleted: false, id: storyNodeId } });
+        const storyNode = await db.storyNode.findFirst({ where: { deleted_status: "not_deleted", id: storyNodeId } });
         if (!storyNode) throw CreateError(400, "Story node not found");
       }
 
       throw new Error(error);
     });
-
-  delete newComment.is_deleted;
 
   redisUtils.comments(newComment.story_id).incr(); // This will remove the cached for list of all comment belonging to story
   redisUtils.comments(newComment.user_id).incr(); // This will remove the cached for list of all comment belonging to story
@@ -183,7 +181,7 @@ export async function UpdateComment(id, { title, content }) {
     })
     .catch(async (error) => {
       if (!isUUID(id)) throw CreateError(400, "'id' must be UUID");
-      const comment = await db.comment.findFirst({ where: { is_deleted: false, id: id } });
+      const comment = await db.comment.findFirst({ where: { deleted_status: "not_deleted", id: id } });
       if (!comment) throw CreateError(400, "Comment not found");
 
       throw new Error(error);
@@ -208,7 +206,7 @@ export async function SoftDeleteComment(id) {
   const softRemove = await db.comment
     .update({
       where: { id: id },
-      data: { is_deleted: true },
+      data: { deleted_status: "soft_deleted" },
     })
     .catch(async (error) => {
       const comment = await db.comment.findFirst({ where: { id: id } });

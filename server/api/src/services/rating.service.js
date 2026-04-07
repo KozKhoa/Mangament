@@ -30,7 +30,7 @@ export async function FindAllRatings({ storyId, userId, star = [[0, 6]], sort = 
   if (cached) return JSON.parse(cached);
 
   const where = {
-    is_deleted: false,
+    deleted_status: "not_deleted",
     ...(storyId && { story_id: storyId }),
     ...(userId && { user_id: userId }),
 
@@ -85,7 +85,7 @@ export async function FindRating(id) {
   if (cached) return JSON.parse(cached);
 
   const rating = await db.rating.findFirst({
-    where: { is_deleted: false, id: id },
+    where: { deleted_status: "not_deleted", id: id },
     include: {
       user: {
         select: { id: true, name: true, avatar: true },
@@ -113,7 +113,7 @@ export async function AddRatings({ userId, storyId, star, title, content }) {
     throw CreateError(400, "star must be a number between 1 and 5");
   }
 
-  const story = await db.story.findFirst({ where: { id: storyId, is_deleted: false } });
+  const story = await db.story.findFirst({ where: { id: storyId, deleted_status: "not_deleted" } });
   if (!story) throw CreateError(400, "Story not found");
 
   return db.$transaction(async (db) => {
@@ -141,7 +141,7 @@ export async function AddRatings({ userId, storyId, star, title, content }) {
         const oldRating = await db.rating.findUnique({ where: { user_id_story_id: { story_id: storyId, user_id: userId } } });
         if (oldRating) throw CreateError(400, "Rating already exist");
 
-        const user = await db.user.findFirst({ where: { id: userId, is_deleted: false } });
+        const user = await db.user.findFirst({ where: { id: userId, deleted_status: "not_deleted" } });
         if (!user) throw CreateError(400, "User not found");
 
         throw new Error(error);
@@ -156,8 +156,6 @@ export async function AddRatings({ userId, storyId, star, title, content }) {
         rating_count: story.rating_count + 1,
       },
     });
-
-    delete newRating.is_deleted;
 
     redisUtils.ratings(newRating.story_id).incr();
 
@@ -187,7 +185,7 @@ export async function UpdateRating(id, { star, title, content }) {
 export async function SoftDeleteRating(ratingId) {
   const removing = await db.rating.update({
     where: { id: ratingId },
-    data: { is_deleted: true },
+    data: { deleted_status: "soft_deleted" },
   });
 
   redisUtils.ratings(removing.id).incr();

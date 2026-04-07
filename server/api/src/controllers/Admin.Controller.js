@@ -235,6 +235,7 @@ export async function GetAllStories(req, res, next) {
       nation: nations,
       limit: limit,
       status: status,
+      deletedStatus: "not_deleted",
       isGettingChildren: isGettingChildren,
       isGettingNewestChapter: isGettingNewestChapter,
     });
@@ -367,7 +368,7 @@ export async function DeleteStory(req, res, next) {
 
     if (!isUUID(storyId)) throw CreateError(400, "'id' must be UUID");
 
-    const remove = await storyService.ToggleSoftDeleteStory(storyId, true);
+    const remove = await storyService.ToggleSoftDeleteStory(storyId, "soft_deleted");
     if (!remove.success) throw CreateError();
 
     return res.json({ success: true, message: "Remove successfully" });
@@ -426,7 +427,7 @@ export async function GetAllTrashStories(req, res, next) {
     const page = Number(req.query?.page ?? 1);
     const limit = Number(req.query?.limit ?? 10);
 
-    const trashStories = await storyService.FindAllStories({ page: page, limit: limit, isDeleted: true });
+    const trashStories = await storyService.FindAllStories({ page: page, limit: limit, deletedStatus: "soft_deleted" });
 
     res.json({ success: true, data: trashStories.data, pagination: trashStories.pagination });
   } catch (error) {
@@ -471,7 +472,7 @@ export async function RestoreManyTrashStories(req, res, next) {
   try {
     const storyIds = req.body?.ids;
 
-    const stories = await storyService.ToggleSoftDeleteManyStories(storyIds, false); // Restore
+    const stories = await storyService.ToggleSoftDeleteManyStories(storyIds, "not_deleted"); // Restore
 
     res.json({ success: true, message: "Restore successfully", data: stories });
   } catch (error) {
@@ -486,7 +487,7 @@ export async function RestoreTrashStory(req, res, next) {
 
     if (!isUUID(storyId)) throw CreateError(400, "'id' must be UUID");
 
-    const story = await storyService.ToggleSoftDeleteStory(storyId, false); // Restore
+    const story = await storyService.ToggleSoftDeleteStory(storyId, "not_deleted"); // Restore
 
     res.json({ success: true, message: "Restore successfully", data: story });
   } catch (error) {

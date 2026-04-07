@@ -31,7 +31,7 @@ export async function GetParentStoryNodeTree(storyId, storyNodeId, isGettingCont
 
   const nodes = await db.storyNode.findMany({
     where: {
-      is_deleted: false,
+      deleted_status: "not_deleted",
       story_id: storyId,
     },
     select: {
@@ -86,10 +86,10 @@ export async function FindAllStoryNodes({ storyId, parentId, sort = { updated_at
   if (cached) return JSON.parse(cached);
 
   const where = {
-    is_deleted: false,
+    deleted_status: "not_deleted",
 
-    ...(storyId && { story: { is_deleted: false, id: storyId } }),
-    ...(parentId && { parent: { is_deleted: false, id: parentId } }),
+    ...(storyId && { story: { deleted_status: "not_deleted", id: storyId } }),
+    ...(parentId && { parent: { deleted_status: "not_deleted", id: parentId } }),
   };
 
   const [storyNodes, totalItems] = await Promise.all([
@@ -103,13 +103,13 @@ export async function FindAllStoryNodes({ storyId, parentId, sort = { updated_at
       .catch(async (error) => {
         if (storyId) {
           if (!isUUID(storyId)) throw CreateError(400, "'storyId' must be UUID");
-          const story = await db.story.findFirst({ where: { is_deleted: false, id: storyId } });
+          const story = await db.story.findFirst({ where: { deleted_status: "not_deleted", id: storyId } });
           if (!story) throw CreateError(400, "Story not found");
         }
 
         if (parentId) {
           if (!isUUID(parentId)) throw CreateError(400, "'parentId' must be UUID");
-          const parent = await db.storyNode.findFirst({ where: { is_deleted: false, id: parentId } });
+          const parent = await db.storyNode.findFirst({ where: { deleted_status: "not_deleted", id: parentId } });
           if (!parent) throw CreateError(400, "Parent not found");
         }
 
@@ -118,13 +118,13 @@ export async function FindAllStoryNodes({ storyId, parentId, sort = { updated_at
     db.storyNode.count({ where: where }).catch(async (error) => {
       if (storyId) {
         if (!isUUID(storyId)) throw CreateError(400, "'storyId' must be UUID");
-        const story = await db.story.findFirst({ where: { is_deleted: false, id: storyId } });
+        const story = await db.story.findFirst({ where: { deleted_status: "not_deleted", id: storyId } });
         if (!story) throw CreateError(400, "Story not found");
       }
 
       if (parentId) {
         if (!isUUID(parentId)) throw CreateError(400, "'parentId' must be UUID");
-        const parent = await db.storyNode.findFirst({ where: { is_deleted: false, id: parentId } });
+        const parent = await db.storyNode.findFirst({ where: { deleted_status: "not_deleted", id: parentId } });
         if (!parent) throw CreateError(400, "Parent not found");
       }
 
@@ -181,7 +181,7 @@ export async function FindStoryNode({ id, storyId, parentId, storyNodeType, orde
   const storyNode = await db.storyNode
     .findFirst({
       where: {
-        is_deleted: false,
+        deleted_status: "not_deleted",
 
         ...(id && { id: id }),
         ...(storyId && { story_id: storyId }),
@@ -193,8 +193,8 @@ export async function FindStoryNode({ id, storyId, parentId, storyNodeType, orde
       ...(isGettingContent && {
         include: {
           content: {
-            where: { is_deleted: false },
-            select: { id: true, type: true, image: { where: { is_deleted: false } }, content: true, order_index: true },
+            where: { deleted_status: "not_deleted" },
+            select: { id: true, type: true, image: { where: { deleted_status: "not_deleted" } }, content: true, order_index: true },
             orderBy: { order_index: "asc" },
           },
         },
@@ -203,13 +203,13 @@ export async function FindStoryNode({ id, storyId, parentId, storyNodeType, orde
     .catch(async (error) => {
       if (storyId) {
         if (!isUUID(storyId)) throw CreateError(400, "'storyId' must be UUID");
-        const story = await db.story.findFirst({ where: { is_deleted: false, id: storyId } });
+        const story = await db.story.findFirst({ where: { deleted_status: "not_deleted", id: storyId } });
         if (!story) throw CreateError(400, "Story not found");
       }
 
       if (parentId) {
         if (!isUUID(parentId)) throw CreateError(400, "'parentId' must be UUID");
-        const parent = await db.storyNode.findFirst({ where: { is_deleted: false, id: parentId } });
+        const parent = await db.storyNode.findFirst({ where: { deleted_status: "not_deleted", id: parentId } });
         if (!parent) throw CreateError(400, "Parent not found");
       }
 
@@ -335,13 +335,13 @@ export async function UpdateStoryNode(
   return { success: true, data: updating };
 }
 
-export async function ToggleSoftDeleteStoryNode(id, isDeleted = false) {
+export async function ToggleSoftDeleteStoryNode(id, deletedStatus = "not_deleted") {
   if (!id) throw CreateError(400, "Require 'id'");
 
   const storyNode = await db.storyNode
     .update({
       where: { id: id },
-      data: { is_deleted: isDeleted },
+      data: { deleted_status: deletedStatus },
     })
     .catch(async (error) => {
       const storyNode = await db.storyNode.findUnique({ where: { id: id } });
@@ -357,16 +357,16 @@ export async function ToggleSoftDeleteStoryNode(id, isDeleted = false) {
     redisUtils.storyNodes(storyNode.parent_id).incr();
   }
 
-  return { success: true, message: isDeleted ? "Remove successfully" : "Restore successfully" };
+  return { success: true, message: deletedStatus === "soft_deleted" ? "Remove successfully" : "Restore successfully" };
 }
 
-export async function ToggleSoftDeleteManyStoryNodes(ids = [], isDeleted = false) {
+export async function ToggleSoftDeleteManyStoryNodes(ids = [], deletedStatus = "not_deleted") {
   if (ids.length <= 0) throw CreateError(400, "Require 'ids'");
 
   const storyNodes = await db.storyNode
     .updateManyAndReturn({
       where: { id: { in: ids } },
-      data: { is_deleted: isDeleted },
+      data: { deleted_status: deletedStatus },
     })
     .catch(async (error) => {
       const storyNodes = await db.storyNode.findMany({ where: { id: { in: ids } } });
@@ -384,7 +384,7 @@ export async function ToggleSoftDeleteManyStoryNodes(ids = [], isDeleted = false
   Promise.all([...parentIds].map((parentId) => redisUtils.storyNodes(parentId).incr()));
   Promise.all([...storyIds].map((storyId) => redisUtils.stories(storyId).incr()));
 
-  return { success: true, message: isDeleted ? "Remove successfully" : "Restore successfully" };
+  return { success: true, message: deletedStatus === "soft_deleted" ? "Remove successfully" : "Restore successfully" };
 }
 
 export async function HardDeleteStoryNode(id) {
@@ -429,13 +429,13 @@ export async function IncreaseOneViewForStoryNodeAndItsParents(storyNodeId) {
 
   //  Update view for current story node
   const update = await db.storyNode.update({
-    where: { id: storyNodeId, is_deleted: false },
+    where: { id: storyNodeId, deleted_status: "not_deleted" },
     data: { view: { increment: 1 } },
   });
 
   // Udpate view for story
   await db.story.update({
-    where: { is_deleted: false, id: update.story_id },
+    where: { deleted_status: "not_deleted", id: update.story_id },
     data: { view: { increment: 1 } },
   });
 
@@ -443,7 +443,7 @@ export async function IncreaseOneViewForStoryNodeAndItsParents(storyNodeId) {
   let parentId = update.parent_id;
   while (parentId) {
     const update = await db.storyNode.update({
-      where: { id: parentId, is_deleted: false },
+      where: { id: parentId, deleted_status: "not_deleted" },
       data: { view: { increment: 1 } },
     });
 

@@ -53,7 +53,7 @@ export async function FindAllReadingHistories({
   if (!userId) return { success: false, message: "Missing user id" };
 
   const where = {
-    is_deleted: false,
+    deleted_status: "not_deleted",
 
     user_id: userId,
 
@@ -116,7 +116,6 @@ export async function FindAllReadingHistories({
   ]);
 
   for (const history of histories) {
-    delete history.is_deleted;
     history.story_node = await GetParentStoryNodeTree(history.story_id, history.story_node_id);
   }
 
@@ -204,7 +203,7 @@ export async function SoftDeleteReadingHistory(id) {
 
   const softRemove = await db.readingHistory.update({
     where: { id: id },
-    data: { is_deleted: true },
+    data: { deleted_status: "soft_deleted" },
   });
 
   redisUtils.histories(softRemove.id).incr();

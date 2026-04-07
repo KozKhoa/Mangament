@@ -160,7 +160,7 @@ class AuthService {
     const dbRefreshToken = await db.refreshToken.findUnique({ where: { token: refreshToken }, select: { token: true } });
     if (!dbRefreshToken?.token) throw CreateError(404, "Refresh token not found");
 
-    const user = await db.user.findFirst({ where: { id: userId, is_deleted: false }, select: { id: true, is_banned: true } });
+    const user = await db.user.findFirst({ where: { id: userId, deleted_status: "not_deleted" }, select: { id: true, is_banned: true } });
     if (!user) throw CreateError(404, "User not found");
 
     if (user.is_banned) throw CreateError(403, "User is banned");
@@ -206,7 +206,7 @@ class AuthService {
   }
 
   async changePassword(userId, oldPassword, newPassword, refreshToken) {
-    const user = await db.user.findUnique({ where: { id: userId, is_deleted: false }, select: { password: true } });
+    const user = await db.user.findUnique({ where: { id: userId, deleted_status: "not_deleted" }, select: { password: true } });
 
     if (!user) throw CreateError(404, "User not found");
 

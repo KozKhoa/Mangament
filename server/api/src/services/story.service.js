@@ -33,17 +33,17 @@ export async function BuildStoryTree(storyId, storyNodeId, isGettingContent = fa
 
   const storyNodes = await db.storyNode.findMany({
     where: {
-      is_deleted: false,
+      deleted_status: "not_deleted",
       story: {
-        is: { id: storyId, is_deleted: false },
+        is: { id: storyId, deleted_status: "not_deleted" },
       },
       ...(storyNodeId && { parent_id: storyNodeId }),
     },
     include: {
       ...(isGettingContent && {
         content: {
-          where: { is_deleted: false },
-          include: { image: { where: { is_deleted: false } } },
+          where: { deleted_status: "not_deleted" },
+          include: { image: { where: { deleted_status: "not_deleted" } } },
           orderBy: { order_index: "asc" },
         },
       }),
@@ -160,7 +160,7 @@ export async function FindAllStories({
   authorsId = [],
   status = [],
   isActived,
-  isDeleted = false,
+  deletedStatus = "not_deleted",
   isGettingChildren = false,
   isGettingNewestChapter = false,
 }) {
@@ -173,7 +173,7 @@ export async function FindAllStories({
     "limit=" + limit,
     "sort=" + JSON.stringify(sort),
     "isActived=" + isActived,
-    "isDeleted=" + isDeleted,
+    "deletedStatus=" + deletedStatus,
     "keyword=" + keyword,
     "type=" + type,
     "view=" + view,
@@ -192,7 +192,7 @@ export async function FindAllStories({
   if (genres && genres.length > 0) throwErrorIfInvalidGenres(genres);
 
   const where = {
-    is_deleted: isDeleted ?? false,
+    deleted_status: deletedStatus,
     is_actived: isActived,
     ...(keyword && { title: { contains: keyword, mode: "insensitive" } }),
     ...(type && type.length > 0 && { type: { in: type } }),
@@ -263,7 +263,7 @@ export async function FindStory({
   isGettingContent = false,
   isGettingNewestChapter = false,
   isActived,
-  isDeleted = false,
+  deletedStatus = "not_deleted",
 }) {
   const storiesVer = await redisUtils.stories(id || title).get();
 
@@ -276,7 +276,7 @@ export async function FindStory({
     "isGettingNewestChapter=" + isGettingNewestChapter,
     "isGettingContent=" + isGettingContent,
     "isActived=" + isActived,
-    "isDeleted=" + isDeleted,
+    "deletedStatus=" + deletedStatus,
   ].join(":");
 
   const cached = await redis.get(REDIS_KEY);
@@ -284,7 +284,7 @@ export async function FindStory({
   if (cached) return JSON.parse(cached);
 
   const story = await db.story.findFirst({
-    where: { ...(id && { id: id }), ...(title && { title: title }), is_deleted: false, is_actived: isActived, is_deleted: isDeleted },
+    where: { ...(id && { id: id }), ...(title && { title: title }), deleted_status: deletedStatus, is_actived: isActived, deleted_status: deletedStatus },
     include: {
       authors: { select: { author: { select: { id: true, name: true } } } },
       genres: { select: { genre: true } },
@@ -317,7 +317,7 @@ export async function FindStory({
 
 export async function FindRandomStory() {
   const stories = await db.story.findMany({
-    where: { is_deleted: false, is_actived: true },
+    where: { deleted_status: "not_deleted", is_actived: true },
     select: { id: true, title: true, type: true },
   });
 
@@ -370,7 +370,7 @@ export async function AddStory({ title, type, nation, genres = [], authorIds, st
   });
 }
 
-export async function ToggleSoftDeleteStory(id, isDeleted = false) {
+export async function ToggleSoftDeleteStory(id, deletedStatus = "not_deleted") {
   if (!id) throw CreateError(400, "Require at least id or title");
 
   if (!isUUID(id)) throw CreateError(400, "'id' must be uuid");
@@ -378,10 +378,10 @@ export async function ToggleSoftDeleteStory(id, isDeleted = false) {
   const softDelete = await db.story
     .update({
       where: { id: id },
-      data: { is_deleted: isDeleted },
+      data: { deleted_status: deletedStatus },
     })
     .catch(async (error) => {
-      const story = await db.story.findUnique({ where: { id: id, is_deleted: false } });
+      const story = await db.story.findUnique({ where: { id: id, deleted_status: "not_deleted" } });
       if (!story) throw CreateError(400, "Story not found");
 
       throw new Error(error);
@@ -393,15 +393,13 @@ export async function ToggleSoftDeleteStory(id, isDeleted = false) {
   return { success: true, data: softDelete };
 }
 
-export async function ToggleSoftDeleteManyStories(ids = [], isDeleted = false) {
+export async function ToggleSoftDeleteManyStories(ids = [], deletedStatus = "not_deleted") {
   if (ids.length <= 0) throw CreateError(400, "Require ids");
-
-  if (typeof isDeleted !== "boolean") throw CreateError(400, "'isDeleted' must be boolean");
 
   const toggle = await db.story
     .updateManyAndReturn({
       where: { id: { in: ids } },
-      data: { is_deleted: isDeleted },
+      data: { deleted_status: deletedStatus },
     })
     .catch(async (error) => {
       const stories = await db.story.findMany({ where: { id: { in: ids } } });
@@ -424,32 +422,37 @@ export async function ToggleSoftDeleteManyStories(ids = [], isDeleted = false) {
 }
 
 export async function HardDeleteStory(id) {
-  if (!(id || title)) throw CreateError(400, "Require at least id or title");
+  if (!id) throw CreateError(400, "Require at least id or title");
 
-  const hardRemove = await db.story
-    .delete({
+  await db.story
+    .update({
       where: { id: id },
+      data: { deleted_status: "pending_permanent_deletion" },
     })
     .catch(async (error) => {
-      const story = await db.story.findUnique({ where: { id: id }, is_deleted: false });
+      const story = await db.story.findUnique({ where: { id: id } });
       if (!story) throw CreateError(404, "Story not found");
 
       throw new Error(error);
     });
 
-  redisUtils.stories().incr();
-  redisUtils.stories(hardRemove.id).incr();
+  storyQueue.AddJobHardDeleteStory(id);
 
-  return { success: true, data: hardRemove };
+  redisUtils.stories().incr();
+  redisUtils.stories(id).incr();
+
+  return { success: true, message: "Story is being permanently deleted" };
 }
 
 export async function HardDeleteManyStories(ids = []) {
   if (ids.length <= 0) CreateError(400, "Require ids");
 
-  const hardRemoves = await db.story.deleteMany({ where: { id: { in: ids } } });
+  await db.story.updateMany({ where: { id: { in: ids } }, data: { deleted_status: "pending_permanent_deletion" } });
 
-  redisUtils.stories().incr();
-  Promise.all(ids.map((id) => redisUtils.stories(id).incr()));
+  storyQueue.AddJobHardDeleteManyStories(ids);
+
+  await redisUtils.stories().incr();
+  await Promise.all(ids.map((id) => redisUtils.stories(id).incr()));
 
   return { success: true, data: hardRemoves };
 }
@@ -459,12 +462,12 @@ export async function ActiveStory(id, isActived = true) {
 
   const active = await db.story
     .update({
-      where: { id: id, is_deleted: false },
+      where: { id: id, deleted_status: "not_deleted" },
       data: { is_actived: isActived },
       include: { cover_art: { select: { url: true, height: true, width: true } } },
     })
     .catch(async (error) => {
-      const story = await db.story.findUnique({ where: { ...(id && { id: id }), ...(title && { title: title }) }, is_deleted: false });
+      const story = await db.story.findUnique({ where: { ...(id && { id: id }), ...(title && { title: title }) }, deleted_status: "not_deleted" });
       if (!story) throw CreateError(404, "Story not found");
 
       throw new Error(error);
@@ -598,7 +601,7 @@ export async function UpdateStory(
             where: {
               id: { in: children.delete.story_node.map((node) => node.id) },
             },
-            data: { is_deleted: true },
+            data: { deleted_status: "soft_deleted" },
           });
         }
 
@@ -608,7 +611,7 @@ export async function UpdateStory(
             where: {
               id: { in: children.delete.content.map((cont) => cont.id) },
             },
-            data: { is_deleted: true },
+            data: { deleted_status: "soft_deleted" },
           });
         }
       }

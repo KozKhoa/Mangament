@@ -1,7 +1,8 @@
 import { redis } from "../configs/redis.js";
 
 import { Queue, Worker } from "bullmq";
-import * as storyModel from "../services/story.service.js";
+import * as storyService from "../services/story.service.js";
+import db from "../configs/db.js";
 
 const connection = {
   host: redis.options.host,
@@ -19,7 +20,7 @@ const updateEmbeddingStoryWorker = new Worker(
   "update-embedding-story",
   async (job) => {
     const { storyId } = job.data;
-    await storyModel.UpdateEmbeddingStory(storyId);
+    await storyService.UpdateEmbeddingStory(storyId);
   },
   { connection, concurrency: 1 },
 );
@@ -33,7 +34,16 @@ const hardDeleteStoryWorker = new Worker(
   "hard-delete-story",
   async (job) => {
     const { storyId } = job.data;
-    await storyModel.HardDeleteStory(storyId);
+    await db.story
+      .delete({
+        where: { id: id },
+      })
+      .catch(async (error) => {
+        const story = await db.story.findUnique({ where: { id: id } });
+        if (!story) throw CreateError(404, "Story not found");
+
+        throw new Error(error);
+      });
   },
   { connection, concurrency: 1 },
 );
@@ -47,7 +57,7 @@ const hardDeleteManyStoriesWorker = new Worker(
   "hard-delete-many-stories",
   async (job) => {
     const { storyIds } = job.data;
-    await storyModel.HardDeleteManyStories(storyIds);
+    await db.story.deleteMany({ where: { id: { in: storyIds } } });
   },
   { connection, concurrency: 1 },
 );

@@ -141,7 +141,7 @@ export function StoriesTrashPage() {
 
     fetchTrashStories();
 
-    toast.message("Xóa truyện vĩnh viễn thành công");
+    toast.message("Đã thêm vào hàng đợi xóa vĩnh viễn");
   }
 
   async function handleDeleteManyTrashStories(ids: string[]) {

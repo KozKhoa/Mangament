@@ -18,7 +18,7 @@ export async function FindImage({ id, url }) {
 
   const result = await db.image.findFirst({
     where: {
-      is_deleted: false,
+      deleted_status: "not_deleted",
       id,
       url,
     },
@@ -42,7 +42,7 @@ export async function SoftDeleteImage({ id, url }) {
 
   const softDelete = await db.image.update({
     where: { ...(id && { id: id }), ...(url && { url: url }) },
-    data: { is_deleted: true },
+    data: { deleted_status: "soft_deleted" },
   });
 
   redisUtils.image(id).incr();

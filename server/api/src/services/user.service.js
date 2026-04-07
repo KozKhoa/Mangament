@@ -30,7 +30,7 @@ export async function FindAllUser({
   if (cached) return JSON.parse(cached);
 
   const where = {
-    is_deleted: false,
+    deleted_status: "not_deleted",
 
     ...(search && { OR: [{ email: { contains: search, mode: "insensitive" } }, { name: { contains: search, mode: "insensitive" } }] }),
     ...(roles && roles.length > 0 && { role: { in: roles } }),
@@ -97,7 +97,7 @@ export async function FindUser({ id, email }) {
 
   const user = await db.user.findFirst({
     where: {
-      is_deleted: false,
+      deleted_status: "not_deleted",
       ...(id && { id: id }),
       ...(email && { email: email }),
     },
@@ -120,7 +120,7 @@ export async function BannedUser({ id, email, isBanned }) {
   if (typeof isBanned !== "boolean") throw CreateError(400, "'isBanned' must be boolean");
 
   const where = {
-    is_deleted: false,
+    deleted_status: "not_deleted",
 
     ...(id && { id: id }),
     ...(email && { email: email }),
@@ -228,7 +228,7 @@ export async function SoftDeleteUser({ id, email }) {
         ...(id && { id: id }),
         ...(email && { email: email }),
       },
-      data: { is_deleted: true },
+      data: { deleted_status: "soft_deleted" },
       select: {
         id: true,
         name: true,
@@ -290,7 +290,7 @@ export async function ChangePassword({ id, email, newPassword }) {
       data: { password: newPassword },
     })
     .catch(async (error) => {
-      const user = await db.user.findFirst({ where: { is_deleted: false, ...(id && { id: id }), ...(email && { email: email }) } });
+      const user = await db.user.findFirst({ where: { deleted_status: "not_deleted", ...(id && { id: id }), ...(email && { email: email }) } });
       if (!user) throw CreateError(404, "User not found");
 
       throw new Error(error);
@@ -302,7 +302,7 @@ export async function ChangePassword({ id, email, newPassword }) {
 }
 
 export async function ResetPassword({ id }) {
-  const user = await db.user.findUnique({ where: { id: id, is_deleted: false } });
+  const user = await db.user.findUnique({ where: { id: id, deleted_status: "not_deleted" } });
   if (!user) throw CreateError(404, "User not found");
 
   const newPassword = RandomPassword(12);
