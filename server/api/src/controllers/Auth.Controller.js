@@ -2,6 +2,17 @@ import { throwErrorIfInvalidEmailAndPassword } from "../utils/Validators.js";
 import { CreateError } from "../utils/ErrorHandle.js";
 
 import authService from "../services/auth.service.js";
+import { access } from "fs";
+
+function putRefreshTokenToCookie(res, refreshToken) {
+  res.cookie(process.env.COOKIES_REFRESH_TOKEN_KEY, refreshToken, {
+    httpOnly: true,
+    secure: true, // bắt buộc khi dùng HTTPS
+    sameSite: "none",
+    path: "/auth/refresh",
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+  });
+}
 
 export async function Login(req, res, next) {
   try {
@@ -12,13 +23,7 @@ export async function Login(req, res, next) {
     const { user, accessToken, refreshToken } = (await authService.login(email, password)).data;
 
     // Add refresh token to http only
-    res.cookie(process.env.COOKIES_REFRESH_TOKEN_KEY, refreshToken, {
-      httpOnly: true,
-      secure: true, // bắt buộc khi dùng HTTPS
-      sameSite: "none",
-      path: "/auth/refresh",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+    putRefreshTokenToCookie(res, refreshToken);
 
     // response access token to user
     res.status(200).json({
@@ -51,11 +56,14 @@ export async function Register(req, res, next) {
     const newUser = await authService.register(name, email, password);
     if (!newUser) throw CreateError();
 
+    putRefreshTokenToCookie(res, newUser.data.refreshToken);
+
     res.status(200).json({
       success: true,
       message: "Register success",
       data: {
         user: newUser.data,
+        accessToken: newUser.data.accessToken,
       },
     });
   } catch (error) {

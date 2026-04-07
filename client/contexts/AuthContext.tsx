@@ -159,10 +159,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setUser(user);
       token.setAccessToken(accessToken);
 
-      toast.message("Đăng ký thành công! Vui lòng đăng nhập lại với tài khoản đã đang ký");
+      toast.message("Đăng ký thành công!");
 
       // navigate to home page
-      router.replace("/login");
+      router.replace("/");
     }
   }
 

@@ -319,11 +319,9 @@ export default function ReadingStoryPage() {
         </div>
       </div>
 
-      {/* Button favourite, download */}
-      <div className="grid grid-cols-2 flex-wrap justify-center items-center gap-2 px-2 max-w-96 m-auto">
-        <ButtonOfFavouriteStory story={story} className="w-full"></ButtonOfFavouriteStory>
-        <Button className="font-semibold w-full">Tải về</Button>
-      </div>
+      {/* Button favourite */}
+      <ButtonOfFavouriteStory story={story} className="w-full max-w-72 m-auto"></ButtonOfFavouriteStory>
+    
 
       {/* Main content */}
       <div className="flex flex-col gap-3">

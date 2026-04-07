@@ -4,6 +4,8 @@ import * as crypto from "crypto";
 import bcrypt from "bcrypt";
 import { redis } from "../configs/redis.js";
 
+import { throwErrorIfInvalidEmailAndPassword } from "../utils/Validators.js";
+
 import * as passwordUtils from "../utils/Password.js";
 import * as tokenUtils from "../utils/Token.js";
 import * as mailQueue from "../queues/mail.queue.js";
@@ -108,7 +110,7 @@ class AuthService {
       data: {
         email: email,
         name: name,
-        password: passwordUtils.HashPassword(password),
+        password: await passwordUtils.HashPassword(password),
         avatar: { connect: { key: AVATAR_DEFAUTL_KEY } },
       },
       select: {
@@ -120,8 +122,21 @@ class AuthService {
       },
     });
 
+    const accessToken = tokenUtils.GenAccessToken({
+      id: newUser.id,
+      name: newUser.name,
+      email: newUser.email,
+      role: newUser.role,
+    });
+    const refreshToken = tokenUtils.GenRefreshToken({
+      id: newUser.id,
+      name: newUser.name,
+      email: newUser.email,
+      role: newUser.role,
+    });
+
     // Response to user
-    return { success: true, data: { user: newUser } };
+    return { success: true, data: { user: newUser, accessToken: accessToken, refreshToken: refreshToken } };
   }
 
   async logout(refreshToken) {
