@@ -33,7 +33,8 @@ class AuthService {
   }
 
   async #saveOtp(email, otp) {
-    const hashedOtp = await bcrypt.hash(otp, await bcrypt.genSalt(10));
+    const salt = await bcrypt.genSalt(10);
+    const hashedOtp = await bcrypt.hash(otp, salt);
 
     await redis.setex(`otp:${email}`, OTP_EXPIRATION_TIME, hashedOtp);
     await redis.setex(`otp_retry:${email}`, OTP_EXPIRATION_TIME, 0);
@@ -141,6 +142,7 @@ class AuthService {
 
   async logout(refreshToken) {
     await db.refreshToken.delete({ where: { token: refreshToken } });
+
     return { success: true, data: {} };
   }
 
@@ -183,7 +185,7 @@ class AuthService {
 
     const otp = await this.#generateOtp(email);
 
-    await this.#saveOtp(email, otp);
+    await this.#saveOtp(email, otp.toString());
     await this.#startCoolDown(email);
 
     mailQueue.AddJobSendOtp(email, otp);
@@ -193,7 +195,7 @@ class AuthService {
     const verifyOtp = await this.#verifyOtp(email, otp);
     if (!verifyOtp) throw CreateError(400, "Invalid OTP");
 
-    const newPassword = passwordUtils.RandomPassword(12);
+    const newPassword = passwordUtils.RandomPassword(8);
     const newHashPassword = await passwordUtils.HashPassword(newPassword);
 
     await db.user.update({ where: { email: email }, data: { password: newHashPassword } });
@@ -201,6 +203,21 @@ class AuthService {
     mailQueue.AddJobSendNewPassword(email, newPassword);
 
     return { success: true, message: "Reset password successfully" };
+  }
+
+  async changePassword(userId, oldPassword, newPassword, refreshToken) {
+    const user = await db.user.findUnique({ where: { id: userId, is_deleted: false }, select: { password: true } });
+
+    if (!user) throw CreateError(404, "User not found");
+
+    if (!(await passwordUtils.ComparePassword(oldPassword, user.password))) throw CreateError(401, "Old password is not correct");
+
+    const newHashPassword = await passwordUtils.HashPassword(newPassword);
+
+    await db.user.update({ where: { id: userId }, data: { password: newHashPassword } });
+    await db.refreshToken.delete({ where: { token: refreshToken } });
+
+    return { success: true, message: "Change password successfully" };
   }
 }
 

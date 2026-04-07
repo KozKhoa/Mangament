@@ -9,8 +9,16 @@ function putRefreshTokenToCookie(res, refreshToken) {
     httpOnly: true,
     secure: true, // bắt buộc khi dùng HTTPS
     sameSite: "none",
-    path: "/auth/refresh",
+    path: "/",
     maxAge: 7 * 24 * 60 * 60 * 1000,
+  });
+}
+
+function clearRefreshTokenFromCookie(res) {
+  res.clearCookie(process.env.COOKIES_REFRESH_TOKEN_KEY, {
+    httpOnly: true,
+    secure: true,
+    sameSite: "none",
   });
 }
 
@@ -73,7 +81,7 @@ export async function Register(req, res, next) {
 
 export async function Logout(req, res, next) {
   try {
-    const refreshToken = req.cookies[process.env.COOKIES_REFRESH_TOKEN_KEY]; // Get refresht token from http
+    const refreshToken = req.cookies[process.env.COOKIES_REFRESH_TOKEN_KEY];
 
     // If there are no refresh token => user still not login => alreay logout
     if (!refreshToken) {
@@ -85,7 +93,7 @@ export async function Logout(req, res, next) {
 
     await authService.logout();
 
-    res.clearCookie(process.env.COOKIES_REFRESH_TOKEN_KEY);
+    clearRefreshTokenFromCookie(res);
 
     // Response to user
     res.status(200).json({
@@ -140,5 +148,24 @@ export async function ResetPassword(req, res, next) {
     return res.status(200).json({ success: true, message: "New password has been sent to your email" });
   } catch (err) {
     next(err);
+  }
+}
+
+export async function ChangePassword(req, res, next) {
+  try {
+    const userId = req.user?.id;
+    const refreshToken = req.cookies[process.env.COOKIES_REFRESH_TOKEN_KEY]; // Get refreh token from cookies
+
+    const { oldPassword, newPassword } = req.body;
+
+    if (!oldPassword || !newPassword) throw CreateError(400, "Both 'oldPassword' and 'newPassword' is require");
+
+    await authService.changePassword(userId, oldPassword, newPassword, refreshToken);
+
+    clearRefreshTokenFromCookie(res);
+
+    return res.status(200).json({ success: true, message: "Change password successfully" });
+  } catch (error) {
+    next(error);
   }
 }

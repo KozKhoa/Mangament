@@ -215,7 +215,7 @@ export function StoriesTrashPage() {
       content: (
         <div className="min-w-[350px] w-[80vw] h-[90vh] relative flex flex-col gap-1">
           <div className="relative w-full h-full">
-            <Image src={[process.env.NEXT_PUBLIC_CDN_URL, story.cover_art.key].join("/")} className="object-contain m-auto" alt="Cover Art" fill />
+            <Image src={[process.env.NEXT_PUBLIC_CDN_URL, story.cover_art?.key].join("/")} className="object-contain m-auto" alt="Cover Art" fill />
           </div>
 
           {/* Title */}

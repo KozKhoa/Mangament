@@ -33,22 +33,16 @@ export default function TrashStoryCard({
       >
         <Image
           className="aspect-7/10 object-contain"
-          src={story.cover_art.key ? [process.env.NEXT_PUBLIC_CDN_URL, story.cover_art.key].join("/") : (story.cover_art.url ?? "")}
-          alt="Cover Art"
+          src={story.cover_art?.key ? [process.env.NEXT_PUBLIC_CDN_URL, story.cover_art?.key].join("/") : (story.cover_art?.url ?? "/blur-image.png")}
           width={250}
-          height={300}
+          height={250}
+          alt="Cover Art"
         />
         <p className="text-[1.2em] text-start leading-tight font-semibold line-clamp-2">
           {story.nation && (
             <span className="inline-block mr-1.5 align-middle">
               {story.nation.flag_image?.url ? (
-                <Image
-                  src={story.nation.flag_image.url}
-                  alt={story.nation.name}
-                  width={20}
-                  height={14}
-                  className="object-contain inline-block"
-                ></Image>
+                <Image src={story.nation.flag_image.url} alt={story.nation.name} width={20} height={14} className="object-contain inline-block"></Image>
               ) : (
                 <span className="text-[1.2rem]">{story.nation.flag_icon}</span>
               )}

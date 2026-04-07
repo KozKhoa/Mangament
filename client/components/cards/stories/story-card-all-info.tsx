@@ -39,10 +39,10 @@ export default function StoryCardAllInfo({ story, className }: StoryCardAllInfoP
             <Image
               className="object-cover rounded-sm justify-center"
               src={
-                story.cover_art.key
-                  ? [(process.env.NEXT_PUBLIC_API_URL, story.cover_art.key)].join("/")
-                  : story.cover_art.url
-                    ? story.cover_art.url
+                story.cover_art?.key
+                  ? [(process.env.NEXT_PUBLIC_API_URL, story.cover_art?.key)].join("/")
+                  : story.cover_art?.url
+                    ? story.cover_art?.url
                     : "/blur-image.png"
               }
               alt="Cover Art"
