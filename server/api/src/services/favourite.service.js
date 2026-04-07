@@ -50,10 +50,10 @@ export async function FindAllFavouriteStories({
   if (cached) return JSON.parse(cached);
 
   const where = {
-    user: { id: userId, is_banned: false, is_deleted: false },
+    user: { id: userId, is_banned: false, deleted_status: "not_deleted" },
     story: {
       is_actived: true,
-      is_deleted: false,
+      deleted_status: "not_deleted",
       ...(storyId && { id: storyId }),
       ...(storyType && storyType.length > 0 && { type: { in: storyType } }),
       ...(nations && nations.length > 0 && { nation: { name: { in: nations } } }),
@@ -146,10 +146,10 @@ export async function AddFavouriteStory({ userId, storyId }) {
       if (!isUUID(userId)) throw CreateError(400, "'userId' must be UUID");
       if (!isUUID(storyId)) throw CreateError(400, "'storyId' must be UUID");
 
-      const user = await db.user.findFirst({ where: { is_deleted: false, id: userId } });
+      const user = await db.user.findFirst({ where: { deleted_status: "not_deleted", id: userId } });
       if (!user) throw CreateError(400, "User not found");
 
-      const story = await db.story.findFirst({ where: { is_deleted: false, id: storyId } });
+      const story = await db.story.findFirst({ where: { deleted_status: "not_deleted", id: storyId } });
       if (!story) throw CreateError(400, "Story not found");
 
       throw new Error(error);

@@ -29,7 +29,7 @@ function RegisterPage() {
 
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault(); // Prevent page from reload after press submit
 
     if (!validateEmailFormat(email)) {

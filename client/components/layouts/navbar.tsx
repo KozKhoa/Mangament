@@ -20,6 +20,7 @@ import ManageIcon from "@/public/manage.svg";
 import RankingIcon from "@/public/ranking.svg";
 import RandomIcom from "@/public/random.svg";
 import GenreIcon from "@/public/layer.svg";
+import PasswordIcon from "@/public/change-password.svg";
 
 import SwitchTheme from "@/components/switchs/switch-theme";
 import SearchStories from "@/components/search/search-stories";
@@ -143,6 +144,15 @@ function LogoutButton() {
     >
       <LogoutIcon className="w-5 h-5" />
       Đăng xuất
+    </Link>
+  );
+}
+
+function ChangePasswordButton() {
+  return (
+    <Link href="/change-password" className={className.buttonDropdown}>
+      <PasswordIcon className="w-5 h-5" />
+      Đổi mật khẩu
     </Link>
   );
 }
@@ -293,6 +303,7 @@ function NavBar({ duration = 100, autoHide = true, className }: NavBarProps) {
                 {user.role === "admin" && <WebManagementButton />}
                 <FavouriteStoryButton />
                 <HistoryButton />
+                <ChangePasswordButton />
                 <LogoutButton />
               </>
             ) : (
@@ -350,6 +361,7 @@ function NavBar({ duration = 100, autoHide = true, className }: NavBarProps) {
                     <>
                       <FavouriteStoryButton />
                       <HistoryButton />
+                      <ChangePasswordButton />
                       <LogoutButton />
                     </>
                   ) : (

@@ -88,7 +88,7 @@ export default function StoryCard({ data, className }: StoryCardProps) {
         <div className="rounded-sm overflow-hidden">
           {story.cover_art?.url && (
             <Link href={hrefStory}>
-              <Image className="aspect-7/10 object-contain" src={story.cover_art?.url} alt="Cover Art" width={300} height={300} priority />
+              <Image className="aspect-7/10 object-contain m-auto" src={story.cover_art?.url} alt="Cover Art" width={300} height={300} priority />
             </Link>
           )}
         </div>

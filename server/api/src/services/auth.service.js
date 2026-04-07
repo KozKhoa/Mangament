@@ -4,6 +4,8 @@ import * as crypto from "crypto";
 import bcrypt from "bcrypt";
 import { redis } from "../configs/redis.js";
 
+import { throwErrorIfInvalidEmailAndPassword } from "../utils/Validators.js";
+
 import * as passwordUtils from "../utils/Password.js";
 import * as tokenUtils from "../utils/Token.js";
 import * as mailQueue from "../queues/mail.queue.js";
@@ -31,7 +33,8 @@ class AuthService {
   }
 
   async #saveOtp(email, otp) {
-    const hashedOtp = await bcrypt.hash(otp, await bcrypt.genSalt(10));
+    const salt = await bcrypt.genSalt(10);
+    const hashedOtp = await bcrypt.hash(otp, salt);
 
     await redis.setex(`otp:${email}`, OTP_EXPIRATION_TIME, hashedOtp);
     await redis.setex(`otp_retry:${email}`, OTP_EXPIRATION_TIME, 0);
@@ -108,7 +111,7 @@ class AuthService {
       data: {
         email: email,
         name: name,
-        password: passwordUtils.HashPassword(password),
+        password: await passwordUtils.HashPassword(password),
         avatar: { connect: { key: AVATAR_DEFAUTL_KEY } },
       },
       select: {
@@ -120,12 +123,26 @@ class AuthService {
       },
     });
 
+    const accessToken = tokenUtils.GenAccessToken({
+      id: newUser.id,
+      name: newUser.name,
+      email: newUser.email,
+      role: newUser.role,
+    });
+    const refreshToken = tokenUtils.GenRefreshToken({
+      id: newUser.id,
+      name: newUser.name,
+      email: newUser.email,
+      role: newUser.role,
+    });
+
     // Response to user
-    return { success: true, data: { user: newUser } };
+    return { success: true, data: { user: newUser, accessToken: accessToken, refreshToken: refreshToken } };
   }
 
   async logout(refreshToken) {
     await db.refreshToken.delete({ where: { token: refreshToken } });
+
     return { success: true, data: {} };
   }
 
@@ -143,7 +160,7 @@ class AuthService {
     const dbRefreshToken = await db.refreshToken.findUnique({ where: { token: refreshToken }, select: { token: true } });
     if (!dbRefreshToken?.token) throw CreateError(404, "Refresh token not found");
 
-    const user = await db.user.findFirst({ where: { id: userId, is_deleted: false }, select: { id: true, is_banned: true } });
+    const user = await db.user.findFirst({ where: { id: userId, deleted_status: "not_deleted" }, select: { id: true, is_banned: true } });
     if (!user) throw CreateError(404, "User not found");
 
     if (user.is_banned) throw CreateError(403, "User is banned");
@@ -168,7 +185,7 @@ class AuthService {
 
     const otp = await this.#generateOtp(email);
 
-    await this.#saveOtp(email, otp);
+    await this.#saveOtp(email, otp.toString());
     await this.#startCoolDown(email);
 
     mailQueue.AddJobSendOtp(email, otp);
@@ -178,7 +195,7 @@ class AuthService {
     const verifyOtp = await this.#verifyOtp(email, otp);
     if (!verifyOtp) throw CreateError(400, "Invalid OTP");
 
-    const newPassword = passwordUtils.RandomPassword(12);
+    const newPassword = passwordUtils.RandomPassword(8);
     const newHashPassword = await passwordUtils.HashPassword(newPassword);
 
     await db.user.update({ where: { email: email }, data: { password: newHashPassword } });
@@ -186,6 +203,21 @@ class AuthService {
     mailQueue.AddJobSendNewPassword(email, newPassword);
 
     return { success: true, message: "Reset password successfully" };
+  }
+
+  async changePassword(userId, oldPassword, newPassword, refreshToken) {
+    const user = await db.user.findUnique({ where: { id: userId, deleted_status: "not_deleted" }, select: { password: true } });
+
+    if (!user) throw CreateError(404, "User not found");
+
+    if (!(await passwordUtils.ComparePassword(oldPassword, user.password))) throw CreateError(401, "Old password is not correct");
+
+    const newHashPassword = await passwordUtils.HashPassword(newPassword);
+
+    await db.user.update({ where: { id: userId }, data: { password: newHashPassword } });
+    await db.refreshToken.delete({ where: { token: refreshToken } });
+
+    return { success: true, message: "Change password successfully" };
   }
 }
 

@@ -69,7 +69,7 @@ export default function HistoryCard({ history, onClickRemove, className }: { his
       <div className={`w-full cursor-pointer`}>
         {story?.cover_art?.url && (
           <Image
-            className="aspect-7/10 object-contain rounded-sm overflow-hidden"
+            className="aspect-7/10 object-contain rounded-sm overflow-hidden m-auto"
             onClick={() => navigateToStoryNode()}
             src={story?.cover_art?.url}
             alt="Cover Art"

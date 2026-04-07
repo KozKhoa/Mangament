@@ -1,6 +1,6 @@
 import express from "express";
 
-import { ForgotPassword, Login, Logout, Refresh, Register, ResetPassword } from "../controllers/Auth.Controller.js";
+import { ForgotPassword, Login, Logout, Refresh, Register, ResetPassword, ChangePassword } from "../controllers/Auth.Controller.js";
 
 import { GetUser } from "../controllers/User.Controller.js";
 
@@ -303,7 +303,8 @@ authRouter.post("/login", Login);
 authRouter.post("/logout", Logout);
 authRouter.post("/refresh", Refresh);
 authRouter.get("/me", AuthenticationToken, GetUser);
-// authRouter.post("/forgot-password", ForgotPassword);
-// authRouter.post("/reset-password", ResetPassword);
+authRouter.post("/forgot-password", ForgotPassword);
+authRouter.post("/reset-password", ResetPassword);
+authRouter.post("/change-password", AuthenticationToken, ChangePassword);
 
 export default authRouter;

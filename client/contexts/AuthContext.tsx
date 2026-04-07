@@ -24,6 +24,7 @@ interface AuthContextProps {
 
   login: (email: string, password: string) => Promise<any>;
   register: (name: string, email: string, password: string) => Promise<any>;
+  changePassword: (oldPassword: string, newPassword: string) => Promise<any>;
   logout: () => Promise<any>;
 }
 
@@ -114,7 +115,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const user = res.data;
     if (user) {
       setUser(user);
+    } else {
+      setUser(null);
+      token.removeAccessToken();
     }
+
     setLoading(false);
   }
 
@@ -159,10 +164,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setUser(user);
       token.setAccessToken(accessToken);
 
-      toast.message("Đăng ký thành công! Vui lòng đăng nhập lại với tài khoản đã đang ký");
+      toast.message("Đăng ký thành công!");
 
       // navigate to home page
-      router.replace("/login");
+      router.replace("/");
     }
   }
 
@@ -171,6 +176,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setUser(null);
     token.removeAccessToken();
     router.refresh();
+  }
+
+  async function changePassword(oldPassword: string, newPassword: string) {
+    if (!user) return;
+
+    const res = await authService.changePassword(oldPassword, newPassword);
+
+    if (!res.success) return toast.warning(res.message);
+
+    router.replace("/login");
+
+    toast.message("Đổi mật khẩu thành công!");
+
+    setUser(null);
+    token.removeAccessToken();
   }
 
   useEffect(function () {
@@ -182,7 +202,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, loading, setUser, updateGender, updateUsername, updateBirthday, updateAvatar, login, register, logout }}>
+    <AuthContext.Provider
+      value={{ user, loading, setUser, updateGender, updateUsername, updateBirthday, updateAvatar, login, register, logout, changePassword }}
+    >
       {children}
     </AuthContext.Provider>
   );

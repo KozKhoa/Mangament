@@ -52,8 +52,6 @@ export async function AddNewFavouriteStory(req, res, next) {
 
     const favouriteStory = await AddFavouriteStory({ userId: userId, storyId: storyId });
 
-    delete favouriteStory.data.is_deleted;
-
     return res.status(200).json({
       success: true,
       message: "Add new favourite story successfully",

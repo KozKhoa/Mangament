@@ -28,30 +28,30 @@ export async function GetDashboardOverview() {
 
   const dbResponse = await db.$queryRaw`
     SELECT
-      (SELECT COUNT(*)::int FROM "User" WHERE is_deleted = false) AS "totalUsers",
+      (SELECT COUNT(*)::int FROM "User" WHERE deleted_status = 'not_deleted') AS "totalUsers",
 
       (SELECT COUNT(*)::int 
       FROM "User" 
-      WHERE is_deleted = false AND is_banned = true) AS "totalBannedUsers",
+      WHERE deleted_status = 'not_deleted' AND is_banned = true) AS "totalBannedUsers",
 
       (SELECT COUNT(*)::int 
       FROM "Story" 
-      WHERE is_deleted = false) AS "totalStories",
+      WHERE deleted_status = 'not_deleted') AS "totalStories",
 
       (SELECT COALESCE(SUM(view), 0)::int
       FROM "Story" 
-      WHERE is_deleted = false) AS "totalView",
+      WHERE deleted_status = 'not_deleted') AS "totalView",
 
       (SELECT COUNT(*)::int 
       FROM "Rating" 
-      WHERE is_deleted = false) AS "totalRating",
+      WHERE deleted_status = 'not_deleted') AS "totalRating",
 
       (
         SELECT COALESCE(json_object_agg(status, total), '{}'::json)
         FROM (
           SELECT status, COUNT(*)::int AS total
           FROM "Story"
-          WHERE is_deleted = false
+          WHERE deleted_status = 'not_deleted'
           GROUP BY status
         ) t
       ) AS "totalStoriesBaseOnStatus",
@@ -61,7 +61,7 @@ export async function GetDashboardOverview() {
         FROM (
           SELECT role, COUNT(*)::int AS total
           FROM "User"
-          WHERE is_deleted = false
+          WHERE deleted_status = 'not_deleted'
           GROUP BY role
         ) t
       ) AS "totalUserBaseOnRole";

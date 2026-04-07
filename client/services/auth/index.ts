@@ -38,7 +38,7 @@ export async function login(email: string, password: string): Promise<ServiceRes
 
 export async function logout(): Promise<ServiceResult<any[]>> {
   try {
-    const res = await api.post("/auth/logout");
+    const res = await api.post("/auth/logout", {}, { withCredentials: true });
     return res.data;
   } catch (error: any) {
     console.error(error);
@@ -82,6 +82,17 @@ export async function resetPassword(email: string, otp: string): Promise<Service
   }
 }
 
-const authService = { me, login, register, logout, forgotPassword, resetPassword };
+export async function changePassword(oldPassword: string, newPassword: string): Promise<ServiceResult<any>> {
+  try {
+    const res = await api.post("/auth/change-password", { oldPassword, newPassword }, { withCredentials: true });
+
+    return await res.data;
+  } catch (error: any) {
+    console.error(error);
+    return { success: false, message: error?.response?.data?.message || error?.message || "Unknown error" };
+  }
+}
+
+const authService = { me, login, register, logout, forgotPassword, resetPassword, changePassword };
 
 export default authService;
