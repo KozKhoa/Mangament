@@ -27,6 +27,8 @@ import ratingRoute from "./src/routes/Rating.Route.js";
 import historyRoute from "./src/routes/History.Route.js";
 import favouriteRoute from "./src/routes/Favourite.Route.js";
 
+import initUpload from "./src/utils/upload/index.js";
+
 initRedis();
 
 console.log("App is running with NODE ENV =", process.env.NODE_ENV);
@@ -129,7 +131,6 @@ const specs = swaggerJsdoc({
             order_index: { type: "number" },
             view: { type: "integer" },
             number_of_children: { type: "integer" },
-            plain_text: { type: "string" },
             created_at: { type: "string", format: "date-time" },
             updated_at: { type: "string", format: "date-time" },
             poster_id: { type: "string" },
@@ -294,6 +295,8 @@ if (process.env.NODE_ENV === "development") {
   app.listen(process.env.LOCAL_PORT, "0.0.0.0", () => {
     console.log(`🚀 Server chạy tại http://localhost:${process.env.LOCAL_PORT}`);
   });
+
+  initUpload();
 } else if (process.env.NODE_ENV === "production") {
   app.listen(process.env.PORT, () => {
     console.log(`🚀 Server chạy tại :${process.env.PORT}`);

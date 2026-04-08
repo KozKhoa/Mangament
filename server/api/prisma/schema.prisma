@@ -5,8 +5,6 @@ generator client {
 
 datasource db {
   provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
 }
 
 model User {
@@ -20,7 +18,7 @@ model User {
   role              Role             @default(user)
   nation_id         String?          @db.Uuid
   avatar_id         String?          @db.Uuid
-  deleted_status      DeletedStatus          @default(not_deleted)
+  deleted_status    DeletedStatus    @default(not_deleted)
   is_banned         Boolean          @default(false)
   comments          Comment[]
   favourite_story   FavouriteStory[]
@@ -45,7 +43,7 @@ model Story {
   number_of_children Int                    @default(0)
   cover_art_id       String?                @db.Uuid
   nation_id          String?                @db.Uuid
-  deleted_status      DeletedStatus          @default(not_deleted)
+  deleted_status     DeletedStatus          @default(not_deleted)
   is_actived         Boolean                @default(true)
   poster_id          String?                @db.Uuid
   created_at         DateTime               @default(now())
@@ -75,9 +73,7 @@ model StoryNode {
   number_of_children Int                      @default(0)
   updated_at         DateTime                 @default(now())
   created_at         DateTime                 @default(now())
-  plain_text         String?
-  search_vector      Unsupported("tsvector")?
-  deleted_status      DeletedStatus          @default(not_deleted)
+  deleted_status     DeletedStatus            @default(not_deleted)
   poster_id          String?                  @db.Uuid
   comment            Comment[]
   reading_history    ReadingHistory[]
@@ -89,16 +85,16 @@ model StoryNode {
 }
 
 model StoryNodeContent {
-  id            String               @id @default(uuid()) @db.Uuid
-  story_node_id String               @db.Uuid
-  type          StoryNodeContentType @default(text)
-  order_index   Int
-  content       String?
-  image_id      String?              @db.Uuid
-  deleted_status      DeletedStatus          @default(not_deleted)
-  created_at    DateTime             @default(now())
-  image         Image?               @relation(fields: [image_id], references: [id], onDelete: Cascade)
-  story_node    StoryNode            @relation(fields: [story_node_id], references: [id], onDelete: Cascade)
+  id             String               @id @default(uuid()) @db.Uuid
+  story_node_id  String               @db.Uuid
+  type           StoryNodeContentType @default(text)
+  order_index    Int
+  content        String?
+  image_id       String?              @db.Uuid
+  deleted_status DeletedStatus        @default(not_deleted)
+  created_at     DateTime             @default(now())
+  image          Image?               @relation(fields: [image_id], references: [id], onDelete: Cascade)
+  story_node     StoryNode            @relation(fields: [story_node_id], references: [id], onDelete: Cascade)
 }
 
 model Image {
@@ -108,7 +104,7 @@ model Image {
   public_id          String?            @unique
   width              Int?
   height             Int?
-  deleted_status      DeletedStatus          @default(not_deleted)
+  deleted_status     DeletedStatus      @default(not_deleted)
   created_at         DateTime           @default(now())
   author             Author[]
   nation             Nation[]
@@ -137,16 +133,16 @@ model Story_Author {
 }
 
 model ReadingHistory {
-  id            String    @id @default(uuid()) @db.Uuid
-  user_id       String    @db.Uuid
-  story_id      String    @db.Uuid
-  story_node_id String    @db.Uuid
-  created_at    DateTime  @default(now())
-  updated_at    DateTime  @default(now())
-  deleted_status      DeletedStatus          @default(not_deleted)
-  story         Story     @relation(fields: [story_id], references: [id], onDelete: Cascade)
-  story_node    StoryNode @relation(fields: [story_node_id], references: [id], onDelete: Cascade)
-  user          User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  id             String        @id @default(uuid()) @db.Uuid
+  user_id        String        @db.Uuid
+  story_id       String        @db.Uuid
+  story_node_id  String        @db.Uuid
+  created_at     DateTime      @default(now())
+  updated_at     DateTime      @default(now())
+  deleted_status DeletedStatus @default(not_deleted)
+  story          Story         @relation(fields: [story_id], references: [id], onDelete: Cascade)
+  story_node     StoryNode     @relation(fields: [story_node_id], references: [id], onDelete: Cascade)
+  user           User          @relation(fields: [user_id], references: [id], onDelete: Cascade)
 }
 
 model FavouriteStory {
@@ -181,37 +177,37 @@ model Story_Genre {
 }
 
 model Rating {
-  id         String   @id @default(uuid()) @db.Uuid
-  user_id    String   @db.Uuid
-  story_id   String   @db.Uuid
-  star       Int      @default(0)
-  title      String
-  content    String
-  created_at DateTime @default(now())
-  updated_at DateTime @default(now())
-  deleted_status      DeletedStatus          @default(not_deleted)
-  story      Story    @relation(fields: [story_id], references: [id], onDelete: Cascade)
-  user       User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  id             String        @id @default(uuid()) @db.Uuid
+  user_id        String        @db.Uuid
+  story_id       String        @db.Uuid
+  star           Int           @default(0)
+  title          String
+  content        String
+  created_at     DateTime      @default(now())
+  updated_at     DateTime      @default(now())
+  deleted_status DeletedStatus @default(not_deleted)
+  story          Story         @relation(fields: [story_id], references: [id], onDelete: Cascade)
+  user           User          @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   @@unique([user_id, story_id])
 }
 
 model Comment {
-  id            String     @id @default(uuid()) @db.Uuid
-  parent_id     String?    @db.Uuid
-  story_id      String     @db.Uuid
-  story_node_id String?    @db.Uuid
-  user_id       String     @db.Uuid
-  title         String
-  content       String
-  created_at    DateTime   @default(now())
-  updated_at    DateTime   @default(now())
-  deleted_status      DeletedStatus          @default(not_deleted)
-  parent        Comment?   @relation("CommentToComment", fields: [parent_id], references: [id], onDelete: Cascade)
-  children      Comment[]  @relation("CommentToComment")
-  story         Story      @relation(fields: [story_id], references: [id], onDelete: Cascade)
-  story_node    StoryNode? @relation(fields: [story_node_id], references: [id], onDelete: Cascade)
-  user          User       @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  id             String        @id @default(uuid()) @db.Uuid
+  parent_id      String?       @db.Uuid
+  story_id       String        @db.Uuid
+  story_node_id  String?       @db.Uuid
+  user_id        String        @db.Uuid
+  title          String
+  content        String
+  created_at     DateTime      @default(now())
+  updated_at     DateTime      @default(now())
+  deleted_status DeletedStatus @default(not_deleted)
+  parent         Comment?      @relation("CommentToComment", fields: [parent_id], references: [id], onDelete: Cascade)
+  children       Comment[]     @relation("CommentToComment")
+  story          Story         @relation(fields: [story_id], references: [id], onDelete: Cascade)
+  story_node     StoryNode?    @relation(fields: [story_node_id], references: [id], onDelete: Cascade)
+  user           User          @relation(fields: [user_id], references: [id], onDelete: Cascade)
 }
 
 model RefreshToken {
@@ -309,7 +305,6 @@ enum Genre {
   yaoi
   yuri
 }
-
 
 enum DeletedStatus {
   not_deleted

@@ -1,6 +1,5 @@
 import db from "../configs/db.js";
-import { StoryNodeType } from "../configs/db.js";
-import { redis } from "../configs/redis.js";
+
 import { CreateError } from "../utils/ErrorHandle.js";
 
 const REDIS_TTL = 60 * 30; // 30 minutes

@@ -4,7 +4,7 @@
 #include <filesystem>
 #include <cstdio>
 
-#define PATH L"D:\\Manga\\Nhất Quỷ Nhì Ma, Thứ Ba Takagi\\"
+#define PATH L"/home/khoa/OneDrive/Code/Project/Mangament/.trash/Relife/"
 #define FILE_NAME_FORMAT L"Chương "
 
 
@@ -25,7 +25,7 @@ void checkIfLackingChapter(std::wstring path, int maxChapter) { // Nó không th
     for (int i = 0; i <= maxChapter; i++) {
         std::wstring sample_file_name (FILE_NAME_FORMAT + std::to_wstring(i));
         
-        fs::path directory (PATH + sample_file_name);
+        fs::path directory (path + sample_file_name);
         
         if (fs::exists(directory) == false) {
             std::cout << "Lacking chapter " << i << '\n';
@@ -35,12 +35,22 @@ void checkIfLackingChapter(std::wstring path, int maxChapter) { // Nó không th
 }
 
 int main() {
-    int maxChapter = 0;
-    std::cout << "Enter max chapter: " ;
-    std::cin >> maxChapter;
+    std::wstring path = PATH;
 
-    std::cout << "Lacking chapter: \n";
-    checkIfLackingChapter(PATH, maxChapter);
+    std::wcout << "Enter path (leave blank for default = " << PATH << "): ";
+    getline(std::wcin, path);
+
+    if (path.empty()) {
+        path = PATH;
+    }
+
+    int maxChapter = 0;
+    std::wcout << "Enter max chapter: ";
+    std::wcin >> maxChapter;
+
+    std::wcout << "Lacking chapter: \n";
+    
+    checkIfLackingChapter(path, maxChapter);
 
     return 0;
 }
