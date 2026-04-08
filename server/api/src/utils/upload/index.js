@@ -1,20 +1,8 @@
 import chokidar from "chokidar";
 import path from "path";
-import pg from "pg";
-import { PrismaPg } from "@prisma/adapter-pg";
-import { PrismaClient } from "../../generated/prisma/client.js";
-// import db from "../../configs/db.js";
-
-// const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
-// const adapter = new PrismaPg(pool);
-
-// const db = new PrismaClient({
-//   adapter: adapter,
-// });
+import fs from "fs";
 
 import db from "../../configs/db.js";
-
-import fs from "fs";
 
 import { getAllFiles } from "../FileHandle.js";
 
@@ -22,7 +10,6 @@ const ADMIN_TOKEN =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjFhYzU5ZGQ1LWMxMzUtNDJiMi05NDlmLWE1OTI3OWU4ZjMwMCIsIm5hbWUiOiJLaG9hIiwiZW1haWwiOiJhQGEuYSIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc3NTU2NzgwMCwiZXhwIjoxNzc4MTU5ODAwfQ.UIzsPf-bIN9w5v7fpMJH15XU1kqfFTeU5try_t1Uh3s";
 
 const root = "/home/khoa/OneDrive/Code/Project/Mangament/uploads/story";
-// const root = path.resolve("../../../../../uploads/story");
 
 const alreadyAddStories = new Map();
 const alreadyAddStoryNodes = new Map();
@@ -199,8 +186,6 @@ const handleAddStoryNode = async ({ storyNodeName = "", storyId, parentId }) => 
   const storyNodeType = seperateStoryNodeName[0].toLowerCase();
   const storyNodeIndex = Number(seperateStoryNodeName[1]);
 
-  console.log(storyId, parentId, storyNodeType, storyNodeIndex);
-
   let storyNode;
   // Kiểm tra sự tồn tại của story node
   storyNode = await db.storyNode.findFirst({
@@ -213,12 +198,14 @@ const handleAddStoryNode = async ({ storyNodeName = "", storyId, parentId }) => 
   });
 
   if (!storyNode) {
-    // storyNode = await db.storyNode.create({ data: { type: storyNodeType, order_index: storyNodeIndex, story_id: storyId }, select: { id: true } });
-    const id = crypto.randomUUID();
-    storyNode = await db.$queryRaw`INSERT INTO "StoryNode" ( "id", "story_id", "order_index", "type")
-      VALUES (${id}::uuid, ${storyId}::uuid, ${storyNodeIndex}, ${storyNodeType}::"StoryNodeType")
-      RETURNING *;
-      `;
+    storyNode = await db.storyNode.create({
+      data: {
+        type: storyNodeType,
+        order_index: storyNodeIndex,
+        story_id: storyId,
+        ...(parentId && { parent_id: parentId }),
+      },
+    });
 
     console.log("Added story node", storyNodeName);
 
