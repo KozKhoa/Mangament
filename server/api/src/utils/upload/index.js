@@ -1,18 +1,28 @@
 import chokidar from "chokidar";
 import path from "path";
+import pg from "pg";
+import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../../generated/prisma/client.js";
+// import db from "../../configs/db.js";
+
+// const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
+// const adapter = new PrismaPg(pool);
+
+// const db = new PrismaClient({
+//   adapter: adapter,
+// });
+
+import db from "../../configs/db.js";
 
 import fs from "fs";
 
 import { getAllFiles } from "../FileHandle.js";
 
 const ADMIN_TOKEN =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjFhYzU5ZGQ1LWMxMzUtNDJiMi05NDlmLWE1OTI3OWU4ZjMwMCIsIm5hbWUiOiJLaG9hIiwiZW1haWwiOiJhQGEuYSIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc3NTA2MDQxNiwiZXhwIjoxNzc3NjUyNDE2fQ.n_9Bwr461FyEhNIzsX5axDCnB7H9jStsBDwOeUndJP8";
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjFhYzU5ZGQ1LWMxMzUtNDJiMi05NDlmLWE1OTI3OWU4ZjMwMCIsIm5hbWUiOiJLaG9hIiwiZW1haWwiOiJhQGEuYSIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc3NTU2NzgwMCwiZXhwIjoxNzc4MTU5ODAwfQ.UIzsPf-bIN9w5v7fpMJH15XU1kqfFTeU5try_t1Uh3s";
 
-const db = new PrismaClient();
-
-// const root = "/home/khoa/Code/Project/Mangament/uploads/story";
-const root = path.resolve("../../../../../uploads/story");
+const root = "/home/khoa/OneDrive/Code/Project/Mangament/uploads/story";
+// const root = path.resolve("../../../../../uploads/story");
 
 const alreadyAddStories = new Map();
 const alreadyAddStoryNodes = new Map();
@@ -26,6 +36,8 @@ const watch = chokidar.watch(root, {
 async function handleAdd(filePath) {
   // dir = manga/Genshin Impact/chapter 10/001.png
   const dir = path.relative(root, filePath);
+
+  console.log(dir);
 
   const seperateDir = dir.split(path.sep);
 
@@ -86,6 +98,7 @@ async function handleAdd(filePath) {
 
   // Add story node
   let parentId = null;
+
   for (const name of storyNodeNames) {
     const storyNode = await handleAddStoryNode({
       storyNodeName: name,
@@ -116,28 +129,9 @@ async function handleAdd(filePath) {
 
   const uploadJson = await Promise.all(uploadImages.map((upload) => upload.json()));
 
-  console.log(uploadJson);
-
   const addContent = await db.storyNodeContent.createMany({
     data: uploadJson.map((image, i) => ({ story_node_id: storyNodeId, image_id: image.data.id, type: "image", order_index: i })),
   });
-
-  // const imageIds = [];
-
-  // for (const file of files) {
-  //   const imageKey = ["story", file.replace(root, "")].join("/");
-  //   const image = await db.image.create({ data: { url: ["http://localhost:5000", imageKey].join("/"), key: imageKey } });
-  //   imageIds.push(image.id);
-  // }
-
-  // await db.storyNodeContent.createMany({
-  //   data: imageIds.map((image, i) => ({
-  //     story_node_id: storyNodeId,
-  //     image_id: image,
-  //     type: "image",
-  //     order_index: i,
-  //   })),
-  // });
 
   console.log("Update content for " + [storyName, ...storyNodeNames].join("/"));
 
@@ -160,11 +154,6 @@ const ProccessAddingQueue = async () => {
   }
   isProccessingAdding = false;
 };
-
-watch.on("add", async (filePath) => {
-  addingQueue.push(filePath);
-  await ProccessAddingQueue();
-});
 
 const handleAddStory = async ({ storyName = "", storyType = "", covertArtId = "" }) => {
   // Kiểm tra sự tồn tại của story
@@ -210,6 +199,8 @@ const handleAddStoryNode = async ({ storyNodeName = "", storyId, parentId }) => 
   const storyNodeType = seperateStoryNodeName[0].toLowerCase();
   const storyNodeIndex = Number(seperateStoryNodeName[1]);
 
+  console.log(storyId, parentId, storyNodeType, storyNodeIndex);
+
   let storyNode;
   // Kiểm tra sự tồn tại của story node
   storyNode = await db.storyNode.findFirst({
@@ -222,22 +213,13 @@ const handleAddStoryNode = async ({ storyNodeName = "", storyId, parentId }) => 
   });
 
   if (!storyNode) {
-    storyNode = await db.storyNode.create({
-      data: {
-        story: {
-          connect: { id: storyId },
-        },
-        ...(parentId && {
-          parent: {
-            connect: {
-              id: parentId,
-            },
-          },
-        }),
-        order_index: storyNodeIndex,
-        type: storyNodeType,
-      },
-    });
+    // storyNode = await db.storyNode.create({ data: { type: storyNodeType, order_index: storyNodeIndex, story_id: storyId }, select: { id: true } });
+    const id = crypto.randomUUID();
+    storyNode = await db.$queryRaw`INSERT INTO "StoryNode" ( "id", "story_id", "order_index", "type")
+      VALUES (${id}::uuid, ${storyId}::uuid, ${storyNodeIndex}, ${storyNodeType}::"StoryNodeType")
+      RETURNING *;
+      `;
+
     console.log("Added story node", storyNodeName);
 
     // Tăng số lượng con của story hoặc parent
@@ -268,62 +250,11 @@ const handleAddStoryNode = async ({ storyNodeName = "", storyId, parentId }) => 
   return storyNode;
 };
 
-const handleAddImage = async ({ imageUrl = "" }) => {
-  // Kiểm tra sự tồn tại của url
-  const isExist = await db.image.findFirst({ where: { url: imageUrl } });
-  if (isExist) return isExist;
+export default function initUpload() {
+  console.log("Watching folder: " + root);
 
-  const image = await db.image.create({ data: { url: imageUrl } });
-  console.log("Added image ", imageUrl);
-
-  return image;
-};
-
-const handleAddContentForStoryNode = async ({ storyNodeId = "", imageId }) => {
-  const update = await db.storyNodeContent.createMany;
-
-  // // Không cần kiểm tra sự tồn tại của storyNodeId vi chắc chắn nó tồn tại
-  // const storyNode = await db.storyNode.findFirst({
-  //   where: { id: storyNodeId },
-  // });
-  // if (!storyNode) {
-  //   setTimeout(() => {
-  //     // Sleep
-  //     console.log("Can not find story node id = ", storyNodeId, ". Retry in 5s");
-  //   }, 5000);
-  //   return handleAddContentForStoryNode({
-  //     storyNodeId: storyNodeId,
-  //     content: content,
-  //   });
-  // }
-  // const oldContent = storyNode.content || [];
-  // const newContent = oldContent;
-  // newContent.push(content);
-  // const updateStoryNode = await db.storyNode.update({
-  //   where: {
-  //     id: storyNodeId,
-  //   },
-  //   data: {
-  //     content: newContent,
-  //   },
-  // });
-  // return updateStoryNode;
-};
-
-const handleAddCoverArtForStory = async ({
-  storyId = "",
-  coverArtId = "", // This id is from image that has already all before
-}) => {
-  const story = await db.story.update({
-    where: { id: storyId },
-    data: {
-      cover_art: {
-        connect: {
-          id: coverArtId,
-        },
-      },
-    },
+  watch.on("add", async (filePath) => {
+    addingQueue.push(filePath);
+    await ProccessAddingQueue();
   });
-
-  return story;
-};
+}

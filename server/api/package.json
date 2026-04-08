@@ -11,6 +11,7 @@
   },
   "scripts": {
     "dev": "cross-env NODE_ENV=development nodemon App.js",
+    "upload": "cross-env NODE_ENV=development node Upload.js",
     "start": "cross-env NODE_ENV=production node App.js",
     "build": "npm i && npx prisma generate",
     "test": "cross-env NODE_ENV=development nodemon Test.js",
@@ -20,8 +21,8 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1000.0",
     "@faker-js/faker": "^10.3.0",
-    "@prisma/adapter-pg": "^6.16.2",
-    "@prisma/client": "^6.16.2",
+    "@prisma/adapter-pg": "^7.6.0",
+    "@prisma/client": "^7.6.0",
     "bcrypt": "^6.0.0",
     "bullmq": "^5.71.0",
     "chokidar": "^4.0.3",
@@ -46,12 +47,14 @@
     "p-limit": "^7.3.0",
     "path": "^0.12.7",
     "pg": "^8.16.3",
-    "prisma": "^6.16.2",
     "redis": "^5.10.0",
     "sharp": "^0.32.6",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
     "uuid": "^13.0.0",
     "winston": "^3.18.3"
+  },
+  "devDependencies": {
+    "prisma": "^7.6.0"
   }
 }
