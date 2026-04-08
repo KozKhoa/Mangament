@@ -17,7 +17,7 @@ import * as commentSeeding from "./comment.js";
 
 // await userSeeding.default();
 
-await storySeeding.default();
+// await storySeeding.default();
 
 // await authorSeeding.default();
 

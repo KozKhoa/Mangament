@@ -47,12 +47,12 @@ const FilterGenres = ({ value, onChange }: FilterGenresProps) => {
   const [finalSelectedGenres, setFinalSelectedGenres] = useState<Set<string>>(new Set());
   const [hidden, setHidden] = useState<Set<string>>(new Set());
 
-  const resetAllField = useCallback(() => {
+  function resetAllField() {
     setSelectedGenres(new Set());
     setFinalSelectedGenres(new Set());
 
     onChange?.([]);
-  }, []);
+  }
 
   const toggleCheckbox = useCallback((genre: string, checked: boolean) => {
     setSelectedGenres((prev) => {

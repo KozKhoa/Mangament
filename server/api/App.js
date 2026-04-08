@@ -295,8 +295,6 @@ if (process.env.NODE_ENV === "development") {
   app.listen(process.env.LOCAL_PORT, "0.0.0.0", () => {
     console.log(`🚀 Server chạy tại http://localhost:${process.env.LOCAL_PORT}`);
   });
-
-  initUpload();
 } else if (process.env.NODE_ENV === "production") {
   app.listen(process.env.PORT, () => {
     console.log(`🚀 Server chạy tại :${process.env.PORT}`);
