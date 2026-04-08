@@ -9,7 +9,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     <Suspense>
       <AdminProvider>
         <div className="flex flex-row w-full h-fit ">
-          <NavBar className="fixed left-2.5 right-2.5" autoHide={false}></NavBar>
+          <NavBar className="fixed left-2.5 right-2.5 z-40" autoHide={false}></NavBar>
 
           <AdminSidebar />
 

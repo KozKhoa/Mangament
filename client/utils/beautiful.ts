@@ -11,7 +11,5 @@ export function beautifulView(view: number): string {
     j++;
   }
 
-  console.log(view, strView);
-
   return strView;
 }

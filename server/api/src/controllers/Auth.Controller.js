@@ -8,7 +8,7 @@ function putRefreshTokenToCookie(res, refreshToken) {
   res.cookie(process.env.COOKIES_REFRESH_TOKEN_KEY, refreshToken, {
     httpOnly: true,
     secure: true, // bắt buộc khi dùng HTTPS
-    sameSite: "none",
+    sameSite: "lax",
     path: "/",
     maxAge: 7 * 24 * 60 * 60 * 1000,
   });
@@ -18,7 +18,7 @@ function clearRefreshTokenFromCookie(res) {
   res.clearCookie(process.env.COOKIES_REFRESH_TOKEN_KEY, {
     httpOnly: true,
     secure: true,
-    sameSite: "none",
+    sameSite: "lax",
   });
 }
 

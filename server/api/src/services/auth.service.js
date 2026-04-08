@@ -141,9 +141,11 @@ class AuthService {
   }
 
   async logout(refreshToken) {
-    await db.refreshToken.delete({ where: { token: refreshToken } });
+    await db.refreshToken.delete({ where: { token: refreshToken } }).catch(async (error) => {
+      return { success: true, message: "Refresh toke not found" };
+    });
 
-    return { success: true, data: {} };
+    return { success: true, message: "Logout successfully" };
   }
 
   async refresh(refreshToken) {

@@ -119,7 +119,7 @@ export default function Home() {
       <InfinityScrollHorizontalList label="Mới cập nhật" isLoading={newestStories.length <= 0}>
         {newestStories.map((story, i) => (
           <div className="px-1 h-full">
-            <StoryCard className="bg-background-items" key={story.id} data={story}></StoryCard>
+            <StoryCard className="bg-background-items" key={story.id} data={story} />
           </div>
         ))}
       </InfinityScrollHorizontalList>
