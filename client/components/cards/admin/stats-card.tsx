@@ -5,7 +5,7 @@ export interface StatsCardProps {
 
   label?: string | React.ReactNode;
   subLabel?: string | number;
-  value?: number;
+  value?: string | number;
   icon?: React.ReactNode;
 
   onClick?: MouseEventHandler<HTMLDivElement>;

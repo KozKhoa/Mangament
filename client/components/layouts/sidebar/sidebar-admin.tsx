@@ -82,7 +82,7 @@ export default function AdminSidebar({ className }: AdminSidebarProps) {
     <>
       <div
         className={`relative transition-transform duration-200 
-          md:sticky md:h-screen md:top-0 w-fit z-10
+          md:sticky md:h-screen md:top-0 w-fit z-40
           ${open ? "md:w-fit" : "md:w-0"}`}
       >
         <div

@@ -454,7 +454,7 @@ export async function HardDeleteManyStories(ids = []) {
   await redisUtils.stories().incr();
   await Promise.all(ids.map((id) => redisUtils.stories(id).incr()));
 
-  return { success: true, data: hardRemoves };
+  return { success: true, data: "Stories is being permanently deleted" };
 }
 
 export async function ActiveStory(id, isActived = true) {

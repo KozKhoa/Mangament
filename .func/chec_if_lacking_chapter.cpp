@@ -4,8 +4,8 @@
 #include <filesystem>
 #include <cstdio>
 
-#define PATH L"/home/khoa/OneDrive/Code/Project/Mangament/.trash/Relife/"
-#define FILE_NAME_FORMAT L"Chương "
+#define PATH L"/home/khoa/OneDrive/Code/Project/Mangament/.trash/.done/Naruto/"
+#define FILE_NAME_FORMAT L"chapter "
 
 
 #define fs std::filesystem
@@ -27,8 +27,10 @@ void checkIfLackingChapter(std::wstring path, int maxChapter) { // Nó không th
         
         fs::path directory (path + sample_file_name);
         
-        if (fs::exists(directory) == false) {
-            std::cout << "Lacking chapter " << i << '\n';
+        bool isExists = fs::exists(directory);
+
+        if (isExists == false) {
+            std::wcout << "Lacking chapter " << i << '\n';
         }
     }
     
@@ -48,7 +50,7 @@ int main() {
     std::wcout << "Enter max chapter: ";
     std::wcin >> maxChapter;
 
-    std::wcout << "Lacking chapter: \n";
+    std::wcout << path << ' ' << maxChapter << "\n";
     
     checkIfLackingChapter(path, maxChapter);
 

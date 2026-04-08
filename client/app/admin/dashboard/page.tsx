@@ -17,6 +17,7 @@ import { capitalizeWords } from "@/utils/string";
 import PieChart from "@/components/chart/pie-chart";
 import useAdmin from "@/contexts/AdminContext";
 import { loadingBar } from "@/components/loadings/loading-bar/top-loading-bar.store";
+import { beautifulView } from "@/utils/beautiful";
 
 const USER_PIE_CHART_COLORS = [
   "#405D5D",
@@ -212,14 +213,14 @@ export default function Dashboard() {
 
             <StatsCard
               label="Users"
-              value={overview?.totalUsers}
+              value={beautifulView(overview?.totalUsers ?? 0)}
               subLabel={`${overview?.totalBannedUsers} banned users`}
               icon={<img src="/user.png"></img>}
             ></StatsCard>
 
             <StatsCard
               label="Views"
-              value={overview?.totalView}
+              value={beautifulView(overview?.totalView ?? 0)}
               icon={<img src="/reading.png"></img>}
               subLabel={`${overview?.totalRating} ratings`}
             ></StatsCard>
