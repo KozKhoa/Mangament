@@ -1,0 +1,46 @@
+# Docker Compose for Mangament Server
+
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: managment_redis
+    restart: always
+    ports:
+      - "6379:6379"
+
+  ml-service:
+    build:
+      context: ./ml-service
+      dockerfile: Dockerfile
+    container_name: managment_ml_service
+    restart: always
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 300s
+      timeout: 10s
+      retries: 3
+
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: managment_api
+    restart: always
+    ports:
+      - "${PORT:-5000}:${PORT:-5000}"
+    env_file:
+      - ./api/.env
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - ML_SERVICE_URL=http://ml-service:8000
+    depends_on:
+      redis:
+        condition: service_started
+      ml-service:
+        condition: service_healthy
+    volumes:
+      - ./api:/app
+      - /app/node_modules
+      - ../uploads:/app/uploads

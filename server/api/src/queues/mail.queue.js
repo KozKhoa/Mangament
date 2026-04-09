@@ -1,7 +1,6 @@
 import { redis } from "../configs/redis.js";
 
 import { Queue, Worker } from "bullmq";
-import * as storyModel from "../services/story.service.js";
 import mailService from "../services/mail.service.js";
 
 const connection = {
