@@ -1,30 +1,34 @@
 "use client";
 
-import { TargetStoryStatus } from "@/components/selections/story-status-selection";
-import Input from "@/components/inputs/input";
-import ImagePicker from "@/components/inputs/image-picker";
-import Loading from "@/components/loadings/loading";
-import StoryGenreMultiSelection from "@/components/selections/story-genres-multi-selection";
-import StoryStatusSelection from "@/components/selections/story-status-selection";
-import adminService from "@/services/admin";
-import Story from "@/types/story";
-import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import TextArea from "@/components/inputs/text-area";
-import Button from "@/components/buttons/button";
-import { modal } from "@/components/modal/modal.store";
-import { snakeCaseToCapitalizeWord } from "@/utils/string";
-import Link from "@/components/link/Link";
-import FullScreenLoading from "@/components/loadings/full-screen-loading";
-import NationSelection from "@/components/selections/nation-selection";
-import Nation from "@/types/nation";
 import { isEqual } from "lodash";
+import { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
 
+import Link from "@/components/link/Link";
+import Input from "@/components/inputs/input";
+import Button from "@/components/buttons/button";
+import Loading from "@/components/loadings/loading";
+import TextArea from "@/components/inputs/text-area";
+import { modal } from "@/components/modal/modal.store";
+import ImagePicker from "@/components/inputs/image-picker";
+import NationSelection from "@/components/selections/nation-selection";
+import FullScreenLoading from "@/components/loadings/full-screen-loading";
+import StoryStatusSelection from "@/components/selections/story-status-selection";
+import { TargetStoryStatus } from "@/components/selections/story-status-selection";
 import StoryNodeListEditable from "@/components/draggable/story-node-list-editable";
-import StoryNode, { StoryNodeContent } from "@/types/story-node";
-import withAdmin from "@/hoc/withAdmin";
 import { loadingBar } from "@/components/loadings/loading-bar/top-loading-bar.store";
+import StoryGenreMultiSelection from "@/components/selections/story-genres-multi-selection";
+
+import adminService from "@/services/admin";
+
+import Story from "@/types/story";
+import Nation from "@/types/nation";
+import StoryNode, { StoryNodeContent } from "@/types/story-node";
+
+import { snakeCaseToCapitalizeWord } from "@/utils/string";
+
+import withAdmin from "@/hoc/withAdmin";
 
 export function EditStory() {
   const params = useParams();

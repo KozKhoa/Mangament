@@ -206,7 +206,7 @@ const StoryNodeEditable = React.memo(function StoryNodeEditable({
     onChange?.({ ...storyNode, content: next, is_edited: true });
   }
 
-  const handleAddManyImageContent = useCallback(
+  const handleAddManyContent = useCallback(
     (contents: StoryNodeContent[]) => {
       const newContent = [...(storyNode.content ?? []), ...contents.map((content) => ({ ...content, isNew: true }))];
       onChange?.({ ...storyNode, content: newContent });
@@ -401,7 +401,7 @@ const StoryNodeEditable = React.memo(function StoryNodeEditable({
                           onDiscardDelete={handleDiscardDeleteContent}
                           onChange={handleUpdateContent}
                           onReset={handleUpdateContent}
-                          onAddManyImageContent={handleAddManyImageContent}
+                          onAddManyContent={handleAddManyContent}
                           key={content.id}
                           id={content.id}
                           content={content}

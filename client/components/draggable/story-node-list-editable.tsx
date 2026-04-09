@@ -1,15 +1,10 @@
 import StoryNode from "@/types/story-node";
-import { DndContext, DragAbortEvent, DragEndEvent, closestCorners } from "@dnd-kit/core";
-import { arrayMove, SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+
+import { useCallback, useEffect, useRef, useState } from "react";
 import StoryNodeEditable from "./story-node-editable";
 
-import EditIcon from "@/public/edit/edit.svg";
 import PlusIcon from "@/public/plus.svg";
-import DeleteIcon from "@/public/delete.svg";
-import ReturnIcon from "@/public/return.svg";
 
-import ArrowDownIcon from "@/public/arrows/down-v.svg";
 import { modal } from "../modal/modal.store";
 import NumberInput from "../inputs/number-input";
 import useAuth from "@/contexts/AuthContext";
