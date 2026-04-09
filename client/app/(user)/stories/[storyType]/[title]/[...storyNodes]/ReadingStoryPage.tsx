@@ -34,6 +34,8 @@ import Link from "next/link";
 import { modal } from "@/components/modal/modal.store";
 import InViewList from "@/components/list/inview-list";
 
+const RATIO_LINE_SPACING = 0.6;
+
 function buildStoryNodeParent(tree: StoryNode[], targetNodeId: string) {
   const parentList: StoryNode[] = [];
 
@@ -331,17 +333,13 @@ export default function ReadingStoryPage() {
             <p>Khoảng cách dòng</p>
             <NumberInput
               className="bg-background-items"
-              defaultValue={app?.readingLineSpacing}
+              value={app?.readingLineSpacing}
               onChange={(value) => app?.updateReadingLineSpacing(value)}
             ></NumberInput>
           </div>
           <div className="flex flex-row gap-2 justify-center items-center w-fit">
             <p>Cỡ chữ</p>
-            <NumberInput
-              className="bg-background-items"
-              defaultValue={app?.readingTextSize}
-              onChange={(value) => app?.updateReadingTextSize(value)}
-            ></NumberInput>
+            <NumberInput className="bg-background-items" value={app?.readingTextSize} onChange={(value) => app?.updateReadingTextSize(value)}></NumberInput>
           </div>
         </div>
 
@@ -364,7 +362,11 @@ export default function ReadingStoryPage() {
               <div
                 key={i}
                 data-content-id={con.id}
-                className={`flex flex-col justify-center items-center my-5 w-full text-foreground/80 ${con.type === "image" ? "" : "px-2.5"}`}
+                style={{
+                  paddingTop: (app?.readingLineSpacing ?? 1) * RATIO_LINE_SPACING,
+                  paddingBottom: (app?.readingLineSpacing ?? 1) * RATIO_LINE_SPACING,
+                }}
+                className={`flex flex-col justify-center items-center w-full text-foreground/80 ${con.type === "image" ? "" : `px-2.5`}`}
               >
                 {con.type === "image" && con?.image?.url ? (
                   <Image
@@ -376,25 +378,11 @@ export default function ReadingStoryPage() {
                     style={{ width: "100%", height: "auto" }}
                   ></Image>
                 ) : con.type === "title" ? (
-                  <div className="w-full text-center font-bold text-[1.8em]">
-                    {con.content?.split("\n").map((line, i) => (
-                      <p key={i}>{line}</p>
-                    ))}
-                  </div>
+                  <div className="w-full text-center font-bold text-[1.8em]">{con.content}</div>
                 ) : con.type === "header" ? (
-                  <div className="w-full text-start font-semibold text-[1.2em]">
-                    {con.content?.split("\n").map((line, i) => (
-                      <p key={i}>{line}</p>
-                    ))}
-                  </div>
+                  <div className="w-full text-start font-semibold text-[1.2em]">{con.content}</div>
                 ) : (
-                  con.type === "text" && (
-                    <div className="w-full text-start">
-                      {con.content?.split("\n").map((line, i) => (
-                        <p key={i}>{line}</p>
-                      ))}
-                    </div>
-                  )
+                  con.type === "text" && <div className="w-full text-start">{con.content}</div>
                 )}
               </div>
             ))}
