@@ -34,7 +34,7 @@ import Link from "next/link";
 import { modal } from "@/components/modal/modal.store";
 import InViewList from "@/components/list/inview-list";
 
-const RATIO_LINE_SPACING = 0.6;
+const RATIO_LINE_SPACING = 0.4;
 
 function buildStoryNodeParent(tree: StoryNode[], targetNodeId: string) {
   const parentList: StoryNode[] = [];
@@ -378,9 +378,9 @@ export default function ReadingStoryPage() {
                     style={{ width: "100%", height: "auto" }}
                   ></Image>
                 ) : con.type === "title" ? (
-                  <div className="w-full text-center font-bold text-[1.8em]">{con.content}</div>
+                  <div className="w-full text-center font-bold text-[1.8em] py-5">{con.content}</div>
                 ) : con.type === "header" ? (
-                  <div className="w-full text-start font-semibold text-[1.2em]">{con.content}</div>
+                  <div className="w-full text-start font-semibold text-[1.2em] py-2.5">{con.content}</div>
                 ) : (
                   con.type === "text" && <div className="w-full text-start">{con.content}</div>
                 )}

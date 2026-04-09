@@ -19,7 +19,7 @@ const StoryNodeContentDraggable = React.memo(function StoryNodeContentDraggable(
   onChange,
   onReset,
 
-  onAddManyImageContent,
+  onAddManyContent,
 }: {
   id: number | string;
   content: StoryNodeContent;
@@ -31,7 +31,7 @@ const StoryNodeContentDraggable = React.memo(function StoryNodeContentDraggable(
   onChange?: (content: StoryNodeContent) => void;
   onReset?: (content: StoryNodeContent) => void;
 
-  onAddManyImageContent?: (content: StoryNodeContent[]) => void;
+  onAddManyContent?: (contents: StoryNodeContent[]) => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id });
 
@@ -95,7 +95,7 @@ const StoryNodeContentDraggable = React.memo(function StoryNodeContentDraggable(
             defaultValue={content.image?.url}
             value={content.image?.url ? content.imageFile : content.imageFile ? content.imageFile : ""}
             onSelectMultiImage={(images) => {
-              onAddManyImageContent?.(
+              onAddManyContent?.(
                 images.map((image, i) => ({
                   type: "image",
                   imageFile: image,
@@ -121,7 +121,23 @@ const StoryNodeContentDraggable = React.memo(function StoryNodeContentDraggable(
               defaultValue={content.content ?? ""}
               onChange={(text) => {
                 isEdited.current = true;
-                handleUpdateContent(text);
+                const spliteText = text.split("\n");
+
+                if (spliteText.length > 1) {
+                  onAddManyContent?.(
+                    spliteText.map((text, i) => ({
+                      type: "text",
+                      content: text,
+                      story_node_id: content.story_node_id,
+                      order_index: Number(content.order_index) + i + 1,
+                      id: crypto.randomUUID(),
+                      isDeleted: false,
+                      isNew: true,
+                    })),
+                  );
+                } else {
+                  handleUpdateContent(text);
+                }
               }}
               className="w-full h-full"
             />

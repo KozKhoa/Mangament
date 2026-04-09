@@ -6,7 +6,7 @@ services:
     container_name: managment_redis
     restart: always
     ports:
-      - "6379:6379"
+      - "6379:6378"
 
   ml-service:
     build:
@@ -15,7 +15,7 @@ services:
     container_name: managment_ml_service
     restart: always
     ports:
-      - "8000:8000"
+      - "8000:8001"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
