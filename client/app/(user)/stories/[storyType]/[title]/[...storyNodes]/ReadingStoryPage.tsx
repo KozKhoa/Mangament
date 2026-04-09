@@ -321,7 +321,6 @@ export default function ReadingStoryPage() {
 
       {/* Button favourite */}
       <ButtonOfFavouriteStory story={story} className="w-full max-w-72 m-auto"></ButtonOfFavouriteStory>
-    
 
       {/* Main content */}
       <div className="flex flex-col gap-3">
@@ -362,7 +361,11 @@ export default function ReadingStoryPage() {
             threshold={0.5}
           >
             {[...(content ?? [])]?.map((con, i) => (
-              <div key={i} data-content-id={con.id} className="flex flex-col justify-center items-center gap-2 w-full text-foreground/80">
+              <div
+                key={i}
+                data-content-id={con.id}
+                className={`flex flex-col justify-center items-center my-5 w-full text-foreground/80 ${con.type === "image" ? "" : "px-2.5"}`}
+              >
                 {con.type === "image" && con?.image?.url ? (
                   <Image
                     className="max-w-[1200px]"
@@ -373,11 +376,25 @@ export default function ReadingStoryPage() {
                     style={{ width: "100%", height: "auto" }}
                   ></Image>
                 ) : con.type === "title" ? (
-                  <p className="w-full text-center font-bold text-[1.8em] ">{con.content}</p>
+                  <div className="w-full text-center font-bold text-[1.8em]">
+                    {con.content?.split("\n").map((line, i) => (
+                      <p key={i}>{line}</p>
+                    ))}
+                  </div>
                 ) : con.type === "header" ? (
-                  <p className="w-full text-start font-semibold text-[1.2em] ">{con.content}</p>
+                  <div className="w-full text-start font-semibold text-[1.2em]">
+                    {con.content?.split("\n").map((line, i) => (
+                      <p key={i}>{line}</p>
+                    ))}
+                  </div>
                 ) : (
-                  con.type === "text" && <p className="w-full text-start">{con.content}</p>
+                  con.type === "text" && (
+                    <div className="w-full text-start">
+                      {con.content?.split("\n").map((line, i) => (
+                        <p key={i}>{line}</p>
+                      ))}
+                    </div>
+                  )
                 )}
               </div>
             ))}
