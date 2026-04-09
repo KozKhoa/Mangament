@@ -1,5 +1,9 @@
 .gitignore
+__pycache__
+*.pyc
+.git
+node_modules
 .env
-
-/__pycache__
-/.venv
+.venv
+dist
+build
