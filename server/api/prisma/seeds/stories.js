@@ -12,15 +12,15 @@ export default async function main() {
   //     stdio: "inherit",
   //   },
 
-  const nations = await db.nation.findMany();
+  // const nations = await db.nation.findMany();
 
-  const storyStatus = Object.values(StoryStatus);
-  const storyType = Object.values(StoryType);
+  // const storyStatus = Object.values(StoryStatus);
+  // const storyType = Object.values(StoryType);
 
-  const images = await db.image.findMany();
+  // const images = await db.image.findMany();
 
-  const yesterday = new Date();
-  yesterday.setDate(yesterday.getDate() - 1);
+  // const yesterday = new Date();
+  // yesterday.setDate(yesterday.getDate() - 1);
 
   // await db.story.createMany({
   //   data: Array.from({ length: 111 }).map((_, i) => ({

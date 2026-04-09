@@ -27,13 +27,13 @@ import ratingRoute from "./src/routes/Rating.Route.js";
 import historyRoute from "./src/routes/History.Route.js";
 import favouriteRoute from "./src/routes/Favourite.Route.js";
 
-import initUpload from "./src/utils/upload/index.js";
-
 initRedis();
 
 console.log("App is running with NODE ENV =", process.env.NODE_ENV);
 
 const app = express();
+
+app.set("trust proxy", 1);
 
 // Generate OpenAPI spec from JSDoc comments in route files
 const specs = swaggerJsdoc({

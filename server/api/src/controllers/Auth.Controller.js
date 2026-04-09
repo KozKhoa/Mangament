@@ -2,13 +2,12 @@ import { throwErrorIfInvalidEmailAndPassword } from "../utils/Validators.js";
 import { CreateError } from "../utils/ErrorHandle.js";
 
 import authService from "../services/auth.service.js";
-import { access } from "fs";
 
 function putRefreshTokenToCookie(res, refreshToken) {
   res.cookie(process.env.COOKIES_REFRESH_TOKEN_KEY, refreshToken, {
     httpOnly: true,
-    secure: true, // bắt buộc khi dùng HTTPS
-    sameSite: "lax",
+    secure: true,
+    sameSite: "none",
     path: "/",
     maxAge: 7 * 24 * 60 * 60 * 1000,
   });
@@ -18,7 +17,7 @@ function clearRefreshTokenFromCookie(res) {
   res.clearCookie(process.env.COOKIES_REFRESH_TOKEN_KEY, {
     httpOnly: true,
     secure: true,
-    sameSite: "lax",
+    sameSite: "none",
   });
 }
 
