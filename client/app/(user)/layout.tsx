@@ -15,7 +15,7 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
     <div>
       <NavBar className="fixed left-2.5 right-2.5"></NavBar>
 
-      <div className="max-w-[1700px] m-auto transition-all duration-300">
+      <div className="max-w-[1600px] m-auto transition-all duration-300">
         {/* Thanh điều hướng */}
         <div
           className="flex flex-row flex-wrap m-2 gap-1 text-foreground/80 
