@@ -1,12 +1,16 @@
 import mailQueue from "../../queues/mail.queue.js";
 
 class MailService {
-  async sendOtpEmail(email, otp) {
-    mailQueue.addJobSendOtp(email, otp);
+  sendOtpEmail(email, otp) {
+    mailQueue.addJob_SendOtp(email, otp);
   }
 
-  async sendPasswordEmail(email, password) {
-    mailQueue.addJobSendNewPassword(email, password);
+  sendPasswordEmail(email, password) {
+    mailQueue.addJob_SendNewPassword(email, password);
+  }
+
+  sendUpdateStoryStatus(email, storyTitle, storyCoverArt, success, log) {
+    mailQueue.addJob_SendUpdateStoryStatus(email, storyTitle, storyCoverArt, success, log);
   }
 }
 

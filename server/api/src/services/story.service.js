@@ -435,7 +435,7 @@ export async function HardDeleteStory(id) {
       throw new Error(error);
     });
 
-  storyQueue.AddJobHardDeleteStory(id);
+  storyQueue.addJobHardDeleteStory(id);
 
   redisUtils.stories().incr();
   redisUtils.stories(id).incr();
@@ -448,7 +448,7 @@ export async function HardDeleteManyStories(ids = []) {
 
   await db.story.updateMany({ where: { id: { in: ids } }, data: { deleted_status: "pending_permanent_deletion" } });
 
-  storyQueue.AddJobHardDeleteManyStories(ids);
+  storyQueue.addJob_HardDeleteManyStories(ids);
 
   await redisUtils.stories().incr();
   await Promise.all(ids.map((id) => redisUtils.stories(id).incr()));
@@ -479,22 +479,13 @@ export async function ActiveStory(id, isActived = true) {
   return { success: true, data: active };
 }
 
-export async function UpdateEmbeddingStory(id) {
-  const story = await db.story.findUnique({ where: { id: id }, include: { genres: true, authors: true } });
+export async function EmbeddingStory(id) {
+  const story = await db.story.findUnique({ where: { id: id } });
   if (!story) throw CreateError(404, "Story not found");
 
-  const embed = await mlService.embedStory(
-    story.title,
-    story.summary,
-    story.genres.map((g) => g.genre),
-    story.authors.map((author) => author.author_id),
-  );
+  storyQueue.addJob_EmbeddingStory(id);
 
-  await db.$executeRaw`
-    UPDATE "Story" SET embedding = ${`[${embed.join(",")}]`}::vector WHERE id = ${id}::uuid
-  `;
-
-  return { success: true, data: story };
+  return { success: true, message: "Story is being embedded" };
 }
 
 export async function UpdateStory(
@@ -525,6 +516,7 @@ export async function UpdateStory(
     //   },
     // },
   },
+  editorEmail,
 ) {
   if (authorIds && authorIds.length > 0) {
     for (const authorId of authorIds) {
@@ -539,262 +531,13 @@ export async function UpdateStory(
   const story = await db.story.findUnique({ where: { id: id } });
   if (!story) throw CreateError(400, "Story not found");
 
-  const transactionRes = await db.$transaction(
-    async function (tx) {
-      const updateStory = await tx.story
-        .update({
-          where: { id: id },
-          data: {
-            ...(title && { title: title }),
-            ...(type && { type: type }),
-            ...(view !== undefined && { view: view }),
-            ...(summary && { summary: summary }),
-            ...(status && { status: status }),
-            ...(nextChapterIn && { next_chapter_in: nextChapterIn }),
-            ...(nation && { nation: { connect: { name: nation } } }),
-
-            ...(coverArt && {
-              cover_art: { connectOrCreate: { where: { url: coverArt?.url }, create: { url: coverArt?.url, key: coverArt?.key } } },
-            }),
-
-            ...(posterId && { poster: { connect: { id: posterId } } }),
-          },
-
-          include: { cover_art: { select: { url: true, width: true, height: true } }, genres: { select: { genre: true } } },
-        })
-        .catch(async (error) => {
-          const uniqueTitle = title ? await db.story.findUnique({ where: { title: title } }) : undefined;
-          if (uniqueTitle) throw CreateError(400, `'${title}' đã có nguời đăng ký`);
-
-          throw new Error(error);
-        });
-
-      if (genres && genres.length > 0) {
-        await tx.story_Genre.deleteMany({ where: { story_id: story.id } });
-
-        await tx.story_Genre.createMany({
-          data: genres.map((genre) => ({
-            story_id: story.id,
-            genre,
-          })),
-          skipDuplicates: true,
-        });
-      }
-
-      if (authorIds && authorIds.length > 0) {
-        await tx.story_Author.deleteMany({ where: { story_id: story.id } });
-
-        await tx.story_Author.createMany({
-          data: authorIds.map((authorId) => ({
-            story_id: story.id,
-            author_id: authorId,
-          })),
-          skipDuplicates: true,
-        });
-      }
-
-      if (children?.delete) {
-        // Soft delete story node
-        if (children.delete.story_node && children.delete.story_node.length > 0) {
-          await tx.storyNode.updateMany({
-            where: {
-              id: { in: children.delete.story_node.map((node) => node.id) },
-            },
-            data: { deleted_status: "soft_deleted" },
-          });
-        }
-
-        // Soft delete story node content
-        if (children.delete?.content && children.delete.content.length > 0) {
-          await tx.storyNodeContent.updateMany({
-            where: {
-              id: { in: children.delete.content.map((cont) => cont.id) },
-            },
-            data: { deleted_status: "soft_deleted" },
-          });
-        }
-      }
-
-      if (children?.add) {
-        // Add story node
-        if (children.add.story_node && children.add.story_node.length > 0) {
-          await tx.storyNode.createMany({
-            data: children.add.story_node.map((node) => ({
-              id: node.id,
-              story_id: node.story_id,
-              parent_id: node.parent_id,
-              order_index: node.order_index,
-              type: node.type,
-            })),
-          });
-        }
-
-        // Add content
-        await tx.storyNodeContent.createMany({
-          data: children.add.content.map((cont, i) => ({
-            id: cont.id,
-            type: cont.type,
-            story_node_id: cont.story_node_id,
-            order_index: cont.order_index,
-            image_id: cont.image.id,
-            content: cont.content,
-          })),
-        });
-      }
-
-      if (children?.edit) {
-        // Edit content concurrently using Raw SQL query for high performance
-        if (children.edit.content && children.edit.content.length > 0) {
-          const contents = children.edit.content;
-          const params = [];
-
-          let query = `UPDATE "StoryNodeContent" SET \n  order_index = CASE\n`;
-          contents.forEach((c) => {
-            params.push(c.id, c.order_index);
-            query += `    WHEN id = $${params.length - 1}::uuid THEN $${params.length}::integer\n`;
-          });
-          query += `    ELSE order_index\n  END`;
-
-          const hasImage = contents.some((c) => c.image?.url);
-          if (hasImage) {
-            query += `,\n  image_id = CASE\n`;
-            contents.forEach((c) => {
-              if (c.image?.url) {
-                params.push(c.id, c.image.url);
-                query += `    WHEN id = $${params.length - 1}::uuid THEN (SELECT id FROM "Image" WHERE url = $${params.length} LIMIT 1)\n`;
-              }
-            });
-            query += `    ELSE image_id\n  END`;
-          }
-
-          const hasContent = contents.some((c) => c.content !== undefined);
-          if (hasContent) {
-            query += `,\n  content = CASE\n`;
-            contents.forEach((c) => {
-              if (c.content !== undefined) {
-                params.push(c.id, c.content);
-                query += `    WHEN id = $${params.length - 1}::uuid THEN $${params.length}::text\n`;
-              }
-            });
-            query += `    ELSE content\n  END`;
-          }
-
-          const idPlaceholders = contents.map((c) => {
-            params.push(c.id);
-            return `$${params.length}::uuid`;
-          });
-          query += `\nWHERE id IN (${idPlaceholders.join(", ")});`;
-
-          await tx.$executeRawUnsafe(query, ...params);
-        }
-
-        // Edit story node and update its content index concurrently using Raw SQL query
-        if (children.edit.story_node && children.edit.story_node.length > 0) {
-          const nodes = children.edit.story_node;
-          const nodeParams = [];
-
-          let nodeQuery = `UPDATE "StoryNode" SET \n  order_index = CASE\n`;
-          nodes.forEach((n) => {
-            nodeParams.push(n.id, n.order_index);
-            nodeQuery += `    WHEN id = $${nodeParams.length - 1}::uuid THEN $${nodeParams.length}::float\n`;
-          });
-          nodeQuery += `    ELSE order_index\n  END`;
-
-          const hasTitle = nodes.some((n) => n.title !== undefined);
-          if (hasTitle) {
-            nodeQuery += `,\n  title = CASE\n`;
-            nodes.forEach((n) => {
-              if (n.title !== undefined) {
-                nodeParams.push(n.id, n.title);
-                nodeQuery += `    WHEN id = $${nodeParams.length - 1}::uuid THEN $${nodeParams.length}::text\n`;
-              }
-            });
-            nodeQuery += `    ELSE title\n  END`;
-          }
-
-          const hasType = nodes.some((n) => n.type !== undefined);
-          if (hasType) {
-            nodeQuery += `,\n  type = CASE\n`;
-            nodes.forEach((n) => {
-              if (n.type !== undefined) {
-                nodeParams.push(n.id, n.type);
-                // Let pg infer the type (often it's an enum, so explicit cast can cause issues if not exact)
-                nodeQuery += `    WHEN id = $${nodeParams.length - 1}::uuid THEN $${nodeParams.length}::"StoryNodeType"\n`;
-              }
-            });
-            nodeQuery += `    ELSE type\n  END`;
-          }
-
-          const nodeIdPlaceholders = nodes.map((n) => {
-            nodeParams.push(n.id);
-            return `$${nodeParams.length}::uuid`;
-          });
-
-          nodeQuery += `\nWHERE id IN (${nodeIdPlaceholders.join(", ")});`;
-
-          await tx.$executeRawUnsafe(nodeQuery, ...nodeParams);
-
-          const nodeContents = nodes.flatMap((n) => n.content || []);
-          if (nodeContents.length > 0) {
-            const contentParams = [];
-            let contentQuery = `UPDATE "StoryNodeContent" SET \n  order_index = CASE\n`;
-            nodeContents.forEach((c) => {
-              contentParams.push(c.id, c.order_index);
-              contentQuery += `    WHEN id = $${contentParams.length - 1}::uuid THEN $${contentParams.length}::integer\n`;
-            });
-            contentQuery += `    ELSE order_index\n  END`;
-
-            const hasContentType = nodeContents.some((c) => c.type !== undefined);
-            if (hasContentType) {
-              contentQuery += `,\n  type = CASE\n`;
-              nodeContents.forEach((c) => {
-                if (c.type !== undefined) {
-                  contentParams.push(c.id, c.type);
-                  contentQuery += `    WHEN id = $${contentParams.length - 1}::uuid THEN $${contentParams.length}::"StoryNodeContentType"\n`;
-                }
-              });
-              contentQuery += `    ELSE type\n  END`;
-            }
-
-            const hasContent = nodeContents.some((c) => c.content !== undefined);
-            if (hasContent) {
-              contentQuery += `,\n  content = CASE\n`;
-              nodeContents.forEach((c) => {
-                if (c.content !== undefined) {
-                  contentParams.push(c.id, c.content);
-                  contentQuery += `    WHEN id = $${contentParams.length - 1}::uuid THEN $${contentParams.length}::text\n`;
-                }
-              });
-              contentQuery += `    ELSE content\n  END`;
-            }
-
-            const contentIdPlaceholders = nodeContents.map((c) => {
-              contentParams.push(c.id);
-              return `$${contentParams.length}::uuid`;
-            });
-            contentQuery += `\nWHERE id IN (${contentIdPlaceholders.join(", ")});`;
-
-            await tx.$executeRawUnsafe(contentQuery, ...contentParams);
-          }
-        }
-      }
-
-      return { success: true, data: updateStory };
-    },
-    {
-      timeout: 10000,
-    },
+  storyQueue.addJob_UpdateStory(
+    story.id,
+    { title, type, view, summary, posterId, nation, status, genres, coverArt, nextChapterIn, authorIds, children },
+    editorEmail,
   );
 
-  if ((genres && genres.length > 0) || title || summary) {
-    storyQueue.addJobEmbeddingStory(story.id);
-  }
-
-  await redisUtils.stories().incr();
-  await redisUtils.stories(story.id).incr();
-  await redisUtils.stories(story.title).incr();
-
-  return transactionRes;
+  return { success: true, message: "Story is being updated" };
 }
 
 export async function AddOneViewForStory(id) {

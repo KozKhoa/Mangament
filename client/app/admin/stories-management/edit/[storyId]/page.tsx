@@ -111,7 +111,7 @@ export function EditStory() {
 
         if (!res.success) return toast.warning(res.message);
 
-        toast.message("Cập nhật thông tin truyện thành công");
+        toast.message("Đang cập nhật thông tin truyện, sẽ mail cho bạn khi hoàn thành");
 
         router.back();
 

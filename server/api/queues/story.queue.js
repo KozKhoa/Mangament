@@ -15,18 +15,32 @@ const ADD_JOB_OPTION = { attempts: ATTEMP, backoff: { type: "exponential", delay
 class StoryQueue {
   #hardDeleteStoryQueue = new Queue("hard-delete-story", { connection });
   #hardDeleteManyStoriesQueue = new Queue("hard-delete-many-stories", { connection });
-  #embeddingStoryQueue = new Queue("update-embedding-story", { connection });
+  #embeddingStoryQueue = new Queue("embedding-story", { connection });
+  #updateStory = new Queue("update-story", { connection });
 
-  addJobEmbeddingStory(storyId) {
+  addJob_EmbeddingStory(storyId) {
     this.#embeddingStoryQueue.add("updateEmbeddingStory", { storyId }, ADD_JOB_OPTION);
   }
 
-  addJobHardDeleteStory(storyId) {
+  addJob_HardDeleteStory(storyId) {
     this.#hardDeleteStoryQueue.add("hardDeleteStory", { storyId }, ADD_JOB_OPTION);
   }
 
-  addJobHardDeleteManyStories(storyIds) {
+  addJob_HardDeleteManyStories(storyIds) {
     this.#hardDeleteManyStoriesQueue.add("hardDeleteManyStories", { storyIds }, ADD_JOB_OPTION);
+  }
+
+  addJob_UpdateStory(
+    storyId,
+    { title, type, view, summary, posterId, nation, status, genres = [], coverArt, nextChapterIn, authorIds = [], children },
+    editorEmail,
+  ) {
+    console.log(`Already add ${title} to updated story queue`);
+    this.#updateStory.add(
+      "updateStory",
+      { storyId, editorEmail, title, type, view, summary, posterId, nation, status, genres, coverArt, nextChapterIn, authorIds, children },
+      ADD_JOB_OPTION,
+    );
   }
 }
 

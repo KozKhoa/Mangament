@@ -2,6 +2,7 @@ import { redis } from "../configs/redis.js";
 import { Worker } from "bullmq";
 
 import mail from "../configs/mail.js";
+import { syntaxHighlight } from "../src/utils/Beauty.js";
 
 const connection = {
   host: redis.options.host,
@@ -53,4 +54,38 @@ const sendNewPasswordEmailWorker = new Worker(
   { connection, concurrency: 1 },
 );
 
-export default { sendOtpEmailWorker, sendNewPasswordEmailWorker };
+const sendUpdateStoryStatusEmailWorker = new Worker(
+  "send-update-story-status",
+  async (job) => {
+    const { email, storyTitle, storyCoverArt = { url, key }, success, log } = job.data;
+
+    await mail.sendMail({
+      from: `"Mangament" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: "Update Story Status",
+      html: `
+        <h2>Update Story Status</h2>
+        <img src="${[process.env.CDN_URL, storyCoverArt.key].join("/")}" alt="${storyTitle}"/>
+        <h2>${storyTitle}</h2>
+        <h3>${success ? "Succeeded" : "Failed"}</h3>
+        <p>Log: <p>
+        <pre style="
+          padding: 12px;
+          border-radius: 6px;
+          font-family: monospace;
+          font-size: 13px;
+          line-height: 1.5;
+          overflow-x: auto;
+        ">
+          ${log}
+        </pre>
+
+      `,
+    });
+
+    console.log("Send update story status email to", email);
+  },
+  { connection, concurrency: 1 },
+);
+
+export default { sendOtpEmailWorker, sendNewPasswordEmailWorker, sendUpdateStoryStatusEmailWorker };
