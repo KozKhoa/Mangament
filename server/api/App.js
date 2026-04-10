@@ -2,8 +2,9 @@ import express from "express";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 
-import { corsOptions } from "./src/configs/cors.js";
-import { initRedis } from "./src/configs/redis.js";
+import db from "./configs/db.js";
+import { corsOptions } from "./configs/cors.js";
+import { initRedis } from "./configs/redis.js";
 
 import authRouter from "./src/routes/Auth.Route.js";
 import userRoute from "./src/routes/User.Route.js";
@@ -22,7 +23,7 @@ import uploadRoute from "./src/routes/Upload.Route.js";
 
 import swaggerJsdoc from "swagger-jsdoc";
 import swaggerUi from "swagger-ui-express";
-import db from "./src/configs/db.js";
+
 import ratingRoute from "./src/routes/Rating.Route.js";
 import historyRoute from "./src/routes/History.Route.js";
 import favouriteRoute from "./src/routes/Favourite.Route.js";

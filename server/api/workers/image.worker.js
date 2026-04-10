@@ -1,9 +1,7 @@
 import { redis } from "../configs/redis.js";
-
-import { Queue, Worker } from "bullmq";
-import * as storyService from "../services/story.service.js";
+import { Worker } from "bullmq";
 import db from "../configs/db.js";
-import r2CloudflareUtils from "../utils/R2Cloudflare.js";
+import r2CloudflareUtils from "../src/utils/R2Cloudflare.js";
 
 const connection = {
   host: redis.options.host,
@@ -11,14 +9,8 @@ const connection = {
   password: redis.options.password,
 };
 
-const ATTEMP = 3;
-const DELAY = 5000;
-
-const ADD_JOB_OPTION = { attempts: ATTEMP, backoff: { type: "exponential", delay: DELAY }, removeOnComplete: true, removeOnFail: true };
-
-const permenantDeletedImagesQueue = new Queue("permenant-delete-images", { connection });
 const permenantDeletedImagesWorker = new Worker(
-  "permenant-delete-image",
+  "permenant-delete-images",
   async (job) => {
     const { imageIds } = job.data;
 
@@ -29,10 +21,11 @@ const permenantDeletedImagesWorker = new Worker(
     });
 
     await r2CloudflareUtils.deleteManyObjects(images.map((image) => image.key));
+
+    console.log("Permenant deleted images", imageIds);
   },
+
   { connection, concurrency: 1 },
 );
 
-export function AddJobPermenantDeleteImages(imageIds) {
-  permenantDeletedImagesQueue.add("permenantDeleteImages", { imageIds }, ADD_JOB_OPTION);
-}
+export default permenantDeletedImagesWorker;

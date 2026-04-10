@@ -1,9 +1,10 @@
-import db, { StoryStatus, StoryType } from "../../src/configs/db.js";
+import db, { StoryStatus, StoryType } from "../../configs/db.js";
 import { execSync } from "child_process";
 
 import { faker } from "@faker-js/faker";
 import { randomBytes, randomInt } from "crypto";
-import { UpdateEmbeddingStory } from "../../src/services/story.service.js";
+
+import storyQueue from "../../queues/story.queue.js";
 
 export default async function main() {
   // execSync(
@@ -38,7 +39,7 @@ export default async function main() {
   const stories = await db.story.findMany();
 
   for (const story of stories) {
-    await UpdateEmbeddingStory(story.id);
+    storyQueue.addJobEmbeddingStory(story.id);
   }
 
   console.log("Seeded stories");

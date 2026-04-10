@@ -4,7 +4,7 @@ node_modules/
 
 logs/
 
-/src/generated/
+/prisma/generated/
 uploads/
 
 api-key/

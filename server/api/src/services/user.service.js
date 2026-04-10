@@ -1,10 +1,9 @@
-import db from "../configs/db.js";
+import db from "../../configs/db.js";
 import { RandomPassword } from "../utils/Password.js";
-import { GetParentStoryNodeTree } from "./story-node.service.js";
 
 import * as passwordService from "../utils/Password.js";
 import { CreateError } from "../utils/ErrorHandle.js";
-import { redis } from "../configs/redis.js";
+import { redis } from "../../configs/redis.js";
 import { throwErrorIfInvalidGenders } from "../utils/Validators.js";
 import redisUtils from "../utils/Redis.js";
 

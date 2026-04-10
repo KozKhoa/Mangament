@@ -1,4 +1,4 @@
-import db from "../configs/db.js";
+import db from "../../configs/db.js";
 
 import { CreateError } from "../utils/ErrorHandle.js";
 

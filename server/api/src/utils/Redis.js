@@ -1,4 +1,4 @@
-import { redis } from "../configs/redis.js";
+import { redis } from "../../configs/redis.js";
 
 const REDIS_TTL = 60 * 30; // 15 minutes
 

@@ -1,8 +1,8 @@
 "use client";
 
 import { toast } from "sonner";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useCallback, useEffect, useState } from "react";
 
 import SearchBar from "@/components/search/search";
 import PieChart from "@/components/chart/pie-chart";
@@ -10,34 +10,32 @@ import Loading from "@/components/loadings/loading";
 
 import SwitchPageBig from "@/components/switch-page/big";
 
-import User from "@/types/user";
 import { Pagination } from "@/types/pagination";
 
 import adminService from "@/services/admin";
 import useAdmin from "@/contexts/AdminContext";
 import { capitalizeWords } from "@/utils/string";
 
-import XIcon from "@/public/x-icon.svg";
-import AddIcon from "@/public/plus.svg";
-import SortUsers from "@/components/sorts/sort-users";
-import SortStories from "@/components/sorts/sort-stories";
 import Story from "@/types/story";
-import storyService from "@/services/story";
-import StoriesTable from "@/components/table/stories-table";
-import SwitchPageSmall from "@/components/switch-page/small";
-import FilterGenres from "@/components/filters/fiilter-genres";
-import FilterAuthors from "@/components/filters/filter-authors";
-import FilterViews from "@/components/filters/filter-views";
-import FilterStoryStatus from "@/components/filters/filter-story-status";
-import FilterRatings from "@/components/filters/filter-ratings";
-import FilterStoryType from "@/components/filters/filter-story-type";
-import { modal } from "@/components/modal/modal.store";
-import FilterNation from "@/components/filters/filter-nations";
-import Button from "@/components/buttons/button";
+import AddIcon from "@/public/plus.svg";
+import XIcon from "@/public/x-icon.svg";
+
 import Link from "@/components/link/Link";
-import withAdmin from "@/hoc/withAdmin";
-import { loadingBar } from "@/components/loadings/loading-bar/top-loading-bar.store";
+import Button from "@/components/buttons/button";
+import SortStories from "@/components/sorts/sort-stories";
 import NumberInput from "@/components/inputs/number-input";
+import StoriesTable from "@/components/table/stories-table";
+import FilterViews from "@/components/filters/filter-views";
+import SwitchPageSmall from "@/components/switch-page/small";
+import FilterNation from "@/components/filters/filter-nations";
+import FilterGenres from "@/components/filters/fiilter-genres";
+import FilterRatings from "@/components/filters/filter-ratings";
+import FilterAuthors from "@/components/filters/filter-authors";
+import FilterStoryType from "@/components/filters/filter-story-type";
+import FilterStoryStatus from "@/components/filters/filter-story-status";
+import { loadingBar } from "@/components/loadings/loading-bar/top-loading-bar.store";
+
+import withAdmin from "@/hoc/withAdmin";
 
 const STORIES_PIE_CHART_COLORS = [
   "#6A4E42", // warm brown

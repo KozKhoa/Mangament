@@ -1,6 +1,6 @@
 import * as crypto from "crypto";
 import bcrypt from "bcrypt";
-import { redis } from "../configs/redis.js";
+import { redis } from "../../configs/redis.js";
 
 const OTP_EXPIRATION_TIME = 5 * 60; // 5 minutes
 const MAX_RETRY_COUNT = 5;
