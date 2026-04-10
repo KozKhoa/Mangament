@@ -4,6 +4,7 @@ import redisUtils from "../utils/Redis.js";
 import { CreateError } from "../utils/ErrorHandle.js";
 
 import r2CloudflareUtils from "../utils/R2Cloudflare.js";
+import imageQueue from "../../queues/image.queue.js";
 
 const REDIS_TTL = 60 * 30;
 
@@ -55,15 +56,18 @@ export async function HardDeleteImage({ id, url }) {
   // Hard delete image also mean remove it in cloudflare
   if (!id && !url) throw CreateError(400, "Require 'id' or 'url'");
 
-  const image = await db.image.findFirst({
-    where: { ...(id && { id: id }), ...(url && { url: url }) },
+  const image = await db.image.update({
+    where: {
+      ...(id && { id: id }),
+      ...(url && { url: url }),
+    },
+    data: { deleted_status: "pending_permanent_deletion" },
+    select: { id: true },
   });
 
   if (!image) throw CreateError(404, "Image not found");
 
-  await r2CloudflareUtils.deleteObject(image.key);
-
-  await db.image.delete({ where: { ...(id && { id: id }), ...(url && { url: url }) } });
+  imageQueue.addJobPermenantDeleteImage(image.id);
 
   redisUtils.image().incr();
   redisUtils.image(id).incr();
@@ -75,15 +79,16 @@ export async function HardDeleteImage({ id, url }) {
 export async function HardDeleteManyImages({ ids = [], urls = [] }) {
   if (ids.length === 0 && urls.length === 0) throw CreateError(400, "Require 'id' or 'url'");
 
-  const images = await db.image.findMany({
-    where: { ...(ids.length > 0 && { id: { in: ids } }), ...(urls.length > 0 && { url: { in: urls } }) },
+  const imageIds = await db.image.updateMany({
+    where: {
+      ...(ids && ids.length > 0 && { id: { in: ids } }),
+      ...(urls && urls.length > 0 && { url: { in: urls } }),
+    },
+    data: { deleted_status: "pending_permanent_deletion" },
+    select: { id: true },
   });
 
-  if (images.length <= 0) throw CreateError(404, "Image not found");
-
-  await r2CloudflareUtils.deleteManyObjects(images.map((image) => image.key));
-
-  await db.image.deleteMany({ where: { ...(ids.length > 0 && { id: { in: ids } }), ...(urls.length > 0 && { url: { in: urls } }) } });
+  imageQueue.addJobPermenantDeleteManyImages(imageIds.map((image) => image.id));
 
   redisUtils.image().incr();
   ids.forEach((id) => redisUtils.image(id).incr());

@@ -302,6 +302,8 @@ export async function PostNewStory(req, res, next) {
 // PUT /admin/stories/:id
 export async function UpdateStory(req, res, next) {
   try {
+    const user = req.user;
+
     const storyId = req?.params?.id;
 
     const body = req?.body;
@@ -322,17 +324,21 @@ export async function UpdateStory(req, res, next) {
     throwErrorIfInvalidStoryStatus(status);
     throwErrorIfInvalidStoryType(type);
 
-    const update = await storyService.UpdateStory(storyId, {
-      title: title,
-      type: type,
-      summary: summary,
-      nation: nation,
-      status: status,
-      genres: genre,
-      authorIds: authorIds,
-      coverArt: coverArt,
-      children: children,
-    });
+    const update = await storyService.UpdateStory(
+      storyId,
+      {
+        title: title,
+        type: type,
+        summary: summary,
+        nation: nation,
+        status: status,
+        genres: genre,
+        authorIds: authorIds,
+        coverArt: coverArt,
+        children: children,
+      },
+      user.email,
+    );
 
     return res.json({ success: true, message: "Update story successfully", data: update.data });
   } catch (error) {
