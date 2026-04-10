@@ -38,8 +38,6 @@ services:
     depends_on:
       redis:
         condition: service_started
-      ml-service:
-        condition: service_healthy
     volumes:
       - ./api:/app
       - /app/node_modules
