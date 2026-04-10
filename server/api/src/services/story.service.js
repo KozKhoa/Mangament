@@ -1,16 +1,15 @@
-import db from "../configs/db.js";
-import { redis } from "../configs/redis.js";
+import db from "../../configs/db.js";
+import { redis } from "../../configs/redis.js";
 import { CreateError } from "../utils/ErrorHandle.js";
 import { randomInt } from "../utils/Number.js";
 import { ValidateGenre } from "./genre.service.js";
 
-import * as storyQueue from "../queues/story.queue.js";
+import storyQueue from "../../queues/story.queue.js";
 
 import { throwErrorIfInvalidGenres } from "../utils/Validators.js";
 
 import { validate as isUUID } from "uuid";
 import redisUtils from "../utils/Redis.js";
-import MLService from "./ml.service.js";
 
 const REDIS_TTL = 60 * 30; // 30 minutes
 
@@ -484,7 +483,7 @@ export async function UpdateEmbeddingStory(id) {
   const story = await db.story.findUnique({ where: { id: id }, include: { genres: true, authors: true } });
   if (!story) throw CreateError(404, "Story not found");
 
-  const embed = await MLService.embedStory(
+  const embed = await mlService.embedStory(
     story.title,
     story.summary,
     story.genres.map((g) => g.genre),
@@ -788,7 +787,7 @@ export async function UpdateStory(
   );
 
   if ((genres && genres.length > 0) || title || summary) {
-    storyQueue.AddJobUpdateEmbeddingStory(story.id);
+    storyQueue.addJobEmbeddingStory(story.id);
   }
 
   await redisUtils.stories().incr();

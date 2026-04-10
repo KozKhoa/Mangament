@@ -1,6 +1,6 @@
 import { v7 as uuid7 } from "uuid";
 
-import logger from "../configs/logger.js";
+import logger from "../../configs/logger.js";
 
 export default function RequestLogger(req, res, next) {
   const reqId = uuid7(); // Gen uuid for request id

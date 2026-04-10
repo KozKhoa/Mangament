@@ -1,5 +1,5 @@
-import db from "../configs/db.js";
-import { Genre } from "../configs/db.js";
+import db from "../../configs/db.js";
+import { Genre } from "../../configs/db.js";
 
 export function GetAllGenre() {
   return Object.values(Genre);

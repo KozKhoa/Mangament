@@ -1,14 +1,15 @@
-import db from "../configs/db.js";
+import db from "../../configs/db.js";
 import { CreateError } from "../utils/ErrorHandle.js";
 import * as crypto from "crypto";
 import bcrypt from "bcrypt";
-import { redis } from "../configs/redis.js";
+import { redis } from "../../configs/redis.js";
 
 import { throwErrorIfInvalidEmailAndPassword } from "../utils/Validators.js";
 
 import * as passwordUtils from "../utils/Password.js";
 import * as tokenUtils from "../utils/Token.js";
-import * as mailQueue from "../queues/mail.queue.js";
+
+import mailService from "./mail.service.js";
 
 const AVATAR_DEFAUTL_KEY = "user/avatar/avatar.png";
 
@@ -190,7 +191,7 @@ class AuthService {
     await this.#saveOtp(email, otp.toString());
     await this.#startCoolDown(email);
 
-    mailQueue.AddJobSendOtp(email, otp);
+    mailService.sendOtpEmail(email, otp);
   }
 
   async resetPassword(email, otp) {
@@ -202,7 +203,7 @@ class AuthService {
 
     await db.user.update({ where: { email: email }, data: { password: newHashPassword } });
 
-    mailQueue.AddJobSendNewPassword(email, newPassword);
+    mailService.sendPasswordEmail(email, newPassword);
 
     return { success: true, message: "Reset password successfully" };
   }

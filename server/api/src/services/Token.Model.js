@@ -1,4 +1,4 @@
-import db from "../configs/db.js";
+import db from "../../configs/db.js";
 
 export async function AddRefreshToken({ userId, token }) {
   if (!userId || !token) throw new Error("Require 'userId' and 'token'");

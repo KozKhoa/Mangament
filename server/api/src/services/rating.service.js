@@ -1,7 +1,7 @@
-import db from "../configs/db.js";
+import db from "../../configs/db.js";
 import { CreateError } from "../utils/ErrorHandle.js";
 
-import { redis } from "../configs/redis.js";
+import { redis } from "../../configs/redis.js";
 
 import redisUtils from "../utils/Redis.js";
 

@@ -1,8 +1,8 @@
-import db from "../configs/db.js";
-import { redis } from "../configs/redis.js";
+import db from "../../configs/db.js";
+import { redis } from "../../configs/redis.js";
 
-import { setToEndDate, setToStartDate, setToStartHour, setToEndHour } from "../utils/Date.js";
-import { Prisma } from "../generated/prisma/index.js";
+import { setToEndDate, setToStartDate } from "../utils/Date.js";
+import { Prisma } from "../../prisma/generated/prisma/index.js";
 
 const REDIS_CACHE_DASHBOARD_OVERVIEW_KEY = "admin:dashboard:overview";
 

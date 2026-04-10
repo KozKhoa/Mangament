@@ -1,4 +1,4 @@
-import { r2 } from "../configs/r2.js";
+import { r2 } from "../../configs/r2.js";
 
 import { DeleteObjectCommand, DeleteObjectsCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 

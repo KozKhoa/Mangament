@@ -1,6 +1,6 @@
 import { CreateError } from "./ErrorHandle.js";
 
-import { Gender, Genre, Role, StoryStatus, StoryType } from "../configs/db.js";
+import { Gender, Genre, Role, StoryStatus, StoryType } from "../../configs/db.js";
 
 export const IsValidEmail = (email) => {
   const regex = new RegExp("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$");

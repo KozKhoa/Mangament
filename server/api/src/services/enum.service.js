@@ -1,4 +1,4 @@
-import db from "../configs/db.js";
+import db from "../../configs/db.js";
 import { Role, Gender, Genre, StoryNodeType, StoryType, StoryStatus } from "../configs/db.js";
 
 export function GetAllGender() {
