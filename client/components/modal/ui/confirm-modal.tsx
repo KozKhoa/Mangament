@@ -22,6 +22,7 @@ export default function ConfirmModal({
 
       <div className="flex flex-row gap-2 w-full justify-end items-center mt-3">
         <Button
+          buttonType="default"
           className="font-semibold"
           isProcessing={isProcessing}
           disable={isProcessing}
@@ -30,7 +31,6 @@ export default function ConfirmModal({
             await onConfirm?.();
             setIsProcessing(false);
           }}
-          buttonType="default"
         >
           Xác nhận
         </Button>

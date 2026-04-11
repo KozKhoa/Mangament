@@ -244,7 +244,7 @@ export function ImageTrashPage() {
             </Button>
           )}
 
-          <Button isProcessing={deleting.size > 0} disable={deleting.size > 0} className="font-semibold" onClick={handleSetlectedAll}>
+          <Button buttonType="default" isProcessing={deleting.size > 0} disable={deleting.size > 0} className="font-semibold" onClick={handleSetlectedAll}>
             {selected.size === images.length ? "Hủy chọn tất cả" : "Chọn tất cả"}
           </Button>
         </div>

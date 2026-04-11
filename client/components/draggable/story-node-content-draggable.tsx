@@ -90,7 +90,7 @@ const StoryNodeContentDraggable = React.memo(function StoryNodeContentDraggable(
       <div className={`h-full w-full ${content.isDeleted ? "opacity-10" : ""} `}>
         {content.type === "image" && (
           <ImagePicker
-            className="h-full w-full"
+            className="h-full w-full max-w-[500px] m-auto"
             disabled={content.isDeleted}
             defaultValue={content.image?.url}
             value={content.image?.url ? content.imageFile : content.imageFile ? content.imageFile : ""}
@@ -121,23 +121,25 @@ const StoryNodeContentDraggable = React.memo(function StoryNodeContentDraggable(
               defaultValue={content.content ?? ""}
               onChange={(text) => {
                 isEdited.current = true;
-                const spliteText = text.split("\n");
+                handleUpdateContent(text);
 
-                if (spliteText.length > 1) {
-                  onAddManyContent?.(
-                    spliteText.map((text, i) => ({
-                      type: "text",
-                      content: text,
-                      story_node_id: content.story_node_id,
-                      order_index: Number(content.order_index) + i + 1,
-                      id: crypto.randomUUID(),
-                      isDeleted: false,
-                      isNew: true,
-                    })),
-                  );
-                } else {
-                  handleUpdateContent(text);
-                }
+                // const spliteText = text.split("\n");
+
+                // if (spliteText.length > 1) {
+                //   onAddManyContent?.(
+                //     spliteText.map((text, i) => ({
+                //       type: "text",
+                //       content: text,
+                //       story_node_id: content.story_node_id,
+                //       order_index: Number(content.order_index) + i + 1,
+                //       id: crypto.randomUUID(),
+                //       isDeleted: false,
+                //       isNew: true,
+                //     })),
+                //   );
+                // } else {
+                //   handleUpdateContent(text);
+                // }
               }}
               className="w-full h-full"
             />

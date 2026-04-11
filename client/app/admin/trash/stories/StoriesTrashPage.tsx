@@ -327,7 +327,7 @@ export function StoriesTrashPage() {
             </>
           )}
 
-          <Button isProcessing={deleting.size > 0} disable={deleting.size > 0} className="font-semibold" onClick={handleSetlectedAll}>
+          <Button buttonType="default" isProcessing={deleting.size > 0} disable={deleting.size > 0} className="font-semibold" onClick={handleSetlectedAll}>
             {selected.size === stories.length ? "Hủy chọn tất cả" : "Chọn tất cả"}
           </Button>
         </div>

@@ -189,6 +189,7 @@ const updateStoryWorker = new Worker(
               await tx.storyNode.createMany({
                 data: children.add.story_node.map((node) => ({
                   id: node.id,
+                  title: node.title,
                   story_id: node.story_id,
                   parent_id: node.parent_id,
                   order_index: node.order_index,

@@ -162,7 +162,7 @@ export function AddNewStoryPage() {
         </div>
 
         <div>
-          <Button className="font-semibold text-lg w-full" onClick={onConfirmAddNew}>
+          <Button buttonType="default" className="font-semibold text-lg w-full" onClick={onConfirmAddNew}>
             Thêm mới
           </Button>
         </div>

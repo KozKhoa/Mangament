@@ -23,12 +23,15 @@ import StoryNodeTypeSelection, { TargetStoryNodeType } from "../selections/story
 import useAuth from "@/contexts/AuthContext";
 
 import NumberInput from "../inputs/number-input";
+import Story from "@/types/story";
 
 const StoryNodeEditable = React.memo(function StoryNodeEditable({
   storyNode,
+  story,
   onChange,
 }: {
   storyNode: StoryNode;
+  story?: Story;
   onChange?: (newStoryNode: StoryNode) => void;
 }) {
   const auth = useAuth();
@@ -170,42 +173,6 @@ const StoryNodeEditable = React.memo(function StoryNodeEditable({
     onChange?.({ ...storyNode, is_deleted: isDeleted, is_edited: true });
   }
 
-  function handleAddMoreChildren(type: string, number: number = 1) {
-    if (number < 1) return;
-
-    const children = [...(storyNode.children ?? [])];
-    Array.from({ length: number }).forEach((_, i) => {
-      children.push({
-        id: crypto.randomUUID(),
-        type: type,
-        order_index: (storyNode.children?.length ?? 0) + i,
-        story_id: storyNode.story_id,
-        parent_id: storyNode.id,
-        poster_id: auth?.user?.id,
-        is_new: true,
-      });
-    });
-
-    onChange?.({ ...storyNode, children: children, is_edited: true });
-  }
-
-  function handleAddMoreContent(type: string, number: number = 1) {
-    if (number < 1) return;
-
-    const next = [...(storyNode.content ?? [])];
-    Array.from({ length: number }).forEach((_, i) => {
-      next.push({
-        type: type,
-        story_node_id: storyNode.id,
-        order_index: (storyNode.content?.length ?? 0) + i,
-        id: crypto.randomUUID(),
-        isDeleted: false,
-        isNew: true,
-      });
-    });
-    onChange?.({ ...storyNode, content: next, is_edited: true });
-  }
-
   const handleAddManyContent = useCallback(
     (contents: StoryNodeContent[]) => {
       const newContent = [...(storyNode.content ?? []), ...contents.map((content) => ({ ...content, isNew: true }))];
@@ -322,13 +289,45 @@ const StoryNodeEditable = React.memo(function StoryNodeEditable({
         </div>
       ),
       onConfirm: () => {
+        const newContent = [...(storyNode.content ?? [])];
+        const newChildren = [...(storyNode.children ?? [])];
+
         Object.keys(numberOfContent).forEach((key, i) => {
-          handleAddMoreContent(key, numberOfContent[key] ?? 0);
+          const number = numberOfContent[key] ?? 0;
+
+          if (number > 0) {
+            Array.from({ length: number }).forEach((_, i) => {
+              newContent.push({
+                type: key,
+                story_node_id: storyNode.id,
+                order_index: (storyNode.content?.length ?? 0) + i,
+                id: crypto.randomUUID(),
+                isDeleted: false,
+                isNew: true,
+              });
+            });
+          }
         });
 
         Object.keys(numberOfNewChildren).forEach((key, i) => {
-          handleAddMoreChildren(key, numberOfNewChildren[key] ?? 0);
+          const number = numberOfNewChildren[key] ?? 0;
+
+          if (number > 0) {
+            Array.from({ length: number }).forEach((_, i) => {
+              newChildren.push({
+                id: crypto.randomUUID(),
+                type: key,
+                order_index: (storyNode.children?.length ?? 0) + i,
+                story_id: storyNode.story_id,
+                parent_id: storyNode.id,
+                poster_id: auth?.user?.id,
+                is_new: true,
+              });
+            });
+          }
         });
+
+        onChange?.({ ...storyNode, content: newContent, children: newChildren, is_edited: true });
 
         setOpen(true);
 
@@ -385,18 +384,20 @@ const StoryNodeEditable = React.memo(function StoryNodeEditable({
             <div className="flex flex-col gap-2">
               {storyNode.children &&
                 storyNode.children.length > 0 &&
-                storyNode.children?.map((child, i) => <StoryNodeEditable key={child.id} storyNode={child} onChange={handleUpdateChild} />)}
+                storyNode.children?.map((child, i) => <StoryNodeEditable key={child.id} storyNode={child} story={story} onChange={handleUpdateChild} />)}
             </div>
           </div>
           <div>
             {storyNode.content && storyNode.content.length > 0 && (
               <DndContext collisionDetection={closestCorners} onDragEnd={handleSortContent}>
                 <SortableContext items={storyNode.content} strategy={rectSortingStrategy}>
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 w-full">
+                  <div
+                    className={`${story?.type === "light_novel" ? "flex flex-col gap-2" : "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 w-full"}`}
+                  >
                     {storyNode.content?.map((content, i) => {
                       return (
                         <StoryNodeContentDraggable
-                          // className={`${content.type === "image" ? "" : "col-span-10"}`}
+                          className={`${content.type === "image" ? "" : "col-span-10"}`}
                           onDelete={handleDeleteContent}
                           onDiscardDelete={handleDiscardDeleteContent}
                           onChange={handleUpdateContent}

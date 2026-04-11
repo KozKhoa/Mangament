@@ -3,7 +3,6 @@ import { redis } from "../../configs/redis.js";
 import redisUtils from "../utils/Redis.js";
 import { CreateError } from "../utils/ErrorHandle.js";
 
-import r2CloudflareUtils from "../utils/R2Cloudflare.js";
 import imageQueue from "../../queues/image.queue.js";
 
 const REDIS_TTL = 60 * 30;
@@ -67,7 +66,7 @@ export async function HardDeleteImage({ id, url }) {
 
   if (!image) throw CreateError(404, "Image not found");
 
-  imageQueue.addJobPermenantDeleteImage(image.id);
+  imageQueue.addJob_PermenantDeleteImage(image.id);
 
   redisUtils.image().incr();
   redisUtils.image(id).incr();
@@ -79,7 +78,7 @@ export async function HardDeleteImage({ id, url }) {
 export async function HardDeleteManyImages({ ids = [], urls = [] }) {
   if (ids.length === 0 && urls.length === 0) throw CreateError(400, "Require 'id' or 'url'");
 
-  const imageIds = await db.image.updateMany({
+  const imageIds = await db.image.updateManyAndReturn({
     where: {
       ...(ids && ids.length > 0 && { id: { in: ids } }),
       ...(urls && urls.length > 0 && { url: { in: urls } }),
@@ -88,7 +87,7 @@ export async function HardDeleteManyImages({ ids = [], urls = [] }) {
     select: { id: true },
   });
 
-  imageQueue.addJobPermenantDeleteManyImages(imageIds.map((image) => image.id));
+  imageQueue.addJob_PermenantDeleteManyImages(imageIds.map((image) => image.id));
 
   redisUtils.image().incr();
   ids.forEach((id) => redisUtils.image(id).incr());
@@ -110,6 +109,7 @@ export async function FindTrashImage({ page = 1, limit = 10 }) {
     story: { none: {} },
     nation: { none: {} },
     story_node_content: { none: {} },
+    deleted_status: { not: "pending_permanent_deletion" },
   };
 
   const trashImage = await db.image.findMany({

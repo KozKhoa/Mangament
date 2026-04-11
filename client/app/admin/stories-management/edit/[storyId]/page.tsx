@@ -303,10 +303,10 @@ export function EditStory() {
           </div>
 
           {/* Content */}
-          <div>{story?.children && <StoryNodeListEditable storyId={storyId} onChange={setChildren} storyNodes={story.children} />}</div>
+          <div>{story?.children && <StoryNodeListEditable story={story} onChange={setChildren} storyNodes={story.children} />}</div>
 
           <div>
-            <Button className="font-semibold text-lg w-full" onClick={onConfirmUpdate}>
+            <Button buttonType="default" className="font-semibold text-lg w-full" onClick={onConfirmUpdate}>
               Xác nhận
             </Button>
           </div>

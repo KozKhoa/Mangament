@@ -34,7 +34,7 @@ import Link from "next/link";
 import { modal } from "@/components/modal/modal.store";
 import InViewList from "@/components/list/inview-list";
 
-const RATIO_LINE_SPACING = 0.4;
+const RATIO_LINE_SPACING = 0.6;
 
 function buildStoryNodeParent(tree: StoryNode[], targetNodeId: string) {
   const parentList: StoryNode[] = [];
@@ -165,7 +165,7 @@ export default function ReadingStoryPage() {
             size={story?.number_of_children}
           />
 
-          <Button onClick={() => modal.close()} className="my-2 ml-auto">
+          <Button buttonType="default" onClick={() => modal.close()} className="my-2 ml-auto">
             Đóng
           </Button>
         </div>
@@ -362,10 +362,14 @@ export default function ReadingStoryPage() {
               <div
                 key={i}
                 data-content-id={con.id}
-                style={{
-                  paddingTop: (app?.readingLineSpacing ?? 1) * RATIO_LINE_SPACING,
-                  paddingBottom: (app?.readingLineSpacing ?? 1) * RATIO_LINE_SPACING,
-                }}
+                style={
+                  con.type === "image"
+                    ? {}
+                    : {
+                        paddingTop: (app?.readingLineSpacing ?? 1) * RATIO_LINE_SPACING,
+                        paddingBottom: (app?.readingLineSpacing ?? 1) * RATIO_LINE_SPACING,
+                      }
+                }
                 className={`flex flex-col justify-center items-center w-full text-foreground/80 ${con.type === "image" ? "" : `px-2.5`}`}
               >
                 {con.type === "image" && con?.image?.url ? (
@@ -382,7 +386,18 @@ export default function ReadingStoryPage() {
                 ) : con.type === "header" ? (
                   <div className="w-full text-start font-semibold text-[1.2em] py-2.5">{con.content}</div>
                 ) : (
-                  con.type === "text" && <div className="w-full text-start">{con.content}</div>
+                  con.type === "text" && (
+                    <div
+                      className="w-full text-start flex flex-col"
+                      style={{
+                        gap: (app?.readingLineSpacing ?? 1) * RATIO_LINE_SPACING + "px",
+                      }}
+                    >
+                      {con.content?.split("\n").map((text, i) => (
+                        <p key={i}>{text}</p>
+                      ))}
+                    </div>
+                  )
                 )}
               </div>
             ))}
@@ -392,12 +407,12 @@ export default function ReadingStoryPage() {
         {/* Button switch page */}
         <div className="grid grid-cols-2 flex-wrap justify-center items-center gap-10 px-2 m-auto my-5 text-lg">
           <div className="flex-1" onClick={goToPrevChapter}>
-            <Button className="font-semibold w-full py-2" disable={!prevNode}>
+            <Button buttonType="default" className="font-semibold w-full py-2" disable={!prevNode}>
               <ArrowLeftIcon className="w-5 h-5" /> Chapter trước
             </Button>
           </div>
           <div className="flex-1" onClick={goToNextChapter}>
-            <Button className="font-semibold w-full py-2" disable={!nextNode}>
+            <Button buttonType="default" className="font-semibold w-full py-2" disable={!nextNode}>
               Chapter sau <ArrowRightIcon className="w-5 h-5" />
             </Button>
           </div>

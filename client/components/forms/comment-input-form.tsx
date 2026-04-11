@@ -78,7 +78,7 @@ export default function CommentInputForm({ storyId, storyNodeId, className, onSu
       </div>
 
       <div className="flex flex-row gap-2 justify-center md:justify-end items-center">
-        <Button isProcessing={isProcessing} disable={isProcessing} onClick={handlePostNewComment} buttonType="default">
+        <Button buttonType="default" isProcessing={isProcessing} disable={isProcessing} onClick={handlePostNewComment}>
           Xác nhận
         </Button>
         <Button isProcessing={isProcessing} disable={isProcessing} onClick={onCancel} buttonType="delete">

@@ -154,7 +154,7 @@ export default function MultiSelection({ className, defaultIndexs, label, option
                   ))}
                 </div>
                 {onConfirm && (
-                  <Button onClick={handleConfirmSelection} className="w-full mx-2 my-1">
+                  <Button buttonType="default" onClick={handleConfirmSelection} className="w-full mx-2 my-1">
                     Xác nhận
                   </Button>
                 )}
