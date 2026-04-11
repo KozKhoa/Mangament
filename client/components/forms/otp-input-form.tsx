@@ -93,7 +93,14 @@ export default function OtpInputForm({
         Không nhận được mã? <span className="underline">Gửi lại</span> {requestingOtp && <span>({resendCounting}s)</span>}
       </p>
 
-      <Button type="submit" tabIndex={3} disable={isProcessing} isProcessing={isProcessing} className="m-auto text-lg lg:text-[1.5em] mt-3">
+      <Button
+        buttonType="default"
+        type="submit"
+        tabIndex={3}
+        disable={isProcessing}
+        isProcessing={isProcessing}
+        className="m-auto text-lg lg:text-[1.5em] mt-3"
+      >
         Xác nhận
       </Button>
     </form>

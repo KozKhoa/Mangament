@@ -167,7 +167,14 @@ function LoginRegisterForm({ type, className }: LoginRegisterProps) {
         </div>
       )}
 
-      <Button type="submit" tabIndex={5} isProcessing={isProcessing} disable={isProcessing} className="m-auto text-[1.2em] lg:text-[1.4em]">
+      <Button
+        buttonType="default"
+        type="submit"
+        tabIndex={5}
+        isProcessing={isProcessing}
+        disable={isProcessing}
+        className="m-auto text-[1.2em] lg:text-[1.4em]"
+      >
         {type === "login" ? <p>Đăng nhập</p> : <p>Đăng ký</p>}
       </Button>
     </form>

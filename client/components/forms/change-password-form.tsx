@@ -53,7 +53,7 @@ export default function ChangePasswordForm({
         tabIndex={2}
       ></Input>
 
-      <Button type="submit" tabIndex={5} isProcessing={isProcessing} disable={isProcessing} className="m-auto">
+      <Button buttonType="default" type="submit" tabIndex={5} isProcessing={isProcessing} disable={isProcessing} className="m-auto">
         Change Password
       </Button>
     </form>

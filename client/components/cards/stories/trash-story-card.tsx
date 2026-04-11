@@ -54,10 +54,10 @@ export default function TrashStoryCard({
       </div>
 
       <div className="flex flex-col justify-between gap-1 font-semibold">
-        <Button disable={disable} className="w-full" onClick={() => onRestore?.(story)}>
+        <Button buttonType="default" disable={disable} className="w-full" onClick={() => onRestore?.(story)}>
           Khôi phục
         </Button>
-        <Button disable={disable} className="w-full" buttonType="delete" onClick={() => onDelete?.(story)}>
+        <Button buttonType="delete" disable={disable} className="w-full" onClick={() => onDelete?.(story)}>
           Xóa
         </Button>
       </div>

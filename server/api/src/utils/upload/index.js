@@ -2,7 +2,7 @@ import chokidar from "chokidar";
 import path from "path";
 import fs from "fs";
 
-import db from "../../configs/db.js";
+import db from "../../../configs/db.js";
 
 import { getAllFiles } from "../FileHandle.js";
 

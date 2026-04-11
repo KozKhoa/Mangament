@@ -43,7 +43,7 @@ export default function ForgotPasswordForm({ onSubmit }: { onSubmit?: (email: st
         tabIndex={2}
       ></Input>
 
-      <Button className="text-[1.3em] m-auto" type="submit" tabIndex={3}>
+      <Button buttonType="default" className="text-[1.3em] m-auto" type="submit" tabIndex={3}>
         Gửi mã
       </Button>
     </form>

@@ -5,6 +5,8 @@ import favouriteService from "@/services/favourite";
 import { toast } from "sonner";
 import useAuth from "@/contexts/AuthContext";
 
+import HeartIcon from "@/public/heart-outline.svg";
+
 export default function ButtonOfFavouriteStory({ className, story }: { className?: string; story?: Story }) {
   const auth = useAuth();
   const user = auth?.user;
@@ -64,8 +66,9 @@ export default function ButtonOfFavouriteStory({ className, story }: { className
       onClick={toggleFavourite}
       isProcessing={processing}
       disable={processing}
-      className={`${favouriteId ? "bg-red-500 text-white" : "bg-background-items"} font-semibold ${className}`}
+      className={`${favouriteId ? "bg-red-500 text-white border-red-500" : "bg-background-items"} font-semibold  ${className}`}
     >
+      <HeartIcon className="w-5 h-5" />
       {favouriteId ? "Đã yêu thích" : "Yêu thích"}
     </Button>
   );

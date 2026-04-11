@@ -13,6 +13,8 @@ import StoryNode from "@/types/story-node";
 
 import Button from "@/components/buttons/button";
 
+import EditIcon from "@/public/edit/edit.svg";
+
 import StoryNodeList from "@/components/list/story-node-list";
 import RecommendStories from "@/components/list/recommend-story";
 import StoryCardAllInfo from "@/components/cards/stories/story-card-all-info";
@@ -23,8 +25,10 @@ import RatingMasonryGrid from "@/components/grids/rating-masonry-grid";
 import Image from "next/image";
 import { loadingBar } from "@/components/loadings/loading-bar/top-loading-bar.store";
 import ImageType from "@/types/image";
+import useAuth from "@/contexts/AuthContext";
 
 export default function StoryDetailPage() {
+  const auth = useAuth();
   const router = useRouter();
   const params = useParams();
 
@@ -85,22 +89,34 @@ export default function StoryDetailPage() {
 
           {/* Button */}
           <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 justify-center items-center gap-2">
-            <Button onClick={() => story?.children[0] && handleNavigateStoryNode([story?.children[0]])} className="w-full font-semibold">
+            <Button buttonType="default" onClick={() => story?.children[0] && handleNavigateStoryNode([story?.children[0]])} className="w-full font-semibold">
               Đọc từ đầu
             </Button>
             <Button
+              buttonType="default"
               onClick={() => story?.children[0] && handleNavigateStoryNode([story?.children[story.children.length - 1]])}
               className="w-full font-semibold"
             >
               Đọc từ cuối
             </Button>
             {story?.history && (
-              <Button onClick={() => story?.history && handleNavigateStoryNode([story?.history?.story_node])} className="w-full font-semibold">
+              <Button
+                buttonType="default"
+                onClick={() => story?.history && handleNavigateStoryNode([story?.history?.story_node])}
+                className="w-full font-semibold"
+              >
                 Đọc tiếp
               </Button>
             )}
 
-            <ButtonOfFavouriteStory className="w-full h-full" story={story}></ButtonOfFavouriteStory>
+            {auth?.user && <ButtonOfFavouriteStory className="w-full h-full" story={story}></ButtonOfFavouriteStory>}
+
+            {auth?.user?.role === "admin" && (
+              <Button onClick={() => router.push(`/admin/stories-management/edit/${story?.id}`)} className="w-full font-semibold">
+                <EditIcon className="w-5 h-5" />
+                Chỉnh sửa
+              </Button>
+            )}
           </div>
         </div>
 

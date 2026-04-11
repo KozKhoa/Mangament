@@ -435,7 +435,7 @@ export async function HardDeleteStory(id) {
       throw new Error(error);
     });
 
-  storyQueue.addJobHardDeleteStory(id);
+  storyQueue.addJob_HardDeleteStory(id);
 
   redisUtils.stories().incr();
   redisUtils.stories(id).incr();

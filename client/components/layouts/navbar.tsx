@@ -134,17 +134,18 @@ function RegisterButton() {
 
 function LogoutButton() {
   const auth = useAuth();
+  const router = useRouter();
   return (
-    <Link
-      href="/"
-      className={className.buttonDropdown}
+    <button
+      className={`${className.buttonDropdown} cursor-pointer`}
       onClick={() => {
         auth?.logout();
+        router.refresh();
       }}
     >
       <LogoutIcon className="w-5 h-5" />
       Đăng xuất
-    </Link>
+    </button>
   );
 }
 

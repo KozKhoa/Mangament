@@ -58,7 +58,7 @@ function RegisterPage() {
     await auth?.register(username, email, password);
 
     setIsProcessing(false);
-  };
+  }
 
   useEffect(() => {
     loadingBar.close();
@@ -121,7 +121,7 @@ function RegisterPage() {
           </Link>
         </div>
 
-        <Button type="submit" tabIndex={5} isProcessing={isProcessing} disable={isProcessing} className="m-auto lg:text-xl">
+        <Button buttonType="default" type="submit" tabIndex={5} isProcessing={isProcessing} disable={isProcessing} className="m-auto lg:text-xl">
           <p>Đăng ký</p>
         </Button>
       </form>

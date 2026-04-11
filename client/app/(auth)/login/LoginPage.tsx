@@ -109,7 +109,7 @@ export default function LoginPage() {
           </div>
         </div>
 
-        <Button type="submit" tabIndex={5} isProcessing={isProcessing} disable={isProcessing} className="m-auto lg:text-xl">
+        <Button buttonType="default" type="submit" tabIndex={5} isProcessing={isProcessing} disable={isProcessing} className="m-auto lg:text-xl">
           <p>Đăng nhập</p>
         </Button>
       </form>

@@ -21,7 +21,7 @@ export default function RequireLogin({ className }: { className?: string }) {
 
       <div className="flex flex-row justify-around w-full">
         <div onClick={() => gotoLogin()}>
-          <Button>Đăng nhập</Button>
+          <Button buttonType="default">Đăng nhập</Button>
         </div>
         <div onClick={() => gotoRegister()}>
           <Button>Đăng ký</Button>

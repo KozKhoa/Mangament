@@ -8,13 +8,14 @@ import PlusIcon from "@/public/plus.svg";
 import { modal } from "../modal/modal.store";
 import NumberInput from "../inputs/number-input";
 import useAuth from "@/contexts/AuthContext";
+import Story from "@/types/story";
 
 export default function StoryNodeListEditable({
-  storyId,
+  story,
   storyNodes,
   onChange,
 }: {
-  storyId: string;
+  story: Story;
   storyNodes: StoryNode[];
   onChange?: (newStoryNode: StoryNode[]) => void;
 }) {
@@ -88,22 +89,23 @@ export default function StoryNodeListEditable({
         </div>
       ),
       onConfirm: () => {
-        Object.keys(numberOfNewNodes).forEach((key, i) => {
-          setNodes((prev) => {
-            const newNodes = [...(prev ?? [])];
-            Array.from({ length: numberOfNewNodes[key] }).forEach((_, i) => {
+        setNodes((prev) => {
+          const newNodes = [...(prev ?? [])];
+          Object.keys(numberOfNewNodes).forEach((key, i) => {
+            Array.from({ length: numberOfNewNodes[key] }).forEach((_, j) => {
               newNodes.push({
                 id: crypto.randomUUID(),
                 type: key,
-                order_index: (nodes?.length ?? 0) + i,
-                story_id: storyId,
+                order_index: (newNodes?.length ?? 0) + j,
+                story_id: story.id,
                 poster_id: auth?.user?.id,
                 is_new: true,
               });
             });
-
-            return newNodes;
           });
+
+          console.log(newNodes);
+          return newNodes;
         });
 
         modal.close();
@@ -134,7 +136,9 @@ export default function StoryNodeListEditable({
       </div>
 
       <div className="flex flex-col gap-2">
-        {nodes && nodes.length > 0 && nodes?.map((node, i) => <StoryNodeEditable key={node.id} storyNode={node} onChange={handleUpdateStoryNode} />)}
+        {nodes &&
+          nodes.length > 0 &&
+          nodes?.map((node, i) => <StoryNodeEditable key={node.id} storyNode={node} story={story} onChange={handleUpdateStoryNode} />)}
       </div>
     </div>
   );

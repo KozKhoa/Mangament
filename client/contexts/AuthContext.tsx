@@ -9,7 +9,6 @@ import User from "@/types/user";
 import userService from "@/services/user";
 import { validateEmailFormat, validatePasswordFormat } from "@/lib/validation";
 import { useRouter } from "next/navigation";
-import { s } from "framer-motion/client";
 
 interface AuthContextProps {
   user: User | null;
@@ -176,6 +175,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setUser(null);
     token.removeAccessToken();
     router.refresh();
+
+    toast.message("Đã đăng xuất thành công");
   }
 
   async function changePassword(oldPassword: string, newPassword: string) {

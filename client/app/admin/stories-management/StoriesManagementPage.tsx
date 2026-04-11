@@ -147,7 +147,7 @@ export function StoriesManagementPage() {
     <div>
       <div className="w-full">
         <Link href={"/admin/stories-management/add"}>
-          <Button className="ml-auto">
+          <Button buttonType="default" className="ml-auto">
             <p className="text-lg">Thêm mới</p>
             <AddIcon className="w-5 h-5"></AddIcon>
           </Button>

@@ -54,10 +54,10 @@ export default function AdjustUserInfoForm({ className, user, onCancel, onConfir
       </div>
 
       <div className="w-full flex flex-row justify-end gap-2 mt-5">
-        <Button isProcessing={isUpdating} disable={isUpdating} onClick={updateUserInfo} className="w-[100px] font-semibold">
+        <Button buttonType="default" isProcessing={isUpdating} disable={isUpdating} onClick={updateUserInfo} className="w-[100px] font-semibold">
           Xác nhận
         </Button>
-        <Button isProcessing={isUpdating} disable={isUpdating} onClick={onCancel} className="w-[100px] font-semibold" buttonType="delete">
+        <Button buttonType="delete" isProcessing={isUpdating} disable={isUpdating} onClick={onCancel} className="w-[100px] font-semibold">
           Hủy bỏ
         </Button>
       </div>

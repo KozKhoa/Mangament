@@ -16,11 +16,11 @@ class ImageQueue {
   #permenantDeletedManyImagesQueue = new Queue("permenant-delete-many-images", { connection });
   #permenantDeltedImageQueue = new Queue("permenant-delete-image", { connection });
 
-  addJobPermenantDeleteManyImages(imageIds) {
+  addJob_PermenantDeleteManyImages(imageIds) {
     this.#permenantDeletedManyImagesQueue.add("permenantDeleteManyImages", { imageIds }, ADD_JOB_OPTION);
   }
 
-  addJobPermenantDeleteImage(imageId) {
+  addJob_PermenantDeleteImage(imageId) {
     this.#permenantDeltedImageQueue.add("permenantDeleteImage", { imageId }, ADD_JOB_OPTION);
   }
 }
