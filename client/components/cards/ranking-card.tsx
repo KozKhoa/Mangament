@@ -23,7 +23,7 @@ export default function RankingCard({ top, story, className, ref }: { top?: numb
   return (
     <div ref={ref} className={`relative bg-background-items rounded-sm h-full`}>
       {top && (
-        <>
+        <div>
           <StoryCard
             className={`flex-row justify-start shadow-none border-0 hover:shadow-none hover:border-transparent 
               bg-background-items w-full
@@ -31,12 +31,12 @@ export default function RankingCard({ top, story, className, ref }: { top?: numb
             data={story}
           ></StoryCard>
           <div
-            className={`absolute right-2 bottom-0 font-aclonica text-6xl xl:text-7xl
+            className={`absolute right-2 bottom-1 font-aclonica text-6xl xl:text-7xl
           ${textColorMapping(top)}`}
           >
             {top}
           </div>
-        </>
+        </div>
       )}
     </div>
   );

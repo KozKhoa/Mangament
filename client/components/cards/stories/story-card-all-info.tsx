@@ -70,7 +70,8 @@ export default function StoryCardAllInfo({ story, className }: StoryCardAllInfoP
                   )}
                 </span>
               )}
-              {"[" + snakeCaseToCapitalizeWord(story?.type || "") + "] " + story?.title}
+              <span className="font-normal text-foreground/60">{"[" + snakeCaseToCapitalizeWord(story?.type || "") + "] "}</span>
+              {story?.title}
             </h2>
 
             <Line></Line>

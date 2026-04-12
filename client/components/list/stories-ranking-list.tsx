@@ -33,7 +33,7 @@ export default function StoriesRankingList({ rankBy = "view", label, className }
         numberOfElementInScreen={{ basic: 1, sm: 2, md: 2, lg: 3, xl: 3 }}
       >
         {stories?.map((story, i) => (
-          <RankingCard key={story.id} className="h-full" story={story} top={i + 1}></RankingCard>
+          <RankingCard key={story.id} className="h-full" story={story} top={i + 1} />
         ))}
       </InfinityScrollHorizontalList>
     </div>

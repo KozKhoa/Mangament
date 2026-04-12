@@ -118,7 +118,7 @@ export default function AdminSidebar({ className }: AdminSidebarProps) {
               <ArrowDownIcon className="w-5 h-5 md:rotate-90"></ArrowDownIcon>
             </div>
 
-            <div className="overflow-y-scroll no-scrollbar">
+            <div className="overflow-y-auto custom-scrollbar">
               <div className="flex flex-col gap-2.5 h-fit">
                 <Link href={"/admin/dashboard"}>
                   <ButtonExpandable

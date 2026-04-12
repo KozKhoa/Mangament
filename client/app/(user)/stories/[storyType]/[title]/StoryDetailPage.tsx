@@ -15,7 +15,7 @@ import Button from "@/components/buttons/button";
 
 import EditIcon from "@/public/edit/edit.svg";
 
-import StoryNodeList from "@/components/list/story-node-list";
+import StoryNodeList from "@/components/table/story-node-list-table";
 import RecommendStories from "@/components/list/recommend-story";
 import StoryCardAllInfo from "@/components/cards/stories/story-card-all-info";
 import ButtonOfFavouriteStory from "@/components/buttons/favourite-button";

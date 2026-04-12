@@ -52,7 +52,7 @@ export default function Button({
       type={type}
       tabIndex={tabIndex}
       disabled={disable}
-      className={`w-fit py-1 px-8 border-2 text-center rounded-sm flex justify-center items-center gap-2
+      className={`w-fit py-1 px-8 border-2 text-center rounded-sm flex justify-center items-center gap-1
       ${bgColorMapping(buttonType)}
       ${textColorMapping(buttonType)}
       ${borderColorMapping(buttonType)}

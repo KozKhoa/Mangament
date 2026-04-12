@@ -96,7 +96,7 @@ export default function Selection({ className, defaultIndex = null, label, optio
                 border border-foreground/30 gap-2.5 pb-1 px-0.5 shadow-[0px_5px_12px_5px_rgba(0,0,0,0.2)]
               `}
               >
-                <div className="flex flex-col md:grid md:grid-cols-2 gap-2 max-h-[60vh] w-full h-full overflow-y-scroll no-scrollbar p-1 min-w-64">
+                <div className="flex flex-col md:grid md:grid-cols-2 gap-2 max-h-[60vh] w-full h-full overflow-y-auto custom-scrollbar p-1 min-w-64">
                   {options?.map((op, index) => (
                     <div key={index} className="bg-background-items hover:bg-foreground/10 px-1 rounded-sm">
                       <button

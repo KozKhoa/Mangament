@@ -27,7 +27,7 @@ export default function InfinityScrollHorizontalList({
   isNoContent?: boolean;
   children?: React.ReactNode[];
 }) {
-  const slideIntervalId = useRef<NodeJS.Timeout>(null);
+  const slideIntervalId = useRef<NodeJS.Timeout | null>(null);
   const arrowClassName = " w-5 h-5 lg:w-6 lg:h-6 cursor-pointer ";
 
   const sliderRef = useRef<HTMLDivElement>(null);
@@ -40,19 +40,19 @@ export default function InfinityScrollHorizontalList({
 
   function slideToNextItem() {
     const itemWidth = endSliderRef.current?.offsetWidth;
-    sliderRef.current?.scrollBy({ left: itemWidth });
+    sliderRef.current?.scrollBy({ left: itemWidth, behavior: "smooth" });
   }
 
   function slideToPrevItem() {
     const itemWidth = endSliderRef.current?.offsetWidth;
-    sliderRef.current?.scrollBy({ left: itemWidth ? -itemWidth : 0 });
+    sliderRef.current?.scrollBy({ left: itemWidth ? -itemWidth : 0, behavior: "smooth" });
   }
 
   function startAutoPlay() {
     if (slideIntervalId.current !== null || autoSlide === 0) return;
 
     slideIntervalId.current = setInterval(() => {
-      if (endSliderInView) sliderRef.current?.scrollTo({ left: 0 });
+      if (endSliderInView) sliderRef.current?.scrollTo({ left: 0, behavior: "smooth" });
       else slideToNextItem();
     }, autoSlide);
   }
@@ -71,6 +71,9 @@ export default function InfinityScrollHorizontalList({
   }, [isNoContent]);
 
   useEffect(() => {
+    if (!children) return;
+    if (children?.length <= 0) return;
+
     if (endSliderInView) onScrollToEnd?.();
 
     startAutoPlay();
@@ -78,7 +81,7 @@ export default function InfinityScrollHorizontalList({
     return () => {
       stopAutoPlay();
     };
-  }, [endSliderRef.current, endSliderInView, autoSlide]);
+  }, [endSliderRef.current, endSliderInView, autoSlide, children]);
 
   return (
     <div className={` flex flex-col justify-center items-center gap-2 w-full ${className}`}>
@@ -109,30 +112,28 @@ export default function InfinityScrollHorizontalList({
             "--col-xl": `${100 / numberOfElementInScreen.xl}%`,
           } as React.CSSProperties
         }
-        className="flex w-full h-fit overflow-x-scroll scroll-smooth snap-x snap-mandatory no-scrollbar"
+        className="flex w-full h-fit overflow-x-auto snap-x snap-proximity custom-scrollbar"
       >
         {loading && <Loading className="w-full h-64"></Loading>}
         {!loading && noContent && <NoContent></NoContent>}
 
-        {children && children?.length > 0 && (
-          <>
-            {children?.map((child, i) => (
-              <div
-                className=" flex-none snap-start
+        {children &&
+          children?.length > 0 &&
+          children?.map((child, i) => (
+            <div
+              className=" flex-none snap-start
                   w-(--col)
                   sm:w-(--col-sm)
                   md:w-(--col-md)
                   lg:w-(--col-lg)
                   xl:w-(--col-xl)
                 "
-                key={i}
-                ref={i === 0 ? (topSliderRef as any) : (endSliderRef as any)}
-              >
-                {child}
-              </div>
-            ))}
-          </>
-        )}
+              key={i}
+              ref={i === 0 ? (topSliderRef as any) : (endSliderRef as any)}
+            >
+              {child}
+            </div>
+          ))}
       </div>
     </div>
   );
