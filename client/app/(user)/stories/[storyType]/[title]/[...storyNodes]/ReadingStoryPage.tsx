@@ -141,6 +141,35 @@ export default function ReadingStoryPage() {
   const content = storyNode?.content;
   const continueReadingContentKey = `storyId=${story?.id}&storyNodeId=${storyNodeId}`;
 
+  async function fetchStoryNode() {
+    const res = await storyNodeService.getStoryNodeById(storyNodeId, { isGettingContent: true });
+
+    if (!res.success) toast.warning(res.message);
+
+    setPrevNode(findPrevChapter(story?.children ?? [], res.data?.id ?? ""));
+    setNextNode(findNextChapter(story?.children ?? [], res.data?.id ?? ""));
+
+    setStoryNode(res.data);
+  }
+
+  async function updateReadingHistory() {
+    console.log(readingContents);
+
+    if (!story?.id) return;
+
+    const res = await historyService.addHistory(story?.id, storyNodeId);
+
+    if (!res.success) return toast.warning(res.message);
+
+    return res.data;
+  }
+
+  async function updateOneViewForStoryNode(storyNodeId: string) {
+    const res = await storyNodeService.addOneView(storyNodeId);
+
+    if (!res.success) toast.warning(res.message);
+  }
+
   function handleNavigateStoryNode(storyNodes?: StoryNode[]) {
     if (!storyNodes || storyNodes?.at(-1)?.type !== "chapter") return;
 
@@ -189,56 +218,44 @@ export default function ReadingStoryPage() {
   useEffect(() => {
     if (!storyNodeId) return;
 
-    async function fetchStoryNode() {
-      const res = await storyNodeService.getStoryNodeById(storyNodeId, { isGettingContent: true });
-
-      if (!res.success) toast.warning(res.message);
-
-      setPrevNode(findPrevChapter(story?.children ?? [], res.data?.id ?? ""));
-      setNextNode(findNextChapter(story?.children ?? [], res.data?.id ?? ""));
-
-      setStoryNode(res.data);
-    }
-
-    async function updateReadingHistory() {
-      console.log(readingContents);
-
-      if (!story?.id) return;
-
-      const res = await historyService.addHistory(story?.id, storyNodeId);
-
-      if (!res.success) return toast.warning(res.message);
-
-      return res.data;
-    }
-
-    async function updateOneViewForStoryNode(storyNodeId: string) {
-      const res = await storyNodeService.addOneView(storyNodeId);
-
-      if (!res.success) toast.warning(res.message);
-    }
-
     fetchStoryNode();
-
-    const timer = setTimeout(() => {
-      updateOneViewForStoryNode(storyNodeId);
-      if (auth?.user) updateReadingHistory();
-    }, 10000);
-
-    return () => clearTimeout(timer);
   }, [storyNodeId]);
 
   useEffect(() => {
     const continueReadingContentId = localStorage.getItem(continueReadingContentKey);
 
-    if (!continueReadingContentId) return;
+    if (continueReadingContentId) {
+      const element = document.querySelector(`[data-content-id="${continueReadingContentId}"]`);
 
-    const element = document.querySelector(`[data-content-id="${continueReadingContentId}"]`);
-
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth" });
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth" });
+      }
     }
+
+    let timer: NodeJS.Timeout;
+    if (storyNode) {
+      if (storyNode.type === "chapter") {
+        timer = setTimeout(() => {
+          updateOneViewForStoryNode(storyNodeId);
+          if (auth?.user) updateReadingHistory();
+        }, 10000);
+      }
+    }
+
+    return () => clearTimeout(timer);
   }, [storyNode]);
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      const readingContent = readingContents[0];
+
+      if (!readingContent) return;
+
+      localStorage.setItem(continueReadingContentKey, readingContent.id.toString());
+    }, 2000);
+
+    return () => clearTimeout(timeout);
+  }, [readingContents]);
 
   useEffect(() => {
     async function fetchStory() {
@@ -271,18 +288,6 @@ export default function ReadingStoryPage() {
 
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
-
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      const readingContent = readingContents[0];
-
-      if (!readingContent) return;
-
-      localStorage.setItem(continueReadingContentKey, readingContent.id.toString());
-    }, 2000);
-
-    return () => clearTimeout(timeout);
-  }, [readingContents]);
 
   return (
     <div className="flex flex-col gap-5">

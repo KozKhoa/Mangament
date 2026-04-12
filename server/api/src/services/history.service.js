@@ -2,7 +2,8 @@ import db from "../../configs/db.js";
 import { redis } from "../../configs/redis.js";
 import redisUtils from "../utils/Redis.js";
 import { CreateError } from "../utils/ErrorHandle.js";
-import { GetParentStoryNodeTree } from "./story-node.service.js";
+
+import * as storyNodeService from "../services/story-node.service.js";
 
 const REDIS_TTL = 60 * 30; // 30 minutes
 
@@ -96,17 +97,14 @@ export async function FindAllReadingHistories({
   const [histories, totalItems] = await Promise.all([
     db.readingHistory.findMany({
       where: where,
-      include: {
-        story: {
-          select: {
-            id: true,
-            title: true,
-            star: true,
-            view: true,
-            type: true,
-            cover_art: true,
-          },
-        },
+      select: {
+        id: true,
+        story_id: true,
+        user_id: true,
+        story_node_id: true,
+        updated_at: true,
+        created_at: true,
+        story: { select: { id: true, title: true, star: true, view: true, type: true, cover_art: true } },
       },
       orderBy: [sort, { updated_at: "desc" }, { id: "desc" }],
       take: limit,
@@ -116,7 +114,7 @@ export async function FindAllReadingHistories({
   ]);
 
   for (const history of histories) {
-    history.story_node = await GetParentStoryNodeTree(history.story_id, history.story_node_id);
+    history.story_node = await storyNodeService.GetParentStoryNodeTree(history.story_id, history.story_node_id);
   }
 
   const result = {
@@ -149,7 +147,7 @@ export async function FindReadingHistory(id) {
 
   if (!history) throw CreateError(404, "History not found");
 
-  history.story_node = await GetParentStoryNodeTree(history.story_id, history.story_node_id);
+  history.story_node = await storyNodeService.GetParentStoryNodeTree(history.story_id, history.story_node_id);
 
   const result = { success: true, data: history };
 
