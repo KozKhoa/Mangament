@@ -146,7 +146,7 @@ export default function MultiSelection({ className, defaultIndexs, label, option
                 border border-foreground/30 gap-2.5 pb-1 px-0.5 shadow-[0px_5px_12px_5px_rgba(0,0,0,0.2)] z-10 duration-100
               `}
               >
-                <div className={`flex flex-col md:grid md:grid-cols-2 gap-2 max-h-[60vh] w-full h-full overflow-y-scroll no-scrollbar p-1 min-w-64`}>
+                <div className={`flex flex-col md:grid md:grid-cols-2 gap-2 max-h-[60vh] w-full h-full overflow-y-auto custom-scrollbar p-1 min-w-64`}>
                   {options?.map((op, i) => (
                     <Item key={i} index={i} isOn={selectedIndex.has(i)} toggleCheckbox={toggleCheckbox}>
                       {op}

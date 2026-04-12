@@ -339,7 +339,7 @@ function NavBar({ duration = 100, autoHide = true, className }: NavBarProps) {
               {/* The side bar */}
               <div
                 className="flex fixed top-5 bottom-5 right-0 flex-col gap-2.5 min-w-3/5 w-full max-w-[500px] bg-background-items
-                px-2.5 py-4 rounded-l-lg shadow-[10px_13px_5px_rgba(0,0,0,0.3) overflow-y-scroll
+                px-2.5 py-4 rounded-l-lg shadow-[10px_13px_5px_rgba(0,0,0,0.3) overflow-y-auto
                 border-foreground/40 border-l-2 border-t-2 border-b-2 "
               >
                 <div className="flex flex-row justify-between ">

@@ -101,7 +101,7 @@ export default function HistoryCard({ history, onClickRemove, className }: { his
                 )}
               </span>
             )}
-            <span className="font-normal">{"[" + snakeCaseToCapitalizeWord(story?.type ?? "") + "] "}</span>
+            <span className="font-normal text-foreground/60">{"[" + snakeCaseToCapitalizeWord(story?.type ?? "") + "] "}</span>
             {story?.title}
           </p>
         </div>

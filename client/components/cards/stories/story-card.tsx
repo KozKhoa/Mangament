@@ -128,7 +128,8 @@ export default function StoryCard({ data, className }: StoryCardProps) {
               )}
             </span>
           )}
-          {"[" + snakeCaseToCapitalizeWord(story?.type ?? "") + "] " + story?.title}
+          <span className="text-foreground/60 font-normal">{"[" + snakeCaseToCapitalizeWord(story?.type ?? "") + "] "}</span>
+          {story?.title}
         </Link>
 
         <div className="flex flex-col gap-1 w-full">

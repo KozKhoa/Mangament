@@ -19,7 +19,7 @@ import ArrowRightIcon from "@/public/arrows/right-v.svg";
 
 import Button from "@/components/buttons/button";
 import NumberInput from "@/components/inputs/number-input";
-import StoryNodeList from "@/components/list/story-node-list";
+import StoryNodeList from "@/components/table/story-node-list-table";
 import RecommendStories from "@/components/list/recommend-story";
 import FontSelection from "@/components/selections/font-selection";
 

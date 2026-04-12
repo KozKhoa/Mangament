@@ -74,7 +74,7 @@ function SearchBar({ onSearch, onType, children, placeHolder = "Tìm kiếm", st
             <div
               ref={refs.setFloating}
               style={floatingStyles}
-              className={`flex absolute flex-col w-full h-fit rounded-sm overflow-y-scroll no-scrollbar max-h-[70vh]
+              className={`flex absolute flex-col w-full h-fit rounded-sm overflow-y-auto custom-scrollbar max-h-[70vh]
                         border border-foreground/30 p-1 bg-background shadow-[0px_5px_12px_rgba(0,0,0,0.1)] mt-2.5
                       `}
             >

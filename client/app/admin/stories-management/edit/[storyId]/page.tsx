@@ -96,7 +96,7 @@ export function EditStory() {
 
           <div>
             <span className="font-semibold">Children : </span>
-            <div className="max-h-[50vh] overflow-y-scroll">
+            <div className="max-h-[50vh] overflow-y-auto custom-scrollbar">
               <pre className="bg-background p-2 rounded-lg">{JSON.stringify(change, null, 1)}</pre>
             </div>
           </div>

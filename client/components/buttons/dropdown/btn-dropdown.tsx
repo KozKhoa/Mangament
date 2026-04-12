@@ -98,7 +98,7 @@ function ButtonDropdown({
               `}
             >
               {/* List */}
-              <div className="flex flex-col gap-2.5 max-h-[60vh] w-fit h-full overflow-y-scroll no-scrollbar p-1 min-w-64">{children}</div>
+              <div className="flex flex-col gap-2.5 max-h-[60vh] w-fit h-full overflow-y-auto custom-scrollbar p-1 min-w-64">{children}</div>
 
               <div className="flex flex-row w-full gap-2 justify-around">
                 {/* Accept button */}

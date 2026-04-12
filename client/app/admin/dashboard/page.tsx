@@ -259,7 +259,7 @@ export default function Dashboard() {
           <div className=" rounded-md flex flex-col gap-px">
             <div className="flex flex-row flex-wrap justify-between ">
               <h2 className="mx-2">Views</h2>
-              <div className="overflow-y-scroll no-scrollbar">
+              <div className="overflow-y-auto no-scrollbar">
                 <SlidingUnderlineSelection
                   className="w-fit"
                   labels={RANGES.map((range) => range.value)}
@@ -315,7 +315,7 @@ export default function Dashboard() {
           <div className=" rounded-md flex flex-col gap-px">
             <div className="flex flex-row flex-wrap justify-between ">
               <h2 className="mx-2">New Users</h2>
-              <div className="overflow-y-scroll no-scrollbar">
+              <div className="overflow-y-auto no-scrollbar">
                 <SlidingUnderlineSelection
                   className="w-fit"
                   labels={RANGES.map((range) => range.value)}

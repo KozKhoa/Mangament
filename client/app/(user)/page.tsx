@@ -137,42 +137,42 @@ export default function Home() {
         }}
         autoSlide={3000}
       >
-        <div className="py-3.5 px-5">
+        <div className="py-3.5 px-2">
           <Link href={`/genre/comedy`}>
             <CategoryCard className="m-auto hover:scale-110 hover:z-10" imageSource="/genres/comedy.jpg" label="COMEDY"></CategoryCard>
           </Link>
         </div>
-        <div className="py-3.5 px-5">
+        <div className="py-3.5 px-2">
           <Link href={`/genre/fantasy`}>
             <CategoryCard className="m-auto hover:scale-110 hover:z-10" imageSource="/genres/fantasy.jpg" label="FANTASY"></CategoryCard>
           </Link>
         </div>
-        <div className="py-3.5 px-5">
+        <div className="py-3.5 px-2">
           <Link href={`/genre/harem`}>
             <CategoryCard className="m-auto hover:scale-110 hover:z-10" imageSource="/genres/harem.jpg" label="HAREM"></CategoryCard>
           </Link>
         </div>
-        <div className="py-3.5 px-5">
+        <div className="py-3.5 px-2">
           <Link href={`/genre/isekai`}>
             <CategoryCard className="m-auto hover:scale-110 hover:z-10" imageSource="/genres/isekai.jpg" label="ISEKAI"></CategoryCard>
           </Link>
         </div>
-        <div className="py-3.5 px-5">
+        <div className="py-3.5 px-2">
           <Link href={`/genre/romance`}>
             <CategoryCard className="m-auto hover:scale-110 hover:z-10" imageSource="/genres/romance.jpg" label="ROMANCE"></CategoryCard>
           </Link>
         </div>
-        <div className="py-3.5 px-5">
+        <div className="py-3.5 px-2">
           <Link href={`/genre/shonen`}>
             <CategoryCard className="m-auto hover:scale-110 hover:z-10" imageSource="/genres/shonen.jpg" label="SHONEN"></CategoryCard>
           </Link>
         </div>
-        <div className="py-3.5 px-5">
+        <div className="py-3.5 px-2">
           <Link href={`/genre/slice_of_life`}>
             <CategoryCard className="m-auto hover:scale-110 hover:z-10" imageSource="/genres/slice_of_life.jpg" label="SLICE OF LIFE"></CategoryCard>
           </Link>
         </div>
-        <div className="py-3.5 px-5">
+        <div className="py-3.5 px-2">
           <Link href={`/genre/sport`}>
             <CategoryCard className="m-auto hover:scale-110 hover:z-10" imageSource="/genres/sport.jpg" label="SPORT"></CategoryCard>
           </Link>
@@ -194,8 +194,8 @@ export default function Home() {
         autoSlide={4000}
       >
         {bestRankingStories.map((story, i) => (
-          <div key={story.id} className="px-5">
-            <RankingCard className="bg-background-items w-full" story={story} top={i + 1}></RankingCard>
+          <div key={story.id} className="px-1 h-full">
+            <RankingCard className="bg-background-items w-full h-full" story={story} top={i + 1} />
           </div>
         ))}
       </InfinityScrollHorizontalList>
