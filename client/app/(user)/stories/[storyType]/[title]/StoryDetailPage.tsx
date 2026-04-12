@@ -64,7 +64,21 @@ export default function StoryDetailPage() {
     loadingBar.open({});
 
     let routeDir = "";
-    storyNode.forEach((node, i) => (routeDir = path.join(routeDir, `${node.type} ${node.order_index}`)));
+
+    storyNode.forEach((node, i) => {
+      let tempNode: StoryNode | null = { ...node };
+      const nodeArray: StoryNode[] = [];
+      while (tempNode) {
+        nodeArray.push(tempNode);
+        tempNode = tempNode.parent ?? null;
+      }
+
+      nodeArray.reverse();
+      nodeArray.forEach((node) => {
+        routeDir = path.join(routeDir, `${node.type} ${node.order_index}`);
+      });
+    });
+
     router.push(path.join(`/stories/${storyType}/${title}/`, routeDir));
   }
 
