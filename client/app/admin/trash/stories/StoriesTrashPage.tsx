@@ -30,6 +30,7 @@ import TrashStoryCard from "@/components/cards/stories/trash-story-card";
 import DisplayStar from "@/components/displays/ratings/display-star";
 import { beautifulView } from "@/utils/beautiful";
 import { loadingBar } from "@/components/loadings/loading-bar/top-loading-bar.store";
+import NoContent from "@/components/cards/no-content";
 
 export function StoriesTrashPage() {
   const router = useRouter();
@@ -336,43 +337,46 @@ export function StoriesTrashPage() {
       {loading ? (
         <Loading className="w-full h-64" />
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2.5">
-          {stories &&
-            stories.length > 0 &&
-            stories.map((story, i) => (
-              <div
-                key={i}
-                className={`border-4 relative rounded-lg overflow-hidden
+        <div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2.5">
+            {stories &&
+              stories.length > 0 &&
+              stories.map((story, i) => (
+                <div
+                  key={i}
+                  className={`border-4 relative rounded-lg overflow-hidden
                 ${deleting.has(story.id ?? "") ? "border-red-500 opacity-20" : restoring.has(story.id ?? "") ? "border-blue-500 opacity-20" : selected.has(story.id ?? "") ? "border-green-500" : "border-transparent"}
               `}
-              >
-                <button
-                  disabled={deleting.has(story.id) || restoring.has(story.id)}
-                  className="absolute top-0 left-0 z-10 bg-background-items px-1 py-2 rounded-b-full cursor-pointer shadow-lg"
-                  onClick={() => handleZoomStory(story)}
                 >
-                  <ZoomIcon className="w-7 h-7 text-foreground" />
-                </button>
+                  <button
+                    disabled={deleting.has(story.id) || restoring.has(story.id)}
+                    className="absolute top-0 left-0 z-10 bg-background-items px-1 py-2 rounded-b-full cursor-pointer shadow-lg"
+                    onClick={() => handleZoomStory(story)}
+                  >
+                    <ZoomIcon className="w-7 h-7 text-foreground" />
+                  </button>
 
-                <button
-                  disabled={deleting.has(story.id) || restoring.has(story.id)}
-                  className="absolute top-0 right-0 z-10 p-2 bg-background-items px-1 py-2 rounded-b-full cursor-pointer shadow-lg"
-                  onClick={(e) => handleToggleSelectedStory(story.id, e as any)}
-                >
-                  <Checkbox value={selected.has(story.id ?? "")} />
-                </button>
+                  <button
+                    disabled={deleting.has(story.id) || restoring.has(story.id)}
+                    className="absolute top-0 right-0 z-10 p-2 bg-background-items px-1 py-2 rounded-b-full cursor-pointer shadow-lg"
+                    onClick={(e) => handleToggleSelectedStory(story.id, e as any)}
+                  >
+                    <Checkbox value={selected.has(story.id ?? "")} />
+                  </button>
 
-                {/* Story */}
-                <TrashStoryCard
-                  className={`w-full h-full ${selected.has(story.id) ? "opacity-40" : ""}`}
-                  story={story}
-                  disable={deleting.has(story.id) || restoring.has(story.id)}
-                  onClick={(e) => handleToggleSelectedStory(story.id, e as any)}
-                  onDelete={() => handleDeleteTrashStory(story.id)}
-                  onRestore={() => handleRestoreStory(story.id)}
-                />
-              </div>
-            ))}
+                  {/* Story */}
+                  <TrashStoryCard
+                    className={`w-full h-full ${selected.has(story.id) ? "opacity-40" : ""}`}
+                    story={story}
+                    disable={deleting.has(story.id) || restoring.has(story.id)}
+                    onClick={(e) => handleToggleSelectedStory(story.id, e as any)}
+                    onDelete={() => handleDeleteTrashStory(story.id)}
+                    onRestore={() => handleRestoreStory(story.id)}
+                  />
+                </div>
+              ))}
+          </div>
+          {stories.length === 0 && <NoContent className="m-auto" />}
         </div>
       )}
 
