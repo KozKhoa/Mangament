@@ -54,7 +54,7 @@ export default function StoryCardAllInfo({ story, className }: StoryCardAllInfoP
 
           <div className="flex flex-col gap-1 justify-start items-start">
             {/* Tittle */}
-            <h2 className="flex flex-row items-center gap-1.5 font-bold leading-tight">
+            <h2 className="flex flex-row items-center gap-1.5 font-bold leading-tight text-xl">
               {story?.nation && (
                 <span className="shrink-0">
                   {story.nation.flag_image?.key ? (
@@ -70,7 +70,7 @@ export default function StoryCardAllInfo({ story, className }: StoryCardAllInfoP
                   )}
                 </span>
               )}
-              <span className="font-normal text-foreground/60">{"[" + snakeCaseToCapitalizeWord(story?.type || "") + "] "}</span>
+              <span className="font-normal text-foreground/60 w-fit">{"[" + snakeCaseToCapitalizeWord(story?.type || "") + "] "}</span>
               {story?.title}
             </h2>
 

@@ -36,19 +36,13 @@ export default function StoryInfoCard({ story, className }: StoryInfoCardProps) 
         {story?.nation && (
           <span className="inline-block mr-1.5 align-middle">
             {story.nation.flag_image?.url ? (
-              <Image
-                src={story.nation.flag_image.url}
-                alt={story.nation.name}
-                width={28}
-                height={20}
-                className="object-contain inline-block"
-              ></Image>
+              <Image src={story.nation.flag_image.url} alt={story.nation.name} width={28} height={20} className="object-contain inline-block"></Image>
             ) : (
               <span className="text-[1.5rem]">{story.nation.flag_icon}</span>
             )}
           </span>
         )}
-        [{capitalizeFirstChar(story?.type || "")}] {story?.title}
+        <span className="font-normal text-foreground/60 w-fit">[{capitalizeFirstChar(story?.type || "")}]</span> {story?.title}
       </p>
 
       <div className="flex flex-col justify-center items-start gap-1 py-1 border-b border-foreground/30">

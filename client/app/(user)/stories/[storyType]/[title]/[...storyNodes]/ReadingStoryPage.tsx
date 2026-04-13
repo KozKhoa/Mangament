@@ -3,7 +3,7 @@
 import { toast } from "sonner";
 import { useParams } from "next/navigation";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 
 import useApp from "@/contexts/AppContext";
@@ -101,6 +101,35 @@ function findNextChapter(tree: StoryNode[], targetNodeId: string): StoryNode | n
 
   return dfs(tree);
 }
+
+const StoryNodesList = React.memo(
+  ({
+    goToPrevChapter,
+    goToNextChapter,
+    handleOpenStoryNodeList,
+    storyNode,
+    className,
+  }: {
+    goToPrevChapter: () => void;
+    goToNextChapter: () => void;
+    handleOpenStoryNodeList: () => void;
+    storyNode?: StoryNode;
+
+    className?: string;
+  }) => {
+    return (
+      <div className={`flex flex-row gap-3 justify-center items-center text-xl ${className}`}>
+        <ArrowLeftIcon className="w-5 h-5 cursor-pointer shrink-0" onClick={goToPrevChapter} />
+
+        <p className=" cursor-pointer" onClick={handleOpenStoryNodeList}>
+          {capitalizeWords(storyNode?.type ?? "")} {storyNode?.order_index}
+        </p>
+
+        <ArrowRightIcon className="w-5 h-5 cursor-pointer shrink-0" onClick={goToNextChapter} />
+      </div>
+    );
+  },
+);
 
 export default function ReadingStoryPage() {
   const app = useApp();
@@ -311,19 +340,12 @@ export default function ReadingStoryPage() {
           </div>
         </div>
 
-        <div className="flex flex-row gap-3 justify-center items-center">
-          <div onClick={goToPrevChapter}>
-            <ArrowLeftIcon className="w-6 h-6 cursor-pointer"></ArrowLeftIcon>
-          </div>
-
-          <h3 className=" cursor-pointer" onClick={handleOpenStoryNodeList}>
-            {capitalizeWords(storyNode?.type ?? "")} {storyNode?.order_index}
-          </h3>
-
-          <div onClick={goToNextChapter}>
-            <ArrowRightIcon className="w-6 h-6 cursor-pointer"></ArrowRightIcon>
-          </div>
-        </div>
+        <StoryNodesList
+          storyNode={storyNode}
+          goToPrevChapter={goToPrevChapter}
+          goToNextChapter={goToNextChapter}
+          handleOpenStoryNodeList={handleOpenStoryNodeList}
+        />
       </div>
 
       {/* Button favourite */}
@@ -375,7 +397,7 @@ export default function ReadingStoryPage() {
                         paddingBottom: (app?.readingLineSpacing ?? 1) * RATIO_LINE_SPACING,
                       }
                 }
-                className={`flex flex-col justify-center items-center w-full text-foreground/80 ${con.type === "image" ? "" : `px-2.5`}`}
+                className={`flex flex-col justify-center items-center w-full text-foreground/80 ${con.type === "image" ? "" : `px-1`}`}
               >
                 {con.type === "image" && con?.image?.url ? (
                   <Image
@@ -410,16 +432,31 @@ export default function ReadingStoryPage() {
         </div>
 
         {/* Button switch page */}
-        <div className="grid grid-cols-2 flex-wrap justify-center items-center gap-10 px-2 m-auto my-5 text-lg">
-          <div className="flex-1" onClick={goToPrevChapter}>
-            <Button buttonType="default" className="font-semibold w-full py-2" disable={!prevNode}>
-              <ArrowLeftIcon className="w-5 h-5" /> Chapter trước
-            </Button>
-          </div>
-          <div className="flex-1" onClick={goToNextChapter}>
-            <Button buttonType="default" className="font-semibold w-full py-2" disable={!nextNode}>
-              Chapter sau <ArrowRightIcon className="w-5 h-5" />
-            </Button>
+        <div className="grid grid-cols-3 flex-wrap justify-center items-center gap-2 px-2 m-auto my-5">
+          <Button buttonType="default" className="font-semibold w-full py-2" disable={!prevNode} onClick={goToPrevChapter}>
+            <ArrowLeftIcon className="w-4 h-4 shrink-0" /> Trước
+          </Button>
+
+          <p className=" cursor-pointer w-fit m-auto text-xl" onClick={handleOpenStoryNodeList}>
+            {capitalizeWords(storyNode?.type ?? "")} {storyNode?.order_index}
+          </p>
+
+          <Button buttonType="default" className="font-semibold w-full py-2" disable={!nextNode} onClick={goToNextChapter}>
+            Tiếp <ArrowRightIcon className="w-4 h-4 shrink-0" />
+          </Button>
+        </div>
+
+        <div className="">
+          <p className="text-foreground/60">[{snakeCaseToCapitalizeWord(story?.type ?? "")}]</p>
+          <Link href={`/stories/${story?.type}/${story?.title}`}>
+            <p className="font-bold text-4xl cursor-pointer py-3">{story?.title}</p>
+          </Link>
+          <div className="flex flex-row flex-wrap gap-1 text-foreground py-2">
+            {storyNodes.map((node, i) => (
+              <p key={i}>
+                {capitalizeWords(node.storyNodeType)} {node.orderIndex} {i < storyNodes.length - 1 && "➤"}
+              </p>
+            ))}
           </div>
         </div>
       </div>

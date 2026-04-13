@@ -309,5 +309,6 @@ enum Genre {
 enum DeletedStatus {
   not_deleted
   soft_deleted
+  soft_deleted_by_parent // This mean this is delete by its parent being soft deleted, and it will be un-deleted when the parent is un-deleted
   pending_permanent_deletion
 }
