@@ -262,14 +262,13 @@ export async function PostNewStory(req, res, next) {
     const userId = req.user.id;
 
     const title = req.body?.title;
+    const otherTitles = req?.body?.other_titles ?? [];
     const type = req.body?.type;
     const nation = req.body?.nation;
     const summary = req.body?.summary;
     const status = req.body?.status ?? "ongoing";
     const genres = req.body?.genre;
     const authorIds = req.body?.authorIds?.split(",");
-    // const coverArtUrl = req.body?.coverArtUrl;
-    // const publicId = req.body.publicId;
 
     const coverArt = req.body.coverArt; // {url, key, id, public_id}
 
@@ -281,6 +280,7 @@ export async function PostNewStory(req, res, next) {
 
     const newStory = await storyService.AddStory({
       title: title,
+      otherTitles: otherTitles,
       type: type,
       nation: nation,
       genres: genres,
@@ -299,6 +299,22 @@ export async function PostNewStory(req, res, next) {
   }
 }
 
+// PATCH /admin/stories/:id/cover-art
+export async function UpdateStoryCoverArt(req, res, next) {
+  try {
+    const storyId = req?.params?.id;
+    const coverArt = req.body?.coverArt; // {url, key, id, public_id}
+
+    if (!storyId) throw CreateError(400, "'id' for story is required");
+
+    const update = await storyService.UpdateStoryCoverArt(storyId, coverArt);
+    if (!update) throw CreateError();
+
+    return res.json({ success: true, message: "Update story cover art successfully", data: update.data });
+  } catch (error) {
+    next(error);
+  }
+}
 // PUT /admin/stories/:id
 export async function UpdateStory(req, res, next) {
   try {
@@ -309,6 +325,7 @@ export async function UpdateStory(req, res, next) {
     const body = req?.body;
 
     const title = body?.title;
+    const otherTitles = body?.other_titles ?? [];
     const nation = body?.nation?.name;
     const type = body?.type;
     const status = body?.status;
@@ -328,6 +345,7 @@ export async function UpdateStory(req, res, next) {
       storyId,
       {
         title: title,
+        otherTitles: otherTitles,
         type: type,
         summary: summary,
         nation: nation,

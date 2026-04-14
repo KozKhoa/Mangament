@@ -1,0 +1,3 @@
+const OTHER_TITLES_SEPARATOR = ";";
+
+export { OTHER_TITLES_SEPARATOR };

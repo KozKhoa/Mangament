@@ -467,6 +467,56 @@ adminRoute.post("/stories", adminController.PostNewStory);
 
 /**
  * @openapi
+ * /admin/stories/{id}/cover-art:
+ *   patch:
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     summary: Update story cover art
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               coverArt:
+ *                 type: object
+ *                 properties:
+ *                   url:
+ *                      type: string
+ *                   key:
+ *                      type: string
+ *
+ *     responses:
+ *       '200':
+ *         description: Updated story cover art
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Story'
+ *       '401':
+ *         $ref: '#/components/responses/Unauthorized'
+ *
+ */
+adminRoute.patch("/stories/:id/cover-art", adminController.UpdateStoryCoverArt);
+
+/**
+ * @openapi
  * /admin/stories/{id}:
  *   put:
  *     tags: [Admin]

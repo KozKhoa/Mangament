@@ -8,6 +8,7 @@ import StoryNode from "./story-node";
 export default interface Story {
   id: string;
   title: string;
+  other_titles?: string[];
   nation?: Nation;
   view?: number;
   star?: number;

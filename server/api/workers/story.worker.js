@@ -92,7 +92,8 @@ const hardDeleteManyStoriesWorker = new Worker(
 const updateStoryWorker = new Worker(
   "update-story",
   async (job) => {
-    const { storyId, editorEmail, title, type, view, summary, posterId, nation, status, genres, coverArt, nextChapterIn, authorIds, children } = job.data;
+    const { storyId, editorEmail, title, otherTitles, type, view, summary, posterId, nation, status, genres, coverArt, nextChapterIn, authorIds, children } =
+      job.data;
 
     let success = true;
     let result;
@@ -114,15 +115,16 @@ const updateStoryWorker = new Worker(
               where: { id: storyId },
               data: {
                 ...(title && { title: title }),
+                ...(otherTitles && otherTitles.length > 0 && { other_titles: otherTitles }),
                 ...(type && { type: type }),
                 ...(view !== undefined && { view: view }),
                 ...(summary && { summary: summary }),
                 ...(status && { status: status }),
                 ...(nextChapterIn && { next_chapter_in: nextChapterIn }),
-                ...(nation && { nation: { connect: { name: nation } } }),
+                ...(nation && nation.length > 0 && { nation: { connect: { name: nation } } }),
 
                 ...(coverArt && {
-                  cover_art: { connectOrCreate: { where: { url: coverArt?.url }, create: { url: coverArt?.url, key: coverArt?.key } } },
+                  cover_art: { connectOrCreate: { where: { key: coverArt?.key }, create: { url: coverArt?.url, key: coverArt?.key } } },
                 }),
 
                 ...(posterId && { poster: { connect: { id: posterId } } }),

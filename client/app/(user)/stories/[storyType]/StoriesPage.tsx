@@ -51,6 +51,8 @@ export default function StoriesPage() {
 
   const [loading, setLoading] = useState(true);
   const [hoverStoryIndex, setHoverStoryIndex] = useState<number>(0);
+  const [isHoveringOnStoryInfoCard, setIsHoveringOnStoryInfoCard] = useState<boolean>(false);
+  const [startToHoverIndex, setStartToHoverIndex] = useState<number>(0);
   const [stories, setStories] = useState<Story[] | null>(null);
   const [pagination, setPagination] = useState<Pagination>();
 
@@ -109,6 +111,18 @@ export default function StoriesPage() {
 
     loadingBar.close();
   }, [searchParams]);
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setHoverStoryIndex(startToHoverIndex);
+    }, 200);
+
+    if (isHoveringOnStoryInfoCard) {
+      clearTimeout(timeout);
+    }
+
+    return () => clearTimeout(timeout);
+  }, [startToHoverIndex, isHoveringOnStoryInfoCard]);
 
   return (
     <div className="w-full h-full flex flex-col font-afacad gap-12 px-2.5">
@@ -170,7 +184,7 @@ export default function StoriesPage() {
                 "
               >
                 {stories.map((story, i) => (
-                  <div key={story.id} onMouseOver={() => setHoverStoryIndex(i)}>
+                  <div key={story.id} onMouseOver={() => setStartToHoverIndex(i)}>
                     <StoryCard className="bg-background-items" data={story}></StoryCard>
                   </div>
                 ))}
@@ -191,7 +205,13 @@ export default function StoriesPage() {
         </div>
 
         {!loading && stories?.length !== undefined && stories?.length > 0 && (
-          <StoryInfoCard story={stories[hoverStoryIndex ?? 0]} className="hidden md:flex sticky top-16 bg-background-items"></StoryInfoCard>
+          <div
+            className="hidden md:flex sticky top-16 w-[320px]"
+            onMouseOver={() => setIsHoveringOnStoryInfoCard(true)}
+            onMouseLeave={() => setIsHoveringOnStoryInfoCard(false)}
+          >
+            <StoryInfoCard story={stories[hoverStoryIndex ?? 0]} className="bg-background-items overflow-y-scroll max-h-[85vh] custom-scrollbar" />
+          </div>
         )}
       </div>
     </div>

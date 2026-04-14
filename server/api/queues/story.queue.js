@@ -32,13 +32,13 @@ class StoryQueue {
 
   addJob_UpdateStory(
     storyId,
-    { title, type, view, summary, posterId, nation, status, genres = [], coverArt, nextChapterIn, authorIds = [], children },
+    { title, otherTitles = [], type, view, summary, posterId, nation, status, genres = [], coverArt, nextChapterIn, authorIds = [], children },
     editorEmail,
   ) {
     console.log(`Already add ${title} to updated story queue`);
     this.#updateStory.add(
       "updateStory",
-      { storyId, editorEmail, title, type, view, summary, posterId, nation, status, genres, coverArt, nextChapterIn, authorIds, children },
+      { storyId, editorEmail, title, otherTitles, type, view, summary, posterId, nation, status, genres, coverArt, nextChapterIn, authorIds, children },
       ADD_JOB_OPTION,
     );
   }

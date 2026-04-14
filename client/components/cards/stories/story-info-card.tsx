@@ -45,7 +45,7 @@ export default function StoryInfoCard({ story, className }: StoryInfoCardProps) 
         <span className="font-normal text-foreground/60 w-fit">[{capitalizeFirstChar(story?.type || "")}]</span> {story?.title}
       </p>
 
-      <div className="flex flex-col justify-center items-start gap-1 py-1 border-b border-foreground/30">
+      <div className="flex flex-col justify-center items-start gap-2 py-1 border-b border-foreground/30">
         {/* Status */}
         <div className={subContainerClassName}>
           <p className={labelClassName}>Tình trạng: </p>
@@ -69,6 +69,18 @@ export default function StoryInfoCard({ story, className }: StoryInfoCardProps) 
           {story?.genres?.map((name, i) => (
             <GenreTag key={name} tagName={name}></GenreTag>
           ))}
+        </div>
+
+        {/* Other titles */}
+        <div className={subContainerClassName}>
+          <p className={labelClassName}>Tên khác:</p>
+          <div className="flex flex-row flex-wrap gap-1">
+            {story?.other_titles?.map((title, i) => (
+              <Tag key={i} className="px-2">
+                {title}
+              </Tag>
+            ))}
+          </div>
         </div>
       </div>
 
