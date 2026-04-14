@@ -76,7 +76,7 @@ export default function StoryCardAllInfo({ story, className }: StoryCardAllInfoP
 
             <Line></Line>
 
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-2.5">
               {/* Rating */}
               <div className="flex flex-wrap gap-x-2.5 justify-start items-center">
                 <div className={labelContainerStyle}>
@@ -117,6 +117,18 @@ export default function StoryCardAllInfo({ story, className }: StoryCardAllInfoP
                 {story?.genres?.map((name, i) => (
                   <GenreTag key={name} tagName={name}></GenreTag>
                 ))}
+              </div>
+
+              {/* Other titles */}
+              <div className={labelContainerStyle}>
+                <p className={subLabelStyle}>Tên khác:</p>
+                <div className="flex flex-row flex-wrap gap-1">
+                  {story?.other_titles?.map((title, i) => (
+                    <Tag key={i} className="px-2">
+                      {title}
+                    </Tag>
+                  ))}
+                </div>
               </div>
 
               <div className="flex flex-col justify-between gap-1 w-full 2 "></div>

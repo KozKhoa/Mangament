@@ -7,7 +7,7 @@ import StoryGenreMultiSelection from "@/components/selections/story-genres-multi
 import StoryStatusSelection from "@/components/selections/story-status-selection";
 import adminService from "@/services/admin";
 import Story from "@/types/story";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import TextArea from "@/components/inputs/text-area";
@@ -23,15 +23,14 @@ import Nation from "@/types/nation";
 import withAdmin from "@/hoc/withAdmin";
 import { loadingBar } from "@/components/loadings/loading-bar/top-loading-bar.store";
 
+import { OTHER_TITLES_SEPARATOR } from "@/constants/story";
+
 export function AddNewStoryPage() {
-  const params = useParams();
   const router = useRouter();
 
   const [story, setStory] = useState<Story | null>(null);
   const [coverArtFile, setCoverArtFile] = useState<File>();
   const [isAdding, setIsAdding] = useState(false);
-
-  const [loading, setLoading] = useState(false);
 
   // call api for adding new story
   async function handleAddNewStory() {
@@ -138,6 +137,13 @@ export function AddNewStoryPage() {
     });
   }
 
+  function setOtherTitles(otherTitles: string) {
+    setStory((prev) => {
+      const next: any = { ...prev, other_titles: otherTitles.split(OTHER_TITLES_SEPARATOR) };
+      return next;
+    });
+  }
+
   useEffect(() => {
     loadingBar.close();
   }, []);
@@ -148,14 +154,19 @@ export function AddNewStoryPage() {
         <h2 className="font-semibold text-center w-full">Thêm truyện mới</h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 ">
+          {/* Cover art */}
+
           <ImagePicker className="col-span-1" onChange={(file) => setCoverArtFile(file as File)} labelForNoImage="Tải ảnh bìa" onReset={() => {}} />
 
+          {/* Other info */}
           <div className="flex flex-col gap-2 w-full lg:col-span-2">
             <Input require={true} label="Title" placeHolder={story?.title} onChange={setTitle}></Input>
             <StoryTypeSelection require={true} onChange={(type) => setStoryType(type ?? "")}></StoryTypeSelection>
             <StoryStatusSelection require={true} onChange={(status) => setStoryStatus(status ?? "")}></StoryStatusSelection>
             <NationSelection onChange={(nation) => setNation({ name: nation?.name ?? "", flag_icon: nation?.flag_icon })}></NationSelection>
             <StoryGenreMultiSelection onChange={setGenres}></StoryGenreMultiSelection>
+
+            <TextArea label="Các tên gọi khác" placeHolder={`Các tên cách nhau bởi dấu chấm phẩy ";"`} onChange={setOtherTitles} />
 
             <TextArea label="Tóm tắt / Mô tả truyện" placeHolder={story?.summary} onChange={setSummary}></TextArea>
           </div>

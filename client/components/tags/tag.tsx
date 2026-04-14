@@ -6,7 +6,7 @@ interface TagProps {
 }
 
 const Tag = React.memo(function ({ children, className }: TagProps) {
-  return <p className={`rounded-sm px-1 bg-foreground/25  text-foreground ${className}`}>{children}</p>;
+  return <p className={`rounded-sm px-1 bg-foreground/20  text-foreground ${className}`}>{children}</p>;
 });
 
 export default Tag;

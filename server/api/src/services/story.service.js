@@ -11,7 +11,11 @@ import { throwErrorIfInvalidGenres } from "../utils/Validators.js";
 import { validate as isUUID } from "uuid";
 import redisUtils from "../utils/Redis.js";
 
+import { STORY_SEARCH_SIMILARITY } from "../constants/Story.js";
+
 const REDIS_TTL = 60 * 30; // 30 minutes
+
+const OTHER_TITLES_SEPARATOR = ";";
 
 export async function BuildStoryTree(storyId, storyNodeId, isGettingContent = false) {
   const storiesVer = await redisUtils.stories(storyId).get();
@@ -186,57 +190,185 @@ export async function FindAllStories({
   ].join(":");
 
   const cached = await redis.get(REDIS_KEY);
-  if (cached) return JSON.parse(cached);
+  // if (cached) return JSON.parse(cached);
 
   if (genres && genres.length > 0) throwErrorIfInvalidGenres(genres);
 
-  const where = {
-    deleted_status: deletedStatus,
-    is_actived: isActived,
-    ...(keyword && { title: { contains: keyword, mode: "insensitive" } }),
-    ...(type && type.length > 0 && { type: { in: type } }),
-    ...(genres && genres.length > 0 && { genres: { some: { genre: { in: genres } } } }),
-    ...(authorsId && authorsId.length > 0 && { authors: { some: { author_id: { in: authorsId } } } }),
-    ...(status && status.length > 0 && { status: { in: status } }),
-    ...(nation && nation.length > 0 && { nation: { name: { in: nation } } }),
-    AND: [
-      {
-        OR: [...star.map(([min, max]) => ({ star: { gte: min, lte: max } }))],
+  const params = [deletedStatus];
+  let paramIdx = 2;
+
+  const conditions = [`"deleted_status" = $1::"DeletedStatus"`];
+  if (isActived !== undefined) {
+    conditions.push(`"is_actived" = $${paramIdx}::boolean`);
+    params.push(isActived);
+    paramIdx++;
+  }
+
+  let selectCols = `"Story"."id"`;
+
+  if (keyword) {
+    const kwParam = paramIdx++;
+    params.push(keyword);
+    conditions.push(`(
+      similarity("Story"."title", $${kwParam}) > ${STORY_SEARCH_SIMILARITY}
+      OR EXISTS (
+        SELECT 1 FROM unnest("Story"."other_titles") t
+        WHERE similarity(t, $${kwParam}) > ${STORY_SEARCH_SIMILARITY}
+      )
+    )`);
+    selectCols = `
+      "Story"."id",
+      GREATEST(
+        similarity("Story"."title", $${kwParam}),
+        COALESCE((
+          SELECT MAX(similarity(t, $${kwParam}))
+          FROM unnest("Story"."other_titles") AS t
+        ), 0)
+      ) AS score
+    `;
+  }
+
+  if (type && type.length > 0) {
+    conditions.push(`"Story"."type" = ANY($${paramIdx++}::text[]::"StoryType"[])`);
+    params.push(type);
+  }
+
+  if (genres && genres.length > 0) {
+    conditions.push(`EXISTS (
+      SELECT 1 FROM "Story_Genre"
+      WHERE "Story_Genre"."story_id" = "Story"."id"
+      AND "Story_Genre"."genre" = ANY($${paramIdx++}::text[]::"Genre"[])
+    )`);
+    params.push(genres);
+  }
+
+  if (authorsId && authorsId.length > 0) {
+    conditions.push(`EXISTS (
+      SELECT 1 FROM "Story_Author"
+      WHERE "Story_Author"."story_id" = "Story"."id"
+      AND "Story_Author"."author_id" = ANY($${paramIdx++}::uuid[])
+    )`);
+    params.push(authorsId);
+  }
+
+  if (status && status.length > 0) {
+    conditions.push(`"Story"."status" = ANY($${paramIdx++}::text[]::"StoryStatus"[])`);
+    params.push(status);
+  }
+
+  if (nation && nation.length > 0) {
+    conditions.push(`EXISTS (
+      SELECT 1 FROM "Nation"
+      WHERE "Nation"."id" = "Story"."nation_id"
+      AND "Nation"."name" = ANY($${paramIdx++}::text[])
+    )`);
+    params.push(nation);
+  }
+
+  if (star && star.length > 0) {
+    const starOrs = star
+      .map(([min, max]) => {
+        const p1 = paramIdx++;
+        const p2 = paramIdx++;
+        params.push(min, max);
+        return `("Story"."star" >= $${p1} AND "Story"."star" <= $${p2})`;
+      })
+      .join(" OR ");
+    conditions.push(`(${starOrs})`);
+  }
+
+  if (view && view.length > 0) {
+    const viewOrs = view
+      .map(([min, max]) => {
+        const p1 = paramIdx++;
+        const p2 = paramIdx++;
+        params.push(min, max);
+        return `("Story"."view" >= $${p1} AND "Story"."view" <= $${p2})`;
+      })
+      .join(" OR ");
+    conditions.push(`(${viewOrs})`);
+  }
+
+  const whereClause = conditions.length > 0 ? "WHERE " + conditions.join(" AND ") : "";
+
+  let orderByClause = "";
+  if (sort) {
+    const sortKeys = Object.keys(sort);
+    if (sortKeys.length > 0) {
+      const key = sortKeys[0];
+      const dir = sort[key].toString().toLowerCase() === "asc" ? "ASC" : "DESC";
+      if (key === "score" && keyword) {
+        orderByClause = `ORDER BY score ${dir}`;
+      } else {
+        const allowedColumns = ["updated_at", "created_at", "view", "star", "id"];
+        if (allowedColumns.includes(key)) {
+          orderByClause = `ORDER BY "${key}" ${dir}, "id" DESC`;
+        } else {
+          orderByClause = `ORDER BY "updated_at" DESC, "id" DESC`;
+        }
+      }
+    }
+  }
+
+  if (!orderByClause) {
+    orderByClause = `ORDER BY "updated_at" DESC, "id" DESC`;
+  }
+
+  const limitClause = `LIMIT $${paramIdx++}`;
+  params.push(limit);
+  const offsetClause = `OFFSET $${paramIdx++}`;
+  params.push((page - 1) * limit);
+
+  const queryStr = `
+    SELECT ${selectCols}
+    FROM "Story"
+    ${whereClause}
+    ${orderByClause}
+    ${limitClause}
+    ${offsetClause}
+  `;
+
+  const resultIds = await db.$queryRawUnsafe(queryStr, ...params);
+  const ids = resultIds.map((row) => row.id);
+
+  const countQueryStr = `
+    SELECT COUNT(*)::int AS total
+    FROM "Story"
+    ${whereClause}
+  `;
+  const countParams = params.slice(0, params.length - 2);
+  const totalItemsResult = await db.$queryRawUnsafe(countQueryStr, ...countParams);
+  const totalItems = Number(totalItemsResult[0].total);
+
+  let stories = [];
+  if (ids.length > 0) {
+    const fetchedStories = await db.story.findMany({
+      where: { id: { in: ids } },
+      include: {
+        authors: { select: { author: { select: { id: true, name: true } } } },
+        cover_art: true,
+        nation: { select: { name: true, flag_icon: true, flag_image: { select: { url: true, height: true, width: true } } } },
+        genres: { select: { genre: true } },
       },
-      {
-        OR: [...view.map(([min, max]) => ({ view: { gte: min, lte: max } }))],
-      },
-    ],
-  };
+    });
 
-  const stories = await db.story.findMany({
-    where: where,
+    const idMap = new Map();
+    fetchedStories.forEach((s) => idMap.set(s.id, s));
 
-    include: {
-      authors: { select: { author: { select: { id: true, name: true } } } },
-      cover_art: true,
-      nation: { select: { name: true, flag_icon: true, flag_image: { select: { url: true, height: true, width: true } } } },
-      genres: { select: { genre: true } },
-    },
-    orderBy: [sort, { updated_at: "desc" }, { id: "desc" }],
-    take: limit,
-    skip: (page - 1) * limit,
-  });
+    // Maintain the order returned by the raw query sorting
+    stories = ids.map((id) => idMap.get(id)).filter(Boolean);
+  }
 
-  const totalItems = await db.story.count({ where: where });
-
+  // Mapping the result
   for (const story of stories) {
-    story.authors = story.authors.map((author) => author.author);
-    story.genres = story.genres.map((genre) => genre.genre);
+    story.authors = story.authors?.map((author) => author.author);
+    story.genres = story.genres?.map((genre) => genre.genre);
 
     if (story.favourite && story.favourite.length > 0) story.favourite = story.favourite[0];
     if (isGettingChildren) story.children = await BuildStoryTree(story.id, null);
     if (isGettingNewestChapter) {
       story.newest_chapter = await GetNewestChapter(story.id, 5);
     }
-
-    delete story.cover_art_id;
-    delete story.poster_id;
   }
 
   const result = {
@@ -325,8 +457,14 @@ export async function FindRandomStory() {
   return { success: true, data: stories[random] };
 }
 
-export async function AddStory({ title, type, nation, genres = [], authorIds, status, posterId, summary, coverArt }) {
+export async function AddStory({ title, otherTitles, type, nation, genres, authorIds, status, posterId, summary, coverArt }) {
   if (!title || !type) throw CreateError(400, "'title' and 'type' are required");
+
+  if (otherTitles && otherTitles.length > 0) {
+    otherTitles = [...new Set(otherTitles.map((title) => title.trim()))];
+  }
+
+  console.log(otherTitles);
 
   return await db.$transaction(async (tx) => {
     if (authorIds) {
@@ -347,12 +485,13 @@ export async function AddStory({ title, type, nation, genres = [], authorIds, st
         data: {
           ...(type && { type: type }),
           ...(title && { title: title }),
+          ...(otherTitles && otherTitles.length > 0 && { other_titles: otherTitles }),
           ...(status && { status: status }),
           ...(summary && { summary: summary }),
           ...(posterId && { poster: { connect: { id: posterId } } }),
           ...(nation && { nation: { connect: { name: nation.name } } }),
-          ...(genres && { genres: { create: genres.map((genre) => ({ genre: genre })) } }),
-          ...(authorIds && { authors: { connectOrCreate: authorIds.map((authorId) => ({ author_id: authorId })) } }),
+          ...(genres && genres.length > 0 && { genres: { create: genres.map((genre) => ({ genre: genre })) } }),
+          ...(authorIds && authorIds.length > 0 && { authors: { connectOrCreate: authorIds.map((authorId) => ({ author_id: authorId })) } }),
           ...(coverArt && { cover_art: { connectOrCreate: { where: { url: coverArt.url }, create: { url: coverArt.url, public_id: coverArt.publicId } } } }),
         },
       })
@@ -492,16 +631,17 @@ export async function UpdateStory(
   id,
   {
     title,
+    otherTitles,
     type,
     view,
     summary,
     posterId,
     nation,
     status,
-    genres = [],
+    genres,
     coverArt,
     nextChapterIn,
-    authorIds = [],
+    authorIds,
 
     children,
     // children = {
@@ -528,16 +668,45 @@ export async function UpdateStory(
     genres = ValidateGenre(genres);
   }
 
+  if (otherTitles && otherTitles.length > 0) {
+    otherTitles = [...new Set(otherTitles.map((title) => title.trim()))];
+  }
+
   const story = await db.story.findUnique({ where: { id: id } });
   if (!story) throw CreateError(400, "Story not found");
 
   storyQueue.addJob_UpdateStory(
     story.id,
-    { title, type, view, summary, posterId, nation, status, genres, coverArt, nextChapterIn, authorIds, children },
+    { title, otherTitles, type, view, summary, posterId, nation, status, genres, coverArt, nextChapterIn, authorIds, children },
     editorEmail,
   );
 
   return { success: true, message: "Story is being updated" };
+}
+
+export async function UpdateStoryCoverArt(storyId, coverArt) {
+  const updateStory = await db.story
+    .update({
+      where: { id: storyId },
+      data: {
+        ...(coverArt && {
+          cover_art: {
+            connectOrCreate: {
+              where: { key: coverArt?.key },
+              create: { url: coverArt?.url, key: coverArt?.key, width: coverArt?.width, height: coverArt?.height },
+            },
+          },
+        }),
+      },
+    })
+    .catch(async (error) => {
+      const story = await db.story.findUnique({ where: { id: storyId } });
+      if (!story) throw CreateError(404, "Story not found");
+
+      throw new Error(error);
+    });
+
+  return { success: true, data: updateStory };
 }
 
 export async function AddOneViewForStory(id) {

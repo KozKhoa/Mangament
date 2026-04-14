@@ -172,6 +172,7 @@ export async function addNewStory(story: Story, coverArtFile?: File): Promise<Se
 
     const res = await api.post(`/admin/stories`, {
       title: story.title,
+      other_titles: story.other_titles,
       nation: story.nation,
       type: story.type,
       status: story.status,
@@ -188,7 +189,7 @@ export async function addNewStory(story: Story, coverArtFile?: File): Promise<Se
 
       coverArt = { url: uploadImage.data.data?.url, key: uploadImage.data.data?.key, id: uploadImage.data.data?.id };
 
-      await api.put(`/admin/stories/${newStory.id}`, {
+      await api.patch(`/admin/stories/${newStory.id}/cover-art`, {
         coverArt: coverArt,
       });
     }
@@ -267,6 +268,7 @@ export async function updateStory(
 
     const res = await api.put(`/admin/stories/${story.id}`, {
       title: story.title,
+      other_titles: story.other_titles,
       nation: story.nation,
       type: story.type,
       status: story.status,

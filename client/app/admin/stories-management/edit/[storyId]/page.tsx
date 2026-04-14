@@ -30,6 +30,8 @@ import { snakeCaseToCapitalizeWord } from "@/utils/string";
 
 import withAdmin from "@/hoc/withAdmin";
 
+import { OTHER_TITLES_SEPARATOR } from "@/constants/story";
+
 export function EditStory() {
   const params = useParams();
   const router = useRouter();
@@ -164,6 +166,14 @@ export function EditStory() {
     });
   }
 
+  function setOtherTitles(otherTitles: string) {
+    setEditedStory((prev) => {
+      if (!prev) return prev;
+      const next: Story = { ...prev, other_titles: otherTitles.split(OTHER_TITLES_SEPARATOR) };
+      return next;
+    });
+  }
+
   function setChildren(children: StoryNode[]) {
     setEditedStory((prev) => {
       if (!prev) return prev;
@@ -278,7 +288,9 @@ export function EditStory() {
             <h2 className="font-semibold">{story?.title}</h2>
           </Link>
 
+          {/* Edit story */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 ">
+            {/* Cover art */}
             <div className="col-span-1">
               <ImagePicker
                 className="w-full h-full"
@@ -288,6 +300,7 @@ export function EditStory() {
               />
             </div>
 
+            {/* Title, genre, nation, .... */}
             <div className="flex flex-col gap-2 w-full lg:col-span-2">
               <Input label="Title" placeHolder={story?.title} defaultValue={story?.title} onChange={setTitle} onReset={setTitle} />
               <NationSelection
@@ -298,11 +311,18 @@ export function EditStory() {
               <StoryStatusSelection defaultValue={story?.status as TargetStoryStatus} onChange={(status) => setStoryStatus(status ?? "")} />
               <StoryGenreMultiSelection defaultValue={story?.genres} onChange={setGenres} />
 
+              <TextArea
+                label="Các tên gọi khác"
+                placeHolder={`Các tên cách nhau bởi dấu chấm phẩy ";" ${story?.other_titles?.join(OTHER_TITLES_SEPARATOR) ?? ""}`}
+                defaultValue={story?.other_titles?.join(OTHER_TITLES_SEPARATOR) ?? ""}
+                onChange={setOtherTitles}
+              />
+
               <TextArea label="Tóm tắt / Mô tả truyện" placeHolder={story?.summary} defaultValue={story?.summary} onChange={setSummary} />
             </div>
           </div>
 
-          {/* Content */}
+          {/* Edit Content */}
           <div>{story?.children && <StoryNodeListEditable story={story} onChange={setChildren} storyNodes={story.children} />}</div>
 
           <div>
