@@ -2,7 +2,7 @@ import { redis } from "../configs/redis.js";
 import { Worker } from "bullmq";
 
 import mail from "../configs/mail.js";
-import { syntaxHighlight } from "../src/utils/Beauty.js";
+import db from "../configs/db.js";
 
 const connection = {
   host: redis.options.host,
@@ -88,4 +88,26 @@ const sendUpdateStoryStatusEmailWorker = new Worker(
   { connection, concurrency: 1 },
 );
 
-export default { sendOtpEmailWorker, sendNewPasswordEmailWorker, sendUpdateStoryStatusEmailWorker };
+const sendNotificationWhenStoryUpdatedWorder = new Worker(
+  "send-notification-when-story-updated",
+  async (job) => {
+    const { email, storyId, storyTitle, storyType, storyCoverArt } = job.data;
+
+    await mail.sendMail({
+      from: `"Mangament" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: `${storyTitle} has been updated!`,
+      html: `
+        <h2>${storyTitle} has been updated!</h2>
+        <img src="${[process.env.CDN_URL, storyCoverArt.key].join("/")}" alt="${storyTitle}"/>
+        <p>Come here and findout more!</p>
+        <a href="${[process.env.CLIENT_URL, "stories", storyType, storyTitle].join("/")}"><h2>View Story</h2></a>
+      `,
+    });
+
+    console.log(`Send notification when ${storyTitle} updated email to`, email);
+  },
+  { connection, concurrency: 5 },
+);
+
+export default { sendOtpEmailWorker, sendNewPasswordEmailWorker, sendUpdateStoryStatusEmailWorker, sendNotificationWhenStoryUpdatedWorder };

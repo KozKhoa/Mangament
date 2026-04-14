@@ -12,6 +12,8 @@ import { validate as isUUID } from "uuid";
 import redisUtils from "../utils/Redis.js";
 
 import { STORY_SEARCH_SIMILARITY } from "../constants/Story.js";
+import mailQueue from "../../queues/mail.queue.js";
+import mailService from "./mail.service.js";
 
 const REDIS_TTL = 60 * 30; // 30 minutes
 
@@ -680,6 +682,8 @@ export async function UpdateStory(
     { title, otherTitles, type, view, summary, posterId, nation, status, genres, coverArt, nextChapterIn, authorIds, children },
     editorEmail,
   );
+
+  mailService.sendNotificationToUsersWhenStoryUpdated(story.id);
 
   return { success: true, message: "Story is being updated" };
 }

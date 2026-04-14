@@ -12,6 +12,11 @@ class MailService {
   sendUpdateStoryStatus(email, storyTitle, storyCoverArt, success, log) {
     mailQueue.addJob_SendUpdateStoryStatus(email, storyTitle, storyCoverArt, success, log);
   }
+
+  // This is used to send email to users who have added story into their favourite story
+  sendNotificationToUsersWhenStoryUpdated(storyId) {
+    mailQueue.addJob_SendNotificationToUsersWhenStoryUpdated(storyId);
+  }
 }
 
 const mailService = new MailService();
