@@ -190,7 +190,7 @@ export async function FindAllStories({
   ].join(":");
 
   const cached = await redis.get(REDIS_KEY);
-  // if (cached) return JSON.parse(cached);
+  if (cached) return JSON.parse(cached);
 
   if (genres && genres.length > 0) throwErrorIfInvalidGenres(genres);
 
