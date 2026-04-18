@@ -13,7 +13,7 @@ services:
       context: ./ml-service
       dockerfile: Dockerfile
     container_name: mangament_ml_service
-    restart: always
+    restart: no
     ports:
       - "8000:8000"
     healthcheck:
