@@ -100,10 +100,16 @@ export default function StoryNodeListEditable({
               newNodes.push({
                 id: crypto.randomUUID(),
                 type: key,
-                order_index: (newNodes?.length ?? 0) + j,
+                order_index: newNodes?.length ?? 0,
                 story_id: story.id,
                 poster_id: auth?.user?.id,
                 is_new: true,
+                deleted_status: "not_deleted",
+                is_deleted_before: false,
+                is_edited: false,
+                is_deleted_permantly: false,
+                created_at: new Date(),
+                updated_at: new Date(),
               });
             });
           });
@@ -129,14 +135,16 @@ export default function StoryNodeListEditable({
   useEffect(() => {
     if (!nodes || nodes.length <= 0) return;
 
+    if (isEditStoryNode.current === true) return;
+
     function editStoryNodeBeforeProcess(nodes: StoryNode[]): StoryNode[] {
       const newNodes = [...nodes];
 
       newNodes.forEach((node, i) => {
         node.order_index = i;
         node.is_deleted_before = node.deleted_status !== "not_deleted";
-        node.is_new = false;
         node.is_edited = false;
+        node.is_deleted_permantly = false;
 
         if (node.children && node.children.length > 0) {
           node.children = editStoryNodeBeforeProcess([...node.children]);
@@ -148,6 +156,7 @@ export default function StoryNodeListEditable({
             cont.is_deleted_before = cont.deleted_status !== "not_deleted";
             cont.isEdited = false;
             cont.isNew = false;
+            cont.is_deleted_permantly = false;
           });
         }
       });
@@ -155,11 +164,9 @@ export default function StoryNodeListEditable({
       return newNodes;
     }
 
-    if (isEditStoryNode.current === false) {
-      setNodes((prev) => editStoryNodeBeforeProcess(prev));
+    setNodes((prev) => editStoryNodeBeforeProcess(prev));
 
-      isEditStoryNode.current = true;
-    }
+    isEditStoryNode.current = true;
   }, [nodes]);
 
   console.log(nodes);
@@ -186,6 +193,8 @@ export default function StoryNodeListEditable({
         {nodes &&
           nodes.length > 0 &&
           nodes?.map((node, i) => {
+            if (node.is_deleted_permantly === true) return null;
+
             if (!isShowDeleted && node.deleted_status !== "not_deleted" && node.is_deleted_before === true) return null;
             return <StoryNodeEditable key={node.id} storyNode={node} story={story} onChange={handleUpdateStoryNode} isShowDeleted={isShowDeleted} />;
           })}

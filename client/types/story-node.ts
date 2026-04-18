@@ -24,6 +24,7 @@ export default interface StoryNode {
   is_edited?: boolean;
   is_new?: boolean;
   is_deleted_before?: boolean;
+  is_deleted_permantly?: boolean;
 
   content?: StoryNodeContent[];
 
@@ -41,6 +42,8 @@ export interface StoryNodeContent {
 
   deleted_status?: "not_deleted" | "soft_deleted" | "soft_deleted_by_parent" | "pending_permanent_deletion";
   is_deleted_before?: boolean;
+  is_deleted_permantly?: boolean;
+
   isNew?: boolean;
   isEdited?: boolean;
   imageFile?: File;

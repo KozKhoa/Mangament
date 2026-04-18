@@ -25,7 +25,7 @@ import useAuth from "@/contexts/AuthContext";
 import NumberInput from "../inputs/number-input";
 import Story from "@/types/story";
 import { isEqual } from "lodash";
-import { compareStoryNodes, getStoryNodeChanges } from "@/utils/story-node-diff";
+import { compareStoryNodes } from "@/utils/story-node-diff";
 
 const StoryNodeEditable = React.memo(function StoryNodeEditable({
   storyNode,
@@ -134,6 +134,56 @@ const StoryNodeEditable = React.memo(function StoryNodeEditable({
     });
   }
 
+  function handlePermantlyDeleteStoryNodeContent(content?: StoryNodeContent) {
+    if (!content) return;
+
+    const isImage = content.type === "image";
+    const imageUrl = content.imageFile ? URL.createObjectURL(content.imageFile) : content.image?.url;
+    const textPreview = content.content ? (content.content.length > 100 ? content.content.substring(0, 100) + "..." : content.content) : "";
+
+    modal.open("confirm", {
+      title: `Xác nhận xóa vĩnh viễn nội dung`,
+      content: (
+        <div className="flex flex-col gap-3 min-w-[300px] max-w-[500px]">
+          <p>
+            Bạn có chắc chắn muốn XÓA VĨNH VIỄN nội dung này (loại: <span className="font-semibold">{content.type}</span>) không?
+          </p>
+
+          <div className="p-2 border rounded-md bg-background-items/50">
+            {isImage ? (
+              imageUrl ? (
+                <div className="flex flex-col gap-2">
+                  <p className="text-xs text-foreground/50">Xem trước ảnh:</p>
+                  <img src={imageUrl} alt="Preview" className="max-h-[300px] object-contain rounded-sm m-auto" />
+                </div>
+              ) : (
+                <p className="italic text-foreground/40 text-center py-4">Không có ảnh để hiển thị</p>
+              )
+            ) : (
+              <div className="flex flex-col gap-2">
+                <p className="text-xs text-foreground/50">Nội dung văn bản:</p>
+                <p className="text-sm whitespace-pre-wrap line-clamp-6">{textPreview || "Không có nội dung văn bản"}</p>
+              </div>
+            )}
+          </div>
+
+          <p className="text-sm text-red-500 italic font-medium">* Hành động này không thể hoàn tác.</p>
+        </div>
+      ),
+      onConfirm: () => {
+        onChange?.({
+          ...storyNode,
+          content: storyNode.content?.map((cont) => {
+            if (cont.id === content.id) cont.is_deleted_permantly = true;
+            return cont;
+          }),
+        });
+        modal.close();
+      },
+      onCancel: () => modal.close(),
+    });
+  }
+
   function handleUpdateContent(content: StoryNodeContent) {
     onChange?.({
       ...storyNode,
@@ -179,6 +229,32 @@ const StoryNodeEditable = React.memo(function StoryNodeEditable({
       ...storyNode,
       deleted_status: isDeleted ? "soft_deleted" : "not_deleted",
       children: recursiveDeleteChildren([...(storyNode.children ?? [])]),
+    });
+  }
+
+  function handlePermantlyDeleteStoryNodeItSelf() {
+    modal.open("confirm", {
+      title: `Xác nhận xóa vĩnh viễn ${storyNode.type} ${storyNode.order_index}`,
+      content: (
+        <div className="flex flex-col gap-2 min-w-[300px]">
+          <p>
+            Bạn có chắc chắn muốn XÓA VĨNH VIỄN{" "}
+            <span className="font-semibold text-red-500">
+              {snakeCaseToCapitalizeWord(storyNode.type)} {storyNode.order_index}: {storyNode.title}
+            </span>{" "}
+            không?
+          </p>
+          <p className="text-sm text-foreground/60 italic">* Hành động này không thể hoàn tác và sẽ xóa sạch mọi dữ liệu liên quan.</p>
+        </div>
+      ),
+      onConfirm: () => {
+        onChange?.({
+          ...storyNode,
+          is_deleted_permantly: true,
+        });
+        modal.close();
+      },
+      onCancel: () => modal.close(),
     });
   }
 
@@ -309,6 +385,7 @@ const StoryNodeEditable = React.memo(function StoryNodeEditable({
                 order_index: (storyNode.content?.length ?? 0) + i,
                 id: crypto.randomUUID(),
                 deleted_status: "not_deleted",
+                is_deleted_permantly: false,
                 is_deleted_before: false,
                 isNew: true,
               });
@@ -368,6 +445,12 @@ const StoryNodeEditable = React.memo(function StoryNodeEditable({
         </div>
 
         <div className="flex flex-row gap-4 justify-center items-center px-2 cursor-pointer">
+          {storyNode.deleted_status !== "not_deleted" && storyNode.is_deleted_before === true && (
+            <div>
+              <DeleteIcon onClick={() => handlePermantlyDeleteStoryNodeItSelf()} className="w-6 h-6 shrink-0 text-red-500" />
+            </div>
+          )}
+
           {storyNode.deleted_status !== "not_deleted" ? (
             <ReturnIcon onClick={() => handleToggleDeleteItSelf(false)} className="w-6 h-6 shrink-0" />
           ) : (
@@ -397,6 +480,8 @@ const StoryNodeEditable = React.memo(function StoryNodeEditable({
               {storyNode.children &&
                 storyNode.children.length > 0 &&
                 storyNode.children?.map((child, i) => {
+                  if (child.is_deleted_permantly === true) return null;
+
                   if (!isShowDeleted && child.deleted_status !== "not_deleted" && child.is_deleted_before === true) return null;
 
                   return <StoryNodeEditable key={child.id} storyNode={child} story={story} onChange={handleUpdateChild} isShowDeleted={isShowDeleted} />;
@@ -411,6 +496,8 @@ const StoryNodeEditable = React.memo(function StoryNodeEditable({
                     className={`${story?.type === "light_novel" ? "flex flex-col gap-2" : "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 w-full"}`}
                   >
                     {storyNode.content?.map((content, i) => {
+                      if (content.is_deleted_permantly === true) return null;
+
                       if (!isShowDeleted && content.deleted_status !== "not_deleted" && content.is_deleted_before === true) return null;
 
                       return (
@@ -421,6 +508,7 @@ const StoryNodeEditable = React.memo(function StoryNodeEditable({
                           onChange={handleUpdateContent}
                           onReset={handleUpdateContent}
                           onAddManyContent={handleAddManyContent}
+                          onDeletePermantly={handlePermantlyDeleteStoryNodeContent}
                           key={content.id}
                           id={content.id}
                           content={content}

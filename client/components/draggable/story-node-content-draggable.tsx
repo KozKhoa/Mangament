@@ -17,6 +17,9 @@ const StoryNodeContentDraggable = React.memo(function StoryNodeContentDraggable(
 
   onDelete,
   onDiscardDelete,
+
+  onDeletePermantly,
+
   onChange,
   onReset,
 
@@ -28,6 +31,8 @@ const StoryNodeContentDraggable = React.memo(function StoryNodeContentDraggable(
 
   onDelete?: (content?: StoryNodeContent) => void;
   onDiscardDelete?: (content?: StoryNodeContent) => void;
+
+  onDeletePermantly?: (content?: StoryNodeContent) => void;
 
   onChange?: (content: StoryNodeContent) => void;
   onReset?: (content: StoryNodeContent) => void;
@@ -116,44 +121,55 @@ const StoryNodeContentDraggable = React.memo(function StoryNodeContentDraggable(
         )}
 
         {content.type === "text" && (
-          <div className="w-full h-full col-span-10">
+          <div className="w-full col-span-10">
             <p className="m-auto font-semibold">Text</p>
             <TextArea
+              disabled={content.deleted_status !== "not_deleted"}
               defaultValue={content.content ?? ""}
               onChange={(text) => {
                 isEdited.current = true;
                 handleUpdateContent(text);
               }}
-              className="w-full h-full"
+              className="w-full"
             />
           </div>
         )}
 
         {content.type === "title" && (
-          <div className="w-full h-full col-span-10">
+          <div className="w-full col-span-10">
             <p className="m-auto font-semibold">Title</p>
             <TextArea
+              disabled={content.deleted_status !== "not_deleted"}
               defaultValue={content.content ?? ""}
               onChange={(text) => {
                 isEdited.current = true;
                 handleUpdateContent(text);
               }}
-              className="w-full h-full"
+              className="w-full"
             />
           </div>
         )}
 
         {content.type === "header" && (
-          <div className="w-full h-full col-span-10">
+          <div className="w-full col-span-10">
             <p className="m-auto font-semibold">Header</p>
             <TextArea
+              disabled={content.deleted_status !== "not_deleted"}
               defaultValue={content.content ?? ""}
               onChange={(text) => {
                 isEdited.current = true;
                 handleUpdateContent(text);
               }}
-              className="w-full h-full"
+              className="w-full"
             />
+          </div>
+        )}
+      </div>
+
+      <div>
+        {content.deleted_status !== "not_deleted" && content.is_deleted_before === true && (
+          <div>
+            <RemoveIcon onClick={() => onDeletePermantly?.(content)} className="w-5 h-5 text-red-500 cursor-pointer" />
           </div>
         )}
       </div>

@@ -193,11 +193,13 @@ export function EditStory() {
       add: { story_node: StoryNode[]; content: StoryNodeContent[] };
       edit: { story_node: StoryNode[]; content: StoryNodeContent[] };
       restore: { story_node: { id: any }[]; content: { id: any }[] };
+      permanently_delete: { story_node: { id: any }[]; content: { id: any }[] };
     } = {
       delete: { story_node: [], content: [] },
       add: { story_node: [], content: [] },
       edit: { story_node: [], content: [] },
       restore: { story_node: [], content: [] },
+      permanently_delete: { story_node: [], content: [] },
     };
 
     function mappingOldChildren(nodes: StoryNode[]) {
@@ -222,6 +224,10 @@ export function EditStory() {
           if (content.is_deleted_before === true && content.deleted_status === "not_deleted") {
             change.restore.content.push({ id: content.id });
           }
+
+          if (content.is_deleted_permantly === true) {
+            change.permanently_delete.content.push({ id: content.id });
+          }
         });
       }
     }
@@ -229,7 +235,7 @@ export function EditStory() {
     function findDifferenceInChildren(newChildren?: StoryNode[]) {
       if (newChildren && newChildren.length > 0) {
         newChildren?.forEach((child, i) => {
-          if (child.is_deleted_before === false && child.deleted_status !== "not_deleted" && child.is_new === false) {
+          if (child.is_deleted_before === false && child.deleted_status !== "not_deleted" && !child.is_new) {
             // This child is the old one and being deleted
             change.delete.story_node.push({ id: child.id });
           } else if (child.is_new && child.deleted_status === "not_deleted") {
@@ -246,7 +252,6 @@ export function EditStory() {
                 oldChild.content?.map((cont) => cont.order_index),
                 child.content?.map((cont) => cont.order_index),
               )
-              // || child.content?.find((cont) => (cont.deleted_status !== "not_deleted" && child.is_deleted_before === false) || cont.isNew)
             ) {
               change.edit.story_node.push({
                 id: child.id,
@@ -264,7 +269,11 @@ export function EditStory() {
             change.restore.story_node.push({ id: child.id });
           }
 
-          if (child.deleted_status === "not_deleted") {
+          if (child.is_deleted_permantly === true) {
+            change.permanently_delete.story_node.push({ id: child.id });
+          }
+
+          if (child.deleted_status === "not_deleted" && !child.is_deleted_permantly) {
             findDifferenceInChildren(child.children);
 
             findDifferenceInContent(child.content);

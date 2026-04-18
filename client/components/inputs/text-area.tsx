@@ -15,9 +15,22 @@ interface TextAreaProps {
   className?: string;
   require?: boolean;
   tabIndex?: number;
+  disabled?: boolean;
 }
 
-export default function TextArea({ label, error, name, defaultValue, placeHolder, onChange, onReset, className, require = false, tabIndex }: TextAreaProps) {
+export default function TextArea({
+  label,
+  error,
+  name,
+  defaultValue,
+  placeHolder,
+  onChange,
+  onReset,
+  className,
+  require = false,
+  tabIndex,
+  disabled = false,
+}: TextAreaProps) {
   const [value, setValue] = useState<string>(defaultValue ?? "");
 
   const handleChange = (text: string) => {
@@ -51,15 +64,20 @@ export default function TextArea({ label, error, name, defaultValue, placeHolder
         </div>
       )}
 
-      <div className={`flex gap-0.5 items-center border bg-background-items ${error ? "border-error" : "border-foreground/30"} rounded-sm `}>
+      <div
+        className={`flex gap-0.5 items-center border bg-background-items ${error ? "border-error" : "border-foreground/30"} rounded-sm ${
+          disabled ? "opacity-50 cursor-default bg-foreground/5" : ""
+        }`}
+      >
         <textarea
-          className="w-full outline-none bg-none px-3 py-2"
+          className="w-full outline-none bg-none px-3 py-2 disabled:cursor-default"
           placeholder={placeHolder}
           name={name}
           value={value}
           onChange={(event) => handleChange(event.target.value)}
           tabIndex={tabIndex}
           required={require}
+          disabled={disabled}
         ></textarea>
       </div>
     </label>
