@@ -1,7 +1,9 @@
 import Image from "./image";
+import Story from "./story";
 import User from "./user";
 
 export default interface StoryNode {
+  story?: Story;
   id: string;
   story_id: string;
 
@@ -18,9 +20,11 @@ export default interface StoryNode {
   created_at?: Date;
   updated_at?: Date;
 
-  is_deleted?: boolean;
+  deleted_status?: "not_deleted" | "soft_deleted" | "soft_deleted_by_parent" | "pending_permanent_deletion";
   is_edited?: boolean;
   is_new?: boolean;
+  is_deleted_before?: boolean;
+  is_deleted_permantly?: boolean;
 
   content?: StoryNodeContent[];
 
@@ -36,7 +40,10 @@ export interface StoryNodeContent {
 
   story_node_id?: string;
 
-  isDeleted?: boolean;
+  deleted_status?: "not_deleted" | "soft_deleted" | "soft_deleted_by_parent" | "pending_permanent_deletion";
+  is_deleted_before?: boolean;
+  is_deleted_permantly?: boolean;
+
   isNew?: boolean;
   isEdited?: boolean;
   imageFile?: File;

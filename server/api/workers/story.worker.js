@@ -185,6 +185,24 @@ const updateStoryWorker = new Worker(
             }
           }
 
+          if (children?.permanently_delete) {
+            if (children.permanently_delete.story_node && children.permanently_delete.story_node.length > 0) {
+              await tx.storyNode.deleteMany({
+                where: {
+                  id: { in: children.permanently_delete.story_node.map((node) => node.id) },
+                },
+              });
+            }
+
+            if (children.permanently_delete.content && children.permanently_delete.content.length > 0) {
+              await tx.storyNodeContent.deleteMany({
+                where: {
+                  id: { in: children.permanently_delete.content.map((cont) => cont.id) },
+                },
+              });
+            }
+          }
+
           if (children?.add) {
             // Add story node
             if (children.add.story_node && children.add.story_node.length > 0) {
@@ -347,6 +365,29 @@ const updateStoryWorker = new Worker(
 
                 await tx.$executeRawUnsafe(contentQuery, ...contentParams);
               }
+            }
+          }
+
+          if (children?.restore) {
+            const storyNodes = children.restore.story_node;
+            const storyNodeContents = children.restore.content;
+
+            if (storyNodes && storyNodes.length > 0) {
+              await tx.storyNode.updateMany({
+                where: {
+                  id: { in: storyNodes.map((node) => node.id) },
+                },
+                data: { deleted_status: "not_deleted" },
+              });
+            }
+
+            if (storyNodeContents && storyNodeContents.length > 0) {
+              await tx.storyNodeContent.updateMany({
+                where: {
+                  id: { in: storyNodeContents.map((content) => content.id) },
+                },
+                data: { deleted_status: "not_deleted" },
+              });
             }
           }
 

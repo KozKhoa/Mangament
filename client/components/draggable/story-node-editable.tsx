@@ -4,7 +4,7 @@ import { snakeCaseToCapitalizeWord } from "@/utils/string";
 import { DndContext, DragEndEvent, closestCorners } from "@dnd-kit/core";
 import { arrayMove, rectSortingStrategy, SortableContext } from "@dnd-kit/sortable";
 
-import React, { useCallback, useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import EditIcon from "@/public/edit/edit.svg";
 import PlusIcon from "@/public/plus.svg";
@@ -24,15 +24,21 @@ import useAuth from "@/contexts/AuthContext";
 
 import NumberInput from "../inputs/number-input";
 import Story from "@/types/story";
+import { isEqual } from "lodash";
+import { compareStoryNodes } from "@/utils/story-node-diff";
 
 const StoryNodeEditable = React.memo(function StoryNodeEditable({
   storyNode,
   story,
   onChange,
+
+  isShowDeleted = false,
 }: {
   storyNode: StoryNode;
   story?: Story;
   onChange?: (newStoryNode: StoryNode) => void;
+
+  isShowDeleted?: Boolean;
 }) {
   const auth = useAuth();
 
@@ -71,12 +77,9 @@ const StoryNodeEditable = React.memo(function StoryNodeEditable({
         </div>
       ),
       onConfirm: () => {
-        if (editedNode === storyNode) {
-          editedNode.is_edited = false;
-          return;
-        }
+        const { isChanged } = compareStoryNodes(storyNode, editedNode);
 
-        editedNode.is_edited = true;
+        editedNode.is_edited = isChanged;
 
         onChange?.(editedNode);
         modal.close();
@@ -102,84 +105,163 @@ const StoryNodeEditable = React.memo(function StoryNodeEditable({
     onChange?.({ ...storyNode, content: arrayMove(content, oldPos, newPos), is_edited: true });
   }
 
-  const handleDeleteContent = useCallback(
-    (content?: StoryNodeContent) => {
-      if (!content) return;
+  function handleDeleteContent(content?: StoryNodeContent) {
+    if (!content) return;
 
-      if (content.isNew && !(content.content || content.image || content.imageFile)) {
-        onChange?.({ ...storyNode, content: storyNode.content?.filter((cont) => cont.id !== content.id), is_edited: true });
-      } else {
-        onChange?.({
-          ...storyNode,
-          content: storyNode?.content?.map((cont) => {
-            if (cont.id === content.id) cont.isDeleted = true;
-            return cont;
-          }),
-          is_edited: true,
-        });
-      }
-    },
-    [storyNode],
-  );
-
-  const handleDiscardDeleteContent = useCallback(
-    (content?: StoryNodeContent) => {
-      if (!content) return;
-
+    if (content.isNew && !(content.content || content.image || content.imageFile)) {
+      onChange?.({ ...storyNode, content: storyNode.content?.filter((cont) => cont.id !== content.id), is_edited: true });
+    } else {
       onChange?.({
         ...storyNode,
-        content: storyNode.content?.map((cont) => {
-          if (cont.id === content.id) cont.isDeleted = false;
-          return cont;
-        }),
-      });
-    },
-    [storyNode],
-  );
-
-  const handleUpdateContent = useCallback(
-    (content: StoryNodeContent) => {
-      onChange?.({
-        ...storyNode,
-        content: storyNode.content?.map((cont) => {
-          if (cont.id === content.id) {
-            return content;
-          }
+        content: storyNode?.content?.map((cont) => {
+          if (cont.id === content.id) cont.deleted_status = "soft_deleted";
           return cont;
         }),
         is_edited: true,
       });
-    },
-    [storyNode],
-  );
+    }
+  }
 
-  const handleUpdateChild = useCallback(
-    (newChild: StoryNode) => {
-      onChange?.({
-        ...storyNode,
-        children: storyNode.children?.map((child) => {
-          if (child.id === newChild.id) {
-            return newChild;
-          }
-          return child;
-        }),
-      });
-    },
-    [storyNode, onChange],
-  );
+  function handleDiscardDeleteContent(content?: StoryNodeContent) {
+    if (!content) return;
+
+    onChange?.({
+      ...storyNode,
+      content: storyNode.content?.map((cont) => {
+        if (cont.id === content.id) cont.deleted_status = "not_deleted";
+        return cont;
+      }),
+    });
+  }
+
+  function handlePermantlyDeleteStoryNodeContent(content?: StoryNodeContent) {
+    if (!content) return;
+
+    const isImage = content.type === "image";
+    const imageUrl = content.imageFile ? URL.createObjectURL(content.imageFile) : content.image?.url;
+    const textPreview = content.content ? (content.content.length > 100 ? content.content.substring(0, 100) + "..." : content.content) : "";
+
+    modal.open("confirm", {
+      title: `Xác nhận xóa vĩnh viễn nội dung`,
+      content: (
+        <div className="flex flex-col gap-3 min-w-[300px] max-w-[500px]">
+          <p>
+            Bạn có chắc chắn muốn XÓA VĨNH VIỄN nội dung này (loại: <span className="font-semibold">{content.type}</span>) không?
+          </p>
+
+          <div className="p-2 border rounded-md bg-background-items/50">
+            {isImage ? (
+              imageUrl ? (
+                <div className="flex flex-col gap-2">
+                  <p className="text-xs text-foreground/50">Xem trước ảnh:</p>
+                  <img src={imageUrl} alt="Preview" className="max-h-[300px] object-contain rounded-sm m-auto" />
+                </div>
+              ) : (
+                <p className="italic text-foreground/40 text-center py-4">Không có ảnh để hiển thị</p>
+              )
+            ) : (
+              <div className="flex flex-col gap-2">
+                <p className="text-xs text-foreground/50">Nội dung văn bản:</p>
+                <p className="text-sm whitespace-pre-wrap line-clamp-6">{textPreview || "Không có nội dung văn bản"}</p>
+              </div>
+            )}
+          </div>
+
+          <p className="text-sm text-red-500 italic font-medium">* Hành động này không thể hoàn tác.</p>
+        </div>
+      ),
+      onConfirm: () => {
+        onChange?.({
+          ...storyNode,
+          content: storyNode.content?.map((cont) => {
+            if (cont.id === content.id) cont.is_deleted_permantly = true;
+            return cont;
+          }),
+        });
+        modal.close();
+      },
+      onCancel: () => modal.close(),
+    });
+  }
+
+  function handleUpdateContent(content: StoryNodeContent) {
+    onChange?.({
+      ...storyNode,
+      content: storyNode.content?.map((cont) => {
+        if (cont.id === content.id) {
+          return content;
+        }
+        return cont;
+      }),
+      is_edited: true,
+    });
+  }
+
+  function handleUpdateChild(newChild: StoryNode) {
+    const { isChanged } = compareStoryNodes(storyNode.children?.find((child) => child.id === newChild.id)!, newChild);
+
+    onChange?.({
+      ...storyNode,
+      is_edited: isChanged,
+      children: storyNode.children?.map((child) => {
+        if (child.id === newChild.id) {
+          return newChild;
+        }
+        return child;
+      }),
+    });
+  }
 
   function handleToggleDeleteItSelf(isDeleted: boolean) {
     setOpen(false);
-    onChange?.({ ...storyNode, is_deleted: isDeleted, is_edited: true });
+
+    function recursiveDeleteChildren(children: StoryNode[]): StoryNode[] {
+      return children.map((child) => {
+        return {
+          ...child,
+          ...(isDeleted === false && { deleted_status: child.deleted_status === "soft_deleted_by_parent" ? "not_deleted" : child.deleted_status }),
+          children: child.children ? recursiveDeleteChildren(child.children) : undefined,
+        };
+      });
+    }
+
+    onChange?.({
+      ...storyNode,
+      deleted_status: isDeleted ? "soft_deleted" : "not_deleted",
+      children: recursiveDeleteChildren([...(storyNode.children ?? [])]),
+    });
   }
 
-  const handleAddManyContent = useCallback(
-    (contents: StoryNodeContent[]) => {
-      const newContent = [...(storyNode.content ?? []), ...contents.map((content) => ({ ...content, isNew: true }))];
-      onChange?.({ ...storyNode, content: newContent });
-    },
-    [storyNode],
-  );
+  function handlePermantlyDeleteStoryNodeItSelf() {
+    modal.open("confirm", {
+      title: `Xác nhận xóa vĩnh viễn ${storyNode.type} ${storyNode.order_index}`,
+      content: (
+        <div className="flex flex-col gap-2 min-w-[300px]">
+          <p>
+            Bạn có chắc chắn muốn XÓA VĨNH VIỄN{" "}
+            <span className="font-semibold text-red-500">
+              {snakeCaseToCapitalizeWord(storyNode.type)} {storyNode.order_index}: {storyNode.title}
+            </span>{" "}
+            không?
+          </p>
+          <p className="text-sm text-foreground/60 italic">* Hành động này không thể hoàn tác và sẽ xóa sạch mọi dữ liệu liên quan.</p>
+        </div>
+      ),
+      onConfirm: () => {
+        onChange?.({
+          ...storyNode,
+          is_deleted_permantly: true,
+        });
+        modal.close();
+      },
+      onCancel: () => modal.close(),
+    });
+  }
+
+  function handleAddManyContent(contents: StoryNodeContent[]) {
+    const newContent = [...(storyNode.content ?? []), ...contents.map((content) => ({ ...content, isNew: true }))];
+    onChange?.({ ...storyNode, content: newContent });
+  }
 
   function handleAddNewThings() {
     let numberOfContent: Record<string, number> = { image: 0, title: 0, header: 0, text: 0 };
@@ -302,7 +384,9 @@ const StoryNodeEditable = React.memo(function StoryNodeEditable({
                 story_node_id: storyNode.id,
                 order_index: (storyNode.content?.length ?? 0) + i,
                 id: crypto.randomUUID(),
-                isDeleted: false,
+                deleted_status: "not_deleted",
+                is_deleted_permantly: false,
+                is_deleted_before: false,
                 isNew: true,
               });
             });
@@ -322,6 +406,8 @@ const StoryNodeEditable = React.memo(function StoryNodeEditable({
                 parent_id: storyNode.id,
                 poster_id: auth?.user?.id,
                 is_new: true,
+                is_deleted_before: false,
+                deleted_status: "not_deleted",
               });
             });
           }
@@ -342,7 +428,7 @@ const StoryNodeEditable = React.memo(function StoryNodeEditable({
       <div
         className={`flex gap-0.5 items-center justify-between bg-background-items
             px-3 py-2 border rounded-sm min-h-10.5 
-            ${storyNode.is_deleted ? "border-red-500 opacity-20" : storyNode.is_new ? "border-green-500" : storyNode.is_edited ? "border-yellow-500" : "border-transparent"}`}
+            ${storyNode.deleted_status !== "not_deleted" ? "border-red-500 opacity-20" : storyNode.is_new ? "border-green-500" : storyNode.is_edited ? "border-yellow-500" : "border-transparent"}`}
       >
         <div className="flex flex-row  items-center gap-2 w-full ">
           <div className="flex justify-center items-center min-w-10 min-h-10 px-1 bg-foreground/20 rounded-sm">
@@ -359,16 +445,25 @@ const StoryNodeEditable = React.memo(function StoryNodeEditable({
         </div>
 
         <div className="flex flex-row gap-4 justify-center items-center px-2 cursor-pointer">
-          {storyNode.is_deleted ? (
+          {storyNode.deleted_status !== "not_deleted" && storyNode.is_deleted_before === true && (
+            <div>
+              <DeleteIcon onClick={() => handlePermantlyDeleteStoryNodeItSelf()} className="w-6 h-6 shrink-0 text-red-500" />
+            </div>
+          )}
+
+          {storyNode.deleted_status !== "not_deleted" ? (
             <ReturnIcon onClick={() => handleToggleDeleteItSelf(false)} className="w-6 h-6 shrink-0" />
           ) : (
             <DeleteIcon onClick={() => handleToggleDeleteItSelf(true)} className="w-6 h-6 shrink-0 text-red-500" />
           )}
 
-          <button disabled={storyNode.is_deleted} className={`flex flex-row gap-4 justify-center items-center ${storyNode.is_deleted ? "" : "cursor-pointer"}`}>
+          <button
+            disabled={storyNode.deleted_status !== "not_deleted"}
+            className={`flex flex-row gap-4 justify-center items-center ${storyNode.deleted_status !== "not_deleted" ? "" : "cursor-pointer"}`}
+          >
             <PlusIcon onClick={handleAddNewThings} className="w-6 h-6 shrink-0" />
 
-            <EditIcon onClick={handleUpdateStoryNode} className="w-5 h-5  shrink-0"></EditIcon>
+            <EditIcon onClick={handleUpdateStoryNode} className="w-5 h-5 shrink-0"></EditIcon>
 
             <ArrowDownIcon
               onClick={() => setOpen(!open)}
@@ -384,7 +479,13 @@ const StoryNodeEditable = React.memo(function StoryNodeEditable({
             <div className="flex flex-col gap-2">
               {storyNode.children &&
                 storyNode.children.length > 0 &&
-                storyNode.children?.map((child, i) => <StoryNodeEditable key={child.id} storyNode={child} story={story} onChange={handleUpdateChild} />)}
+                storyNode.children?.map((child, i) => {
+                  if (child.is_deleted_permantly === true) return null;
+
+                  if (!isShowDeleted && child.deleted_status !== "not_deleted" && child.is_deleted_before === true) return null;
+
+                  return <StoryNodeEditable key={child.id} storyNode={child} story={story} onChange={handleUpdateChild} isShowDeleted={isShowDeleted} />;
+                })}
             </div>
           </div>
           <div>
@@ -395,6 +496,10 @@ const StoryNodeEditable = React.memo(function StoryNodeEditable({
                     className={`${story?.type === "light_novel" ? "flex flex-col gap-2" : "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 w-full"}`}
                   >
                     {storyNode.content?.map((content, i) => {
+                      if (content.is_deleted_permantly === true) return null;
+
+                      if (!isShowDeleted && content.deleted_status !== "not_deleted" && content.is_deleted_before === true) return null;
+
                       return (
                         <StoryNodeContentDraggable
                           className={`${content.type === "image" ? "" : "col-span-10"}`}
@@ -403,10 +508,11 @@ const StoryNodeEditable = React.memo(function StoryNodeEditable({
                           onChange={handleUpdateContent}
                           onReset={handleUpdateContent}
                           onAddManyContent={handleAddManyContent}
+                          onDeletePermantly={handlePermantlyDeleteStoryNodeContent}
                           key={content.id}
                           id={content.id}
                           content={content}
-                        ></StoryNodeContentDraggable>
+                        />
                       );
                     })}
                   </div>

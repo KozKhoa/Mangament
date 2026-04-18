@@ -387,24 +387,14 @@ export async function ToggleSoftDeleteManyStoryNodes(ids = [], deletedStatus = "
   return { success: true, message: deletedStatus === "soft_deleted" ? "Remove successfully" : "Restore successfully" };
 }
 
-export async function HardDeleteStoryNode(id) {
-  if (!id) throw CreateError(400, "Require 'id'");
+export async function PermanentlyDeleteStoryNodeTrash(id) {
+  const storyNode = await db.storyNode.findFirst({ where: { id: id }, select: { story_id: true, parent_id: true } });
 
-  const storyNode = await db.storyNode
-    .delete({
-      where: { id: id },
-    })
-    .catch(async (error) => {
-      const storyNode = await db.storyNode.findUnique({ where: { id: id } });
-      if (!storyNode) throw CreateError(400, "Story node not found");
+  await db.storyNode.delete({ where: { id: id } });
 
-      throw new Error(error);
-    });
-
-  redisUtils.storyNodes().incr();
-
-  redisUtils.storyNodes(storyNode.id).incr();
+  redisUtils.storyNodes(storyNode.story_id).incr();
   redisUtils.stories(storyNode.story_id).incr();
+
   if (storyNode.parent_id) {
     redisUtils.storyNodes(storyNode.parent_id).incr();
   }
@@ -412,14 +402,23 @@ export async function HardDeleteStoryNode(id) {
   return { success: true, message: "Remove successfully" };
 }
 
-export async function HardDeleteManyStoryNodes(ids = []) {
+export async function PermanentlyDeleteManyStoryNodesTrash(ids = []) {
   if (ids.length <= 0) throw CreateError(400, "Require 'ids'");
 
-  const storyNodes = await db.storyNode.deleteMany({
+  const storyNodes = await db.storyNode.findMany({ where: { id: { in: ids } }, select: { story_id: true, parent_id: true } });
+
+  await db.storyNode.deleteMany({
     where: { id: { in: ids } },
   });
 
-  await redisUtils.storyNodes().incr();
+  const storyIds = new Set(storyNodes.map((storyNode) => storyNode.story_id));
+  const parentIds = new Set(storyNodes.filter((storyNode) => storyNode.parent_id).map((storyNode) => storyNode.parent_id));
+
+  redisUtils.storyNodes().incr();
+
+  Promise.all(storyNodes.map((node) => redisUtils.storyNodes(node.id).incr()));
+  Promise.all([...parentIds].map((parentId) => redisUtils.storyNodes(parentId).incr()));
+  Promise.all([...storyIds].map((storyId) => redisUtils.stories(storyId).incr()));
 
   return { success: true, message: "Remove successfully" };
 }
@@ -451,4 +450,76 @@ export async function IncreaseOneViewForStoryNodeAndItsParents(storyNodeId) {
   }
 
   return { success: true, data: update };
+}
+
+export async function FindAllStoryNodesTrash({ storyId, parentId, page = 1, limit = 10 }) {
+  const storiesNodeVer = await redisUtils.storyNodes().get();
+  const storiesVer = await redisUtils.stories().get();
+
+  const REDIS_KEY = [
+    "FindAllStoryNodesTrash",
+    "storiesNodeVer=" + storiesNodeVer,
+    "storiesVer=" + storiesVer,
+    "storyId=" + storyId,
+    "parentId=" + parentId,
+    "page=" + page,
+    "limit=" + limit,
+  ].join(":");
+
+  const cached = await redis.get(REDIS_KEY);
+  // if (cached) return JSON.parse(cached);
+
+  const where = {
+    deleted_status: { in: ["soft_deleted", "soft_deleted_by_parent"] },
+    ...(storyId && { story_id: storyId }),
+    ...(parentId && { parent_id: parentId }),
+  };
+
+  const storyNodes = await db.storyNode.findMany({
+    where: where,
+    select: {
+      id: true,
+      title: true,
+      order_index: true,
+      type: true,
+      deleted_status: true,
+
+      parent_id: true,
+      parent: {
+        select: { id: true, title: true, order_index: true, type: true },
+      },
+
+      story_id: true,
+      story: {
+        select: {
+          id: true,
+          title: true,
+          cover_art: { select: { url: true, key: true, width: true, height: true } },
+        },
+      },
+
+      created_at: true,
+      updated_at: true,
+    },
+    take: limit,
+    skip: (page - 1) * limit,
+    orderBy: { created_at: "desc" },
+  });
+
+  const totalItems = await db.storyNode.count({ where: where });
+
+  const result = {
+    success: true,
+    data: storyNodes,
+    pagination: {
+      page,
+      pageSize: storyNodes.length,
+      totalPages: Math.ceil(totalItems / limit),
+      totalItems,
+    },
+  };
+
+  await redis.set(REDIS_KEY, JSON.stringify(result));
+
+  return result;
 }

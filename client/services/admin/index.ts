@@ -397,9 +397,72 @@ export async function restoreManyStories(ids: string[]): Promise<ServiceResult<S
 }
 
 // DELETE /admin/story-nodes/trash/:id
-export async function deletePermanentTrashStoryNode(id: string): Promise<ServiceResult<null>> {
+export async function deletePermanentlyTrashStoryNode(id: string): Promise<ServiceResult<null>> {
   try {
     const res = await api.delete(`/admin/story-nodes/trash/${id}`);
+    return res.data;
+  } catch (error: any) {
+    console.error(error);
+    return { success: false, message: error?.response?.data?.message || error?.message || "Unknown error" };
+  }
+}
+
+// DELETE /admin/story-nodes/trash
+export async function deletePermanentlyManyTrashStoryNodes(ids: string[]): Promise<ServiceResult<null>> {
+  try {
+    const res = await api.delete(`/admin/story-nodes/trash`, { data: { ids: ids } });
+    return res.data;
+  } catch (error: any) {
+    console.error(error);
+    return { success: false, message: error?.response?.data?.message || error?.message || "Unknown error" };
+  }
+}
+
+export async function getAllTrashStoryNodes({
+  storyId,
+  parentId,
+  page = 1,
+  limit = 10,
+}: {
+  storyId?: string;
+  parentId?: string;
+  page?: number;
+  limit?: number;
+}): Promise<ServiceResult<StoryNode[]>> {
+  try {
+    const res = await api.get(`/admin/story-nodes/trash`, {
+      params: { storyId, parentId, page, limit },
+    });
+    return res.data;
+  } catch (error: any) {
+    console.error(error);
+    return { success: false, message: error?.response?.data?.message || error?.message || "Unknown error" };
+  }
+}
+
+export async function restoreStoryNode(id: string): Promise<ServiceResult<StoryNode>> {
+  try {
+    const res = await api.patch(`/admin/story-nodes/trash/${id}/restore`);
+    return res.data;
+  } catch (error: any) {
+    console.error(error);
+    return { success: false, message: error?.response?.data?.message || error?.message || "Unknown error" };
+  }
+}
+
+export async function restoreTrashStoryNode(id: string): Promise<ServiceResult<null>> {
+  try {
+    const res = await api.patch(`/admin/story-nodes/trash/${id}/restore`);
+    return res.data;
+  } catch (error: any) {
+    console.error(error);
+    return { success: false, message: error?.response?.data?.message || error?.message || "Unknown error" };
+  }
+}
+
+export async function restoreManyTrashStoryNodes(ids: string[]): Promise<ServiceResult<null>> {
+  try {
+    const res = await api.patch(`/admin/story-nodes/trash/restore`, { ids: ids });
     return res.data;
   } catch (error: any) {
     console.error(error);
@@ -426,14 +489,21 @@ const adminService = {
 
   getTrashImages,
   getAllTrashStories,
+  getAllTrashStoryNodes,
   deleteTrashImage,
   deleteManyTrashImages,
 
   deletePermanentTrashStory,
   deletePermanentManyTrashStories,
 
+  deletePermanentlyTrashStoryNode,
+  deletePermanentlyManyTrashStoryNodes,
+
   restoreStory,
   restoreManyStories,
+
+  restoreTrashStoryNode,
+  restoreManyTrashStoryNodes,
 };
 
 export default adminService;

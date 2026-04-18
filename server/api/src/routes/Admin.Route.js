@@ -754,7 +754,118 @@ adminRoute.patch("/stories/trash/restore", adminController.RestoreManyTrashStori
 // This is used to restored story soft-removed
 adminRoute.patch("/stories/trash/:id/restore", adminController.RestoreTrashStory);
 
-adminRoute.delete("/story-nodes/trash/:id", adminController.DeleteTrashStoryNode);
+//
+//
+//
+// Story Nodes
+//
+//
+
+/**
+ * @openapi
+ * /admin/story-nodes/trash:
+ *   get:
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     summary: Get list of story nodes with filters and pagination
+ *     parameters:
+ *       - name: page
+ *         in: query
+ *         description: Page number (>=1)
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           default: 1
+ *       - name: limit
+ *         in: query
+ *         description: Page size
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *     responses:
+ *       '200':
+ *         description: List of story nodes with pagination
+ *       '401':
+ *         $ref: '#/components/responses/Unauthorized'
+ */
+adminRoute.get("/story-nodes/trash", adminController.GetAllStoryNodesTrash);
+
+/**
+ * @openapi
+ * /admin/story-nodes/trash/restore:
+ *   patch:
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     summary: Restore multiple soft-deleted story nodes
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               ids:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *     responses:
+ *       '200':
+ *         description: Restore success
+ *       '401':
+ *         $ref: '#/components/responses/Unauthorized'
+ */
+adminRoute.patch("/story-nodes/trash/restore", adminController.RestoreManyTrashStoryNodes);
+
+/**
+ * @openapi
+ * /admin/story-nodes/trash/{id}/restore:
+ *   patch:
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     summary: Restore a soft-deleted story node BY ID
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       '200':
+ *         description: Restore success
+ *       '401':
+ *         $ref: '#/components/responses/Unauthorized'
+ */
+adminRoute.patch("/story-nodes/trash/:id/restore", adminController.RestoreTrashStoryNode);
+
+adminRoute.delete("/story-nodes/trash/:id", adminController.DeletePermanentlyTrashStoryNode);
+
+/**
+ * @openapi
+ * /admin/story-nodes/trash:
+ *   delete:
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     summary: Permanently remove multiple story nodes
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               ids:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *     responses:
+ *       '200':
+ *         description: Deletion success
+ */
+adminRoute.delete("/story-nodes/trash", adminController.DeletePermanentlyTrashStoryNode);
 
 //
 //

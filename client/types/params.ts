@@ -15,6 +15,8 @@ export interface StoryParams {
   isGettingChildren?: boolean;
   isGettingContent?: boolean;
   isGettingNewestChapter?: boolean;
+  isGettingTrashContent?: boolean;
+  isGettingTrashStoryNode?: boolean;
   isGettingSummary?: boolean;
 }
 
