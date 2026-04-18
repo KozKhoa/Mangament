@@ -350,6 +350,29 @@ const updateStoryWorker = new Worker(
             }
           }
 
+          if (children?.restore) {
+            const storyNodes = children.restore.story_node;
+            const storyNodeContents = children.restore.content;
+
+            if (storyNodes && storyNodes.length > 0) {
+              await tx.storyNode.updateMany({
+                where: {
+                  id: { in: storyNodes.map((node) => node.id) },
+                },
+                data: { deleted_status: "not_deleted" },
+              });
+            }
+
+            if (storyNodeContents && storyNodeContents.length > 0) {
+              await tx.storyNodeContent.updateMany({
+                where: {
+                  id: { in: storyNodeContents.map((content) => content.id) },
+                },
+                data: { deleted_status: "not_deleted" },
+              });
+            }
+          }
+
           return updateStory;
         },
         {

@@ -204,9 +204,20 @@ export async function GetStory(req, res, next) {
   try {
     const storyId = req.params?.id;
 
-    const { isGettingChildren, isGettingContent } = ConvertQuery(req.query);
+    const query = req?.query;
 
-    const story = await storyService.FindStory({ id: storyId, isGettingChildren: isGettingChildren, isGettingContent: isGettingContent });
+    const { isGettingChildren, isGettingContent } = ConvertQuery(query);
+
+    const isGettingTrashStoryNode = query.isGettingTrashStoryNode == "true" ? true : false;
+    const isGettingTrashContent = query.isGettingTrashContent == "true" ? true : false;
+
+    const story = await storyService.FindStory({
+      id: storyId,
+      isGettingChildren: isGettingChildren,
+      isGettingContent: isGettingContent,
+      isGettingTrashContents: isGettingTrashContent,
+      isGettingTrashStoryNodes: isGettingTrashStoryNode,
+    });
 
     if (!story) throw CreateError();
 
@@ -521,13 +532,29 @@ export async function RestoreTrashStory(req, res, next) {
 
 // DELETE /admin/story-nodes/trash/:id
 // This is use to permanently remove story node
-export async function DeleteTrashStoryNode(req, res, next) {
+export async function DeletePermanentlyTrashStoryNode(req, res, next) {
   try {
     const storyNodeId = req.params?.id;
 
     if (!storyNodeId) throw CreateError(400, "'id' for story node is required");
 
-    await storyNodeService.HardDeleteStoryNode(storyNodeId);
+    await storyNodeService.PermanentlyDeleteStoryNodeTrash(storyNodeId);
+
+    return res.json({ success: true, message: "Remove successfully" });
+  } catch (error) {
+    next(error);
+  }
+}
+
+// DELETE /admin/story-nodes/trash
+// This is use to permanently remove many story nodes
+export async function DeletePermanentlyManyTrashStoryNodes(req, res, next) {
+  try {
+    const storyNodeIds = req.body?.ids;
+
+    if (!storyNodeIds || storyNodeIds.length === 0) throw CreateError(400, "Ids are required");
+
+    await storyNodeService.PermanentlyDeleteManyStoryNodesTrash(storyNodeIds);
 
     return res.json({ success: true, message: "Remove successfully" });
   } catch (error) {
@@ -543,7 +570,7 @@ export async function RestoreTrashStoryNode(req, res, next) {
 
     if (!storyNodeId) throw CreateError(400, "'id' for story node is required");
 
-    await storyNodeService.ToggleSoftDeleteStoryNode(storyNodeId, false);
+    await storyNodeService.ToggleSoftDeleteStoryNode(storyNodeId, "not_deleted");
 
     return res.json({ success: true, message: "Restore successfully" });
   } catch (error) {
@@ -558,9 +585,27 @@ export async function RestoreManyTrashStoryNodes(req, res, next) {
 
     if (!storyNodeIds) throw CreateError(400, "'id' for story node is required");
 
-    await storyNodeService.ToggleSoftDeleteManyStoryNodes(storyNodeIds, false);
+    await storyNodeService.ToggleSoftDeleteManyStoryNodes(storyNodeIds, "not_deleted");
 
     return res.json({ success: true, message: "Restore successfully" });
+  } catch (error) {
+    next(error);
+  }
+}
+
+// GET /admin/story-nodes/trash
+export async function GetAllStoryNodesTrash(req, res, next) {
+  try {
+    const page = Number(req.query?.page ?? 1);
+    const limit = Number(req.query?.limit ?? 10);
+    const storyId = req.query?.storyId;
+    const parentId = req.query?.parentId;
+
+    const result = await storyNodeService.FindAllStoryNodesTrash({ storyId, parentId, page, limit });
+
+    if (!result.success) throw CreateError();
+
+    return res.json({ success: true, message: "Get story nodes trash successfully", data: result.data || [], pagination: result.pagination });
   } catch (error) {
     next(error);
   }

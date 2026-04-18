@@ -19,7 +19,7 @@ const REDIS_TTL = 60 * 30; // 30 minutes
 
 const OTHER_TITLES_SEPARATOR = ";";
 
-export async function BuildStoryTree(storyId, storyNodeId, isGettingContent = false) {
+export async function BuildStoryTree(storyId, storyNodeId, { isGettingContent = false, isGettingTrashNode = false, isGettingTrashContent = false }) {
   const storiesVer = await redisUtils.stories(storyId).get();
   const storyNodeVer = await redisUtils.storyNodes(storyId).get();
 
@@ -30,6 +30,8 @@ export async function BuildStoryTree(storyId, storyNodeId, isGettingContent = fa
     "storyId=" + storyId,
     "storyNodeId=" + storyNodeId,
     "isGettingContent=" + isGettingContent,
+    "isGettingTrashNode=" + isGettingTrashNode,
+    "isGettingTrashContent=" + isGettingTrashContent,
   ].join(":");
 
   const cached = await redis.get(REDIS_KEY);
@@ -38,16 +40,20 @@ export async function BuildStoryTree(storyId, storyNodeId, isGettingContent = fa
 
   const storyNodes = await db.storyNode.findMany({
     where: {
-      deleted_status: "not_deleted",
+      ...(isGettingTrashNode === false && { deleted_status: "not_deleted" }),
+
       story: {
         is: { id: storyId, deleted_status: "not_deleted" },
       },
+
       ...(storyNodeId && { parent_id: storyNodeId }),
     },
     include: {
       ...(isGettingContent && {
         content: {
-          where: { deleted_status: "not_deleted" },
+          where: {
+            ...(isGettingTrashContent === false && { deleted_status: "not_deleted" }),
+          },
           include: { image: { where: { deleted_status: "not_deleted" } } },
           orderBy: { order_index: "asc" },
         },
@@ -395,6 +401,8 @@ export async function FindStory({
   isGettingChildren = false,
   isGettingContent = false,
   isGettingNewestChapter = false,
+  isGettingTrashStoryNodes = false,
+  isGettingTrashContents = false,
   isActived,
   deletedStatus = "not_deleted",
 }) {
@@ -417,7 +425,13 @@ export async function FindStory({
   if (cached) return JSON.parse(cached);
 
   const story = await db.story.findFirst({
-    where: { ...(id && { id: id }), ...(title && { title: title }), deleted_status: deletedStatus, is_actived: isActived, deleted_status: deletedStatus },
+    where: {
+      ...(id && { id: id }),
+      ...(title && { title: title }),
+      deleted_status: deletedStatus,
+      is_actived: isActived,
+      deleted_status: deletedStatus,
+    },
     include: {
       authors: { select: { author: { select: { id: true, name: true } } } },
       genres: { select: { genre: true } },
@@ -434,7 +448,11 @@ export async function FindStory({
   story.genres = story.genres.map((genre) => genre.genre);
 
   if (isGettingChildren) {
-    story.children = await BuildStoryTree(story.id, null, isGettingContent);
+    story.children = await BuildStoryTree(story.id, null, {
+      isGettingContent: isGettingContent,
+      isGettingTrashNode: isGettingTrashStoryNodes,
+      isGettingTrashContent: isGettingTrashContents,
+    });
   }
 
   if (isGettingNewestChapter) {

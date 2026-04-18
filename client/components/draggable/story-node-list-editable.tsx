@@ -9,6 +9,7 @@ import { modal } from "../modal/modal.store";
 import NumberInput from "../inputs/number-input";
 import useAuth from "@/contexts/AuthContext";
 import Story from "@/types/story";
+import Checkbox from "../inputs/checkbox";
 
 export default function StoryNodeListEditable({
   story,
@@ -22,8 +23,11 @@ export default function StoryNodeListEditable({
   const auth = useAuth();
 
   const firstRender = useRef(true);
+  const isEditStoryNode = useRef(false);
 
-  const [nodes, setNodes] = useState<StoryNode[]>(storyNodes.map((node, i) => ({ ...node, is_deleted: false, is_new: false, is_edited: false, order: i })));
+  const [nodes, setNodes] = useState<StoryNode[]>(storyNodes);
+
+  const [isShowDeleted, setIsShowDeleted] = useState(false);
 
   const handleUpdateStoryNode = useCallback((newNode: StoryNode) => {
     if (!newNode) return;
@@ -104,7 +108,6 @@ export default function StoryNodeListEditable({
             });
           });
 
-          console.log(newNodes);
           return newNodes;
         });
 
@@ -123,9 +126,53 @@ export default function StoryNodeListEditable({
     onChange?.(nodes);
   }, [nodes]);
 
+  useEffect(() => {
+    if (!nodes || nodes.length <= 0) return;
+
+    function editStoryNodeBeforeProcess(nodes: StoryNode[]): StoryNode[] {
+      const newNodes = [...nodes];
+
+      newNodes.forEach((node, i) => {
+        node.order_index = i;
+        node.is_deleted_before = node.deleted_status !== "not_deleted";
+        node.is_new = false;
+        node.is_edited = false;
+
+        if (node.children && node.children.length > 0) {
+          node.children = editStoryNodeBeforeProcess([...node.children]);
+        }
+
+        if (node.content && node.content.length > 0) {
+          node.content.forEach((cont, i) => {
+            cont.order_index = i;
+            cont.is_deleted_before = cont.deleted_status !== "not_deleted";
+            cont.isEdited = false;
+            cont.isNew = false;
+          });
+        }
+      });
+
+      return newNodes;
+    }
+
+    if (isEditStoryNode.current === false) {
+      setNodes((prev) => editStoryNodeBeforeProcess(prev));
+
+      isEditStoryNode.current = true;
+    }
+  }, [nodes]);
+
+  console.log(nodes);
+
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex w-full justify-end ">
+      <div className="flex w-full justify-end items-center gap-3">
+        <div>
+          <Checkbox value={isShowDeleted} onChange={(checked) => setIsShowDeleted(checked)}>
+            Hiển thị phần tử đã bị xóa
+          </Checkbox>
+        </div>
+
         <div
           onClick={handleAddNewStoryNode}
           className="px-5 py-1 cursor-pointer rounded-lg bg-foreground text-background-items flex flex-row justify-center items-center gap-2"
@@ -138,7 +185,10 @@ export default function StoryNodeListEditable({
       <div className="flex flex-col gap-2">
         {nodes &&
           nodes.length > 0 &&
-          nodes?.map((node, i) => <StoryNodeEditable key={node.id} storyNode={node} story={story} onChange={handleUpdateStoryNode} />)}
+          nodes?.map((node, i) => {
+            if (!isShowDeleted && node.deleted_status !== "not_deleted" && node.is_deleted_before === true) return null;
+            return <StoryNodeEditable key={node.id} storyNode={node} story={story} onChange={handleUpdateStoryNode} isShowDeleted={isShowDeleted} />;
+          })}
       </div>
     </div>
   );

@@ -14,6 +14,7 @@ const StoryNodeContentDraggable = React.memo(function StoryNodeContentDraggable(
   id,
   content,
   className,
+
   onDelete,
   onDiscardDelete,
   onChange,
@@ -67,7 +68,7 @@ const StoryNodeContentDraggable = React.memo(function StoryNodeContentDraggable(
     <div
       className={`flex flex-col justify-start items-center gap-1 
         bg-background-items rounded-sm p-1 shadow-md w-full border
-        ${content.isDeleted ? "border-red-500" : content.isNew ? "border-green-500" : content.isEdited ? "border-yellow-500" : "border-transparent"}
+        ${content.deleted_status !== "not_deleted" ? "border-red-500" : content.isNew ? "border-green-500" : content.isEdited ? "border-yellow-500" : "border-transparent"}
         ${className} `}
       ref={setNodeRef}
       {...attributes}
@@ -80,18 +81,18 @@ const StoryNodeContentDraggable = React.memo(function StoryNodeContentDraggable(
           {content.order_index.toString()}
         </p>
 
-        {(content as StoryNodeContent).isDeleted ? (
+        {(content as StoryNodeContent).deleted_status !== "not_deleted" ? (
           <ReturnIcon onClick={() => onDiscardDelete?.(content)} className="w-4.5 h-4.5 absolute right-2 top-0 cursor-pointer" />
         ) : (
           <RemoveIcon onClick={() => onDelete?.(content)} className="w-5 h-5 absolute right-2 top-0 text-red-500 cursor-pointer" />
         )}
       </div>
 
-      <div className={`h-full w-full ${content.isDeleted ? "opacity-10" : ""} `}>
+      <div className={`h-full w-full ${content.deleted_status !== "not_deleted" ? "opacity-10" : ""} `}>
         {content.type === "image" && (
           <ImagePicker
             className="h-full w-full max-w-[500px] m-auto"
-            disabled={content.isDeleted}
+            disabled={content.deleted_status !== "not_deleted"}
             defaultValue={content.image?.url}
             value={content.image?.url ? content.imageFile : content.imageFile ? content.imageFile : ""}
             onSelectMultiImage={(images) => {
@@ -122,24 +123,6 @@ const StoryNodeContentDraggable = React.memo(function StoryNodeContentDraggable(
               onChange={(text) => {
                 isEdited.current = true;
                 handleUpdateContent(text);
-
-                // const spliteText = text.split("\n");
-
-                // if (spliteText.length > 1) {
-                //   onAddManyContent?.(
-                //     spliteText.map((text, i) => ({
-                //       type: "text",
-                //       content: text,
-                //       story_node_id: content.story_node_id,
-                //       order_index: Number(content.order_index) + i + 1,
-                //       id: crypto.randomUUID(),
-                //       isDeleted: false,
-                //       isNew: true,
-                //     })),
-                //   );
-                // } else {
-                //   handleUpdateContent(text);
-                // }
               }}
               className="w-full h-full"
             />

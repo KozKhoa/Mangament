@@ -16,19 +16,30 @@ import ZoomIcon from "@/public/zooom.svg";
 import TrashIcom from "@/public/trash.svg";
 import adminService from "@/services/admin";
 import { toast } from "sonner";
+
 import Checkbox from "@/components/inputs/checkbox";
 import SwitchPageBig from "@/components/switch-page/big";
 import TrashStoryNodeCard from "@/components/cards/story-nodes/trash-story-node-card";
 import NoContent from "@/components/cards/no-content";
 import withAdmin from "@/hoc/withAdmin";
 
-export function StoryNodesTrashPage() {
+interface StoryNodesTrashGridProps {
+  storyNodes: StoryNode[];
+  pagination?: Pagination;
+
+  loading?: boolean;
+
+  onRestoreMany?: (ids: string[]) => void;
+  onDeleteMany?: (ids: string[]) => void;
+
+  onRestore?: (id: string) => void;
+  onDelete?: (id: string) => void;
+}
+
+export function StoryNodesTrashGrid({ storyNodes, pagination, loading, onRestoreMany, onDeleteMany, onRestore, onDelete }: StoryNodesTrashGridProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  const [storyNodes, setStoryNodes] = useState<StoryNode[]>([]);
-  const [pagination, setPagination] = useState<Pagination>();
-  const [loading, setLoading] = useState(false);
   const [deleting, setDeleting] = useState<Set<string>>(new Set());
   const [restoring, setRestoring] = useState<Set<string>>(new Set());
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -43,117 +54,6 @@ export function StoryNodesTrashPage() {
     } else {
       setSelected(new Set(storyNodes.map((storyNode) => storyNode.id ?? "")));
     }
-    storyNodes;
-  }
-
-  async function handleRestoreStoryNode(id: string) {
-    if (!id) return;
-
-    setRestoring((prev) => {
-      const newSet = new Set(prev);
-      newSet.add(id);
-      return newSet;
-    });
-
-    const res = await adminService.restoreTrashStoryNode(id);
-
-    setRestoring((prev) => {
-      const newSet = new Set(prev);
-      newSet.delete(id);
-      return newSet;
-    });
-
-    if (!res.success) return toast.warning(res.message);
-
-    setStoryNodes((prev) => prev.filter((node) => node.id !== id));
-    toast.message("Khôi phục thành công");
-
-    fetchTrashStoryNodes();
-  }
-
-  async function handleRestoreManyStoryNodes(ids: string[]) {
-    if (!ids || ids.length <= 0) return;
-
-    setRestoring((prev) => {
-      const newSet = new Set(prev);
-      ids.forEach((id) => newSet.add(id));
-      return newSet;
-    });
-
-    const res = await adminService.restoreManyTrashStoryNodes(ids);
-
-    setRestoring((prev) => {
-      const newSet = new Set(prev);
-      ids.forEach((id) => newSet.delete(id));
-      return newSet;
-    });
-
-    if (!res.success) return toast.warning(res.message);
-
-    setStoryNodes((prev) => {
-      const removed = new Set(ids);
-      return prev.filter((node) => !removed.has(node.id ?? ""));
-    });
-
-    setSelected(new Set());
-    toast.message("Khôi phục thành công");
-
-    fetchTrashStoryNodes();
-  }
-
-  async function handleDeleteTrashStoryNode(id: string) {
-    if (!id) return;
-
-    setDeleting((prev) => {
-      const newSet = new Set(prev);
-      newSet.add(id ?? "");
-      return newSet;
-    });
-
-    const res = await adminService.deletePermanentlyTrashStoryNode(id);
-
-    setDeleting((prev) => {
-      const newSet = new Set(prev);
-      newSet.delete(id ?? "");
-      return newSet;
-    });
-
-    if (!res.success) return toast.warning(res.message);
-
-    setStoryNodes((prev) => prev.filter((node) => node.id !== id));
-    toast.message("Xóa vĩnh viễn thành công");
-
-    fetchTrashStoryNodes();
-  }
-
-  async function handleDeleteManyTrashStoryNodes(ids: string[]) {
-    if (!ids || ids.length <= 0) return;
-
-    setDeleting((prev) => {
-      const newSet = new Set(prev);
-      ids.forEach((id) => newSet.add(id));
-      return newSet;
-    });
-
-    const res = await adminService.deletePermanentlyManyTrashStoryNodes(ids);
-
-    setDeleting((prev) => {
-      const newSet = new Set(prev);
-      ids.forEach((id) => newSet.delete(id));
-      return newSet;
-    });
-
-    if (!res.success) return toast.warning(res.message);
-
-    setStoryNodes((prev) => {
-      const removed = new Set(ids);
-      return prev.filter((node) => !removed.has(node.id ?? ""));
-    });
-
-    setSelected(new Set());
-    toast.message("Xóa vĩnh viễn thành công");
-
-    fetchTrashStoryNodes();
   }
 
   function handleToggleSelectedStoryNode(storyNodeId: string, event: MouseEvent) {
@@ -197,17 +97,6 @@ export function StoryNodesTrashPage() {
     setSelected(newSet);
   }
 
-  async function fetchTrashStoryNodes() {
-    const res = await adminService.getAllTrashStoryNodes({ page, limit });
-    setLoading(false);
-    if (!res.success) return toast.warning(res.message);
-
-    console.log(res.data);
-
-    setStoryNodes(res.data ?? []);
-    setPagination(res.pagination);
-  }
-
   function handleNavigate(key: string, value: number) {
     loadingBar.open({});
     const params = new URLSearchParams(searchParams.toString());
@@ -220,21 +109,12 @@ export function StoryNodesTrashPage() {
       params.set(key, value.toString());
     }
 
-    setLoading(true);
-
     setRestoring(new Set());
     setDeleting(new Set());
     setSelected(new Set());
 
     router.push(`?${params.toString()}`);
   }
-
-  useEffect(() => {
-    setLoading(true);
-    fetchTrashStoryNodes();
-
-    loadingBar.close();
-  }, [page, limit]);
 
   return (
     <div>
@@ -266,7 +146,7 @@ export function StoryNodesTrashPage() {
                 disable={deleting.size > 0}
                 buttonType="delete"
                 className="font-semibold"
-                onClick={() => handleDeleteManyTrashStoryNodes([...selected])}
+                onClick={() => onDeleteMany?.([...selected])}
               >
                 Xóa
               </Button>
@@ -276,7 +156,7 @@ export function StoryNodesTrashPage() {
                 disable={deleting.size > 0 || restoring.size > 0}
                 buttonType="add"
                 className="font-semibold"
-                onClick={() => handleRestoreManyStoryNodes([...selected])}
+                onClick={() => onRestoreMany?.([...selected])}
               >
                 Khôi phục
               </Button>
@@ -324,8 +204,8 @@ export function StoryNodesTrashPage() {
                     storyNode={storyNode}
                     disable={deleting.has(storyNode.id ?? "") || restoring.has(storyNode.id ?? "")}
                     onClick={(e) => handleToggleSelectedStoryNode(storyNode.id ?? "", e)}
-                    onDelete={() => handleDeleteTrashStoryNode(storyNode.id ?? "")}
-                    onRestore={() => handleRestoreStoryNode(storyNode.id ?? "")}
+                    onDelete={() => onDelete?.(storyNode.id ?? "")}
+                    onRestore={() => onRestore?.(storyNode.id ?? "")}
                   />
                 </div>
               ))}
@@ -333,10 +213,6 @@ export function StoryNodesTrashPage() {
           {storyNodes.length === 0 && <NoContent className="m-auto" />}
         </div>
       )}
-
-      <SwitchPageBig className="m-auto my-5" maxPage={pagination?.totalPages ?? 0} page={page} onChange={(pageIndex) => handleNavigate("page", pageIndex)} />
     </div>
   );
 }
-
-export default withAdmin(StoryNodesTrashPage);

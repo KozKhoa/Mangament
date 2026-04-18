@@ -31,6 +31,8 @@ import { snakeCaseToCapitalizeWord } from "@/utils/string";
 import withAdmin from "@/hoc/withAdmin";
 
 import { OTHER_TITLES_SEPARATOR } from "@/constants/story";
+import { Pagination } from "@/types/pagination";
+import { StoryNodesTrashGrid } from "@/components/grids/story-nodes-trash-grid";
 
 export function EditStory() {
   const params = useParams();
@@ -45,11 +47,14 @@ export function EditStory() {
 
   const storyId = params["storyId"]?.toString() ?? "";
 
-  // Call api for update story
-
   async function fetchStory() {
     setLoading(true);
-    const res = await adminService.getStory(storyId, { isGettingChildren: true, isGettingContent: true });
+    const res = await adminService.getStory(storyId, {
+      isGettingChildren: true,
+      isGettingContent: true,
+      isGettingTrashContent: true,
+      isGettingTrashStoryNode: true,
+    });
     setLoading(false);
 
     if (!res.success) return toast.warning(res.message);
@@ -187,10 +192,12 @@ export function EditStory() {
       delete: { story_node: { id: any }[]; content: { id: any }[] };
       add: { story_node: StoryNode[]; content: StoryNodeContent[] };
       edit: { story_node: StoryNode[]; content: StoryNodeContent[] };
+      restore: { story_node: { id: any }[]; content: { id: any }[] };
     } = {
       delete: { story_node: [], content: [] },
       add: { story_node: [], content: [] },
       edit: { story_node: [], content: [] },
+      restore: { story_node: [], content: [] },
     };
 
     function mappingOldChildren(nodes: StoryNode[]) {
@@ -203,14 +210,17 @@ export function EditStory() {
     function findDifferenceInContent(newContent?: StoryNodeContent[]) {
       if (newContent && newContent.length > 0) {
         newContent.forEach((content, i) => {
-          if (content.isDeleted && !content.isNew) {
+          if (content.deleted_status !== "not_deleted" && content.is_deleted_before === false && content.isNew === false) {
             // This content is the old one and being deleted
             change.delete.content.push({ id: content.id });
-          } else if (content.isNew && !content.isDeleted) {
+          } else if (content.isNew && content.deleted_status === "not_deleted") {
             // This content is a new one
             change.add.content.push({ ...content, order_index: i });
-          } else if (!content.isNew && !content.isDeleted && content.isEdited) {
+          } else if (!content.isNew && content.deleted_status === "not_deleted" && content.isEdited) {
             change.edit.content.push({ ...content, order_index: i });
+          }
+          if (content.is_deleted_before === true && content.deleted_status === "not_deleted") {
+            change.restore.content.push({ id: content.id });
           }
         });
       }
@@ -219,13 +229,13 @@ export function EditStory() {
     function findDifferenceInChildren(newChildren?: StoryNode[]) {
       if (newChildren && newChildren.length > 0) {
         newChildren?.forEach((child, i) => {
-          if (child.is_deleted && !child.is_new) {
+          if (child.is_deleted_before === false && child.deleted_status !== "not_deleted" && child.is_new === false) {
             // This child is the old one and being deleted
             change.delete.story_node.push({ id: child.id });
-          } else if (child.is_new && !child.is_deleted) {
+          } else if (child.is_new && child.deleted_status === "not_deleted") {
             // This child is a new one
             change.add.story_node.push({ ...child });
-          } else if (!child.is_new && !child.is_deleted) {
+          } else if (!child.is_new && child.deleted_status === "not_deleted") {
             const oldChild = oldChildren.get(child.id);
 
             if (
@@ -235,8 +245,8 @@ export function EditStory() {
               !isEqual(
                 oldChild.content?.map((cont) => cont.order_index),
                 child.content?.map((cont) => cont.order_index),
-              ) ||
-              child.content?.find((cont) => cont.isDeleted || cont.isNew)
+              )
+              // || child.content?.find((cont) => (cont.deleted_status !== "not_deleted" && child.is_deleted_before === false) || cont.isNew)
             ) {
               change.edit.story_node.push({
                 id: child.id,
@@ -246,15 +256,18 @@ export function EditStory() {
                 type: child.type,
                 content: isEqual(oldChild?.content, child.content)
                   ? []
-                  : (child?.content?.filter((cont) => !cont.isDeleted).map((cont, i) => ({ id: cont.id, type: cont.type, order_index: i })) ?? []),
+                  : (child?.content?.map((cont, i) => ({ id: cont.id, type: cont.type, order_index: i })) ?? []),
               });
             }
           }
+          if (child.is_deleted_before === true && child.deleted_status === "not_deleted") {
+            change.restore.story_node.push({ id: child.id });
+          }
 
-          if (!child.is_deleted) {
-            findDifferenceInChildren(newChildren[i]?.children);
+          if (child.deleted_status === "not_deleted") {
+            findDifferenceInChildren(child.children);
 
-            findDifferenceInContent(newChildren[i]?.content);
+            findDifferenceInContent(child.content);
           }
         });
       }
@@ -271,6 +284,7 @@ export function EditStory() {
 
   useEffect(() => {
     fetchStory();
+
     loadingBar.close();
   }, []);
 
@@ -287,7 +301,6 @@ export function EditStory() {
           <Link href={`/stories/${story?.type}/${story?.title}`} className="w-fit m-auto">
             <h2 className="font-semibold">{story?.title}</h2>
           </Link>
-
           {/* Edit story */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 ">
             {/* Cover art */}
@@ -321,7 +334,6 @@ export function EditStory() {
               <TextArea label="Tóm tắt / Mô tả truyện" placeHolder={story?.summary} defaultValue={story?.summary} onChange={setSummary} />
             </div>
           </div>
-
           {/* Edit Content */}
           <div>{story?.children && <StoryNodeListEditable story={story} onChange={setChildren} storyNodes={story.children} />}</div>
 
