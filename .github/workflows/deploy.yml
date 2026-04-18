@@ -28,12 +28,8 @@ jobs:
             cd /home/khoa/Mangament
             git pull origin main
 
-            # Deploy Server (Docker Compose)
-            cd server
+            # Deploy All Services (API, Worker, ML, Redis, Client)
             docker-compose up -d --build
 
-            # Deploy Client (Next.js - No Docker)
-            cd ../client
-            npm install
-            npm run build
-            npm run start
+            # Stop ML Service due to my home server memory not enough, I will deploy it later
+            docker stop mangament_ml_service

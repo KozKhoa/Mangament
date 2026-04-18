@@ -1,0 +1,69 @@
+# Full Stack Docker Compose for Mangament
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: mangament_redis
+    restart: always
+    ports:
+      - "6378:6379"
+
+  ml-service:
+    build:
+      context: ./server/ml-service
+      dockerfile: Dockerfile
+    container_name: mangament_ml_service
+    restart: no
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  api:
+    build:
+      context: ./server/api
+      dockerfile: Dockerfile
+    container_name: mangament_api
+    restart: always
+    ports:
+      - "5000:5000"
+    env_file:
+      - ./server/api/.env
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - ML_SERVICE_URL=http://ml-service:8000
+    depends_on:
+      redis:
+        condition: service_started
+    volumes:
+      - ./uploads:/app/uploads
+
+  worker:
+    build:
+      context: ./server/api
+      dockerfile: workers/Dockerfile
+    container_name: mangament_worker
+    env_file:
+      - ./server/api/.env
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - ML_SERVICE_URL=http://ml-service:8000
+    depends_on:
+      - redis
+      - ml-service
+      - api
+
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: mangament_client
+    restart: always
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./client/.env
+    depends_on:
+      - api
