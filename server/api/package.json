@@ -15,7 +15,9 @@
     "upload": "cross-env NODE_ENV=development node Upload.js",
     "start": "cross-env NODE_ENV=production node App.js",
     "build": "npm i && npx prisma generate",
-    "test": "cross-env NODE_ENV=development nodemon Test.js",
+    "test": "vitest",
+    "test:watch": "vitest --watch",
+    "test:coverage": "vitest run --coverage",
     "migrate": "npx prisma migrate dev && npx prisma generate dev",
     "seed": "npx prisma db seed"
   },
@@ -56,6 +58,9 @@
     "winston": "^3.18.3"
   },
   "devDependencies": {
-    "prisma": "^7.6.0"
+    "@types/node": "^25.6.0",
+    "prisma": "^7.6.0",
+    "tsx": "^4.21.0",
+    "vitest": "^4.1.4"
   }
 }
