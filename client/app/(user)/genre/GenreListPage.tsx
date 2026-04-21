@@ -6,6 +6,7 @@ import { snakeCaseToCapitalizeWord } from "@/utils/string";
 import Link from "@/components/link/Link";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import Navbar from "@/components/layouts/navbar";
 
 export function GenrePagerCard({ genre, className }: { genre: string; className?: string }) {
   return (
@@ -56,6 +57,8 @@ export default function GenreListPage() {
 
   return (
     <div className="p-2">
+      <Navbar items={["Genre"]} className="p-2 px-3" />
+
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-x-2 gap-y-3">
         {genres.map((genre, i) => (
           <div key={genre}>

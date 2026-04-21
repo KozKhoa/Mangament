@@ -20,6 +20,8 @@ import withAuth from "@/hoc/withAuth";
 
 import { loadingBar } from "@/components/loadings/loading-bar/top-loading-bar.store";
 
+import { routes } from "@/lib/routes";
+
 const LIMIT = 20;
 const PAGE = 1;
 
@@ -65,11 +67,11 @@ export function ProfilePage() {
           {/* User card */}
           <UserCard className="max-w-5xl m-auto bg-background-items"></UserCard>
           {/* Favourite story */}
-          <StoryList label="Truyện yêu thích" stories={favourite} onClickLabel={() => router.push("/favourites")}></StoryList>
+          <StoryList label="Truyện yêu thích" stories={favourite} onClickLabel={() => router.push(routes.favourite())}></StoryList>
 
           <HistoryList
             histories={histories}
-            onClickLabel={() => router.push("/histories")}
+            onClickLabel={() => router.push(routes.history())}
             onRemoveElement={(removeElement) => {
               setHistories((prevHis) => prevHis.filter((x) => x !== removeElement));
             }}

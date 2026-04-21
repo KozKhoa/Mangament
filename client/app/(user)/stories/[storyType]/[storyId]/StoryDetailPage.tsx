@@ -26,22 +26,25 @@ import Image from "next/image";
 import { loadingBar } from "@/components/loadings/loading-bar/top-loading-bar.store";
 import ImageType from "@/types/image";
 import useAuth from "@/contexts/AuthContext";
+import { routes } from "@/lib/routes";
+import Navbar from "@/components/layouts/navbar";
+import { snakeCaseToCapitalizeWord } from "@/utils/string";
 
 export default function StoryDetailPage() {
   const auth = useAuth();
   const router = useRouter();
   const params = useParams();
 
+  const storyId = useMemo(() => params.storyId?.toString(), [params]);
   const storyType = useMemo(() => params.storyType?.toString(), [params]);
-  const title = useMemo(() => params.title?.toString(), [params]);
 
   const [story, setStory] = useState<Story>();
   const [reviews, setReviews] = useState<ImageType[]>([]);
 
   async function fetchStory() {
-    if (!title || !storyType) return;
+    if (!storyId) return;
 
-    const res = await storyService.getStoryByTitle(title ?? "", { isGettingChildren: true, isGettingSummary: true, type: [storyType] });
+    const res = await storyService.getStoryById(storyId, { isGettingChildren: true, isGettingSummary: true });
 
     if (!res.success) return toast.warning(res.message);
 
@@ -58,28 +61,16 @@ export default function StoryDetailPage() {
     setReviews(res.data ?? []);
   }
 
-  function handleNavigateStoryNode(storyNode: StoryNode[]) {
-    if (storyNode[storyNode.length - 1].type !== "chapter") return;
+  function handleNavigateStoryNode(storyNodes: StoryNode[]) {
+    const storyNode = storyNodes.at(storyNodes.length - 1);
+
+    if (!storyNode) return;
+
+    if (storyNode?.type !== "chapter") return;
 
     loadingBar.open({});
 
-    let routeDir = "";
-
-    storyNode.forEach((node, i) => {
-      let tempNode: StoryNode | null = { ...node };
-      const nodeArray: StoryNode[] = [];
-      while (tempNode) {
-        nodeArray.push(tempNode);
-        tempNode = tempNode.parent ?? null;
-      }
-
-      nodeArray.reverse();
-      nodeArray.forEach((node) => {
-        routeDir = path.join(routeDir, `${node.type} ${node.order_index}`);
-      });
-    });
-
-    router.push(path.join(`/stories/${storyType}/${title}/`, routeDir));
+    router.push(routes.storyNode({ storyType: story?.type, storyId: story?.id, storyNodeType: storyNode.type, storyNodeId: storyNode.id }));
   }
 
   useEffect(() => {
@@ -87,15 +78,25 @@ export default function StoryDetailPage() {
   }, [story]);
 
   useEffect(() => {
-    if (!title || !storyType || title == "undefined" || storyType == "undefined") return;
+    if (!storyId || storyId == "undefined") return;
 
     fetchStory();
 
     loadingBar.close();
-  }, [storyType, title]);
+  }, [storyId]);
 
   return (
     <div className="flex flex-col gap-10 px-2.5">
+      <Navbar
+        items={["Stories", snakeCaseToCapitalizeWord(story?.type ?? ""), snakeCaseToCapitalizeWord(story?.title ?? "")]}
+        onClickItem={(i) => {
+          if (i === 0) router.push(routes.story());
+          else if (i === 1) router.push(routes.story({ storyType: story?.type ?? "" }));
+          else if (i === 2) router.push(routes.story({ storyType: story?.type ?? "", storyId: story?.id ?? "" }));
+        }}
+        className="mt-3 -mb-5"
+      />
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         {/* Story info */}
         <div className="lg:flex-1 flex flex-col gap-3 ">

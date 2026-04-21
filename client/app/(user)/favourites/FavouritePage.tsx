@@ -24,6 +24,7 @@ import FilterStoryStatus from "@/components/filters/filter-story-status";
 import FilterNation from "@/components/filters/filter-nations";
 import SortTime from "@/components/sorts/sort-time";
 import { loadingBar } from "@/components/loadings/loading-bar/top-loading-bar.store";
+import Navbar from "@/components/layouts/navbar";
 
 const LIMIT = 30;
 
@@ -95,6 +96,8 @@ export function FavouritePage() {
 
   return (
     <div className="px-2">
+      <Navbar items={["Favourites"]} className="p-2 px-3" />
+
       <div className={`w-full `}>
         {/* Header */}
         <div className=" w-full border-b-2">

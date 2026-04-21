@@ -16,6 +16,7 @@ import { beautifulView } from "@/utils/beautiful";
 
 import GenreTag from "@/components/tags/genre-tag";
 import Image from "next/image";
+import { routes } from "@/lib/routes";
 
 export default function StoryGenreCard({ story, className }: { story: Story; className?: string }) {
   const auth = useAuth();
@@ -54,8 +55,8 @@ export default function StoryGenreCard({ story, className }: { story: Story; cla
   }, [user, favouriteId, story.id, saveFavourite, removeFavourite]);
 
   const handleClickStory = useCallback(() => {
-    router.push(`/stories/${story.type}/${story.title}`);
-  }, [router, story.title, story.type]);
+    router.push(routes.story({ storyType: story.type, storyId: story.id ?? "" }));
+  }, [router, story.type, story.id]);
 
   useEffect(() => {
     setFavouriteId(story.favourite?.id ?? null);

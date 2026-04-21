@@ -25,8 +25,6 @@ export default function AdjustUserInfoForm({ className, user, onCancel, onConfir
   async function updateUserInfo() {
     setIsUpdating(true);
 
-    console.log(user);
-
     const res = await adminService.updateUser({
       userId: user.id,
       ...(name && name !== user.name && { name: name }),

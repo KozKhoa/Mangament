@@ -14,6 +14,7 @@ import EyeIcon from "@/public/eye/open.svg";
 import { beautifulView } from "@/utils/beautiful";
 import Image from "next/image";
 import { useState } from "react";
+import { routes } from "@/lib/routes";
 
 export default function HistoryCard({ history, onClickRemove, className }: { history: History; onClickRemove?: () => void; className?: string }) {
   const story = history?.story;
@@ -47,15 +48,13 @@ export default function HistoryCard({ history, onClickRemove, className }: { his
   const storyNodeArray = convertStoryNodeTreeToArray(history?.story_node);
 
   function navigateToStoryNode() {
-    if (storyNodeArray[storyNodeArray.length - 1].type !== "chapter") return;
-
-    let routeDir = "";
-    storyNodeArray.forEach((node, i) => (routeDir = path.join(routeDir, `${node.type} ${node.order_index}`)));
-    router.push(path.join(`/stories/${story.type}/${story.title}/`, routeDir));
+    if (!story?.id || !story?.type) return;
+    router.push(routes.storyNode({ storyType: story.type, storyId: story.id, storyNodeType: history.story_node?.type, storyNodeId: history.story_node?.id }));
   }
 
   function navigateToStory() {
-    router.push(path.join(`/stories/${story.type}/${story.title}/`));
+    if (!story?.id || !story?.type) return;
+    router.push(routes.story({ storyType: story.type, storyId: story.id }));
   }
 
   return (
@@ -84,20 +83,20 @@ export default function HistoryCard({ history, onClickRemove, className }: { his
           absolute right-0 bottom-0 px-1 bg-background-items rounded-tl-md"
         >
           <EyeIcon className="w-5 h-5"></EyeIcon>
-          <p className="text-[0.8em] italic font-semibold">{beautifulView(story?.view || 0)}</p>
+          <p className="italic font-semibold">{beautifulView(story?.view || 0)}</p>
         </div>
       </div>
 
       <div className="flex flex-col justify-between gap-1 h-full w-full">
         {/* Title */}
-        <div onClick={() => navigateToStory()} className="text-[1.2em] leading-tight cursor-pointer line-clamp-2">
+        <div onClick={() => navigateToStory()} className="text-lg leading-tight cursor-pointer line-clamp-2">
           <p className="font-semibold">
             {story?.nation && (
               <span className="inline-block mr-1.5 align-middle">
                 {story.nation.flag_image?.url ? (
                   <Image src={story.nation.flag_image.url} alt={story.nation.name} width={20} height={14} className="object-contain inline-block"></Image>
                 ) : (
-                  <span className="text-[1.2rem]">{story.nation.flag_icon}</span>
+                  <span className="">{story.nation.flag_icon}</span>
                 )}
               </span>
             )}
@@ -109,14 +108,14 @@ export default function HistoryCard({ history, onClickRemove, className }: { his
         <div className="flex flex-col gap-2 w-full">
           {/* Reading chapter */}
           <div className="flex flex-row flex-wrap justify-between items-center gap-1">
-            <div className="flex flex-row flex-wrap gap-1">
+            <div className="flex flex-row flex-wrap gap-x-1">
               {storyNodeArray.map((node, i) => (
-                <p key={i} className="font-semibold text-lg">
+                <p key={i} className="text-md">
                   {snakeCaseToCapitalizeWord(node.type)} {node.order_index} {i < storyNodeArray.length - 1 && " ➤ "}
                 </p>
               ))}
             </div>
-            <div className="flex flex-row gap-1 justify-between w-full">
+            <div className="flex flex-row gap-x-1 justify-between w-full">
               <p className="italic">{history?.updated_at ? new Date(history?.updated_at).toLocaleDateString("vi") : null}</p>
               <p className="font-semibold">{history?.updated_at ? new Date(history?.updated_at).toLocaleTimeString("vi").slice(0, -3) : ""}</p>
             </div>

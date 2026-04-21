@@ -29,6 +29,8 @@ import FilterViews from "@/components/filters/filter-views";
 import FilterStoryStatus from "@/components/filters/filter-story-status";
 import FilterNation from "@/components/filters/filter-nations";
 import { loadingBar } from "@/components/loadings/loading-bar/top-loading-bar.store";
+import { routes } from "@/lib/routes";
+import Navbar from "@/components/layouts/navbar";
 
 const LIMIT = 30;
 
@@ -125,13 +127,15 @@ export default function StoriesPage() {
   }, [startToHoverIndex, isHoveringOnStoryInfoCard]);
 
   return (
-    <div className="w-full h-full flex flex-col font-afacad gap-12 px-2.5">
+    <div className="w-full h-full flex flex-col px-2.5 py-3">
+      <Navbar items={["Stories"]} />
+
       <div className={`w-full flex flex-row justify-center items-start gap-5 `}>
         <div className="w-full">
           {/* Header use to display story type and page index */}
           <div className=" sticky top-0 py-2 px-5 z-10 w-full flex flex-row flex-wrap justify-between items-center gap-2 bg-background border-b-2 ">
             {/* Story type */}
-            <h2 className="text-[2em] font-bold cursor-pointer" onClick={() => router.push(`/stories/${storyType}`)}>
+            <h2 className="text-[2em] font-bold cursor-pointer" onClick={() => router.push(routes.story({ storyType }))}>
               {snakeCaseToCapitalizeWord(storyType)} <span className="text-[0.6em] font-normal text-center h-full">({pagination?.totalItems})</span>
             </h2>
             <div className="flex flex-row flex-wrap justify-start items-center gap-2 text-[1.2em] font-bold">

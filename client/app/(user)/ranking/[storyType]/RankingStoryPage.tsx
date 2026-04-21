@@ -10,6 +10,9 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { loadingBar } from "@/components/loadings/loading-bar/top-loading-bar.store";
+import { routes } from "@/lib/routes";
+import Navbar from "@/components/layouts/navbar";
+import { snakeCaseToCapitalizeWord } from "@/utils/string";
 
 const LIMIT = 50;
 
@@ -88,8 +91,16 @@ export default function RankingStoryPage() {
   }, [rankBy]);
 
   return (
-    <>
-      <div className={`w-full flex flex-row justify-center items-start gap-5 `}>
+    <div>
+      <Navbar
+        items={["Ranking", snakeCaseToCapitalizeWord(storyType?.join(",") ?? "")]}
+        onClickItem={(i) => {
+          if (i === 0) router.push(routes.ranking());
+        }}
+        className="p-2 px-3"
+      />
+
+      <div className={`w-full flex flex-row justify-center items-start gap-5 px-2`}>
         <div className="w-full flex flex-col gap-3">
           {/* Header use to display story type and page index */}
           <div
@@ -98,7 +109,7 @@ export default function RankingStoryPage() {
                 border-b-2 "
           >
             {/* Story type */}
-            <h2 onClick={() => router.push("/ranking")} className="text-[2em] font-bold cursor-pointer">
+            <h2 onClick={() => router.push(routes.ranking())} className="text-[2em] font-bold cursor-pointer">
               Xếp hạng
             </h2>
           </div>
@@ -134,6 +145,6 @@ export default function RankingStoryPage() {
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 }

@@ -12,7 +12,7 @@ import Image from "next/image";
 export default function StorySearchCard({ story, className }: { story: Story; className?: string }) {
   return (
     <Link
-      href={`/stories/${story.type}/${story.title}`}
+      href={`/stories/${story.type}/${story.id}`}
       className={`flex flex-row justify-start items-center bg-background text-foreground gap-2 p-1 rounded-sm
         border-transparent border transition-all duration-50 ease-linear  h-24
         hover:bg-hover-background w-full cursor-pointer
@@ -28,13 +28,7 @@ export default function StorySearchCard({ story, className }: { story: Story; cl
           {story.nation && (
             <span className="inline-block mr-1.5 align-middle">
               {story.nation.flag_image?.url ? (
-                <Image
-                  src={story.nation.flag_image.url}
-                  alt={story.nation.name}
-                  width={20}
-                  height={14}
-                  className="object-contain inline-block"
-                ></Image>
+                <Image src={story.nation.flag_image.url} alt={story.nation.name} width={20} height={14} className="object-contain inline-block"></Image>
               ) : (
                 <span className="text-[1.2rem]">{story.nation.flag_icon}</span>
               )}
