@@ -13,6 +13,7 @@ interface StoryNodeListProps {
   className?: string;
 
   onClickItem?: (storyNode: StoryNode[]) => void;
+  targetStoryNode?: StoryNode;
 }
 
 interface ButtonStoryNodeExpandableProps {
@@ -20,17 +21,44 @@ interface ButtonStoryNodeExpandableProps {
   onClick?: (storyNode: StoryNode[]) => void;
   storyNode: StoryNode;
   className?: string;
+  targetStoryNodeId?: string;
 }
 
-const ButtonStoryNodeExpandable = React.memo(({ index, onClick, storyNode, className }: ButtonStoryNodeExpandableProps) => {
+const ButtonStoryNodeExpandable = React.memo(({ index, onClick, storyNode, className, targetStoryNodeId }: ButtonStoryNodeExpandableProps) => {
   const [open, setOpen] = useState<boolean>(false);
+  const containerRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    if (!targetStoryNodeId) return;
+
+    if (storyNode.id === targetStoryNodeId) {
+      containerRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+
+    const checkContainsTarget = (children?: StoryNode[]): boolean => {
+      if (!children) return false;
+      for (const child of children) {
+        if (child.id === targetStoryNodeId) return true;
+        if (checkContainsTarget(child.children)) return true;
+      }
+      return false;
+    };
+
+    if (checkContainsTarget(storyNode.children)) {
+      setOpen(true);
+    }
+  }, [targetStoryNodeId, storyNode.id, storyNode.children]);
+
+  const isTarget = storyNode.id === targetStoryNodeId;
 
   return (
-    <div className={`flex flex-col w-full h-fit overflow-hidden transition-all duration-100`}>
+    <div ref={containerRef} className={`flex flex-col w-full h-fit overflow-hidden transition-all duration-100 animate-fade-in`}>
       {/* Label*/}
       <div
         className={`flex flex-row justify-between items-center px-2 py-2 w-full 
-          cursor-pointer hover:bg-foreground/20 ${index % 2 === 0 ? "" : "bg-foreground/10"} ${className}`}
+          cursor-pointer font-medium
+          ${index % 2 === 0 ? "bg-background-items" : "bg-foreground/10"} ${className}
+          ${isTarget ? "text-background-items bg-foreground/99 hover:bg-foreground/80" : "text-foreground hover:bg-foreground/20"}`}
         onClick={() => {
           setOpen(!open);
           onClick?.([storyNode]);
@@ -79,6 +107,7 @@ const ButtonStoryNodeExpandable = React.memo(({ index, onClick, storyNode, class
                       index={i}
                       onClick={(node) => onClick?.([storyNode].concat(node))}
                       storyNode={child}
+                      targetStoryNodeId={targetStoryNodeId}
                     />
                   </div>
                 ))}
@@ -91,7 +120,7 @@ const ButtonStoryNodeExpandable = React.memo(({ index, onClick, storyNode, class
   );
 });
 
-export default function StoryNodeList({ storyNodes, size, onClickItem, className }: StoryNodeListProps) {
+export default function StoryNodeList({ storyNodes, size, onClickItem, className, targetStoryNode }: StoryNodeListProps) {
   function handleClick(storyNode: StoryNode[]) {
     onClickItem?.(storyNode);
   }
@@ -114,7 +143,14 @@ export default function StoryNodeList({ storyNodes, size, onClickItem, className
           <div className="w-full overflow-y-auto max-h-[70vh] custom-scrollbar">
             <div className="flex flex-col py-2 w-full h-fit">
               {storyNodes?.map((node, i) => (
-                <ButtonStoryNodeExpandable className="border-b border-foreground" index={i} key={node.id} onClick={handleClick} storyNode={node} />
+                <ButtonStoryNodeExpandable
+                  className="border-b border-foreground"
+                  index={i}
+                  key={node.id}
+                  onClick={handleClick}
+                  storyNode={node}
+                  targetStoryNodeId={targetStoryNode?.id}
+                />
               ))}
             </div>
           </div>
