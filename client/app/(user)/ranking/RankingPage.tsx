@@ -4,6 +4,7 @@ import CategoryCard from "@/components/cards/categories/category-card";
 import { loadingBar } from "@/components/loadings/loading-bar/top-loading-bar.store";
 import Link from "@/components/link/Link";
 import { useEffect } from "react";
+import Navbar from "@/components/layouts/navbar";
 
 export default function RankingPage() {
   useEffect(() => {
@@ -12,7 +13,9 @@ export default function RankingPage() {
 
   return (
     <>
-      <div className="flex flex-col">
+      <div className="flex flex-col px-2">
+        <Navbar items={["Ranking"]} className="p-2 px-3" />
+
         {/* Header use to display story type and page index */}
         <div
           className=" py-2 px-5 z-10 w-full

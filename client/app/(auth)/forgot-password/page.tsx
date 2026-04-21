@@ -2,13 +2,13 @@
 
 import ForgotPasswordForm from "@/components/forms/forgot-password";
 import OtpInputForm from "@/components/forms/otp-input-form";
+import { loadingBar } from "@/components/loadings/loading-bar/top-loading-bar.store";
 
 import useAuth from "@/contexts/AuthContext";
 import authService from "@/services/auth";
-import { em } from "framer-motion/client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 export default function ForgotPasswordPage() {
@@ -51,6 +51,10 @@ export default function ForgotPasswordPage() {
   async function handleSubmitOTPCode(otp: string) {
     fetchResetPassword(email, otp);
   }
+
+  useEffect(() => {
+    loadingBar.close();
+  }, []);
 
   return (
     <div className="flex justify-center items-center w-full h-[80vh] mb-20">

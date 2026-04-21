@@ -19,6 +19,7 @@ import NewestChapter from "@/types/newest-chapter";
 import Story from "@/types/story";
 
 import FilterSortStories from "../list/filter-sort-stories";
+import { routes } from "@/lib/routes";
 
 interface StoryGridProps {
   label: string;
@@ -113,7 +114,7 @@ export default function StoryGrid({ label, storyType, elementsPerPage, className
               bg-background border-b-2 "
         >
           {/* Story type */}
-          <h2 className="text-[2em] font-bold cursor-pointer" onClick={() => router.push(`/stories/${storyType}`)}>
+          <h2 className="text-[2em] font-bold cursor-pointer" onClick={() => router.push(routes.story({ storyType: storyType }))}>
             {label}
           </h2>
           <div className="flex flex-row flex-wrap justify-start items-center gap-2 text-[1.2em] font-bold">

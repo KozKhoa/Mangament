@@ -299,6 +299,7 @@ export function StoriesTrashPage() {
             allowNegative={false}
             allowNumeric={false}
             value={limit}
+            delay={500}
             onChange={(value) => handleNavigate("limit", value)}
           />
         </div>

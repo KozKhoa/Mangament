@@ -19,6 +19,9 @@ import Loading from "@/components/loadings/loading";
 import SortTime from "@/components/sorts/sort-time";
 import FilterDate from "@/components/filters/filter-date";
 import { loadingBar } from "@/components/loadings/loading-bar/top-loading-bar.store";
+import Navbar from "@/components/layouts/navbar";
+import { routes } from "@/lib/routes";
+import { snakeCaseToCapitalizeWord } from "@/utils/string";
 
 const LIMIT = 30;
 
@@ -91,6 +94,8 @@ export function HistoriesPage() {
 
   return (
     <div className="px-2">
+      <Navbar items={["Histories"]} className="p-2 px-3" />
+
       <div className={`w-full `}>
         {/* Header */}
         <div className=" w-full border-b-2">

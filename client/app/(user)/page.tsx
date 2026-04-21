@@ -19,6 +19,7 @@ import StoryCard from "@/components/cards/stories/story-card";
 import RankingCard from "@/components/cards/ranking-card";
 import Link from "@/components/link/Link";
 import { loadingBar } from "@/components/loadings/loading-bar/top-loading-bar.store";
+import { routes } from "@/lib/routes";
 
 export default function Home() {
   const router = useRouter();
@@ -89,12 +90,17 @@ export default function Home() {
         <h2 className="text-[2em] font-bold cursor-pointer border-b-2 w-fit m-auto">Danh mục truyện</h2>
 
         <div className="flex flex-row flex-wrap justify-center items-center gap-x-20 gap-y-10  m-auto w-fit">
-          <CategoryCard className="hover:scale-110" imageSource="/manga.jpg" label="MANGA" onClick={() => router.push("/stories/manga")}></CategoryCard>
+          <CategoryCard
+            className="hover:scale-110"
+            imageSource="/manga.jpg"
+            label="MANGA"
+            onClick={() => router.push(routes.story({ storyType: "manga" }))}
+          ></CategoryCard>
           <CategoryCard
             className="hover:scale-110"
             imageSource="/light_novel.jpg"
             label="LIGHT NOVEL"
-            onClick={() => router.push("/stories/light_novel")}
+            onClick={() => router.push(routes.story({ storyType: "light_novel" }))}
           ></CategoryCard>
         </div>
       </div>
@@ -103,7 +109,7 @@ export default function Home() {
       {auth?.user && (
         <InfinityScrollHorizontalList
           label="Tiếp tục đọc"
-          onClickLabel={() => router.push("/histories")}
+          onClickLabel={() => router.push(routes.history())}
           isLoading={histories === null}
           isNoContent={histories ? histories.length <= 0 : true}
         >
@@ -127,7 +133,7 @@ export default function Home() {
       {/*Genres list */}
       <InfinityScrollHorizontalList
         label="Tag nổi bật"
-        onClickLabel={() => router.push("/genre")}
+        onClickLabel={() => router.push(routes.genre())}
         numberOfElementInScreen={{
           basic: 1,
           sm: 2,
@@ -182,7 +188,7 @@ export default function Home() {
       {/* Best ranking stories */}
       <InfinityScrollHorizontalList
         label="Đánh giá cao nhất"
-        onClickLabel={() => router.push("/ranking")}
+        onClickLabel={() => router.push(routes.ranking())}
         numberOfElementInScreen={{
           basic: 1,
           sm: 2,

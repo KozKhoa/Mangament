@@ -169,8 +169,6 @@ export default function StoryNodeListEditable({
     isEditStoryNode.current = true;
   }, [nodes]);
 
-  console.log(nodes);
-
   return (
     <div className="flex flex-col gap-2">
       <div className="flex w-full justify-end items-center gap-3">

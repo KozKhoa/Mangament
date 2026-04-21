@@ -1,4 +1,4 @@
-import NavBar from "@/components/layouts/navbar";
+import HeaderBar from "@/components/layouts/header";
 import AdminSidebar from "@/components/layouts/sidebar/sidebar-admin";
 import { AdminProvider } from "@/contexts/AdminContext";
 import { Suspense } from "react";
@@ -9,7 +9,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     <Suspense>
       <AdminProvider>
         <div className="flex flex-row w-full h-fit ">
-          <NavBar className="fixed left-2.5 right-2.5 z-40" autoHide={false}></NavBar>
+          <HeaderBar className="fixed left-2.5 right-2.5 z-40" autoHide={false} />
 
           <AdminSidebar />
 

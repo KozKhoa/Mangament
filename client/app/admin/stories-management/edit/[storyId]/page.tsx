@@ -307,7 +307,7 @@ export function EditStory() {
         <Loading className="h-screen"></Loading>
       ) : (
         <div className="flex flex-col gap-5 w-full">
-          <Link href={`/stories/${story?.type}/${story?.title}`} className="w-fit m-auto">
+          <Link href={`/stories/${story?.type}/${story?.id}`} className="w-fit m-auto">
             <h2 className="font-semibold">{story?.title}</h2>
           </Link>
           {/* Edit story */}

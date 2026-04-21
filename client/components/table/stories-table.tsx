@@ -146,7 +146,7 @@ export default function StoriesTable({ className, data, pagination }: StoriesTab
             {stories.map((story, i) => (
               <tr key={story.id} className={`hover:bg-foreground/10 ${i % 2 === 0 ? "" : "bg-foreground/2"}`}>
                 <TD>
-                  <Link href={`/stories/${story.type}/${story.title}`}>
+                  <Link href={`/stories/${story.type}/${story.id}`}>
                     {story.cover_art?.url && (
                       <Image
                         className="w-24 m-auto my-1 hover:w-48 duration-200 rounded-sm min-w-[100px]"

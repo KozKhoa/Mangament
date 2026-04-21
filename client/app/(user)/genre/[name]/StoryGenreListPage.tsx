@@ -3,10 +3,12 @@
 import GenreCategoryCard from "@/components/cards/categories/genre-category-card";
 import StoryGenreCard from "@/components/cards/stories/story-genre-card";
 import MasonryGrid from "@/components/grids/masonry-grid";
+import Navbar from "@/components/layouts/navbar";
 import Loading from "@/components/loadings/loading";
 import { loadingBar } from "@/components/loadings/loading-bar/top-loading-bar.store";
 import SwitchPageSmall from "@/components/switch-page/small";
 import DEFAULT from "@/constants/default";
+import { routes } from "@/lib/routes";
 
 import storyService from "@/services/story";
 import { Pagination } from "@/types/pagination";
@@ -56,6 +58,14 @@ export default function StoryGenreListPage() {
 
   return (
     <div className="m-2">
+      <Navbar
+        items={["Genre", snakeCaseToCapitalizeWord(genre ?? "")]}
+        onClickItem={(i) => {
+          if (i === 0) router.push(routes.genre());
+          else if (i === 1) router.push(routes.genre({ genre: genre ?? "" }));
+        }}
+        className="p-2 px-3"
+      />
       <h2 className="font-bold text-3xl m-auto w-fit mt-4">Thể loại</h2>
 
       <div className="  px-5 z-10 w-full flex flex-row flex-wrap justify-between items-center gap-2 border-b-2 ">
@@ -77,7 +87,7 @@ export default function StoryGenreListPage() {
           maxPage={pagination?.totalPages ?? 0}
           page={page}
           onChange={(pageIndex) => {
-            router.push(`/genre/${genre}?page=${pageIndex}`);
+            router.push(`${routes.genre({ genre: genre })}?page=${pageIndex}`);
           }}
         />
       </div>

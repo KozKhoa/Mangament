@@ -69,8 +69,8 @@ export default function StoryCard({ data, className }: StoryCardProps) {
     }
   };
 
-  const hrefStory = `/stories/${story.type}/${story.title}`;
-  const hrefNewestChapter = `/stories/${story.type}/${story.title}/chapter/${newestChapter.at(0)?.orderIndex}/${newestChapter.at(0)?.id}`;
+  const hrefStory = `/stories/${story.type}/${story.id}`;
+  const hrefNewestChapter = `/stories/${story.type}/${story.id}/${newestChapter.at(0)?.id}`;
 
   useEffect(() => {
     setNewestChapter(convertNewestChapter(story?.newest_chapter || [], 1));

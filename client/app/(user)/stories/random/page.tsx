@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { useEffect } from "react";
 import Loading from "@/components/loadings/loading";
 import { loadingBar } from "@/components/loadings/loading-bar/top-loading-bar.store";
+import { routes } from "@/lib/routes";
 
 export default function StoryRandomPage() {
   const router = useRouter();
@@ -19,7 +20,7 @@ export default function StoryRandomPage() {
 
     const story = res.data;
 
-    router.replace(`/stories/${story?.type}/${story?.title}`);
+    router.replace(routes.story({ storyType: story?.type, storyId: story?.id }));
   }
 
   useEffect(() => {
