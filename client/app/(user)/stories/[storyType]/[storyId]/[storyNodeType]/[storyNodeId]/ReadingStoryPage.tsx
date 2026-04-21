@@ -194,6 +194,8 @@ export default function ReadingStoryPage() {
 
     if (!storyNode) return;
 
+    if (storyNode.id === storyNodeId) return;
+
     if (storyNode.type !== "chapter") return;
 
     loadingBar.open({});
@@ -207,7 +209,7 @@ export default function ReadingStoryPage() {
     modal.open("custom", {
       content: (
         <div className="min-w-[350px] w-[80vw] h-[80vh] flex flex-col gap-2 justify-between">
-          <StoryNodeList onClickItem={handleNavigateStoryNode} storyNodes={story?.children} size={story?.number_of_children} />
+          <StoryNodeList onClickItem={handleNavigateStoryNode} storyNodes={story?.children} size={story?.number_of_children} targetStoryNode={storyNode} />
 
           <Button buttonType="default" onClick={() => modal.close()} className="my-2 ml-auto">
             Đóng

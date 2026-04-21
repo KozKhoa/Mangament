@@ -147,12 +147,12 @@ export default function StoryDetailPage() {
       {/* Review */}
       <div
         className="flex flex-col border border-foreground/30 rounded-sm px-5 py-2.5 gap-7 
-          bg-background-items shadow-lg"
+          bg-background-items shadow-lg animate-slide-in delay-200"
       >
         <h2 className="w-full text-center border-b border-foreground/30 font-semibold">Xem trước</h2>
         <div
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 
-            gap-5"
+            gap-5 animate-fade-in duration-500 delay-200"
         >
           {reviews?.map((review, i) => (
             <div key={i} className="border border-foreground/30 rounded-sm overflow-hidden">
