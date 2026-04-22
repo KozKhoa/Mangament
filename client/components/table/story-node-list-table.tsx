@@ -55,8 +55,7 @@ const ButtonStoryNodeExpandable = React.memo(({ index, onClick, storyNode, class
     <div ref={containerRef} className={`flex flex-col w-full h-fit overflow-hidden transition-all duration-100 animate-fade-in`}>
       {/* Label*/}
       <div
-        className={`flex flex-row justify-between items-center px-2 py-2 w-full 
-          cursor-pointer font-medium
+        className={`flex flex-row justify-between items-center px-2 py-2 w-full cursor-pointer
           ${index % 2 === 0 ? "bg-background-items" : "bg-foreground/10"} ${className}
           ${isTarget ? "text-background-items bg-foreground/99 hover:bg-foreground/80" : "text-foreground hover:bg-foreground/20"}`}
         onClick={() => {
@@ -126,15 +125,12 @@ export default function StoryNodeList({ storyNodes, size, onClickItem, className
   }
 
   return (
-    <div
-      className={`flex flex-col border border-foreground/30 rounded-sm px-2.5 
-       h-fit ${className}`}
-    >
+    <div className={`flex flex-col border border-foreground/30 rounded-sm px-2.5 py-2 h-fit ${className}`}>
       {!storyNodes ? (
         <Loading className="w-full h-64"></Loading>
       ) : (
         <div className="w-full">
-          <div className="flex flex-row items-center justify-between px-2 py-1.5 border-b border-foreground text-[1.1em] font-bold w-full">
+          <div className="flex flex-row items-center justify-between px-2 pb-1.5 border-b border-foreground text-[1.1em] font-bold w-full">
             <div className="flex-1 text-left">Title</div>
             <div className="md:w-28 shrink-0 text-end pr-2">View</div>
             <div className="md:w-28 shrink-0 text-end">Date</div>
