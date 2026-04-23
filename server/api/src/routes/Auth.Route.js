@@ -1,10 +1,12 @@
 import express from "express";
 
-import { ForgotPassword, Login, Logout, Refresh, Register, ResetPassword, ChangePassword } from "../controllers/Auth.Controller.js";
+import * as authControrller from "../controllers/Auth.Controller.js";
 
 import { GetUser } from "../controllers/User.Controller.js";
 
-import { AuthenticationToken, AuthorizationRole } from "../middlewares/Auth.Middleware.js";
+import { AuthenticationToken } from "../middlewares/Auth.Middleware.js";
+import { ValidateData } from "../middlewares/Validate.Middleware.js";
+import authShemas from "../schemas/auth.schemas.js";
 
 const authRouter = express.Router();
 
@@ -298,13 +300,14 @@ const authRouter = express.Router();
  *               message: "New password has been sent to your email"
  */
 
-authRouter.post("/register", Register);
-authRouter.post("/login", Login);
-authRouter.post("/logout", Logout);
-authRouter.post("/refresh", Refresh);
 authRouter.get("/me", AuthenticationToken, GetUser);
-authRouter.post("/forgot-password", ForgotPassword);
-authRouter.post("/reset-password", ResetPassword);
-authRouter.post("/change-password", AuthenticationToken, ChangePassword);
+
+authRouter.post("/register", ValidateData(authShemas.register), authControrller.Register);
+authRouter.post("/login", ValidateData(authShemas.login), authControrller.Login);
+authRouter.post("/logout", authControrller.Logout);
+authRouter.post("/refresh", authControrller.Refresh);
+authRouter.post("/forgot-password", ValidateData(authShemas.forgotPassword), authControrller.ForgotPassword);
+authRouter.post("/reset-password", ValidateData(authShemas.resetPassword), authControrller.ResetPassword);
+authRouter.post("/change-password", AuthenticationToken, ValidateData(authShemas.changePassword), authControrller.ChangePassword);
 
 export default authRouter;

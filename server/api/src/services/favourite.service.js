@@ -19,6 +19,7 @@ export async function FindAllFavouriteStories({
   genres = [],
   star = [],
   view = [],
+  status = [],
   sort = { created_at: "desc" },
 }) {
   const storyVer = await redisUtils.stories(storyId).get(); // This is used to update when a story being updated like it being deleted
@@ -43,6 +44,7 @@ export async function FindAllFavouriteStories({
     "genres=" + genres,
     "star=" + star,
     "view=" + view,
+    "status=" + status,
     "sort=" + JSON.stringify(sort),
   ].join(":");
 
@@ -55,6 +57,7 @@ export async function FindAllFavouriteStories({
       is_actived: true,
       deleted_status: "not_deleted",
       ...(storyId && { id: storyId }),
+      ...(status && status.length > 0 && { status: { in: status } }),
       ...(storyType && storyType.length > 0 && { type: { in: storyType } }),
       ...(nations && nations.length > 0 && { nation: { name: { in: nations } } }),
       ...(genres &&

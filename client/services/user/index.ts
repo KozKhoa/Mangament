@@ -21,7 +21,7 @@ export async function updateUser(user: User): Promise<ServiceResult<User>> {
     const res = await api.put("/users/me", {
       name: user.name,
       gender: user.gender,
-      birthday: user.birthday,
+      birthday: user.birthday || undefined,
       ...(avatar && { avatar: avatar }),
     });
 

@@ -19,7 +19,7 @@ export async function GetStory(req, res, next) {
     // Check user request
     if (!storyId && !title) throw CreateError(400, '"id" or "title" is required');
 
-    const { type, isGettingChildren, isGettingSummary, isGettingNewestChapter } = ConvertQuery(req.query);
+    const { type, isGettingChildren, isGettingSummary, isGettingNewestChapter } = req.query;
 
     const story = await FindStory({
       id: storyId,
@@ -104,9 +104,7 @@ export async function GetAllStories(req, res, next) {
   try {
     const userId = req?.user?.id;
 
-    const { isGettingChildren, authors, keyword, isGettingNewestChapter, limit, status, page, type, genres, star, view, sort, nations } = ConvertQuery(
-      req.query,
-    );
+    const { isGettingChildren, authors, keyword, isGettingNewestChapter, limit, status, page, type, genres, star, view, sort, nation } = req.query;
 
     if (genres && genres.length > 0) throwErrorIfInvalidGenres(genres);
 
@@ -121,7 +119,7 @@ export async function GetAllStories(req, res, next) {
       sort: sort,
       page: page,
       limit: limit,
-      nation: nations,
+      nation: nation,
       status: status,
       isGettingChildren: isGettingChildren,
       isGettingNewestChapter: isGettingNewestChapter,

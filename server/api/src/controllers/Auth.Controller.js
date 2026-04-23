@@ -69,7 +69,7 @@ export async function Register(req, res, next) {
       success: true,
       message: "Register success",
       data: {
-        user: newUser.data,
+        user: newUser.data.user,
         accessToken: newUser.data.accessToken,
       },
     });

@@ -3,6 +3,8 @@ import express from "express";
 import * as favouriteController from "../controllers/Favourite.Controller.js";
 
 import { AuthenticationToken } from "../middlewares/Auth.Middleware.js";
+import { ValidateData } from "../middlewares/Validate.Middleware.js";
+import favouriteSchemas from "../schemas/favourite.schemas.js";
 
 const favouriteRoute = express.Router();
 
@@ -105,7 +107,7 @@ const favouriteRoute = express.Router();
  *       401:
  *         $ref: '#/components/responses/Unauthorized'
  */
-favouriteRoute.get("/user/me", AuthenticationToken, favouriteController.GetAllFavouriteStories);
+favouriteRoute.get("/user/me", ValidateData(favouriteSchemas.getAllFavourites), AuthenticationToken, favouriteController.GetAllFavouriteStories);
 
 /**
  * @swagger
@@ -141,7 +143,7 @@ favouriteRoute.get("/user/me", AuthenticationToken, favouriteController.GetAllFa
  *       401:
  *         $ref: '#/components/responses/Unauthorized'
  */
-favouriteRoute.post("/story/:id", AuthenticationToken, favouriteController.AddNewFavouriteStory);
+favouriteRoute.post("/story/:id", AuthenticationToken, ValidateData(favouriteSchemas.addFavourite), favouriteController.AddNewFavouriteStory);
 
 /**
  * @swagger
@@ -175,6 +177,6 @@ favouriteRoute.post("/story/:id", AuthenticationToken, favouriteController.AddNe
  *       401:
  *         $ref: '#/components/responses/Unauthorized'
  */
-favouriteRoute.delete("/:id", AuthenticationToken, favouriteController.DeleteFavouriteStory);
+favouriteRoute.delete("/:id", AuthenticationToken, ValidateData(favouriteSchemas.deleteFavourite), favouriteController.DeleteFavouriteStory);
 
 export default favouriteRoute;

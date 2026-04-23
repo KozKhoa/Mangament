@@ -5,10 +5,8 @@ import { FindStoryNode, IncreaseOneViewForStoryNodeAndItsParents } from "../serv
 export async function GetStoryNode(req, res, next) {
   try {
     const storyNodeId = req.params?.id;
-    const isGettingChildren = req.query?.isGettingChildren == "true" ? true : false;
-    const isGettingContent = req.query?.isGettingContent == "true" ? true : false;
-
-    if (!storyNodeId && !(storyId && storyNodeType && orderIndex)) throw CreateError(400, "'id' is required");
+    const isGettingChildren = req.query?.isGettingChildren;
+    const isGettingContent = req.query?.isGettingContent;
 
     const storyNode = await FindStoryNode({
       id: storyNodeId,

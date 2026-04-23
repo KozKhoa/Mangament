@@ -1,6 +1,8 @@
 import express from "express";
 
 import { GetStoryNode, IncreaseOneViewForStoryNode } from "../controllers/StoryNode.Controller.js";
+import { ValidateData } from "../middlewares/Validate.Middleware.js";
+import storyNodeSchemas from "../schemas/story-node.schema.js";
 
 const storyNodeRoute = express.Router();
 
@@ -99,7 +101,7 @@ const storyNodeRoute = express.Router();
  *         $ref: '#/components/responses/Unauthorized'
  */
 
-storyNodeRoute.get("/:id", GetStoryNode);
-storyNodeRoute.patch("/:id/view", IncreaseOneViewForStoryNode);
+storyNodeRoute.get("/:id", ValidateData(storyNodeSchemas.getStoryNode), GetStoryNode);
+storyNodeRoute.patch("/:id/view", ValidateData(storyNodeSchemas.increaseView), IncreaseOneViewForStoryNode);
 
 export default storyNodeRoute;

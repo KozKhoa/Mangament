@@ -3,6 +3,8 @@ import express from "express";
 import * as historyController from "../controllers/History.Controller.js";
 
 import { AuthenticationToken } from "../middlewares/Auth.Middleware.js";
+import { ValidateData } from "../middlewares/Validate.Middleware.js";
+import historySchemas from "../schemas/history.schemas.js";
 
 const historyRoute = express.Router();
 
@@ -100,7 +102,7 @@ const historyRoute = express.Router();
  *       401:
  *         $ref: '#/components/responses/Unauthorized'
  */
-historyRoute.get("/user/me", AuthenticationToken, historyController.GetAllReadingHistories);
+historyRoute.get("/user/me", AuthenticationToken, ValidateData(historySchemas.getAllHistories), historyController.GetAllReadingHistories);
 
 /**
  * @swagger
@@ -160,7 +162,7 @@ historyRoute.get("/user/me", AuthenticationToken, historyController.GetAllReadin
  *       401:
  *         $ref: '#/components/responses/Unauthorized'
  */
-historyRoute.post("/story/:storyId/story-node/:storyNodeId", AuthenticationToken, historyController.AddNewReadingHistory);
+historyRoute.post("/story/:storyId/story-node/:storyNodeId", AuthenticationToken, ValidateData(historySchemas.addHistory), historyController.AddNewReadingHistory);
 
 /**
  * @swagger
@@ -194,6 +196,6 @@ historyRoute.post("/story/:storyId/story-node/:storyNodeId", AuthenticationToken
  *       401:
  *         $ref: '#/components/responses/Unauthorized'
  */
-historyRoute.delete("/:id", AuthenticationToken, historyController.DeleteReadingHistory);
+historyRoute.delete("/:id", AuthenticationToken, ValidateData(historySchemas.deleteHistory), historyController.DeleteReadingHistory);
 
 export default historyRoute;

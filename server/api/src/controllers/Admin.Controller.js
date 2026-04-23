@@ -35,20 +35,7 @@ export async function GetDashboardOverview(req, res, next) {
 // GET /admin/dashboard/stats/views
 export async function GetDashboardViewInRange(req, res, next) {
   try {
-    let { fromDate, toDate, groupBy } = ConvertQuery(req.query);
-
-    const storyId = req.query?.storyId;
-    const storyNodeId = req.query?.storyNodeId;
-
-    if (!fromDate && !toDate) {
-      toDate = new Date();
-
-      fromDate = new Date();
-      fromDate.setDate(fromDate.getDate() - 7);
-    }
-
-    fromDate?.setUTCHours(0, 0, 0, 0);
-    toDate?.setUTCHours(23, 59, 59, 999);
+    let { fromDate, toDate, groupBy, storyId, storyNodeId } = req.query;
 
     const viewByDate = await adminService.GetDashboardViews({
       storyId: storyId,
@@ -67,7 +54,7 @@ export async function GetDashboardViewInRange(req, res, next) {
 // GET /admin/dashboard/stats/new-users
 export async function GetDashboardNewUsers(req, res, next) {
   try {
-    let { fromDate, toDate, groupBy } = ConvertQuery(req.query);
+    let { fromDate, toDate, groupBy } = req.query;
 
     if (!fromDate && !toDate) {
       toDate = new Date();
@@ -75,8 +62,6 @@ export async function GetDashboardNewUsers(req, res, next) {
       fromDate = new Date();
       fromDate.setDate(fromDate.getDate() - 7);
     }
-    fromDate?.setUTCHours(0, 0, 0, 0);
-    toDate?.setUTCHours(23, 59, 59, 999);
 
     const newUsersByDate = adminService.GetDashboardNewUsers({ fromDate, toDate, groupBy: groupBy });
 

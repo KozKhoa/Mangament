@@ -5,6 +5,8 @@ import { AddOneViewForStory, GetAllStories, GetRandomStory, GetStory, GetStoryRe
 import * as storyController from "../controllers/Story.Controller.js";
 
 import { AuthenticationToken, OptionalAuth } from "../middlewares/Auth.Middleware.js";
+import { ValidateData } from "../middlewares/Validate.Middleware.js";
+import storySchemas from "../schemas/story.schemas.js";
 
 const storyRoute = express.Router();
 
@@ -202,10 +204,10 @@ const storyRoute = express.Router();
 storyRoute.get("/random", OptionalAuth, GetRandomStory);
 
 storyRoute.get("/:id/review", GetStoryReview);
-storyRoute.get("/:id", OptionalAuth, GetStory);
-storyRoute.get("/:id/recommmed", OptionalAuth, storyController.GetRecommendStories);
-storyRoute.get("/title/:title", OptionalAuth, GetStory);
-storyRoute.get("/", OptionalAuth, GetAllStories);
+storyRoute.get("/:id", OptionalAuth, ValidateData(storySchemas.getStory), GetStory);
+storyRoute.get("/:id/recommmed", OptionalAuth, ValidateData(storySchemas.getRecommendStories), storyController.GetRecommendStories);
+storyRoute.get("/title/:title", OptionalAuth, ValidateData(storySchemas.getStory), GetStory);
+storyRoute.get("/", OptionalAuth, ValidateData(storySchemas.getAllStories), GetAllStories);
 storyRoute.patch("/:id/view", AddOneViewForStory);
 
 export default storyRoute;

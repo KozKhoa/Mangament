@@ -1,5 +1,5 @@
 import ErrorCodes from "../constants/Error.js";
-import { AddComment, FindAllComments, SoftDeleteComment, UpdateComment } from "../services/comment.service.js";
+import { AddComment, FindAllComments, UpdateComment } from "../services/comment.service.js";
 
 import * as commentService from "../services/comment.service.js";
 
@@ -37,14 +37,9 @@ export async function PostComment(req, res, next) {
     const storyId = req.params?.storyId;
     const storyNodeId = req.params?.storyNodeId ?? null;
 
-    const content = req.body?.content ?? "";
-    const title = req.body.title ?? "";
+    const { title, content } = req.body;
 
-    if (!title || !content) throw CreateError(400, "Both 'title' and 'content' are required");
-
-    if (!storyId && !storyNodeId) throw CreateError(400, "Require at least 'storyId' or 'storyNodeId");
-
-    if (title.length > 100) throw CreateError(400, "Title must less than 100 character");
+    if (!storyId && !storyNodeId) throw CreateError(400, "Require at least 'storyId' or 'storyNodeId'");
 
     const comment = await AddComment({ userId, storyId, storyNodeId, title, content });
 
@@ -64,26 +59,23 @@ export async function PutComment(req, res, next) {
   try {
     const userId = req.user.id;
     const commentId = req.params?.id;
-    const message = req.body?.message;
+    const { title, content } = req.body;
 
     if (!commentId) throw CreateError(400, "'id' for comment is required");
-    if (!message) throw CreateError(400, "'message");
 
-    // Make sure this comment exist and belong to user;
+    // Find the comment first to check ownership
+    const comment = await commentService.FindComment(commentId);
+    if (!comment?.data) throw CreateError(404, "Comment not found");
+    if (comment.data.user_id !== userId) throw CreateError(401, "User is not allowed to update others' comments");
 
-    const updateComment = await UpdateComment({ id: commentId }, { message: message, updated_at: new Date() });
+    const updateComment = await UpdateComment(commentId, { title, content });
 
     if (!updateComment || !updateComment.success) throw CreateError(ErrorCodes.INTERNAL_SERVER_ERROR);
 
     return res.status(200).json({
       success: true,
       message: "Update comment successfully",
-      data: {
-        comment: {
-          id: commentId,
-        },
-        message: updateComment.data.message,
-      },
+      data: updateComment.data,
     });
   } catch (error) {
     next(error);
