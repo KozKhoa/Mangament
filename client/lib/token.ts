@@ -6,11 +6,9 @@ export function getAccessToken() {
 }
 
 export function setAccessToken(accessToken: string) {
-  if (typeof window === "undefined") return;
   return localStorage.setItem(ACCESS_TOKEN, accessToken);
 }
 
 export function removeAccessToken() {
-  if (typeof window === "undefined") return;
   return localStorage.removeItem(ACCESS_TOKEN);
 }

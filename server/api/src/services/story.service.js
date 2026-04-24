@@ -484,8 +484,6 @@ export async function AddStory({ title, otherTitles, type, nation, genres, autho
     otherTitles = [...new Set(otherTitles.map((title) => title.trim()))];
   }
 
-  console.log(otherTitles);
-
   return await db.$transaction(async (tx) => {
     if (authorIds) {
       const authors = await tx.author.findMany();

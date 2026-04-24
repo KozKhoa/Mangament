@@ -2,7 +2,9 @@ import jwt from "jsonwebtoken";
 
 export const GenRefreshToken = ({ id, name, email, role }) => {
   try {
-    return jwt.sign({ id: id, name: name, email: email, role: role }, process.env.JWT_REFRESH_SECRET, {
+    const sessionId = crypto.randomUUID();
+
+    return jwt.sign({ id: id, name: name, email: email, role: role, sessionId: sessionId }, process.env.JWT_REFRESH_SECRET, {
       expiresIn: process.env.JWT_REFRESH_EXPIRES_IN,
     });
   } catch (error) {
@@ -12,7 +14,9 @@ export const GenRefreshToken = ({ id, name, email, role }) => {
 
 export const GenAccessToken = ({ id, name, email, role }) => {
   try {
-    return jwt.sign({ id: id, name: name, email: email, role: role }, process.env.JWT_ACCESS_SECRET, {
+    const sessionId = crypto.randomUUID();
+
+    return jwt.sign({ id: id, name: name, email: email, role: role, sessionId: sessionId }, process.env.JWT_ACCESS_SECRET, {
       expiresIn: process.env.JWT_ACCESS_EXPIRES_IN,
     });
   } catch (error) {

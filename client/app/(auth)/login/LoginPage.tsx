@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { toast } from "sonner";
 
 import Link from "@/components/link/Link";
@@ -56,6 +56,7 @@ export default function LoginPage() {
   const [isProcessing, setIsProcessing] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
+    if (isProcessing) return;
     e.preventDefault(); // Prevent page from reload after press submit
 
     if (!validateEmailFormat(email)) {
@@ -82,15 +83,29 @@ export default function LoginPage() {
     setIsProcessing(false);
   }
 
+  async function handleLoginGoogle() {
+    if (isProcessing) return;
+
+    setIsProcessing(true);
+    if (remember) rememberMe.turnOn();
+    else rememberMe.turnOff();
+
+    await signIn("google");
+  }
+
   useEffect(() => {
     loadingBar.close();
   }, []);
 
+  const processedToken = useRef<string | null>(null);
+
   useEffect(() => {
-    if (session && (session as any).idToken) {
-      auth?.loginWithGoogle((session as any).idToken);
+    const idToken = (session as any)?.idToken;
+    if (session && idToken && !auth?.user && processedToken.current !== idToken) {
+      processedToken.current = idToken;
+      auth?.loginWithGoogle(idToken);
     }
-  }, [session, auth]);
+  }, [session, auth?.user]);
 
   return (
     <div className="w-full min-h-[80vh] flex justify-center items-center">
@@ -103,14 +118,14 @@ export default function LoginPage() {
 
         {/* Google login */}
         <div className="flex flex-col gap-3">
-          <button
-            onClick={() => signIn("google")}
+          <div
+            onClick={handleLoginGoogle}
             className="w-full flex items-center justify-center gap-2 py-1.5 bg-white text-black hover:bg-gray-100 
               border border-gray-300 hover:cursor-pointer rounded-sm"
           >
             <GoogleSvg />
             <p>Đăng nhập với Google</p>
-          </button>
+          </div>
 
           <div className="flex items-center gap-2 my-2">
             <div className="flex-1 h-px bg-foreground/20"></div>
