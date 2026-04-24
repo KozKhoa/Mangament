@@ -72,8 +72,6 @@ class AuthService {
 
     const { email, name, picture, sub } = payload;
 
-    console.log(payload);
-
     let user = await db.user.findUnique({
       where: { email: email },
       select: {

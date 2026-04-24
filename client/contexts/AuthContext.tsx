@@ -10,6 +10,8 @@ import userService from "@/services/user";
 import { validateEmailFormat, validatePasswordFormat } from "@/lib/validation";
 import { useRouter } from "next/navigation";
 
+import { signOut } from "next-auth/react";
+
 interface AuthContextProps {
   user: User | null;
   loading: boolean;
@@ -148,6 +150,28 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }
 
+  async function loginWithGoogle(idToken: string): Promise<any> {
+    setLoading(true);
+    const res = await authService.loginWithGoogle(idToken);
+    setLoading(false);
+
+    if (!res.success) return toast.warning(res.message);
+
+    console.log(res);
+
+    const user = res.data?.user;
+    const accessToken = res.data?.accessToken;
+
+    if (user && accessToken) {
+      setUser(user);
+      token.setAccessToken(accessToken);
+
+      toast.message(res.message);
+
+      router.replace("/");
+    }
+  }
+
   async function register(name: string, email: string, password: string) {
     if (!validateEmailFormat(email)) return toast.error("Invalid Email");
     if (!validatePasswordFormat(password)) return toast.error("Password must have at least six character");
@@ -176,9 +200,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     authService.logout();
     setUser(null);
     token.removeAccessToken();
-    router.refresh();
+    rememberMe.turnOff();
+    await signOut();
 
     toast.message("Đã đăng xuất thành công");
+
+    router.refresh();
   }
 
   async function changePassword(oldPassword: string, newPassword: string) {
@@ -203,26 +230,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       me();
     }
   }, []);
-
-  async function loginWithGoogle(idToken: string): Promise<any> {
-    setLoading(true);
-    const res = await authService.loginWithGoogle(idToken);
-    setLoading(false);
-
-    if (!res.success) return toast.warning(res.message);
-
-    const user = res.data?.user;
-    const accessToken = res.data?.accessToken;
-
-    if (user && accessToken) {
-      setUser(user);
-      token.setAccessToken(accessToken);
-
-      toast.message(res.message);
-
-      router.replace("/");
-    }
-  }
 
   return (
     <AuthContext.Provider
