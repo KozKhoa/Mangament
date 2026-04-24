@@ -108,11 +108,10 @@ const FilterNation = React.memo(({ value, onChange }: FilterRatingsProps) => {
 
     setSelectedIndex(new Set(selectedArr));
     setFinalSelectedIndex(new Set(selectedArr));
-  }, [value]);
+  }, [value, nations]);
 
   return (
     <ButtonDropdown
-      openOnLeft={true}
       className={`border-foreground/30 border rounded-sm relative text-foreground`}
       acceptButtonLabel="Finish"
       onClickAcceptButton={handleFinish}

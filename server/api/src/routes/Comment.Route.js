@@ -3,6 +3,8 @@ import express from "express";
 import { DeleteComment, GetAllComments, PostComment, PutComment } from "../controllers/Comment.Controller.js";
 
 import { AuthenticationToken } from "../middlewares/Auth.Middleware.js";
+import { ValidateData } from "../middlewares/Validate.Middleware.js";
+import commentSchemas from "../schemas/comment.schemas.js";
 
 const commentRoute = express.Router();
 
@@ -110,14 +112,14 @@ const commentRoute = express.Router();
  *         $ref: '#/components/responses/Unauthorized'
  */
 
-commentRoute.get("/story/:storyId", GetAllComments);
-commentRoute.get("/story/:storyId/story-node/:storyNodeId", GetAllComments);
+commentRoute.get("/story/:storyId", ValidateData(commentSchemas.getAllComments), GetAllComments);
+commentRoute.get("/story/:storyId/story-node/:storyNodeId", ValidateData(commentSchemas.getAllComments), GetAllComments);
 
-commentRoute.post("/story/:storyId", AuthenticationToken, PostComment);
-commentRoute.post("/story/:storyId/story-node/:storyNodeId", AuthenticationToken, PostComment);
+commentRoute.post("/story/:storyId", AuthenticationToken, ValidateData(commentSchemas.postComment), PostComment);
+commentRoute.post("/story/:storyId/story-node/:storyNodeId", AuthenticationToken, ValidateData(commentSchemas.postComment), PostComment);
 
-commentRoute.put("/:id", AuthenticationToken, PutComment);
+commentRoute.put("/:id", AuthenticationToken, ValidateData(commentSchemas.updateComment), PutComment);
 
-commentRoute.delete("/:id", AuthenticationToken, DeleteComment);
+commentRoute.delete("/:id", AuthenticationToken, ValidateData(commentSchemas.deleteComment), DeleteComment);
 
 export default commentRoute;

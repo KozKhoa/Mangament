@@ -21,6 +21,34 @@ function clearRefreshTokenFromCookie(res) {
   });
 }
 
+export async function LoginWithGoogle(req, res, next) {
+  try {
+    const { idToken } = req.body;
+    if (!idToken) throw CreateError(400, "idToken is required");
+
+    const { user, accessToken, refreshToken } = (await authService.loginWithGoogle(idToken)).data;
+
+    putRefreshTokenToCookie(res, refreshToken);
+
+    res.status(200).json({
+      success: true,
+      message: "Login with Google success",
+      data: {
+        accessToken: accessToken,
+        user: {
+          id: user.id,
+          name: user.name || "",
+          email: user.email || "",
+          role: user.role || "user",
+          avatar: user.avatar,
+        },
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
 export async function Login(req, res, next) {
   try {
     const { email, password } = req.body; // Get email and password from request
@@ -69,7 +97,7 @@ export async function Register(req, res, next) {
       success: true,
       message: "Register success",
       data: {
-        user: newUser.data,
+        user: newUser.data.user,
         accessToken: newUser.data.accessToken,
       },
     });

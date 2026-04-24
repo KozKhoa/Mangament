@@ -3,14 +3,12 @@ import { FindUser } from "../services/user.service.js";
 
 import { CreateError } from "../utils/ErrorHandle.js";
 
-import { ConvertQuery } from "../utils/QueryConvert.js";
-
 // GET /favourites/user/me
 export async function GetAllFavouriteStories(req, res, next) {
   try {
     const userId = req.user?.id;
 
-    const { limit, page, sort, type, authors, genres, star, view, nations } = ConvertQuery(req.query);
+    const { limit, page, sort, type, author, genre, star, view, nation, status } = req.query;
 
     const favouriteStories = await FindAllFavouriteStories({
       userId: userId,
@@ -20,9 +18,10 @@ export async function GetAllFavouriteStories(req, res, next) {
       sort: sort,
       star: star,
       view: view,
-      nations: nations,
-      authorsId: authors,
-      genres: genres,
+      nations: nation,
+      authorsId: author,
+      genres: genre,
+      status: status,
     });
 
     if (!favouriteStories || !favouriteStories.success) throw CreateError();

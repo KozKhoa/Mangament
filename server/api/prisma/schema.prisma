@@ -4,22 +4,35 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
+  provider = "postgresql"
+}
+
+model Account {
+  id                  String @id @default(uuid()) @db.Uuid
+  user_id             String @db.Uuid
+  provider            String @default("email")
+  provider_account_id String
+
+  password String?
+
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([provider, provider_account_id])
 }
 
 model User {
-  id                String           @id @default(uuid()) @db.Uuid
-  name              String
-  email             String           @unique
-  password          String
-  gender            Gender?          @default(other)
-  birthday          DateTime?
-  join_date         DateTime         @default(now())
-  role              Role             @default(user)
-  nation_id         String?          @db.Uuid
-  avatar_id         String?          @db.Uuid
-  deleted_status    DeletedStatus    @default(not_deleted)
-  is_banned         Boolean          @default(false)
+  id             String        @id @default(uuid()) @db.Uuid
+  name           String
+  email          String        @unique
+  gender         Gender?       @default(other)
+  birthday       DateTime?
+  join_date      DateTime      @default(now())
+  role           Role          @default(user)
+  nation_id      String?       @db.Uuid
+  avatar_id      String?       @db.Uuid
+  deleted_status DeletedStatus @default(not_deleted)
+  is_banned      Boolean       @default(false)
+
   comments          Comment[]
   favourite_story   FavouriteStory[]
   story_rating      Rating[]
@@ -29,6 +42,7 @@ model User {
   poster_story_node StoryNode[]
   avatar            Image?           @relation(fields: [avatar_id], references: [id])
   nation            Nation?          @relation(fields: [nation_id], references: [id])
+  accounts          Account[]
 }
 
 model Story {
@@ -64,24 +78,24 @@ model Story {
 }
 
 model StoryNode {
-  id                 String                   @id @default(uuid()) @db.Uuid
-  story_id           String?                  @db.Uuid
-  parent_id          String?                  @db.Uuid
+  id                 String             @id @default(uuid()) @db.Uuid
+  story_id           String?            @db.Uuid
+  parent_id          String?            @db.Uuid
   title              String?
   type               StoryNodeType
-  order_index        Float?                   @db.Real
-  view               Int                      @default(0)
-  number_of_children Int                      @default(0)
-  updated_at         DateTime                 @default(now())
-  created_at         DateTime                 @default(now())
-  deleted_status     DeletedStatus            @default(not_deleted)
-  poster_id          String?                  @db.Uuid
+  order_index        Float?             @db.Real
+  view               Int                @default(0)
+  number_of_children Int                @default(0)
+  updated_at         DateTime           @default(now())
+  created_at         DateTime           @default(now())
+  deleted_status     DeletedStatus      @default(not_deleted)
+  poster_id          String?            @db.Uuid
   comment            Comment[]
   reading_history    ReadingHistory[]
-  parent             StoryNode?               @relation("StoryNodeToStoryNode", fields: [parent_id], references: [id], onDelete: Cascade)
-  children           StoryNode[]              @relation("StoryNodeToStoryNode")
-  poster             User?                    @relation(fields: [poster_id], references: [id])
-  story              Story?                   @relation(fields: [story_id], references: [id], onDelete: Cascade)
+  parent             StoryNode?         @relation("StoryNodeToStoryNode", fields: [parent_id], references: [id], onDelete: Cascade)
+  children           StoryNode[]        @relation("StoryNodeToStoryNode")
+  poster             User?              @relation(fields: [poster_id], references: [id])
+  story              Story?             @relation(fields: [story_id], references: [id], onDelete: Cascade)
   content            StoryNodeContent[]
 }
 

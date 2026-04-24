@@ -3,6 +3,8 @@ import express from "express";
 import * as ratingController from "../controllers/Rating.Controller.js";
 
 import { AuthenticationToken } from "../middlewares/Auth.Middleware.js";
+import { ValidateData } from "../middlewares/Validate.Middleware.js";
+import ratingSchemas from "../schemas/rating.schemas.js";
 
 const ratingRoute = express.Router();
 
@@ -64,7 +66,7 @@ const ratingRoute = express.Router();
  *                 pagination:
  *                   $ref: '#/components/schemas/Pagination'
  */
-ratingRoute.get("/story/:id", ratingController.GetAllRatings);
+ratingRoute.get("/story/:id", ValidateData(ratingSchemas.getAllRatings), ratingController.GetAllRatings);
 
 /**
  * @swagger
@@ -103,7 +105,7 @@ ratingRoute.get("/story/:id", ratingController.GetAllRatings);
  *       200:
  *         description: Add new rating successfully
  */
-ratingRoute.post("/story/:id", AuthenticationToken, ratingController.PostRating);
+ratingRoute.post("/story/:id", AuthenticationToken, ValidateData(ratingSchemas.postRating), ratingController.PostRating);
 
 /**
  * @swagger
@@ -140,7 +142,7 @@ ratingRoute.post("/story/:id", AuthenticationToken, ratingController.PostRating)
  *       200:
  *         description: Update rating successfully
  */
-ratingRoute.put("/:id", AuthenticationToken, ratingController.PutRating);
+ratingRoute.put("/:id", AuthenticationToken, ValidateData(ratingSchemas.putRating), ratingController.PutRating);
 
 /**
  * @swagger
@@ -162,6 +164,6 @@ ratingRoute.put("/:id", AuthenticationToken, ratingController.PutRating);
  *       200:
  *         description: Delete rating successfully
  */
-ratingRoute.delete("/:id", AuthenticationToken, ratingController.DeleteRating);
+ratingRoute.delete("/:id", AuthenticationToken, ValidateData(ratingSchemas.deleteRating), ratingController.DeleteRating);
 
 export default ratingRoute;

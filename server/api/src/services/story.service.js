@@ -760,7 +760,7 @@ export async function GetRecommendStories({ storyId, userId, page = 1, limit = 1
       await db.$queryRaw`
     SELECT id, embedding::text
     FROM "Story"
-    WHERE id::uuid = ${storyId}::uuid
+    WHERE id::uuid = ${storyId}::uuid AND deleted_status = 'not_deleted' AND is_actived = true
     LIMIT 1
   `
     )[0];
@@ -772,7 +772,7 @@ export async function GetRecommendStories({ storyId, userId, page = 1, limit = 1
         SELECT id,
               1 - (embedding <=> ${story.embedding}::vector) AS similarity
         FROM "Story"
-        WHERE id::uuid != ${story.id}::uuid
+        WHERE id::uuid != ${story.id}::uuid AND deleted_status = 'not_deleted' AND is_actived = true
         ORDER BY embedding <=> ${story.embedding}::vector
         LIMIT ${limit}
       `;

@@ -6,8 +6,6 @@ import * as adminService from "../services/admin.service.js";
 import * as imageService from "../services/image.service.js";
 import * as storyNodeService from "../services/story-node.service.js";
 
-import { ConvertQuery } from "../utils/QueryConvert.js";
-
 import {
   isUUID,
   throwErrorIfInvalidGenders,
@@ -35,20 +33,7 @@ export async function GetDashboardOverview(req, res, next) {
 // GET /admin/dashboard/stats/views
 export async function GetDashboardViewInRange(req, res, next) {
   try {
-    let { fromDate, toDate, groupBy } = ConvertQuery(req.query);
-
-    const storyId = req.query?.storyId;
-    const storyNodeId = req.query?.storyNodeId;
-
-    if (!fromDate && !toDate) {
-      toDate = new Date();
-
-      fromDate = new Date();
-      fromDate.setDate(fromDate.getDate() - 7);
-    }
-
-    fromDate?.setUTCHours(0, 0, 0, 0);
-    toDate?.setUTCHours(23, 59, 59, 999);
+    let { fromDate, toDate, groupBy, storyId, storyNodeId } = req.query;
 
     const viewByDate = await adminService.GetDashboardViews({
       storyId: storyId,
@@ -67,7 +52,7 @@ export async function GetDashboardViewInRange(req, res, next) {
 // GET /admin/dashboard/stats/new-users
 export async function GetDashboardNewUsers(req, res, next) {
   try {
-    let { fromDate, toDate, groupBy } = ConvertQuery(req.query);
+    let { fromDate, toDate, groupBy } = req.query;
 
     if (!fromDate && !toDate) {
       toDate = new Date();
@@ -75,8 +60,6 @@ export async function GetDashboardNewUsers(req, res, next) {
       fromDate = new Date();
       fromDate.setDate(fromDate.getDate() - 7);
     }
-    fromDate?.setUTCHours(0, 0, 0, 0);
-    toDate?.setUTCHours(23, 59, 59, 999);
 
     const newUsersByDate = adminService.GetDashboardNewUsers({ fromDate, toDate, groupBy: groupBy });
 
@@ -90,25 +73,15 @@ export async function GetDashboardNewUsers(req, res, next) {
 export async function GetAllUsers(req, res, next) {
   try {
     const query = req.query;
-    const { page, limit, genders, fromDate, toDate, roles, isBanned } = ConvertQuery(query);
+    const { page, limit, gender, fromDate, toDate, role, isBanned, sort, search } = query;
 
-    const search = query.search ?? "";
-
-    const sort = {};
-    if (query?.sort) {
-      const [field, direction] = query.sort.split(":");
-      sort[field.toLowerCase()] = direction.toLowerCase();
-    } else {
-      sort["join_date"] = "desc";
-    }
-
-    throwErrorIfInvalidGenders(genders);
-    throwErrorIfInvalidRoles(roles);
+    // throwErrorIfInvalidGenders(genders);
+    // throwErrorIfInvalidRoles(roles);
 
     const users = await userService.FindAllUser({
       search: search,
-      roles: roles,
-      genders: genders,
+      roles: role,
+      genders: gender,
       page: page,
       limit: limit,
       fromDate: fromDate,
@@ -206,7 +179,7 @@ export async function GetStory(req, res, next) {
 
     const query = req?.query;
 
-    const { isGettingChildren, isGettingContent } = ConvertQuery(query);
+    const { isGettingChildren, isGettingContent } = query;
 
     const isGettingTrashStoryNode = query.isGettingTrashStoryNode == "true" ? true : false;
     const isGettingTrashContent = query.isGettingTrashContent == "true" ? true : false;
@@ -230,9 +203,7 @@ export async function GetStory(req, res, next) {
 // GET /admin/stories
 export async function GetAllStories(req, res, next) {
   try {
-    const { isGettingChildren, authors, keyword, isGettingNewestChapter, limit, status, page, type, genres, star, view, sort, nations } = ConvertQuery(
-      req.query,
-    );
+    const { isGettingChildren, authors, keyword, isGettingNewestChapter, limit, status, page, type, genres, star, view, sort, nations } = req.query;
 
     const stories = await storyService.FindAllStories({
       keyword: keyword,

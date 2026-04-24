@@ -3,6 +3,7 @@ import { CreateError } from "../utils/ErrorHandle.js";
 import * as crypto from "crypto";
 import bcrypt from "bcrypt";
 import { redis } from "../../configs/redis.js";
+import { OAuth2Client } from "google-auth-library";
 
 import { throwErrorIfInvalidEmailAndPassword } from "../utils/Validators.js";
 
@@ -60,6 +61,77 @@ class AuthService {
     return false;
   }
 
+  async loginWithGoogle(idToken) {
+    const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+    const ticket = await client.verifyIdToken({
+      idToken,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload();
+
+    const { email, name, picture, sub } = payload;
+
+    console.log(payload);
+
+    let user = await db.user.findUnique({
+      where: { email: email },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        avatar: { select: { key: true, url: true, width: true, height: true } },
+      },
+    });
+
+    if (!user) {
+      user = await db.user.create({
+        data: {
+          email: email,
+          name: name,
+          accounts: {
+            create: {
+              provider: "google",
+              provider_account_id: sub,
+            },
+          },
+          avatar: {
+            create: {
+              url: picture,
+              key: `user/avatar/${email}_google_${Date.now()}`,
+            },
+          },
+        },
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          role: true,
+          avatar: { select: { key: true, url: true, width: true, height: true } },
+        },
+      });
+    }
+
+    const refreshToken = tokenUtils.GenRefreshToken({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+    });
+
+    const accessToken = tokenUtils.GenAccessToken({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+    });
+
+    await db.refreshToken.create({ data: { user: { connect: { id: user.id } }, token: refreshToken } });
+
+    return { success: true, data: { user: user, accessToken: accessToken, refreshToken: refreshToken } };
+  }
+
   async login(email, password) {
     const user = await db.user.findUnique({
       where: { email: email },
@@ -68,16 +140,22 @@ class AuthService {
         name: true,
         email: true,
         role: true,
-        password: true,
+        accounts: {
+          where: { provider: "email" },
+          select: { password: true },
+        },
         avatar: { select: { key: true, url: true, width: true, height: true } },
       },
     });
 
     if (!user) throw CreateError(404, "User not found");
 
-    if (!(await passwordUtils.ComparePassword(password, user.password))) throw CreateError(401, "Email or password is not correct");
+    const emailAccount = user.accounts[0];
+    if (!emailAccount || !emailAccount.password) throw CreateError(401, "This account does not have a password login method");
 
-    delete user.password;
+    if (!(await passwordUtils.ComparePassword(password, emailAccount.password))) throw CreateError(401, "Email or password is not correct");
+
+    delete user.accounts;
 
     // If password is correct => Generate refresh token
     const refreshToken = tokenUtils.GenRefreshToken({
@@ -104,15 +182,22 @@ class AuthService {
 
     throwErrorIfInvalidEmailAndPassword(email, password); // Check email and password format
 
-    // Add user to database
     const user = await db.user.findUnique({ where: { email: email } });
     if (user) throw CreateError(400, "User already exists");
+
+    const hashedPassword = await passwordUtils.HashPassword(password);
 
     const newUser = await db.user.create({
       data: {
         email: email,
         name: name,
-        password: await passwordUtils.HashPassword(password),
+        accounts: {
+          create: {
+            provider: "email",
+            provider_account_id: email,
+            password: hashedPassword,
+          },
+        },
         avatar: { connect: { key: AVATAR_DEFAUTL_KEY } },
       },
       select: {
@@ -201,7 +286,15 @@ class AuthService {
     const newPassword = passwordUtils.RandomPassword(8);
     const newHashPassword = await passwordUtils.HashPassword(newPassword);
 
-    await db.user.update({ where: { email: email }, data: { password: newHashPassword } });
+    await db.account.update({
+      where: {
+        provider_provider_account_id: {
+          provider: "email",
+          provider_account_id: email,
+        },
+      },
+      data: { password: newHashPassword },
+    });
 
     mailService.sendPasswordEmail(email, newPassword);
 
@@ -209,15 +302,34 @@ class AuthService {
   }
 
   async changePassword(userId, oldPassword, newPassword, refreshToken) {
-    const user = await db.user.findUnique({ where: { id: userId, deleted_status: "not_deleted" }, select: { password: true } });
+    const user = await db.user.findUnique({
+      where: { id: userId, deleted_status: "not_deleted" },
+      select: {
+        accounts: {
+          where: { provider: "email" },
+          select: { password: true },
+        },
+      },
+    });
 
     if (!user) throw CreateError(404, "User not found");
 
-    if (!(await passwordUtils.ComparePassword(oldPassword, user.password))) throw CreateError(401, "Old password is not correct");
+    const emailAccount = user.accounts[0];
+    if (!emailAccount || !emailAccount.password) throw CreateError(401, "This account does not have a password login method");
+
+    if (!(await passwordUtils.ComparePassword(oldPassword, emailAccount.password))) throw CreateError(401, "Old password is not correct");
 
     const newHashPassword = await passwordUtils.HashPassword(newPassword);
 
-    await db.user.update({ where: { id: userId }, data: { password: newHashPassword } });
+    await db.account.update({
+      where: {
+        provider_provider_account_id: {
+          provider: "email",
+          provider_account_id: (await db.user.findUnique({ where: { id: userId }, select: { email: true } })).email,
+        },
+      },
+      data: { password: newHashPassword },
+    });
     await db.refreshToken.delete({ where: { token: refreshToken } });
 
     return { success: true, message: "Change password successfully" };

@@ -1,15 +1,13 @@
 import { FindAllReadingHistories, AddReadingHistory, SoftDeleteReadingHistory } from "../services/history.service.js";
 
 import { CreateError } from "../utils/ErrorHandle.js";
-import { ConvertQuery } from "../utils/QueryConvert.js";
 
 // GET /histories
 export async function GetAllReadingHistories(req, res, next) {
   try {
-    // It is not neccessary to check user exist because authentication already did it
     const userId = req.user?.id;
 
-    const { limit, page, sort, type, authors, genres, star, view, fromDate, toDate } = ConvertQuery(req.query);
+    const { limit, page, sort, type, author, genre, star, view, fromDate, toDate } = req.query;
 
     const readingHistory = await FindAllReadingHistories({
       userId: userId,
@@ -17,8 +15,8 @@ export async function GetAllReadingHistories(req, res, next) {
       page: page,
       sort: sort,
       type: type,
-      authorsId: authors,
-      genres: genres,
+      authorsId: author,
+      genres: genre,
       star: star,
       view: view,
       fromDate: fromDate,

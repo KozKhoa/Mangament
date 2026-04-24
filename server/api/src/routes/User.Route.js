@@ -3,6 +3,8 @@ import express from "express";
 import { AuthenticationToken } from "../middlewares/Auth.Middleware.js";
 
 import * as userController from "../controllers/User.Controller.js";
+import { ValidateData } from "../middlewares/Validate.Middleware.js";
+import userSchemas from "../schemas/user.schemas.js";
 
 const userRoute = express.Router();
 
@@ -96,10 +98,10 @@ const userRoute = express.Router();
  *       '401':
  *         $ref: '#/components/responses/Unauthorized'
  */
-userRoute.get("/me", AuthenticationToken, userController.GetUser); // Get user info
+userRoute.get("/me", AuthenticationToken, ValidateData(userSchemas.getUser), userController.GetUser); // Get user info
 
-userRoute.put("/me", AuthenticationToken, userController.UpdateUserInfo); // Update user info
-userRoute.patch("/me/password", AuthenticationToken, userController.ChangeUserPassword); // Change user password
+userRoute.put("/me", AuthenticationToken, ValidateData(userSchemas.updateProfile), userController.UpdateUserInfo); // Update user info
+userRoute.patch("/me/password", AuthenticationToken, ValidateData(userSchemas.changePassword), userController.ChangeUserPassword); // Change user password
 userRoute.patch("/me/avatar", AuthenticationToken, userController.ChangeUserAvatar);
 
 export default userRoute;

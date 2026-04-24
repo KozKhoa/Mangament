@@ -31,13 +31,7 @@ export async function UpdateUserInfo(req, res, next) {
 
     if (!userId) throw CreateError(400, "'id' for user is required");
 
-    // Get information need to be updated and validate them
-    const name = req?.body?.name;
-    const birthday = req?.body?.birthday ? new Date(req?.body?.birthday) : undefined;
-    const avatar = req.body?.avatar;
-    const gender = req.body?.gender;
-
-    if (birthday == "Invalid Date") throw CreateError(400, "Invalid birthday format");
+    const { name, birthday, avatar, gender } = req.body;
 
     // Update user infomation
     const updateUser = await userService.UpdateUser(userId, { name, birthday, gender, avatar });

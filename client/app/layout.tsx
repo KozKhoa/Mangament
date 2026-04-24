@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 
 import { ThemeProvider } from "next-themes";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { NextAuthProvider } from "@/contexts/NextAuthProvider";
 import { AppProvider } from "@/contexts/AppContext";
+
 import { Toaster } from "sonner";
 
 import { Afacad, Holtwood_One_SC, Geist_Mono, Geist, Roboto, Aclonica } from "./font";
@@ -35,16 +37,19 @@ export default function RootLayout({
       >
         <AppProvider>
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem={true}>
-            <AuthProvider>
-              <TopLoadingRoot />
+            <NextAuthProvider>
+              <AuthProvider>
+                <TopLoadingRoot />
 
-              <div>{children}</div>
+                <div>{children}</div>
 
-              <Toaster position="top-center" />
-              <ModalRoot />
-            </AuthProvider>
+                <Toaster position="top-center" />
+                <ModalRoot />
+              </AuthProvider>
+            </NextAuthProvider>
           </ThemeProvider>
         </AppProvider>
+
       </body>
     </html>
   );
