@@ -1,5 +1,16 @@
 import { z } from "zod";
-import { paginationQuerySchema, arrayStringSchema, arrayOfRangeNumberSchema, dateSchema, booleanSchema, genderSchema } from "./default.schemas.js";
+import {
+  paginationQuerySchema,
+  arrayStringSchema,
+  arrayOfRangeNumberSchema,
+  dateSchema,
+  booleanSchema,
+  genderSchema,
+  sortSchema,
+  roleSchema,
+  roleArraySchema,
+  genderArraySchema,
+} from "./default.schemas.js";
 
 const idsBodySchema = z.object({
   ids: z.array(z.string().uuid("Invalid ID format")).min(1, "At least one ID is required"),
@@ -40,8 +51,9 @@ export class AdminSchemas {
   // Users
   getAllUsers = z.object({
     query: paginationQuerySchema.extend({
-      genders: arrayStringSchema.optional(),
-      roles: arrayStringSchema.optional(),
+      sort: sortSchema.default({ join_date: "desc" }),
+      gender: genderArraySchema.optional(),
+      role: roleArraySchema.optional(),
       isBanned: booleanSchema.optional(),
       fromDate: dateSchema.optional(),
       toDate: dateSchema.optional(),

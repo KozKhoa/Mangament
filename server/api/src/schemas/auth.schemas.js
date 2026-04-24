@@ -1,10 +1,11 @@
 import { z } from "zod";
+import { emailSchema } from "./default.schemas.js";
 
 export class AuthSchemas {
   register = z.object({
     body: z.object({
       name: z.string({ message: "Name is required" }).min(1, "Name must be at least 1 characters"),
-      email: z.string({ message: "Email is required" }).email(),
+      email: emailSchema,
       password: z.string({ message: "Password is required" }).min(6, { message: "Password must be at least 6 characters long" }),
     }),
     params: z.any().optional(),
@@ -13,7 +14,7 @@ export class AuthSchemas {
 
   login = z.object({
     body: z.object({
-      email: z.string({ message: "Email is required" }).email({ message: "Email is invalid" }),
+      email: emailSchema,
       password: z.string({ message: "Password is required" }).min(6, "Password must be at least 6 characters"),
     }),
     params: z.any().optional(),
@@ -35,7 +36,7 @@ export class AuthSchemas {
 
   forgotPassword = z.object({
     body: z.object({
-      email: z.string({ message: "Email is required" }).email(),
+      email: emailSchema,
     }),
     params: z.any().optional(),
     query: z.any().optional(),
@@ -43,7 +44,7 @@ export class AuthSchemas {
 
   resetPassword = z.object({
     body: z.object({
-      email: z.string({ message: "Email is required" }).email(),
+      email: emailSchema,
       otp: z.string({ message: "OTP is required" }).length(6, "OTP must be 6 characters"),
     }),
     params: z.any().optional(),

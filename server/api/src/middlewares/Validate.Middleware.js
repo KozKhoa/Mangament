@@ -5,19 +5,11 @@ import { StatusCodes } from "http-status-codes";
 export function ValidateData(schema) {
   return (req, res, next) => {
     try {
-      console.log("Before validate = ", {
-        body: req.body,
-        params: req.params,
-        query: req.query,
-      });
-
       const validatedData = schema.parse({
         body: req.body,
         params: req.params,
         query: req.query,
       });
-
-      console.log("After validate = ", validatedData);
 
       Object.defineProperty(req, "body", {
         value: validatedData.body,
@@ -42,7 +34,7 @@ export function ValidateData(schema) {
     } catch (error) {
       if (error instanceof ZodError) {
         const errorMessages = error.issues.map((issue) => `[${issue.path.join(".")}]: ${issue.message}`);
-        res.status(StatusCodes.BAD_REQUEST).json({ error: "Invalid data", details: errorMessages });
+        res.status(StatusCodes.BAD_REQUEST).json({ error: "Invalid data", message: errorMessages.join(", ") });
       } else {
         console.log(error);
         res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: "Internal Server Error" });

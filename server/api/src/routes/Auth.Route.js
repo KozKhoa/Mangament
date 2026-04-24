@@ -300,10 +300,31 @@ const authRouter = express.Router();
  *               message: "New password has been sent to your email"
  */
 
+/**
+ * /auth/login-google:
+ *   post:
+ *     tags: [Auth]
+ *     summary: Login with Google account
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [idToken]
+ *             properties:
+ *               idToken:
+ *                 type: string
+ *     responses:
+ *       '200':
+ *         description: Login success
+ */
+
 authRouter.get("/me", AuthenticationToken, GetUser);
 
 authRouter.post("/register", ValidateData(authShemas.register), authControrller.Register);
 authRouter.post("/login", ValidateData(authShemas.login), authControrller.Login);
+authRouter.post("/login-google", authControrller.LoginWithGoogle);
 authRouter.post("/logout", authControrller.Logout);
 authRouter.post("/refresh", authControrller.Refresh);
 authRouter.post("/forgot-password", ValidateData(authShemas.forgotPassword), authControrller.ForgotPassword);
@@ -311,3 +332,4 @@ authRouter.post("/reset-password", ValidateData(authShemas.resetPassword), authC
 authRouter.post("/change-password", AuthenticationToken, ValidateData(authShemas.changePassword), authControrller.ChangePassword);
 
 export default authRouter;
+

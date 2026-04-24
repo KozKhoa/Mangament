@@ -22,7 +22,9 @@ interface AuthContextProps {
   updateAvatar: (avatar: File) => Promise<any>;
 
   login: (email: string, password: string) => Promise<any>;
+  loginWithGoogle: (idToken: string) => Promise<any>;
   register: (name: string, email: string, password: string) => Promise<any>;
+
   changePassword: (oldPassword: string, newPassword: string) => Promise<any>;
   logout: () => Promise<any>;
 }
@@ -202,9 +204,42 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, []);
 
+  async function loginWithGoogle(idToken: string): Promise<any> {
+    setLoading(true);
+    const res = await authService.loginWithGoogle(idToken);
+    setLoading(false);
+
+    if (!res.success) return toast.warning(res.message);
+
+    const user = res.data?.user;
+    const accessToken = res.data?.accessToken;
+
+    if (user && accessToken) {
+      setUser(user);
+      token.setAccessToken(accessToken);
+
+      toast.message(res.message);
+
+      router.replace("/");
+    }
+  }
+
   return (
     <AuthContext.Provider
-      value={{ user, loading, setUser, updateGender, updateUsername, updateBirthday, updateAvatar, login, register, logout, changePassword }}
+      value={{
+        user,
+        loading,
+        setUser,
+        updateGender,
+        updateUsername,
+        updateBirthday,
+        updateAvatar,
+        login,
+        loginWithGoogle,
+        register,
+        logout,
+        changePassword,
+      }}
     >
       {children}
     </AuthContext.Provider>

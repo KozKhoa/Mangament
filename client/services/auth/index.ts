@@ -93,6 +93,16 @@ export async function changePassword(oldPassword: string, newPassword: string): 
   }
 }
 
-const authService = { me, login, register, logout, forgotPassword, resetPassword, changePassword };
+export async function loginWithGoogle(idToken: string): Promise<ServiceResult<{ accessToken: string; user: User }>> {
+  try {
+    const res = await api.post("/auth/login-google", { idToken }, { withCredentials: true });
+    return res.data;
+  } catch (error: any) {
+    console.error(error);
+    return { success: false, message: error?.response?.data?.message || error?.message || "Unknown error" };
+  }
+}
+
+const authService = { me, login, register, logout, forgotPassword, resetPassword, changePassword, loginWithGoogle };
 
 export default authService;

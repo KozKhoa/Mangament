@@ -68,6 +68,8 @@ export async function FindAllReadingHistories({
     }),
 
     story: {
+      is_actived: true,
+      deleted_status: "not_deleted",
       ...(type && type.length > 0 && { type: { in: type } }),
       ...(genres &&
         genres.length > 0 && {
