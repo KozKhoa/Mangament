@@ -6,8 +6,7 @@ import db from "../../../configs/db.js";
 
 import { getAllFiles } from "../FileHandle.js";
 
-const ADMIN_TOKEN =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjFhYzU5ZGQ1LWMxMzUtNDJiMi05NDlmLWE1OTI3OWU4ZjMwMCIsIm5hbWUiOiJLaG9hIiwiZW1haWwiOiJhQGEuYSIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc3NTU2NzgwMCwiZXhwIjoxNzc4MTU5ODAwfQ.UIzsPf-bIN9w5v7fpMJH15XU1kqfFTeU5try_t1Uh3s";
+const ADMIN_TOKEN = process.env.ADMIN_TOKEN;
 
 const root = "/home/khoa/OneDrive/Code/Project/Mangament/uploads/story";
 
