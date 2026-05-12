@@ -104,9 +104,9 @@ export async function GetAllStories(req, res, next) {
   try {
     const userId = req?.user?.id;
 
-    const { isGettingChildren, authors, keyword, isGettingNewestChapter, limit, status, page, type, genres, star, view, sort, nation } = req.query;
+    const { isGettingChildren, author, keyword, isGettingNewestChapter, limit, status, page, type, genre, star, view, sort, nation } = req.query;
 
-    if (genres && genres.length > 0) throwErrorIfInvalidGenres(genres);
+    if (genre && genre.length > 0) throwErrorIfInvalidGenres(genre);
 
     const stories = await FindAllStories({
       isActived: true,
@@ -114,8 +114,8 @@ export async function GetAllStories(req, res, next) {
       type: type,
       view: view,
       star: star,
-      genres: genres,
-      authorsId: authors,
+      genres: genre,
+      authorsId: author,
       sort: sort,
       page: page,
       limit: limit,
@@ -137,8 +137,8 @@ export async function GetAllStories(req, res, next) {
         storyType: type,
         star: star,
         view: view,
-        authorsId: authors,
-        genres: genres,
+        authorsId: author,
+        genres: genre,
       });
 
       const favouriteStoryIds = new Map(favourites.data.map((fav) => [fav.story.id, fav.id]));

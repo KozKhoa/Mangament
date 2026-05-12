@@ -82,19 +82,6 @@ export async function getRecommendStories(storyId: string, page: number = 1, lim
   }
 }
 
-export async function countStories(params?: StoryParams): Promise<ServiceResult<number>> {
-  try {
-    const res = await api.get("/stories/count", {
-      params: params,
-      paramsSerializer: (params) => qs.stringify(params, { arrayFormat: "comma" }),
-    });
-    return res.data;
-  } catch (error: any) {
-    console.error(error);
-    return { success: false, message: error?.response?.data?.message || error?.message || "Unknown error" };
-  }
-}
-
 export async function addOneView(storyId: string) {
   try {
     const res = await api.patch(`/stories/${storyId}/view`);
@@ -105,6 +92,6 @@ export async function addOneView(storyId: string) {
   }
 }
 
-const storyService = { getStoryById, getStoryByTitle, getRandomStory, getReview, getStories, countStories, addOneView, getRecommendStories };
+const storyService = { getStoryById, getStoryByTitle, getRandomStory, getReview, getStories, addOneView, getRecommendStories };
 
 export default storyService;
