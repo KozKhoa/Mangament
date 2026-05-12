@@ -170,6 +170,9 @@ export default function StoryDetailPage() {
         </div>
       </div>
 
+      {/* Recommend story */}
+      {story && <RecommendStories story={story} className="max-w-[1800] mx-auto" />}
+
       <div className="flex flex-col gap-5">
         {/* Rating */}
         <RatingMasonryGrid storyId={story?.id ?? ""} allowAddNewRating={story?.rating ? false : true}></RatingMasonryGrid>
@@ -177,8 +180,6 @@ export default function StoryDetailPage() {
         {/* Comment */}
         <CommentMasonryGrid storyId={story?.id ?? ""}></CommentMasonryGrid>
       </div>
-
-      {story && <RecommendStories story={story} className="max-w-[1800] mx-auto" />}
     </div>
   );
 }
