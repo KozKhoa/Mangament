@@ -8,10 +8,13 @@ import StorySearchCard from "../cards/stories/story-search-card";
 import Story from "@/types/story";
 
 import storyService from "@/services/story";
+import { useRouter } from "next/navigation";
 
 const LIMIT = 30;
 
 export default function SearchStories({ className, delay = 500 }: { className?: string; delay?: number }) {
+  const router = useRouter();
+
   const page = useRef(1);
 
   const [stories, setStories] = useState<Story[] | null>(null);
@@ -28,6 +31,15 @@ export default function SearchStories({ className, delay = 500 }: { className?: 
     setIsLoading(false);
   }
 
+  async function handleSearch() {
+    if (!keyword || keyword.length < 3) {
+      toast.message("Tối thiểu 3 ký tự");
+      return;
+    }
+
+    router.push(`/search?keyword=${keyword}`);
+  }
+
   useEffect(() => {
     if (!keyword || keyword.length < 3) {
       setStories(null);
@@ -38,7 +50,7 @@ export default function SearchStories({ className, delay = 500 }: { className?: 
   }, [keyword]);
 
   return (
-    <SearchBar className={`${className}`} onType={setKeyword} delay={delay} placeHolder="Nhập tối thiểu 3 ký tự">
+    <SearchBar className={`${className}`} onType={setKeyword} onSearch={handleSearch} delay={delay} placeHolder="Nhập tối thiểu 3 ký tự">
       {(isLoading || stories) && (
         <>
           {isLoading && <Loading className="h-32 w-[30px] m-auto" />}
