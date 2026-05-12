@@ -2,25 +2,24 @@
 
 import ButtonExpandable from "@/components/buttons/expandable/btn-expandable";
 import useAuth from "@/contexts/AuthContext";
-import ArrowLeftIcon from "@/public/arrows/left-v.svg";
 import ArrowDownIcon from "@/public/arrows/down-v.svg";
-import { useEffect, useRef, useState } from "react";
+import { Ref, useEffect, useState } from "react";
 import useResize from "@/hooks/useResize";
 
 import Link from "@/components/link/Link";
 
-import { useParams, usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 
 interface AdminSidebarProps {
   className?: string;
 }
 
-const ROUTES = {
-  dashboard: "/admin/dashboard",
-  usersManagement: "/admin/users",
-  mangaManagement: "/admin/stories/manga",
-  lightNovelManagement: "/admin/stories/light_novel",
-};
+// const ROUTES = {
+//   dashboard: "/admin/dashboard",
+//   usersManagement: "/admin/users",
+//   mangaManagement: "/admin/stories/manga",
+//   lightNovelManagement: "/admin/stories/light_novel",
+// };
 
 export function ArrowToggleSidebar({ className, toggleSidebar }: { className?: string; toggleSidebar?: () => void }) {
   return (
@@ -86,7 +85,7 @@ export default function AdminSidebar({ className }: AdminSidebarProps) {
           ${open ? "md:w-fit" : "md:w-0"}`}
       >
         <div
-          ref={resizeRef as any}
+          ref={resizeRef as Ref<HTMLDivElement>}
           className={`
             transition-transform duration-200 fixed 
 
@@ -179,7 +178,7 @@ export default function AdminSidebar({ className }: AdminSidebarProps) {
               ${open ? "scale-0" : ""}
             `}
             toggleSidebar={toggleSidebar}
-          ></ArrowToggleSidebar>
+          />
         </div>
       </div>
     </>

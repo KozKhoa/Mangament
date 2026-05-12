@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 import PlusIcon from "@/public/plus.svg";
 import MinusIcon from "@/public/minus.svg";

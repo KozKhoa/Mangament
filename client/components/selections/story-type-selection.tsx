@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Selection from "./selection";
 
 export type TargetStoryType = "manga" | "light_novel" | null;
@@ -29,7 +30,7 @@ const TYPE = [
   {
     label: (
       <div className="flex flex-row gap-3.5 items-center justify-center w-fit">
-        <img src={"/story-type/light_novel.png"} className="w-8 aspect-square"></img>
+        <Image src={"/story-type/light_novel.png"} className="w-8 aspect-square" alt="Light Novel" fill></Image>
         <p>Light Novel</p>
       </div>
     ),

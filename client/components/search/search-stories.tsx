@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import SearchBar from "./search";
@@ -21,7 +21,7 @@ export default function SearchStories({ className, delay = 500 }: { className?: 
   const [isLoading, setIsLoading] = useState(false);
   const [keyword, setKeyword] = useState("");
 
-  async function fetchSearchStories() {
+  const fetchSearchStories = useCallback(async () => {
     setIsLoading(true);
     const res = await storyService.getStories({ keyword: keyword, limit: LIMIT, sort: "view:desc", page: page.current });
 
@@ -29,7 +29,7 @@ export default function SearchStories({ className, delay = 500 }: { className?: 
 
     setStories(res.data ?? []);
     setIsLoading(false);
-  }
+  }, [keyword, setStories, setIsLoading]);
 
   async function handleSearch() {
     if (!keyword || keyword.length < 3) {
@@ -47,7 +47,7 @@ export default function SearchStories({ className, delay = 500 }: { className?: 
     }
 
     fetchSearchStories();
-  }, [keyword]);
+  }, [fetchSearchStories, keyword]);
 
   return (
     <SearchBar className={`${className}`} onType={setKeyword} onSearch={handleSearch} delay={delay} placeHolder="Nhập tối thiểu 3 ký tự">

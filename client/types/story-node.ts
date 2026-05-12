@@ -34,7 +34,7 @@ export default interface StoryNode {
 export interface StoryNodeContent {
   id: string;
   type: string;
-  order_index: Number;
+  order_index: number;
   image?: Image;
   content?: string;
 

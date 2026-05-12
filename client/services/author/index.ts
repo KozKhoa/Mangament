@@ -1,6 +1,6 @@
 import api from "@/lib/axios";
 import Author from "@/types/author";
-import axios from "axios";
+import { handleAxiosError } from "@/utils/error";
 
 type Pagination = { page: number; pageSize: number; totalItems: number; totalPages: number };
 type ServiceResult<T> = { success: boolean; data?: T; message?: string; pagination?: Pagination };
@@ -9,9 +9,8 @@ export async function getAuthors(number: number = 2147483647): Promise<ServiceRe
   try {
     const res = await api.get("/authors", { params: { page: 1, limit: number } });
     return res.data;
-  } catch (error: any) {
-    console.error(error);
-    return { success: false, message: error?.response?.data?.message || error?.message || "Unknown error" };
+  } catch (error: unknown) {
+    return handleAxiosError(error);
   }
 }
 

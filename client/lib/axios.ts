@@ -1,4 +1,4 @@
-import axios, { AxiosError } from "axios";
+import axios from "axios";
 
 import * as token from "@/lib/token";
 
@@ -25,10 +25,10 @@ api.interceptors.request.use(
   (error) => Promise.reject(error),
 );
 
-let isRefreshing = false;
-let refreshQueue: any[] = [];
+let isRefreshing: boolean = false;
+let refreshQueue: { resolve: (accessToken: string | null) => void; reject: (error: unknown) => void }[] = [];
 
-function processRefreshQueue(error: any, accessToken: string | null) {
+function processRefreshQueue(error: unknown, accessToken: string | null) {
   refreshQueue.forEach((prom) => {
     if (error) prom.reject(error);
     else prom.resolve(accessToken);

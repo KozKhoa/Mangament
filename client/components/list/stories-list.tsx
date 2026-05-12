@@ -1,8 +1,6 @@
 import StoryCard from "@/components/cards/stories/story-card";
 
 import Story from "@/types/story";
-import NoContent from "../cards/no-content";
-import { useEffect, useRef } from "react";
 import InfinityScrollHorizontalList from "./infinity-scroll-horizontal-list";
 
 interface StoryListProps {
@@ -14,8 +12,6 @@ interface StoryListProps {
 
   className?: string;
 }
-
-let isAtTheEnd: boolean = false;
 
 export default function StoryList({ label, onClickLabel, onScrollToEnd, stories, className }: StoryListProps) {
   return (

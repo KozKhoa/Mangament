@@ -119,7 +119,7 @@ const ButtonStoryNodeExpandable = React.memo(({ index, onClick, storyNode, class
   );
 });
 
-export default function StoryNodeList({ storyNodes, size, onClickItem, className, targetStoryNode }: StoryNodeListProps) {
+export default function StoryNodeList({ storyNodes, onClickItem, className, targetStoryNode }: StoryNodeListProps) {
   function handleClick(storyNode: StoryNode[]) {
     onClickItem?.(storyNode);
   }

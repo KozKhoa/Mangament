@@ -406,7 +406,7 @@ function HeaderBar({ duration = 100, autoHide = true, className }: NavBarProps) 
 
       <button
         className={` w-12 h-12 flex justify-center items-center border rounded-sm fixed bottom-4 right-4 p-3 z-30`}
-        onClick={(e) => {
+        onClick={() => {
           window.scrollTo({ top: 0, behavior: "smooth" });
         }}
       >

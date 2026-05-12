@@ -21,7 +21,7 @@ export default function withAuth<T extends object>(WrappedComponent: React.Compo
         router.replace("/login");
         return;
       }
-    }, [user, loading]);
+    }, [router, user, loading]);
 
     if (loading) return <Loading className="h-screen"></Loading>;
     if (!user) return <RequireLogin></RequireLogin>;

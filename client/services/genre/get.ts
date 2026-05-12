@@ -1,6 +1,3 @@
-import api from "@/lib/axios";
-import axios from "axios";
-
 export default async function get() {
   // let res;
   // try {

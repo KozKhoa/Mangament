@@ -5,5 +5,5 @@ export default interface Nation {
   flag_icon?: string;
   flag_image?: Image;
 
-  [key: string]: any;
+  [key: string]: unknown;
 }

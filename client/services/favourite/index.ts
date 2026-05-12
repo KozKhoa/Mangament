@@ -1,4 +1,5 @@
 import api from "@/lib/axios";
+import { handleAxiosError } from "@/utils/error";
 import Favourite from "@/types/favourite";
 import { FavoureiteParams } from "@/types/params";
 import qs from "qs";
@@ -13,9 +14,8 @@ export async function getFavouriteStories(params: FavoureiteParams): Promise<Ser
       paramsSerializer: (params) => qs.stringify(params, { arrayFormat: "comma" }),
     });
     return res.data;
-  } catch (error: any) {
-    console.error(error);
-    return { success: false, message: error?.response?.data?.message || error?.message || "Unknown error" };
+  } catch (error: unknown) {
+    return handleAxiosError(error);
   }
 }
 
@@ -25,9 +25,8 @@ export async function addNewFavouriteStory(storyId: string): Promise<ServiceResu
       storyId: storyId,
     });
     return res.data;
-  } catch (error: any) {
-    console.error(error);
-    return { success: false, message: error?.response?.data?.message || error?.message || "Unknown error" };
+  } catch (error: unknown) {
+    return handleAxiosError(error);
   }
 }
 
@@ -35,9 +34,8 @@ export async function removeFavouriteStory(favouriteId: string): Promise<Service
   try {
     const res = await api.delete(`/favourites/${favouriteId}`);
     return res.data;
-  } catch (error: any) {
-    console.error(error);
-    return { success: false, message: error?.response?.data?.message || error?.message || "Unknown error" };
+  } catch (error: unknown) {
+    return handleAxiosError(error);
   }
 }
 

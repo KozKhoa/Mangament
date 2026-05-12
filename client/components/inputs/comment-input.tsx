@@ -1,9 +1,7 @@
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 
-import StarPicker from "./star-picker";
 import ErrorExclamationIcon from "@/public/error-exclamation.svg";
-import { Stardos_Stencil } from "next/font/google";
 
 interface CommentInputProps {
   onFinish?: (message: string) => void;

@@ -8,20 +8,13 @@ import SwitchPageSmall from "@/components/switch-page/small";
 import { Pagination } from "@/types/pagination";
 import StoryNode from "@/types/story-node";
 import { useRouter, useSearchParams } from "next/navigation";
-import { MouseEvent, useEffect, useMemo, useRef, useState } from "react";
+import { MouseEvent, useMemo, useState } from "react";
 
-import EyeIcon from "@/public/eye/open.svg";
-import XICon from "@/public/x-icon.svg";
 import ZoomIcon from "@/public/zooom.svg";
-import TrashIcom from "@/public/trash.svg";
-import adminService from "@/services/admin";
-import { toast } from "sonner";
 
 import Checkbox from "@/components/inputs/checkbox";
-import SwitchPageBig from "@/components/switch-page/big";
 import TrashStoryNodeCard from "@/components/cards/story-nodes/trash-story-node-card";
 import NoContent from "@/components/cards/no-content";
-import withAdmin from "@/hoc/withAdmin";
 
 interface StoryNodesTrashGridProps {
   storyNodes: StoryNode[];

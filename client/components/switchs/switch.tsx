@@ -31,7 +31,7 @@ function Switch({
   disable = false,
   loading = false,
 
-  onToggle = (isOn: boolean) => {},
+  onToggle,
   duration = 100,
   width = 50,
   height = 20,
@@ -55,7 +55,7 @@ function Switch({
   function handleToggle() {
     if (disable || loading) return;
 
-    onToggle(!stage);
+    onToggle?.(!stage);
     // setStage(!stage);
   }
 

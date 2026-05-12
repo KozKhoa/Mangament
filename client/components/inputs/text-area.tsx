@@ -45,10 +45,6 @@ export default function TextArea({
     }
   }
 
-  useEffect(() => {
-    if (defaultValue) setValue(defaultValue);
-  }, [defaultValue]);
-
   return (
     <label className={`flex flex-col gap-1 text-foreground  ${className}`}>
       <div className="flex flex-row flex-wrap items-center justify-between gap-1 px-1">

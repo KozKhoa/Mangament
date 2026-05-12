@@ -34,7 +34,7 @@ export default function InViewList({ children, onInView, className, threshold = 
     );
 
     return () => observerRef.current?.disconnect();
-  }, []);
+  }, [threshold]);
 
   const setRef = (index: number) => (el: Element | null) => {
     if (!observerRef.current) return;
@@ -47,7 +47,7 @@ export default function InViewList({ children, onInView, className, threshold = 
 
   useEffect(() => {
     onInView?.(inViewMap.map((inView, i) => (inView ? i : -1)).filter((i) => i !== -1));
-  }, [inViewMap]);
+  }, [inViewMap, onInView]);
 
   return (
     <div className={className}>

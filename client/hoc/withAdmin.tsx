@@ -26,7 +26,7 @@ export default function withAdmin<T extends object>(WrappedComponent: React.Comp
           router.replace("/");
         }
       }
-    }, [user, isLoading]);
+    }, [user, isLoading, router]);
 
     if (isLoading) return null;
     if (!user) return null;

@@ -38,7 +38,7 @@ export function convertNewestChapter(newestChapter: StoryNode[], number: number 
   return result;
 }
 
-export function convertJsonToParam(json: {}) {
+export function convertJsonToParam(json: Record<string, unknown>) {
   return qs.stringify(json, { arrayFormat: "comma" });
 }
 

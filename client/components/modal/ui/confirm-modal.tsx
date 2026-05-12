@@ -8,9 +8,9 @@ export default function ConfirmModal({
   onConfirm,
 }: {
   title?: string;
-  children?: any;
-  onConfirm?: () => void | Promise<any>;
-  onCancel?: () => void | Promise<any>;
+  children?: React.ReactNode | React.ReactNode[] | string;
+  onConfirm?: () => void | Promise<void>;
+  onCancel?: () => void | Promise<void>;
 }) {
   const [isProcessing, setIsProcessing] = useState(false);
 
