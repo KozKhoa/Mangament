@@ -11,7 +11,6 @@ import { beautifulView } from "@/utils/beautiful";
 import { snakeCaseToCapitalizeWord } from "@/utils/string";
 
 import DisplayStar from "@/components/displays/ratings/display-star";
-import { loadingBar } from "@/components/loadings/loading-bar/top-loading-bar.store";
 
 import useAuth from "@/contexts/AuthContext";
 
