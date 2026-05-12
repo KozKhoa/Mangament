@@ -1,3 +1,6 @@
+import containerQueries from "@tailwindcss/container-queries";
+import scrollbarHide from "tailwind-scrollbar-hide";
+
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   darkMode: "class",
@@ -45,5 +48,5 @@ module.exports = {
       xxl: "1000px",
     },
   },
-  plugins: [require("@tailwindcss/container-queries"), require("tailwind-scrollbar-hide")],
+  plugins: [containerQueries, scrollbarHide],
 };

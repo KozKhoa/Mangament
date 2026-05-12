@@ -1,5 +1,5 @@
 import api from "@/lib/axios";
-import axios from "axios";
+import { handleAxiosError } from "@/utils/error";
 import qs from "qs";
 import { StoryNodeParams } from "@/types/params";
 import StoryNode from "@/types/story-node";
@@ -21,9 +21,8 @@ export async function getStoryNodeById(storyNodeId: string, params: StoryNodePar
       paramsSerializer: (params) => qs.stringify(params, { arrayFormat: "comma" }),
     });
     return res.data;
-  } catch (error: any) {
-    console.error(error);
-    return { success: false, message: error?.response?.data?.message || error?.message || "Unknown error" };
+  } catch (error: unknown) {
+    return handleAxiosError(error);
   }
 }
 
@@ -33,9 +32,8 @@ export async function addOneView(storyNodeId: string): Promise<ServiceResult<num
 
     const res = await api.patch(`/story-nodes/${storyNodeId}/view`);
     return res.data;
-  } catch (error: any) {
-    console.error(error);
-    return { success: false, message: error?.response?.data?.message || error?.message || "Unknown error" };
+  } catch (error: unknown) {
+    return handleAxiosError(error);
   }
 }
 

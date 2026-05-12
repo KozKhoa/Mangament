@@ -39,7 +39,7 @@ export const loadingBar = {
 
   close() {
     if (timeout) {
-      timeout && clearTimeout(timeout);
+      clearTimeout(timeout);
       timeout = undefined as any;
     }
     loading = null;

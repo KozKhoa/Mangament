@@ -1,4 +1,6 @@
 import { HistoryParams } from "@/types/params";
+import { handleAxiosError } from "@/utils/error";
+
 import api from "@/lib/axios";
 import qs from "qs";
 import History from "@/types/history";
@@ -19,9 +21,8 @@ export async function getHistories({ page = 1, limit = 10, sort = "created_at:de
       paramsSerializer: (params) => qs.stringify(params, { arrayFormat: "comma" }),
     });
     return res.data;
-  } catch (error: any) {
-    console.error(error);
-    return { success: false, message: error?.response?.data?.message || error?.message || "Unknown error" };
+  } catch (error: unknown) {
+    return handleAxiosError(error);
   }
 }
 
@@ -29,9 +30,8 @@ export async function addHistory(storyId: string, storyNodeId: string): Promise<
   try {
     const res = await api.post(`/histories/story/${storyId}/story-node/${storyNodeId}`);
     return res.data;
-  } catch (error: any) {
-    console.error(error);
-    return { success: false, message: error?.response?.data?.message || error?.message || "Unknown error" };
+  } catch (error: unknown) {
+    return handleAxiosError(error);
   }
 }
 
@@ -39,9 +39,8 @@ export async function removeHistory(historyId: string): Promise<ServiceResult<Hi
   try {
     const res = await api.delete(`/histories/${historyId}`);
     return res.data;
-  } catch (error: any) {
-    console.error(error);
-    return { success: false, message: error?.response?.data?.message || error?.message || "Unknown error" };
+  } catch (error: unknown) {
+    return handleAxiosError(error);
   }
 }
 

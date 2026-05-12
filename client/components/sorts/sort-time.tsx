@@ -28,7 +28,7 @@ export default function SortTime({
   useEffect(() => {
     const find = SORTS.findIndex((sort) => sort.code === value);
     setSelectedIndex(find < 0 ? null : find);
-  }, [value]);
+  }, [SORTS, value]);
 
   return (
     <ButtonDropdownRadio

@@ -8,7 +8,7 @@ type LinkProps = NextJSLinkProps & {
   children: React.ReactNode;
   className?: string;
 
-  [key: string]: any;
+  [key: string]: unknown;
 };
 
 export default function Link({ children, ...props }: LinkProps) {

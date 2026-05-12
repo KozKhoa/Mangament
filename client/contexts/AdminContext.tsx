@@ -1,7 +1,7 @@
 // This context use to store information
 "use client";
 
-import { createContext, useContext, useEffect, useLayoutEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 
 import { DashboardOverview } from "@/types/dashboard";
 import adminService from "@/services/admin";

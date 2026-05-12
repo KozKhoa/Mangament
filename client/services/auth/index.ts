@@ -2,6 +2,7 @@ import api from "@/lib/axios";
 import axios from "axios";
 import { Pagination } from "@/types/pagination";
 import User from "@/types/user";
+import { handleAxiosError } from "@/utils/error";
 
 type ServiceResult<T> = { success: boolean; data?: T; message?: string; pagination?: Pagination };
 
@@ -9,9 +10,8 @@ export async function me(): Promise<ServiceResult<User>> {
   try {
     const res = await api.get("/auth/me");
     return res.data;
-  } catch (error: any) {
-    console.error(error);
-    return { success: false, message: error?.response?.data?.message || error?.message || "Unknown error" };
+  } catch (error: unknown) {
+    return handleAxiosError(error);
   }
 }
 
@@ -20,9 +20,8 @@ export async function register(name: string, email: string, password: string): P
     const res = await api.post("/auth/register", { name, email, password });
 
     return res.data;
-  } catch (error: any) {
-    console.error(error);
-    return { success: false, message: error?.response?.data?.message || error?.message || "Unknown error" };
+  } catch (error: unknown) {
+    return handleAxiosError(error);
   }
 }
 
@@ -30,19 +29,17 @@ export async function login(email: string, password: string): Promise<ServiceRes
   try {
     const res = await api.post("/auth/login", { email, password }, { withCredentials: true });
     return res.data;
-  } catch (error: any) {
-    console.error(error);
-    return { success: false, message: error?.response?.data?.message || error?.message || "Unknown error" };
+  } catch (error: unknown) {
+    return handleAxiosError(error);
   }
 }
 
-export async function logout(): Promise<ServiceResult<any[]>> {
+export async function logout(): Promise<ServiceResult<void>> {
   try {
     const res = await api.post("/auth/logout", {}, { withCredentials: true });
     return res.data;
-  } catch (error: any) {
-    console.error(error);
-    return { success: false, message: error?.response?.data?.message || error?.message || "Unknown error" };
+  } catch (error: unknown) {
+    return handleAxiosError(error);
   }
 }
 
@@ -54,42 +51,38 @@ export async function refresh(): Promise<ServiceResult<{ token: string; user: Us
       { withCredentials: true }, // gửi cookie refresh token
     );
     return res.data;
-  } catch (error: any) {
-    console.error(error);
-    return { success: false, message: error?.response?.data?.message || error?.message || "Unknown error" };
+  } catch (error: unknown) {
+    return handleAxiosError(error);
   }
 }
 
-export async function forgotPassword(email: string): Promise<ServiceResult<any>> {
+export async function forgotPassword(email: string): Promise<ServiceResult<void>> {
   try {
     const res = await api.post("/auth/forgot-password", { email });
 
     return await res.data;
-  } catch (error: any) {
-    console.error(error);
-    return { success: false, message: error?.response?.data?.message || error?.message || "Unknown error" };
+  } catch (error: unknown) {
+    return handleAxiosError(error);
   }
 }
 
-export async function resetPassword(email: string, otp: string): Promise<ServiceResult<any>> {
+export async function resetPassword(email: string, otp: string): Promise<ServiceResult<void>> {
   try {
     const res = await api.post("/auth/reset-password", { email, otp });
 
     return await res.data;
-  } catch (error: any) {
-    console.error(error);
-    return { success: false, message: error?.response?.data?.message || error?.message || "Unknown error" };
+  } catch (error: unknown) {
+    return handleAxiosError(error);
   }
 }
 
-export async function changePassword(oldPassword: string, newPassword: string): Promise<ServiceResult<any>> {
+export async function changePassword(oldPassword: string, newPassword: string): Promise<ServiceResult<void>> {
   try {
     const res = await api.post("/auth/change-password", { oldPassword, newPassword }, { withCredentials: true });
 
     return await res.data;
-  } catch (error: any) {
-    console.error(error);
-    return { success: false, message: error?.response?.data?.message || error?.message || "Unknown error" };
+  } catch (error: unknown) {
+    return handleAxiosError(error);
   }
 }
 
@@ -97,9 +90,8 @@ export async function loginWithGoogle(idToken: string): Promise<ServiceResult<{ 
   try {
     const res = await api.post("/auth/login-google", { idToken }, { withCredentials: true });
     return res.data;
-  } catch (error: any) {
-    console.error(error);
-    return { success: false, message: error?.response?.data?.message || error?.message || "Unknown error" };
+  } catch (error: unknown) {
+    return handleAxiosError(error);
   }
 }
 

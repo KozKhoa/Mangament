@@ -1,5 +1,3 @@
-import { number } from "framer-motion";
-import { useFrames } from "next/dist/next-devtools/dev-overlay/utils/get-error-by-type";
 import { RefObject, useEffect, useRef } from "react";
 
 const RANGE = 12;
@@ -99,7 +97,7 @@ export default function useResize({
       window.addEventListener("pointermove", onResize);
     }
 
-    function onMouseUp(e: MouseEvent) {
+    function onMouseUp() {
       resizeDir.current = null;
 
       window.removeEventListener("pointermove", onResize);
@@ -114,7 +112,7 @@ export default function useResize({
       window.removeEventListener("pointerup", onMouseUp);
       window.removeEventListener("pointerdown", onMouseDown);
     };
-  }, [ref.current]);
+  }, []);
 
   return ref;
 }

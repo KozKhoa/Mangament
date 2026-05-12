@@ -2,7 +2,6 @@
 "use client";
 
 import { createContext, useContext, useEffect, useLayoutEffect, useState } from "react";
-import Story from "@/types/story";
 import DEFAULT from "@/constants/default";
 import KEY from "@/constants/key";
 import genreService from "@/services/genre";
@@ -26,6 +25,8 @@ interface AppContextProps {
   updateReadingFont: (font: string) => void;
   updateReadingTextSize: (textSize: number) => void;
   updateReadingLineSpacing: (value: number) => void;
+
+  loading: boolean;
 }
 
 const AppContext = createContext<AppContextProps | null>(null);
@@ -132,6 +133,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
         updateReadingFont,
         updateReadingTextSize,
         updateReadingLineSpacing,
+        loading,
       }}
     >
       {children}

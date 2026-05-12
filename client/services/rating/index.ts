@@ -3,6 +3,7 @@ import qs from "qs";
 import { Pagination } from "@/types/pagination";
 import { RatingParams } from "@/types/params";
 import Rating from "@/types/ratings";
+import { handleAxiosError } from "@/utils/error";
 
 type ServiceResult<T> = { success: boolean; data?: T; message?: string; pagination?: Pagination };
 
@@ -13,9 +14,8 @@ export async function getRatings(storyId: string, params: RatingParams): Promise
       paramsSerializer: (params) => qs.stringify(params, { arrayFormat: "comma" }),
     });
     return res.data;
-  } catch (error: any) {
-    console.error(error);
-    return { success: false, message: error?.response?.data?.message || error?.message || "Unknown error" };
+  } catch (error: unknown) {
+    return handleAxiosError(error);
   }
 }
 
@@ -27,9 +27,8 @@ export async function addNewRating(storyId: string, star: number, title: string,
       content: content,
     });
     return res.data;
-  } catch (error: any) {
-    console.error(error);
-    return { success: false, message: error?.response?.data?.message || error?.message || "Unknown error" };
+  } catch (error: unknown) {
+    return handleAxiosError(error);
   }
 }
 

@@ -7,7 +7,7 @@ import ButtonDropdown from "../buttons/dropdown/btn-dropdown";
 import Checkbox from "../inputs/checkbox";
 import React, { useCallback, useEffect, useState } from "react";
 
-import { isFitSearch, normalize, snakeCaseToCapitalizeWord } from "@/utils/string";
+import { isFitSearch, snakeCaseToCapitalizeWord } from "@/utils/string";
 import useApp from "@/contexts/AppContext";
 import SearchBar from "../search/search";
 
@@ -16,29 +16,27 @@ interface FilterGenresProps {
   onChange?: (value: string[]) => void;
 }
 
-const GenreCheckBox = React.memo(
-  ({
-    genre,
-    isChecked,
-    isHidden,
-    toggleCheckbox,
-  }: {
-    genre: string;
-    isChecked: boolean;
-    isHidden: boolean;
-    toggleCheckbox: (genre: string, checked: boolean) => void;
-  }) => {
-    return (
-      <div className={`flex w-full h-fit justify-start items-center ${isHidden ? "hidden" : ""}`}>
-        <Checkbox value={isChecked} onChange={(isChecked) => toggleCheckbox(genre, isChecked)}>
-          {snakeCaseToCapitalizeWord(genre)}
-        </Checkbox>
-      </div>
-    );
-  },
-);
+const GenreCheckBox = React.memo(function GenreCheckBox({
+  genre,
+  isChecked,
+  isHidden,
+  toggleCheckbox,
+}: {
+  genre: string;
+  isChecked: boolean;
+  isHidden: boolean;
+  toggleCheckbox: (genre: string, checked: boolean) => void;
+}) {
+  return (
+    <div className={`flex w-full h-fit justify-start items-center ${isHidden ? "hidden" : ""}`}>
+      <Checkbox value={isChecked} onChange={(isChecked) => toggleCheckbox(genre, isChecked)}>
+        {snakeCaseToCapitalizeWord(genre)}
+      </Checkbox>
+    </div>
+  );
+});
 
-const FilterGenres = ({ value, onChange }: FilterGenresProps) => {
+function FilterGenres({ value, onChange }: FilterGenresProps) {
   const app = useApp();
 
   const genres = app?.genres ?? [];
@@ -147,6 +145,6 @@ const FilterGenres = ({ value, onChange }: FilterGenresProps) => {
       </>
     </ButtonDropdown>
   );
-};
+}
 
 export default FilterGenres;

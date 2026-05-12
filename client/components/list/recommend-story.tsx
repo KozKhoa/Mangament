@@ -7,7 +7,6 @@ import storyService from "@/services/story";
 
 import InfinityScrollHorizontalList from "./infinity-scroll-horizontal-list";
 import StoryCard from "../cards/stories/story-card";
-import Loading from "../loadings/loading";
 
 const LIMIT = 20;
 

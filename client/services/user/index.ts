@@ -1,5 +1,6 @@
 import api from "@/lib/axios";
 import User from "@/types/user";
+import { handleAxiosError } from "@/utils/error";
 import { Pagination } from "@/types/pagination";
 
 type ServiceResult<T> = { success: boolean; data?: T; message?: string; pagination?: Pagination };
@@ -26,9 +27,8 @@ export async function updateUser(user: User): Promise<ServiceResult<User>> {
     });
 
     return res.data;
-  } catch (error: any) {
-    console.error(error);
-    return { success: false, message: error?.response?.data?.message || error?.message || "Unknown error" };
+  } catch (error: unknown) {
+    return handleAxiosError(error);
   }
 }
 

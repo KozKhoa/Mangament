@@ -5,7 +5,7 @@ interface TagProps {
   className?: string;
 }
 
-const Tag = React.memo(function ({ children, className }: TagProps) {
+const Tag = React.memo(function Tag({ children, className }: TagProps) {
   return <p className={`rounded-sm px-1 bg-foreground/20  text-foreground ${className}`}>{children}</p>;
 });
 

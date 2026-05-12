@@ -11,7 +11,7 @@ interface SwitchPageProps {
   className?: string;
 }
 
-export default function SwitchPageSmall({ defaultPage, maxPage, page, onChange, className }: SwitchPageProps) {
+export default function SwitchPageSmall({ maxPage, page, onChange, className }: SwitchPageProps) {
   const [pageNumber, setPageNumber] = useState<string>("");
 
   const buttonClassName = `p-1.5 border rounded-[5] border-transparent`;

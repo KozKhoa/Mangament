@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, use, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import * as rememberMe from "@/lib/remember-me";
 import authService from "@/services/auth";
 import { toast } from "sonner";
@@ -18,17 +18,17 @@ interface AuthContextProps {
 
   setUser: (user: User) => void;
 
-  updateGender: (newGender: string) => Promise<any>;
-  updateUsername: (name: string) => Promise<any>;
-  updateBirthday: (date: Date) => Promise<any>;
-  updateAvatar: (avatar: File) => Promise<any>;
+  updateGender: (newGender: string) => Promise<string | number | void>;
+  updateUsername: (name: string) => Promise<string | number | void>;
+  updateBirthday: (date: Date) => Promise<string | number | void>;
+  updateAvatar: (avatar: File) => Promise<string | number | void>;
 
-  login: (email: string, password: string) => Promise<any>;
-  loginWithGoogle: (idToken: string) => Promise<any>;
-  register: (name: string, email: string, password: string) => Promise<any>;
+  login: (email: string, password: string) => Promise<string | number | void>;
+  loginWithGoogle: (idToken: string) => Promise<string | number | void>;
+  register: (name: string, email: string, password: string) => Promise<string | number | void>;
 
-  changePassword: (oldPassword: string, newPassword: string) => Promise<any>;
-  logout: () => Promise<any>;
+  changePassword: (oldPassword: string, newPassword: string) => Promise<string | number | void>;
+  logout: () => Promise<string | number | void>;
 }
 
 const AuthContext = createContext<AuthContextProps | null>(null);
@@ -41,7 +41,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   async function updateGender(newGender: string) {
     if (!user) return;
 
-    const newUser: User = user;
+    const newUser: User = { ...user };
     newUser.gender = newGender;
 
     setLoading(true);
@@ -58,7 +58,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   async function updateUsername(name: string) {
     if (!user) return;
 
-    const newUser: User = user;
+    const newUser: User = { ...user };
     newUser.name = name;
 
     setLoading(true);
@@ -126,7 +126,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setLoading(false);
   }
 
-  async function login(email: string, password: string): Promise<any> {
+  async function login(email: string, password: string): Promise<string | number | void> {
     if (!validateEmailFormat(email)) return toast.error("Invalid Email");
     if (!validatePasswordFormat(password)) return toast.error("Password must have at least six character");
 
@@ -150,7 +150,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }
 
-  async function loginWithGoogle(idToken: string): Promise<any> {
+  async function loginWithGoogle(idToken: string): Promise<string | number | void> {
     setLoading(true);
     const res = await authService.loginWithGoogle(idToken);
     setLoading(false);

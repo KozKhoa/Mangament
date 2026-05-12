@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 
 import ErrorExclamationIcon from "@/public/error-exclamation.svg";
 import OpenEyeIcon from "@/public/eye/open.svg";

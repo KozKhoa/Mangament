@@ -1,5 +1,5 @@
 import StarIcon from "@/public/star.svg";
-import { useRef, useState } from "react";
+import { useState } from "react";
 
 interface StarPickerProps {
   onChange?: (star: number) => void;
@@ -20,15 +20,16 @@ export default function StarPicker({ onChange, defaultValue, maxStar, width = "1
     onChange?.(index + 1);
   }
 
-  const arr = useRef(Array.from({ length: maxStar ?? 5 }));
+  const arr = Array.from({ length: maxStar ?? 5 });
+
   return (
     <div className={`flex flex-row gap-1 justify-center items-center ${className}`}>
-      {arr.current.map((_, i) => (
+      {arr.map((_, i) => (
         <button key={i} onClick={() => handleChosen(i)}>
           {i <= rating ? (
-            <StarIcon className={`w-[${width}] h-[${height}] fill-amber-400`}></StarIcon>
+            <StarIcon className={`w-[${width}] h-[${height}] fill-amber-400`} />
           ) : (
-            <StarIcon className={`w-[${width}] h-[${height}] fill-gray-400`}></StarIcon>
+            <StarIcon className={`w-[${width}] h-[${height}] fill-gray-400`} />
           )}
         </button>
       ))}

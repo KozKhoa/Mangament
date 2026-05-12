@@ -51,9 +51,7 @@ function SearchBar({ onSearch, onType, children, placeHolder = "Tìm kiếm", st
           value={text}
           placeholder={placeHolder}
           onChange={(e) => handleTyping(e.target.value)}
-          onKeyDown={(e) => {
-            e.key === "Enter" && handleSearch();
-          }}
+          onKeyDown={(e) => e.key === "Enter" && handleSearch()}
         ></input>
 
         {/* Search button */}

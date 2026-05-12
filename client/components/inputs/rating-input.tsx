@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 
 import StarPicker from "./star-picker";

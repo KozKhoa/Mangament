@@ -70,7 +70,7 @@ export default function OtpInput({
           value={value}
           onChange={(e) => handleChangeOtp(i, e.target.value)}
           onKeyDown={(e) => handleKeyDown(i, e)}
-          onBeforeInput={(e) => handleChangeOtp(i, "")}
+          onBeforeInput={() => handleChangeOtp(i, "")}
           onPaste={handlePaste}
           autoFocus={i === 0}
           disabled={disableAll}

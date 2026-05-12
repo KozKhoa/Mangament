@@ -17,7 +17,7 @@ function NavbarItem({ item, index, onClickItem }: { item: string; index: number;
   );
 }
 
-const Navbar = React.memo(({ items, onClickItem, className }: NavbarProps) => {
+const Navbar = React.memo(function Navbar({ items, onClickItem, className }: NavbarProps) {
   return (
     <div className={`flex flex-row flex-wrap gap-1 text-foreground/80 ${className}`}>
       {items.map((item, i) => (

@@ -332,4 +332,3 @@ authRouter.post("/reset-password", ValidateData(authShemas.resetPassword), authC
 authRouter.post("/change-password", AuthenticationToken, ValidateData(authShemas.changePassword), authControrller.ChangePassword);
 
 export default authRouter;
-

@@ -34,7 +34,7 @@ export default function InViewList({ children, onInView, className, threshold = 
     );
 
     return () => observerRef.current?.disconnect();
-  }, []);
+  }, [threshold]);
 
   const setRef = (index: number) => (el: Element | null) => {
     if (!observerRef.current) return;

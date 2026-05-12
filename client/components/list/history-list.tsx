@@ -1,9 +1,6 @@
 import History from "@/types/history";
 import HistoryCard from "../cards/history-card";
 
-import NoContent from "../cards/no-content";
-import { useRouter } from "next/navigation";
-import { useEffect, useRef } from "react";
 import InfinityScrollHorizontalList from "./infinity-scroll-horizontal-list";
 
 interface StoryListProps {

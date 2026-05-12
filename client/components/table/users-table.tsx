@@ -1,8 +1,7 @@
 import { Pagination } from "@/types/pagination";
 import User from "@/types/user";
 import Switch from "../switchs/switch";
-import { convertDateTo_yyyMMdd } from "@/utils/convert";
-import { snakeCaseToCapitalizeWord } from "@/utils/string";
+
 import { CSSProperties, useEffect, useState } from "react";
 
 import DeleteIcon from "@/public/delete.svg";

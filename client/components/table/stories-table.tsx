@@ -35,7 +35,7 @@ function TD({ className, children, style }: { className?: string; children?: Rea
   );
 }
 
-export default function StoriesTable({ className, data, pagination }: StoriesTableProps) {
+export default function StoriesTable({ className, data }: StoriesTableProps) {
   const [stories, setStories] = useState<Story[]>([]);
 
   const [processDeleteStory, setProcessingDeleteStory] = useState<Set<Story>>(new Set<Story>());

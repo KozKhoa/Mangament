@@ -7,15 +7,17 @@ export default function useInView(options = { threshold: 0.1, rootMargin: "0px" 
   useEffect(() => {
     if (!ref.current) return;
 
+    const element = ref.current;
+
     const observer = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
         setInView(entry.isIntersecting);
       });
     }, options);
 
-    observer.observe(ref.current);
+    observer.observe(element);
     return () => observer.disconnect();
-  }, [ref.current]);
+  }, [options]);
 
   return [ref, inView];
 }
