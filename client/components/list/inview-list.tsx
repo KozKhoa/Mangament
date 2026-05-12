@@ -47,7 +47,7 @@ export default function InViewList({ children, onInView, className, threshold = 
 
   useEffect(() => {
     onInView?.(inViewMap.map((inView, i) => (inView ? i : -1)).filter((i) => i !== -1));
-  }, [inViewMap, onInView]);
+  }, [inViewMap]);
 
   return (
     <div className={className}>
