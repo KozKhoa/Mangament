@@ -37,6 +37,8 @@ import InViewList from "@/components/list/inview-list";
 import Navbar from "@/components/layouts/navbar";
 
 const RATIO_LINE_SPACING = 0.6;
+const SAVE_HISTORY_INTERVAL = 1000;
+const THRESHOLD_INVIEW = 0.2;
 
 function buildStoryNodeParent(tree: StoryNode[], targetNodeId: string) {
   const parentList: StoryNode[] = [];
@@ -238,16 +240,6 @@ export default function ReadingStoryPage() {
   }, [storyNodeId]);
 
   useEffect(() => {
-    const continueReadingContentId = localStorage.getItem(continueReadingContentKey);
-
-    if (continueReadingContentId) {
-      const element = document.querySelector(`[data-content-id="${continueReadingContentId}"]`);
-
-      if (element) {
-        element.scrollIntoView({ behavior: "smooth" });
-      }
-    }
-
     let timer: NodeJS.Timeout;
     if (storyNode) {
       if (storyNode.type === "chapter") {
@@ -262,13 +254,26 @@ export default function ReadingStoryPage() {
   }, [storyNode]);
 
   useEffect(() => {
+    const continueReadingContentId = localStorage.getItem(continueReadingContentKey);
+
+    if (continueReadingContentId) {
+      const element = document.querySelector(`[data-content-id="${continueReadingContentId}"]`);
+
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth" });
+      }
+    }
+  }, [continueReadingContentKey]);
+
+  // Save reading content to localStorage for each chapter, we will use it to continue reading
+  useEffect(() => {
     const timeout = setTimeout(() => {
       const readingContent = readingContents[0];
 
       if (!readingContent) return;
 
       localStorage.setItem(continueReadingContentKey, readingContent.id.toString());
-    }, 2000);
+    }, SAVE_HISTORY_INTERVAL);
 
     return () => clearTimeout(timeout);
   }, [readingContents]);
@@ -374,7 +379,7 @@ export default function ReadingStoryPage() {
             onInView={(indexs) => {
               if (indexs && indexs.length > 0) setReadingContents(indexs.map((index) => content?.[index] ?? null));
             }}
-            threshold={0.5}
+            threshold={THRESHOLD_INVIEW}
           >
             {[...(content ?? [])]?.map((con, i) => (
               <div
@@ -433,11 +438,11 @@ export default function ReadingStoryPage() {
           </p>
 
           <Button buttonType="default" className="font-semibold w-full py-2" disable={!nextNode} onClick={goToNextChapter}>
-            Tiếp <ArrowRightIcon className="w-4 h-4 shrink-0" />
+            Sau <ArrowRightIcon className="w-4 h-4 shrink-0" />
           </Button>
         </div>
 
-        <div className="">
+        <div className="px-2">
           <p className="text-foreground/60">[{snakeCaseToCapitalizeWord(story?.type ?? "")}]</p>
           <Link href={`/stories/${story?.type}/${story?.id}`}>
             <p className="font-bold text-4xl cursor-pointer py-3">{story?.title}</p>
@@ -445,11 +450,11 @@ export default function ReadingStoryPage() {
         </div>
       </div>
 
-      {/* Comment */}
-      {storyId && storyNodeId && <CommentMasonryGrid className="my-2 mx-2.5" storyId={storyId} storyNodeId={storyNodeId} />}
-
       {/* Recommend */}
       {story && <RecommendStories story={story} className="max-w-[1800] mx-auto" />}
+
+      {/* Comment */}
+      {storyId && storyNodeId && <CommentMasonryGrid className="my-2 mx-2.5" storyId={storyId} storyNodeId={storyNodeId} />}
     </div>
   );
 }
