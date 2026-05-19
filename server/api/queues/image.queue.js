@@ -15,6 +15,7 @@ const ADD_JOB_OPTION = { attempts: ATTEMP, backoff: { type: "exponential", delay
 class ImageQueue {
   #permenantDeletedManyImagesQueue = new Queue("permenant-delete-many-images", { connection });
   #permenantDeltedImageQueue = new Queue("permenant-delete-image", { connection });
+  #addNewImage = new Queue("add-new-image", { connection });
 
   addJob_PermenantDeleteManyImages(imageIds) {
     this.#permenantDeletedManyImagesQueue.add("permenantDeleteManyImages", { imageIds }, ADD_JOB_OPTION);
@@ -22,6 +23,10 @@ class ImageQueue {
 
   addJob_PermenantDeleteImage(imageId) {
     this.#permenantDeltedImageQueue.add("permenantDeleteImage", { imageId }, ADD_JOB_OPTION);
+  }
+
+  addJob_AddNewImage(key, file) {
+    this.#addNewImage.add("addNewImage", { key, file }, ADD_JOB_OPTION);
   }
 }
 

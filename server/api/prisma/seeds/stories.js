@@ -1,4 +1,7 @@
-import db, { StoryStatus, StoryType } from "../../configs/db.js";
+import db from "../../configs/db.js";
+
+import { StoryStatus, StoryType } from "../../configs/db.js";
+
 import { execSync } from "child_process";
 
 import { faker } from "@faker-js/faker";

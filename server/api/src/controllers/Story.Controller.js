@@ -106,7 +106,7 @@ export async function GetAllStories(req, res, next) {
 
     const { isGettingChildren, author, keyword, isGettingNewestChapter, limit, status, page, type, genre, star, view, sort, nation } = req.query;
 
-    if (genre && genre.length > 0) throwErrorIfInvalidGenres(genre);
+    if (genre && genre.length > 0) await throwErrorIfInvalidGenres(genre);
 
     const stories = await FindAllStories({
       isActived: true,

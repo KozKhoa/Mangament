@@ -21,12 +21,13 @@ const embeddingStoryWorker = new Worker(
       select: {
         title: true,
         summary: true,
-        genres: { select: { genre: true } },
+        genres: { select: { genre: { select: { name: true } } } },
         authors: { select: { author_id: true } },
       },
     });
 
-    const { title, summary, genres, authors } = story;
+    const { title, summary, authors } = story;
+    const genres = story.genres.map((genre) => genre.genre.name);
 
     console.log(`Begin embedding story ${title}`);
 
@@ -36,7 +37,7 @@ const embeddingStoryWorker = new Worker(
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        text: `${title}. ${summary}. ${genres.map((g) => g.genre).join(", ")}. ${authors.map((a) => a.author_id).join(", ")}.`,
+        text: `${title}. ${summary}. ${genres.join(", ")}. ${authors.map((a) => a.author_id).join(", ")}.`,
       }),
     })
       .then((res) => res.json())
@@ -130,7 +131,8 @@ const updateStoryWorker = new Worker(
                 ...(posterId && { poster: { connect: { id: posterId } } }),
               },
 
-              include: { cover_art: { select: { url: true, width: true, height: true } }, genres: { select: { genre: true } } },
+              select: { id: true },
+              // include: { cover_art: { select: { url: true, width: true, height: true } }, genres: { select: { genre: { select: { name: true } } } } },
             })
             .catch(async (error) => {
               const uniqueTitle = title ? await db.story.findUnique({ where: { title: title } }) : undefined;
@@ -142,10 +144,12 @@ const updateStoryWorker = new Worker(
           if (genres && genres.length > 0) {
             await tx.story_Genre.deleteMany({ where: { story_id: updateStory.id } });
 
+            const genresId = (await tx.genre.findMany({ where: { name: { in: genres } }, select: { id: true } })).map((genre) => genre.id);
+
             await tx.story_Genre.createMany({
-              data: genres.map((genre) => ({
+              data: genresId.map((genreId) => ({
                 story_id: updateStory.id,
-                genre,
+                genre_id: genreId,
               })),
               skipDuplicates: true,
             });

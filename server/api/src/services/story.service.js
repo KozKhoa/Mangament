@@ -2,7 +2,6 @@ import db from "../../configs/db.js";
 import { redis } from "../../configs/redis.js";
 import { CreateError } from "../utils/ErrorHandle.js";
 import { randomInt } from "../utils/Number.js";
-import { ValidateGenre } from "./genre.service.js";
 
 import storyQueue from "../../queues/story.queue.js";
 
@@ -200,8 +199,6 @@ export async function FindAllStories({
   const cached = await redis.get(REDIS_KEY);
   if (cached) return JSON.parse(cached);
 
-  if (genres && genres.length > 0) throwErrorIfInvalidGenres(genres);
-
   const params = [deletedStatus];
   let paramIdx = 2;
 
@@ -244,8 +241,9 @@ export async function FindAllStories({
   if (genres && genres.length > 0) {
     conditions.push(`EXISTS (
       SELECT 1 FROM "Story_Genre"
+      JOIN "Genre" ON "Story_Genre"."genre_id" = "Genre"."id"
       WHERE "Story_Genre"."story_id" = "Story"."id"
-      AND "Story_Genre"."genre" = ANY($${paramIdx++}::text[]::"Genre"[])
+      AND "Genre"."name" = ANY($${paramIdx++}::text[])
     )`);
     params.push(genres);
   }
@@ -356,7 +354,7 @@ export async function FindAllStories({
         authors: { select: { author: { select: { id: true, name: true } } } },
         cover_art: true,
         nation: { select: { name: true, flag_icon: true, flag_image: { select: { url: true, height: true, width: true } } } },
-        genres: { select: { genre: true } },
+        genres: { select: { genre: { select: { name: true } } } },
       },
     });
 
@@ -370,7 +368,7 @@ export async function FindAllStories({
   // Mapping the result
   for (const story of stories) {
     story.authors = story.authors?.map((author) => author.author);
-    story.genres = story.genres?.map((genre) => genre.genre);
+    story.genres = story.genres?.map((genre) => genre.genre.name);
 
     if (story.favourite && story.favourite.length > 0) story.favourite = story.favourite[0];
     if (isGettingChildren) story.children = await BuildStoryTree(story.id, null);
@@ -434,7 +432,7 @@ export async function FindStory({
     },
     include: {
       authors: { select: { author: { select: { id: true, name: true } } } },
-      genres: { select: { genre: true } },
+      genres: { select: { genre: { select: { name: true } } } },
       cover_art: { select: { url: true, height: true, width: true } },
       nation: { select: { name: true, flag_icon: true, flag_image: { select: { url: true, height: true, width: true } } } },
     },
@@ -445,7 +443,7 @@ export async function FindStory({
   }
 
   story.authors = story.authors.map((author) => author.author);
-  story.genres = story.genres.map((genre) => genre.genre);
+  story.genres = story.genres.map((genre) => genre.genre.name);
 
   if (isGettingChildren) {
     story.children = await BuildStoryTree(story.id, null, {
@@ -498,6 +496,8 @@ export async function AddStory({ title, otherTitles, type, nation, genres, autho
     }
 
     // If not exist
+    const genresId = (await db.genre.findMany({ where: { name: { in: genres } }, select: { id: true } })).map((genre) => genre.id);
+
     const newStory = await tx.story
       .create({
         data: {
@@ -508,7 +508,7 @@ export async function AddStory({ title, otherTitles, type, nation, genres, autho
           ...(summary && { summary: summary }),
           ...(posterId && { poster: { connect: { id: posterId } } }),
           ...(nation && { nation: { connect: { name: nation.name } } }),
-          ...(genres && genres.length > 0 && { genres: { create: genres.map((genre) => ({ genre: genre })) } }),
+          ...(genres && genres.length > 0 && { genres: { createMany: { data: genresId.map((genre) => ({ genre_id: genre })) } } }),
           ...(authorIds && authorIds.length > 0 && { authors: { connectOrCreate: authorIds.map((authorId) => ({ author_id: authorId })) } }),
           ...(coverArt && { cover_art: { connectOrCreate: { where: { url: coverArt.url }, create: { url: coverArt.url, public_id: coverArt.publicId } } } }),
         },
@@ -680,10 +680,6 @@ export async function UpdateStory(
     for (const authorId of authorIds) {
       if (!isUUID(authorId)) throw CreateError(400, "authorIds must be uuid[]");
     }
-  }
-
-  if (genres && genres.length > 0) {
-    genres = ValidateGenre(genres);
   }
 
   if (otherTitles && otherTitles.length > 0) {

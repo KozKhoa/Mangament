@@ -126,6 +126,7 @@ model Image {
   story              Story[]
   story_node_content StoryNodeContent[]
   user               User[]
+  genres             Genre[]
 }
 
 model Author {
@@ -173,22 +174,41 @@ model FavouriteStory {
 }
 
 model Nation {
-  id            String   @id @default(uuid()) @db.Uuid
-  flag_image_id String?  @db.Uuid
+  id            String  @id @default(uuid()) @db.Uuid
+  flag_image_id String? @db.Uuid
   flag_icon     String?
-  name          String   @unique
-  author        Author[]
-  flag_image    Image?   @relation(fields: [flag_image_id], references: [id])
-  story         Story[]
-  user          User[]
+  name          String  @unique
+
+  flag_image Image? @relation(fields: [flag_image_id], references: [id])
+
+  author Author[]
+  story  Story[]
+  user   User[]
+}
+
+model Genre {
+  id             String        @id @default(uuid()) @db.Uuid
+  name           String
+  description    String?
+  thumbnail_id   String?       @db.Uuid
+  deleted_status DeletedStatus @default(not_deleted)
+
+  thumbnail Image? @relation(fields: [thumbnail_id], references: [id])
+
+  story_genres Story_Genre[]
 }
 
 model Story_Genre {
   story_id String @db.Uuid
-  genre    Genre
-  story    Story  @relation(fields: [story_id], references: [id], onDelete: Cascade)
+  genre_id String @db.Uuid
 
-  @@id([story_id, genre])
+  created_at     DateTime      @default(now())
+  deleted_status DeletedStatus @default(not_deleted)
+
+  story Story @relation(fields: [story_id], references: [id], onDelete: Cascade)
+  genre Genre @relation(fields: [genre_id], references: [id], onDelete: Cascade)
+
+  @@id([story_id, genre_id])
 }
 
 model Rating {
@@ -267,58 +287,6 @@ enum Gender {
   male
   female
   other
-}
-
-enum Genre {
-  action
-  adventure
-  comedy
-  crime
-  cyberpunk
-  dark_fantasy
-  detective
-  drama
-  dystopian_fiction
-  ecchi
-  fairy_tale
-  fantasy
-  fiction
-  gekiga
-  gothic_fiction
-  harem
-  high_fantasy
-  historical
-  historical_fiction
-  horror
-  isekai
-  josei
-  kodomo
-  literary_fiction
-  low_fantasy
-  magical_realism
-  martial_arts
-  mecha
-  mystery
-  parody
-  post_apocalyptic
-  psychology
-  romance
-  science_fiction
-  seinen
-  shojo
-  shonen
-  shoujo_ai
-  shounen_ai
-  slice_of_life
-  space_opera
-  sport
-  steampunk
-  supernatural
-  survival
-  thriller
-  tragedy
-  yaoi
-  yuri
 }
 
 enum DeletedStatus {

@@ -1,4 +1,5 @@
-import db from "../../src/configs/db.js";
+import db from "../../configs/db.js";
+
 import { faker } from "@faker-js/faker";
 
 import { randomInt } from "crypto";

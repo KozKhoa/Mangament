@@ -180,11 +180,11 @@ function GenreButton({ isMobile = false }: { isMobile?: boolean }) {
             genres.length > 0 &&
             genres.map((genre, i) => (
               <Link
-                key={genre}
-                href={routes.genre({ genre })}
+                key={i}
+                href={routes.genre({ genre: genre.name })}
                 className={`w-full text-start p-2 px-5 ${i !== genres.length - 1 ? "border-b" : ""} hover:bg-foreground/30 cursor-pointer`}
               >
-                {snakeCaseToCapitalizeWord(genre)}
+                {genre.name}
               </Link>
             ))}
         </div>
@@ -197,8 +197,8 @@ function GenreButton({ isMobile = false }: { isMobile?: boolean }) {
           {genres &&
             genres.length > 0 &&
             genres.map((genre, i) => (
-              <Link key={genre} href={`/genre/${genre}`} className="w-full text-start p-2 border-b hover:bg-foreground/20 rounded-t-sm cursor-pointer">
-                {snakeCaseToCapitalizeWord(genre)}
+              <Link key={i} href={`/genre/${genre}`} className="w-full text-start p-2 border-b hover:bg-foreground/20 rounded-t-sm cursor-pointer">
+                {genre.name}
               </Link>
             ))}
         </div>

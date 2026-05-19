@@ -75,9 +75,7 @@ export async function FindAllReadingHistories({
         genres.length > 0 && {
           genres: {
             some: {
-              genre: {
-                in: genres,
-              },
+              genre: { name: { in: genres } },
             },
           },
         }),

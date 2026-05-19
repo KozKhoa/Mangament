@@ -62,7 +62,7 @@ export async function FindAllFavouriteStories({
       ...(nations && nations.length > 0 && { nation: { name: { in: nations } } }),
       ...(genres &&
         genres.length > 0 && {
-          genres: { some: { genre: { in: genres } } },
+          genres: { some: { genre: { name: { in: genres } } } },
         }),
       ...(authorsId &&
         authorsId.length > 0 && {

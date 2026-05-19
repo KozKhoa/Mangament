@@ -1,16 +1,16 @@
 import * as genreService from "../services/genre.service.js";
 
 import { CreateError } from "../utils/ErrorHandle.js";
-import ErrorCodes from "../constants/Error.js";
 
-export async function GetAllGenre(req, res, next) {
+// GET /genres
+export async function GetAllGenres(req, res, next) {
   try {
-    const genres = genreService.GetAllGenre();
+    const genres = await genreService.GetAllGenres();
 
     return res.status(200).json({
       success: true,
       message: "Get all genres successfully",
-      data: genres,
+      data: genres.data,
     });
   } catch (error) {
     next(error);

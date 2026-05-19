@@ -9,11 +9,13 @@ import { toast } from "sonner";
 import authorService from "@/services/author";
 import NATIONS from "@/constants/nations";
 import Author from "@/types/author";
+import Genre from "@/types/genre";
+import Nation from "@/types/nation";
 
 interface AppContextProps {
-  genres: string[];
+  genres: Genre[];
   authors: Author[];
-  nations: { name: string; flag_icon: string }[];
+  nations: Nation[];
   font?: string;
   textSize?: number;
   readingFont: string;
@@ -32,10 +34,10 @@ interface AppContextProps {
 const AppContext = createContext<AppContextProps | null>(null);
 
 export const AppProvider = ({ children }: { children: React.ReactNode }) => {
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  const [genres, setGenres] = useState<string[]>([]);
-  const [nations, setNations] = useState<{ name: string; flag_icon: string }[]>([]);
+  const [genres, setGenres] = useState<Genre[]>([]);
+  const [nations, setNations] = useState<Nation[]>([]);
 
   const [authors, setAuthors] = useState<Author[]>([]);
   const [textSize, setTextSize] = useState<number>(DEFAULT.textSize);
@@ -85,21 +87,17 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     async function fetchGenres() {
-      const res = await genreService.get();
+      const res = await genreService.getAllGenres();
 
-      setLoading(true);
       if (!res.success) return toast.warning(res.message);
-      setLoading(false);
 
-      setGenres(res.data);
+      setGenres(res.data ?? []);
     }
 
     async function fetchAuthors() {
       const res = await authorService.getAuthors();
 
-      setLoading(true);
       if (!res.success) return toast.warning(res.message);
-      setLoading(false);
 
       setAuthors(res.data ?? []);
     }
@@ -108,9 +106,15 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
       setNations(NATIONS);
     }
 
-    fetchNations();
-    fetchAuthors();
-    fetchGenres();
+    async function fetchAll() {
+      setLoading(true);
+
+      await Promise.all([fetchGenres(), fetchAuthors(), fetchNations()]);
+
+      setLoading(false);
+    }
+
+    fetchAll();
   }, []);
 
   useLayoutEffect(() => {

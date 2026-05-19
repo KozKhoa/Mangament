@@ -21,13 +21,11 @@ import { toast } from "sonner";
 
 const LIMIT = 30;
 
-type FeedItem = { type: "story"; data: Story } | { type: "genre_suggestion"; data: string[] } | { type: "banner"; data: any };
-
 export default function StoryGenreListPage() {
   const param = useParams();
   const router = useRouter();
 
-  const genre = param.name?.toString();
+  const genre = decodeURIComponent(param.name?.toString() ?? "");
 
   const searchParams = useSearchParams();
   const page = Number(searchParams.get("page") ?? 1);

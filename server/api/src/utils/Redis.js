@@ -64,6 +64,8 @@ const image = (url) => {
   return { get: () => version.get(key), incr: () => version.incr(key) };
 };
 
-const redisUtils = { stories, storyNodes, comments, ratings, histories, favourites, users, admin, image, authors };
+const genres = () => ({ get: () => version.get("genres"), incr: () => version.incr("genres") });
+
+const redisUtils = { stories, storyNodes, comments, ratings, histories, favourites, users, admin, image, authors, genres };
 
 export default redisUtils;
