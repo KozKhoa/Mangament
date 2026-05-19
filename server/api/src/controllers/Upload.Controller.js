@@ -6,6 +6,7 @@ import pLimit from "p-limit";
 import sharp from "sharp";
 
 import r2CloudflareUtils from "../utils/R2Cloudflare.js";
+import uploadService from "../services/upload.service.js";
 
 // POST /uploads/user/:userId/avatar
 // POST /uploads/user/me/avatar
@@ -15,24 +16,9 @@ export async function UploadAvatar(req, res, next) {
 
     const file = req.file;
 
-    const id = crypto.randomUUID();
+    const avatar = (await uploadService.uploadAvatar(userId, file)).data;
 
-    const key = `user/${userId}/avatar/_avatar_${userId}_${id}.jpg`;
-
-    const url = `${process.env.CDN_URL}/${key}`;
-
-    // Resize + optimize
-    const optimizedBuffer = await sharp(file.buffer)
-      .resize({ width: 300 })
-      .jpeg({
-        quality: 80,
-        mozjpeg: true,
-      })
-      .toBuffer();
-
-    const result = await Promise.all([r2CloudflareUtils.uploadObject(key, optimizedBuffer, file.mimetype), imageService.AddImage({ url, key })]);
-
-    res.json({ success: true, data: { key, url, id: result[1].data.id } });
+    res.json({ success: true, data: avatar });
   } catch (err) {
     next(err);
   }
@@ -45,24 +31,9 @@ export async function UploadStoryCoverArt(req, res, next) {
 
     const storyId = req.params?.storyId;
 
-    const id = crypto.randomUUID();
+    const coverArt = (await uploadService.uploadStoryCoverArt(storyId, file)).data;
 
-    const key = `story/${storyId}/cover-art/_cover-art_${storyId}_${id}.jpg`;
-
-    const url = `${process.env.CDN_URL}/${key}`;
-
-    // Resize + optimize
-    const optimizedBuffer = await sharp(file.buffer)
-      .resize({ width: 800, withoutEnlargement: true })
-      .jpeg({
-        quality: 80,
-        mozjpeg: true,
-      })
-      .toBuffer();
-
-    const result = await Promise.all([r2CloudflareUtils.uploadObject(key, optimizedBuffer, file.mimetype), imageService.AddImage({ url, key })]);
-
-    res.json({ success: true, data: { key, url, id: result[1].data.id } });
+    res.json({ success: true, data: coverArt });
   } catch (err) {
     next(err);
   }
@@ -76,33 +47,9 @@ export async function UploadManyContentsForStoryNode(req, res, next) {
 
     const files = req.files;
 
-    const limit = pLimit(3); // xử lý tối đa 3 ảnh cùng lúc
+    const contents = (await uploadService.uploadManyContentsForStoryNode(storyId, storyNodeId, files)).data;
 
-    const results = await Promise.all(
-      files.map((file, index) =>
-        limit(async () => {
-          const optimized = await sharp(file.buffer)
-            .resize({
-              width: 1200,
-              withoutEnlargement: true,
-            })
-            .jpeg({
-              quality: 80,
-              mozjpeg: true,
-            })
-            .toBuffer();
-
-          const key = `story/${storyId}/story-node/${storyNodeId}/${crypto.randomUUID()}.jpg`;
-          const url = `${process.env.CDN_URL}/${key}`;
-
-          const result = await Promise.all([r2CloudflareUtils.uploadObject(key, optimized, "image/jpeg"), imageService.AddImage({ url, key })]);
-
-          return { key, url, id: result[1].data.id };
-        }),
-      ),
-    );
-
-    res.json({ success: true, data: results });
+    res.json({ success: true, data: contents });
   } catch (err) {
     next(err);
   }
@@ -116,23 +63,9 @@ export async function UploadContentForStoryNode(req, res, next) {
 
     const file = req.file;
 
-    const key = `story/${storyId}/story-node/${storyNodeId}/${crypto.randomUUID()}.jpg`;
-    const url = `${process.env.CDN_URL}/${key}`;
+    const content = (await uploadService.uploadContentForStoryNode(storyId, storyNodeId, file)).data;
 
-    const optimized = await sharp(file.buffer)
-      .resize({
-        width: 1200,
-        withoutEnlargement: true,
-      })
-      .jpeg({
-        quality: 80,
-        mozjpeg: true,
-      })
-      .toBuffer();
-
-    const result = await Promise.all([r2CloudflareUtils.uploadObject(key, optimized, "image/jpeg"), imageService.AddImage({ url, key })]);
-
-    res.json({ success: true, data: { key, url, id: result[1].data.id } });
+    res.json({ success: true, data: content });
   } catch (err) {
     next(err);
   }

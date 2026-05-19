@@ -141,7 +141,7 @@ const updateStoryWorker = new Worker(
               throw new Error(error);
             });
 
-          if (genres && genres.length > 0) {
+          if (genres) {
             await tx.story_Genre.deleteMany({ where: { story_id: updateStory.id } });
 
             const genresId = (await tx.genre.findMany({ where: { name: { in: genres } }, select: { id: true } })).map((genre) => genre.id);
@@ -155,7 +155,7 @@ const updateStoryWorker = new Worker(
             });
           }
 
-          if (authorIds && authorIds.length > 0) {
+          if (authorIds) {
             await tx.story_Author.deleteMany({ where: { story_id: updateStory.id } });
 
             await tx.story_Author.createMany({

@@ -1,7 +1,7 @@
 "use client";
 
 import { toast } from "sonner";
-import { isEqual } from "lodash";
+import { isEqual, sum } from "lodash";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 
@@ -31,8 +31,6 @@ import { snakeCaseToCapitalizeWord } from "@/utils/string";
 import withAdmin from "@/hoc/withAdmin";
 
 import { OTHER_TITLES_SEPARATOR } from "@/constants/story";
-import { Pagination } from "@/types/pagination";
-import { StoryNodesTrashGrid } from "@/components/grids/story-nodes-trash-grid";
 
 export function EditStory() {
   const params = useParams();
@@ -163,7 +161,7 @@ export function EditStory() {
     });
   }
 
-  function setSummary(summary: string) {
+  function setSummary(summary?: string) {
     setEditedStory((prev) => {
       if (!prev) return prev;
       const next: Story = { ...prev, summary: summary };

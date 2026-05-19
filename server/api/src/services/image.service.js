@@ -29,12 +29,12 @@ export async function FindImage({ id, url }) {
   return { success: true, data: result };
 }
 
-export async function AddImage({ url, key, public_id }) {
-  const addImage = await db.image.create({ data: { url, public_id, key } }).catch(async (error) => {
-    return { success: true, data: await db.image.findUnique({ where: { url: url } }) };
+export async function AddImage({ url, key }) {
+  const addImage = await db.image.create({ data: { url, key } }).catch(async (error) => {
+    return { success: false, message: "Url already exists", data: await db.image.findUnique({ where: { url: url } }) };
   });
 
-  return { success: true, data: addImage };
+  return addImage;
 }
 
 export async function SoftDeleteImage({ id, url }) {

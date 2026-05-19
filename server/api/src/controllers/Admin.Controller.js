@@ -313,9 +313,9 @@ export async function UpdateStory(req, res, next) {
     const status = body?.status;
     const genre = body?.genre;
     const authorIds = body?.authorIds;
-    const summary = body?.summary;
+    const summary = body?.summary ?? undefined;
 
-    const coverArt = req.body?.coverArt; // {url, key, ...}
+    const coverArt = req.body?.coverArt ?? undefined; // {url, key, ...}
 
     const children = body.children;
 

@@ -161,7 +161,13 @@ export async function UpdateUser(id, { name, birthday, gender, avatar, role }) {
         ...(role && { role: role }),
         ...(avatar && { avatar: { connectOrCreate: { where: { url: avatar.url }, create: { url: avatar.url, key: avatar.key } } } }),
       },
-      include: { avatar: true },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+        avatar: true,
+      },
     })
     .catch(async (error) => {
       const user = await db.user.findFirst({ where: { id: id } });
@@ -169,8 +175,6 @@ export async function UpdateUser(id, { name, birthday, gender, avatar, role }) {
 
       throw new Error(error);
     });
-
-  delete update?.password;
 
   redisUtils.users(update.id).incr();
   redisUtils.users(update.email).incr();
