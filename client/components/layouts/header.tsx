@@ -178,15 +178,17 @@ function GenreButton({ isMobile = false }: { isMobile?: boolean }) {
         <div className="flex flex-col gap-2 w-full">
           {genres &&
             genres.length > 0 &&
-            genres.map((genre, i) => (
-              <Link
-                key={genre}
-                href={routes.genre({ genre })}
-                className={`w-full text-start p-2 px-5 ${i !== genres.length - 1 ? "border-b" : ""} hover:bg-foreground/30 cursor-pointer`}
-              >
-                {snakeCaseToCapitalizeWord(genre)}
-              </Link>
-            ))}
+            genres.map((genre, i) => {
+              return (
+                <Link
+                  key={i}
+                  href={routes.genre({ genre: genre.name })}
+                  className={`w-full text-start p-2 px-5 ${i !== genres.length - 1 ? "border-b" : ""} hover:bg-foreground/30 cursor-pointer`}
+                >
+                  {genre.name}
+                </Link>
+              );
+            })}
         </div>
       </ButtonExpandable>
     );
@@ -197,8 +199,12 @@ function GenreButton({ isMobile = false }: { isMobile?: boolean }) {
           {genres &&
             genres.length > 0 &&
             genres.map((genre, i) => (
-              <Link key={genre} href={`/genre/${genre}`} className="w-full text-start p-2 border-b hover:bg-foreground/20 rounded-t-sm cursor-pointer">
-                {snakeCaseToCapitalizeWord(genre)}
+              <Link
+                key={i}
+                href={routes.genre({ genre: genre.name })}
+                className="w-full text-start p-2 border-b hover:bg-foreground/20 rounded-t-sm cursor-pointer"
+              >
+                {genre.name}
               </Link>
             ))}
         </div>

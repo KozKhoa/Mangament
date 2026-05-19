@@ -1,8 +1,6 @@
 import express from "express";
 
-import { GetAllGenre } from "../controllers/Genre.Controller.js";
-
-import { AuthenticationToken, AuthorizationRole } from "../middlewares/Auth.Middleware.js";
+import * as genreController from "../controllers/Genre.Controller.js";
 
 const genreRoute = express.Router();
 
@@ -21,6 +19,6 @@ const genreRoute = express.Router();
  *         description: List
  */
 
-genreRoute.get("/", GetAllGenre);
+genreRoute.get("/", genreController.GetAllGenres);
 
 export default genreRoute;

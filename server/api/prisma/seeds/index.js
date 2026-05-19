@@ -10,10 +10,13 @@ import * as storyNodeContentSeeding from "./story-node-contents.js";
 import * as authorSeeding from "./author.js";
 import * as ratingSeeding from "./rating.js";
 import * as commentSeeding from "./comment.js";
+import * as genreSeeding from "./genre.js";
 
 // await imageSeeding.default();
 
 // await nationSeeding.default();
+
+await genreSeeding.default();
 
 // await userSeeding.default();
 
@@ -21,7 +24,7 @@ import * as commentSeeding from "./comment.js";
 
 // await authorSeeding.default();
 
-// await storyGenreSeeding.default();
+await storyGenreSeeding.default();
 
 // await storyNodeSeeding.default();
 

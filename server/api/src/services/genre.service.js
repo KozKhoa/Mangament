@@ -1,37 +1,35 @@
 import db from "../../configs/db.js";
-import { Genre } from "../../configs/db.js";
 
-export function GetAllGenre() {
-  return Object.values(Genre);
-}
+import redisUtils from "../utils/Redis.js";
 
-export function ValidateGenre(genres = []) {
-  let inputGenres;
-  if (Array.isArray(genres)) {
-    inputGenres = genres;
-  } else {
-    inputGenres = [genres];
-  }
-  const genresSet = new Set(GetAllGenre());
+import { redis } from "../../configs/redis.js";
 
-  const validGenres = inputGenres.filter((genre) => genresSet.has(genre));
+const REDIS_TTL = 60 * 60 * 24; // 24 hours
 
-  return [...new Set(validGenres)];
-}
+export async function GetAllGenres() {
+  const genresVer = await redisUtils.genres().get();
 
-export async function FindAllStoryGenres(where = { story_id }) {
-  try {
-    const storyGenres = await db.story_Genre.findMany({
-      where: where,
-      select: {
-        story_id: true,
-        genre: true,
-      },
-    });
-    return { success: true, data: storyGenres };
-  } catch (error) {
-    return { success: false, error: error.code };
-  }
+  const REDIS_KEY = ["GetAllGenres", "genresVer=" + genresVer].join(":");
+
+  const cached = await redis.get(REDIS_KEY);
+  if (cached) return JSON.parse(cached);
+
+  const genres = await db.genre.findMany({
+    where: { deleted_status: "not_deleted" },
+    select: {
+      id: true,
+      name: true,
+      description: true,
+      thumbnail: { select: { url: true, key: true } },
+    },
+    orderBy: { name: "asc" },
+  });
+
+  const result = { success: true, data: genres };
+
+  redis.setex(REDIS_KEY, REDIS_TTL, JSON.stringify(result));
+
+  return result;
 }
 
 export async function AddManyStoryGenres(data = {}) {

@@ -2,6 +2,7 @@ import { redis } from "../configs/redis.js";
 import { Worker } from "bullmq";
 import db from "../configs/db.js";
 import r2CloudflareUtils from "../src/utils/R2Cloudflare.js";
+import sharp from "sharp";
 
 const connection = {
   host: redis.options.host,
@@ -44,5 +45,23 @@ const permenantDeletedImageWorker = new Worker(
 
   { connection, concurrency: 3 },
 );
+
+const addNewImage = new Worker("add-new-image", async (job) => {
+  const { key, file } = job.data;
+
+  const url = `${process.env.CDN_URL}/${key}`;
+
+  const optimizedBuffer = await sharp(file.buffer)
+    .resize({ width: 300 })
+    .jpeg({
+      quality: 80,
+      mozjpeg: true,
+    })
+    .toBuffer();
+
+  const result = await Promise.all([r2CloudflareUtils.uploadObject(key, optimizedBuffer, file.mimetype), imageService.AddImage({ url, key })]);
+
+  console.log("Add image " + key + " successfully");
+});
 
 export default { permenantDeletedManyImagesWorker, permenantDeletedImageWorker };

@@ -1,6 +1,6 @@
 import { CreateError } from "./ErrorHandle.js";
 
-import { Gender, Genre, Role, StoryStatus, StoryType } from "../../configs/db.js";
+import db, { Gender, Role, StoryStatus, StoryType } from "../../configs/db.js";
 
 export const IsValidEmail = (email) => {
   const regex = new RegExp("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$");
@@ -42,7 +42,7 @@ export function isPrismaError(error) {
   return error?.code !== undefined && typeof error.code === "string" && error?.clientVersion !== undefined;
 }
 
-export function throwErrorIfInvalidGenres(genres = []) {
+export async function throwErrorIfInvalidGenres(genres = []) {
   if (!genres) return true;
 
   let inputGenres;
@@ -52,7 +52,8 @@ export function throwErrorIfInvalidGenres(genres = []) {
     inputGenres = [genres];
   }
 
-  const allGenres = Object.values(Genre);
+  const allGenres = (await db.genre.findMany({ where: { deleted_status: "not_deleted" } })).map((genre) => genre.name);
+
   const genresSet = new Set(allGenres);
 
   const invalidGenres = [];

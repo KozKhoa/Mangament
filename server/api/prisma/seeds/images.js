@@ -1,5 +1,5 @@
 import { execSync } from "child_process";
-import db from "../../src/configs/db.js";
+import db from "../../configs/db.js";
 
 export default async function main() {
   await db.image.createMany({

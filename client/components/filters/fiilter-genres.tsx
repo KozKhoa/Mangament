@@ -87,8 +87,8 @@ function FilterGenres({ value, onChange }: FilterGenresProps) {
     const newSet = new Set<string>();
 
     genres?.forEach((genre) => {
-      if (!isFitSearch(keyword, genre)) {
-        newSet.add(genre);
+      if (!isFitSearch(keyword, genre.name)) {
+        newSet.add(genre.name);
       }
     });
 
@@ -101,7 +101,7 @@ function FilterGenres({ value, onChange }: FilterGenresProps) {
     const valueSet = new Set(value);
 
     for (const genre of genres) {
-      if (valueSet.has(genre)) selected.push(genre);
+      if (valueSet.has(genre.name)) selected.push(genre.name);
     }
 
     setSelectedGenres(new Set(selected));
@@ -122,7 +122,7 @@ function FilterGenres({ value, onChange }: FilterGenresProps) {
               <LayerIcon className="w-5 h-5 text-foreground stroke-0"></LayerIcon>
               <p className="font-bold">Thể loại</p>
               <div className="flex flex-row flex-wrap gap-0.5">
-                {genres?.map((genre, i) => finalSelectedGenres.has(genre) && <Tag key={genre}>{snakeCaseToCapitalizeWord(genre)}</Tag>)}
+                {genres?.map((genre, i) => finalSelectedGenres.has(genre.name) && <Tag key={i}>{genre.name}</Tag>)}
               </div>
             </div>
           }
@@ -135,7 +135,13 @@ function FilterGenres({ value, onChange }: FilterGenresProps) {
       <>
         <div className="grid grid-cols-2 gap-2.5 w-[300px] sm:w-[400px] lg:grid-cols-3 lg:w-[600px] mt-12">
           {genres?.map((genre, i) => (
-            <GenreCheckBox key={genre} genre={genre} isChecked={selectedGenres.has(genre)} toggleCheckbox={toggleCheckbox} isHidden={hidden.has(genre)} />
+            <GenreCheckBox
+              key={i}
+              genre={genre.name}
+              isChecked={selectedGenres.has(genre.name)}
+              toggleCheckbox={toggleCheckbox}
+              isHidden={hidden.has(genre.name)}
+            />
           ))}
         </div>
 

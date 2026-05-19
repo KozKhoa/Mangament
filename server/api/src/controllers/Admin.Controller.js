@@ -256,7 +256,7 @@ export async function PostNewStory(req, res, next) {
 
     if (!title || !type) throw CreateError(400, "'title' and 'type' are required");
 
-    throwErrorIfInvalidGenres(genres);
+    await throwErrorIfInvalidGenres(genres);
     throwErrorIfInvalidStoryStatus(status);
     throwErrorIfInvalidStoryType(type);
 
@@ -319,7 +319,7 @@ export async function UpdateStory(req, res, next) {
 
     const children = body.children;
 
-    throwErrorIfInvalidGenres(genre);
+    await throwErrorIfInvalidGenres(genre);
     throwErrorIfInvalidStoryStatus(status);
     throwErrorIfInvalidStoryType(type);
 

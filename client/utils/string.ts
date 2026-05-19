@@ -14,7 +14,8 @@ export function snakeCaseToNormal(snake: string) {
   return capitalizeFirstChar(snake.split("_").join(" "));
 }
 
-export function snakeCaseToCapitalizeWord(snake: string) {
+export function snakeCaseToCapitalizeWord(snake: string | undefined | null) {
+  if (!snake) return "";
   return snake
     .split("_")
     .map((word) => capitalizeFirstChar(word))
@@ -25,7 +26,8 @@ export function snakeCaseToAllCapital(str: string) {
   return str.replaceAll("_", " ").toLocaleUpperCase();
 }
 
-export function normalize(str: string) {
+export function normalize(str: string | undefined | null) {
+  if (!str) return "";
   return str
     .toLowerCase()
     .normalize("NFD") // tách dấu

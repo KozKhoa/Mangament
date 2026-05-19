@@ -2,7 +2,7 @@ import "dotenv/config";
 import pg from "pg";
 import { PrismaPg } from "@prisma/adapter-pg";
 
-import { PrismaClient, Role, Gender, Genre, StoryStatus, StoryType, StoryNodeType, StoryNodeContentType } from "../prisma/generated/prisma/client.js";
+import { PrismaClient, Role, Gender, StoryStatus, StoryType, StoryNodeType, StoryNodeContentType } from "../prisma/generated/prisma/client.js";
 
 const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
 const adapter = new PrismaPg(pool);
@@ -28,9 +28,9 @@ try {
 
 export { Role };
 export { Gender };
-export { Genre };
 export { StoryStatus };
 export { StoryType };
 export { StoryNodeType };
 export { StoryNodeContentType };
+
 export default db;

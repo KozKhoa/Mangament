@@ -1,4 +1,4 @@
-import db from "../../src/configs/db.js";
+import db from "../../configs/db.js";
 
 import { randomInt } from "crypto";
 
