@@ -3,6 +3,9 @@ import { Worker } from "bullmq";
 import db from "../configs/db.js";
 import r2CloudflareUtils from "../src/utils/R2Cloudflare.js";
 import sharp from "sharp";
+import pLimit from "p-limit";
+
+import * as imageService from "../src/services/image.service.js";
 
 const connection = {
   host: redis.options.host,
@@ -24,7 +27,7 @@ const permenantDeletedManyImagesWorker = new Worker(
     console.log("Permenant deleted many images", imageIds);
   },
 
-  { connection, concurrency: 1 },
+  { connection, concurrency: 3 },
 );
 
 const permenantDeletedImageWorker = new Worker(
@@ -43,25 +46,69 @@ const permenantDeletedImageWorker = new Worker(
     console.log("Permenant deleted image", imageId);
   },
 
-  { connection, concurrency: 3 },
+  { connection, concurrency: 10 },
 );
 
-const addNewImage = new Worker("add-new-image", async (job) => {
-  const { key, file } = job.data;
+const addNewImageWorker = new Worker(
+  "add-new-image",
+  async (job) => {
+    try {
+      const { key, file, resize, quality = 80 } = job.data;
 
-  const url = `${process.env.CDN_URL}/${key}`;
+      const url = `${process.env.CDN_URL}/${key}`;
 
-  const optimizedBuffer = await sharp(file.buffer)
-    .resize({ width: 300 })
-    .jpeg({
-      quality: 80,
-      mozjpeg: true,
-    })
-    .toBuffer();
+      const buffer = Buffer.from(file.buffer.data);
 
-  const result = await Promise.all([r2CloudflareUtils.uploadObject(key, optimizedBuffer, file.mimetype), imageService.AddImage({ url, key })]);
+      const optimizedBuffer = await sharp(buffer)
+        .jpeg({
+          quality: quality,
+          mozjpeg: true,
+        })
+        .resize(resize ? resize : undefined)
+        .toBuffer();
 
-  console.log("Add image " + key + " successfully");
-});
+      await Promise.all([r2CloudflareUtils.uploadObject(key, optimizedBuffer, file.mimetype), imageService.AddImage({ url, key })]);
 
-export default { permenantDeletedManyImagesWorker, permenantDeletedImageWorker };
+      console.log("Added image " + key + " successfully");
+    } catch (error) {
+      console.error("Added image " + key + " failed");
+      console.error(error);
+    }
+  },
+  { connection, concurrency: 10 },
+);
+
+const addManyNewImagesWorker = new Worker(
+  "add-many-new-images",
+  async (job) => {
+    const { keys = [], files = [], quality = 80, resize } = job.data;
+
+    const limit = pLimit(10); // xử lý tối đa 10 ảnh cùng lúc
+
+    await Promise.all(
+      files.map((file, index) =>
+        limit(async () => {
+          const buffer = Buffer.from(file.buffer.data);
+
+          const optimized = await sharp(buffer)
+            .jpeg({
+              quality: quality,
+              mozjpeg: true,
+            })
+            .resize(resize ? resize : undefined)
+            .toBuffer();
+
+          const key = keys[index];
+          const url = `${process.env.CDN_URL}/${key}`;
+
+          await Promise.all([r2CloudflareUtils.uploadObject(key, optimized, file.mimetype), imageService.AddImage({ url, key })]);
+
+          console.log("Added image " + key + " successfully");
+        }),
+      ),
+    );
+  },
+  { connection, concurrency: 1 },
+);
+
+export default { permenantDeletedManyImagesWorker, permenantDeletedImageWorker, addNewImageWorker, addManyNewImagesWorker };

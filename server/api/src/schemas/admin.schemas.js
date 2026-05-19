@@ -137,7 +137,7 @@ export class AdminSchemas {
       title: z.string().optional(),
       type: z.string().optional(),
       nation: z.any().optional(),
-      summary: z.string().optional(),
+      summary: z.string().nullable().optional(),
       status: z.string().optional(),
       genre: z.any().optional(),
       authorIds: z.any().optional(),

@@ -344,6 +344,7 @@ export async function FindAllStories({
   `;
   const countParams = params.slice(0, params.length - 2);
   const totalItemsResult = await db.$queryRawUnsafe(countQueryStr, ...countParams);
+
   const totalItems = Number(totalItemsResult[0].total);
 
   let stories = [];

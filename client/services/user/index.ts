@@ -16,7 +16,7 @@ export async function updateUser(user: User): Promise<ServiceResult<User>> {
 
       const uploadAvatar = await api.post("/uploads/user/me/avatar", formData);
 
-      avatar = { url: uploadAvatar.data?.data?.url, key: uploadAvatar.data?.data?.key, id: uploadAvatar.data?.data?.id };
+      avatar = { url: uploadAvatar.data?.data?.url, key: uploadAvatar.data?.data?.key };
     }
 
     const res = await api.put("/users/me", {
