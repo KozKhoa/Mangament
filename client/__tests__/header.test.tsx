@@ -97,13 +97,18 @@ vi.mock("@/components/search/search-stories", () => ({
 }));
 
 vi.mock("@/components/buttons/dropdown/btn-dropdown", () => ({
-  default: ({ children, label, icon }: any) => (
-    <div data-testid="button-dropdown">
-      <div data-testid="dropdown-label">{label}</div>
-      <div data-testid="dropdown-icon">{icon}</div>
-      <div data-testid="dropdown-content">{children}</div>
-    </div>
-  ),
+  default: ({ children, label, icon, onClick }: any) => {
+    const [isOpen, setIsOpen] = React.useState(false);
+    return (
+      <div data-testid="button-dropdown">
+        <div data-testid="dropdown-label" onClick={onClick}>{label}</div>
+        <div data-testid="dropdown-icon" onClick={() => setIsOpen(!isOpen)}>
+          {icon ? icon : <svg data-testid="triangle-down-icon" />}
+        </div>
+        {isOpen && <div data-testid="dropdown-content">{children}</div>}
+      </div>
+    );
+  },
 }));
 
 vi.mock("../components/buttons/expandable/btn-expandable", () => ({
@@ -176,7 +181,7 @@ describe("HeaderBar Component", () => {
       logout: mockLogout,
     });
     (useApp as any).mockReturnValue({
-      genres: ["action", "comedy", "drama"],
+      genres: [{ name: "action" }, { name: "comedy" }, { name: "drama" }],
     });
 
     // Mock window.scrollY
@@ -291,11 +296,16 @@ describe("HeaderBar Component", () => {
     expect(screen.getByText("Thông tin tài khoản")).toBeInTheDocument();
   });
 
-  it("12. Open dropdown list when click on 'Thể loại'", () => {
+  it("12. Navigate to genres page when click on 'Thể loại' and open dropdown when click on icon", () => {
     render(<HeaderBar />);
     const genreBtn = screen.getByText("Thể loại");
     fireEvent.click(genreBtn);
-    expect(screen.getByText("Action")).toBeInTheDocument();
+    expect(mockPush).toHaveBeenCalledWith("/genre");
+
+    const genreDropdownContainer = genreBtn.closest("[data-testid='button-dropdown']");
+    const genreArrow = genreDropdownContainer!.querySelector("[data-testid='dropdown-icon']");
+    fireEvent.click(genreArrow!);
+    expect(screen.getByText("action")).toBeInTheDocument();
   });
 
   it("13. Change theme when toggle theme button is clicked", () => {
