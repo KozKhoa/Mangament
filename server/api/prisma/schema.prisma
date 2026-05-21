@@ -75,6 +75,11 @@ model Story {
   children           StoryNode[]
   authors            Story_Author[]
   genres             Story_Genre[]
+
+  @@index([deleted_status, is_actived, created_at(sort: Desc)])
+  @@index([deleted_status, is_actived, star(sort: Desc)])
+  @@index([deleted_status, is_actived, view(sort: Desc)])
+  @@index([deleted_status, is_actived, updated_at(sort: Desc)])
 }
 
 model StoryNode {
@@ -188,7 +193,7 @@ model Nation {
 
 model Genre {
   id             String        @id @default(uuid()) @db.Uuid
-  name           String
+  name           String        @unique
   description    String?
   thumbnail_id   String?       @db.Uuid
   deleted_status DeletedStatus @default(not_deleted)
@@ -209,6 +214,7 @@ model Story_Genre {
   genre Genre @relation(fields: [genre_id], references: [id], onDelete: Cascade)
 
   @@id([story_id, genre_id])
+  @@index([genre_id])
 }
 
 model Rating {
