@@ -13,7 +13,7 @@ services:
       context: ./ml-service
       dockerfile: Dockerfile
     container_name: mangament_ml_service
-    restart: no
+    restart: unless-stopped
     ports:
       - "8000:8000"
     healthcheck:
@@ -35,9 +35,9 @@ services:
     environment:
       - REDIS_URL=redis://redis:6379
       - ML_SERVICE_URL=http://ml-service:8000
+      - MONGODB_CONNECTION_STRING=mongodb://admin:password@logs-db:27017/management_logs?authSource=admin
     depends_on:
-      redis:
-        condition: service_started
+      - redis
     volumes:
       - ./api:/app
       - /app/node_modules
@@ -48,6 +48,7 @@ services:
       context: ./api
       dockerfile: workers/Dockerfile
     container_name: mangament_worker
+    restart: always
     env_file:
       - ./api/.env
     environment:
@@ -57,3 +58,20 @@ services:
       - redis
       - ml-service
       - api
+
+  logs-db:
+    image: mongo:8
+    container_name: mangament_logs_db
+    restart: always
+    ports:
+      - "27016:27017"
+    env_file:
+      - ./api/.env
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password
+    volumes:
+      - mangament_logs_db_data:/data/db
+
+volumes:
+  mangament_logs_db_data:

@@ -3,6 +3,8 @@ uploads/
 server/logs/
 
 
+*.code-workspace
+
 .env*
 
 .trash

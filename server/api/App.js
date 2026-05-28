@@ -4,7 +4,9 @@ import cors from "cors";
 
 import db from "./configs/db.js";
 import { corsOptions } from "./configs/cors.js";
-import { initRedis } from "./configs/redis.js";
+import { connectToRedis } from "./configs/redis.js";
+import { connectToMongoDB } from "./configs/logs-db.js";
+import { connectToDatabase } from "./configs/db.js";
 
 import authRouter from "./src/routes/Auth.Route.js";
 import userRoute from "./src/routes/User.Route.js";
@@ -28,7 +30,9 @@ import ratingRoute from "./src/routes/Rating.Route.js";
 import historyRoute from "./src/routes/History.Route.js";
 import favouriteRoute from "./src/routes/Favourite.Route.js";
 
-initRedis();
+connectToRedis();
+connectToMongoDB();
+connectToDatabase();
 
 console.log("App is running with NODE ENV =", process.env.NODE_ENV);
 

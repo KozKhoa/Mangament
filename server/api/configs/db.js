@@ -19,12 +19,14 @@ if (process.env.NODE_ENV !== "production") {
   globalForPrisma.prisma = db;
 }
 
-try {
-  await db.$queryRaw`SELECT 1`;
-  console.log("Database ready");
-} catch (e) {
-  console.error("Database connection failed", e);
-}
+export const connectToDatabase = async () => {
+  try {
+    await db.$queryRaw`SELECT 1`;
+    console.log("✅ Database connected");
+  } catch (e) {
+    console.error("❌ Database connection failed", e);
+  }
+};
 
 export { Role };
 export { Gender };

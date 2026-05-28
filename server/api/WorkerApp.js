@@ -1,7 +1,7 @@
-import { initRedis } from "./configs/redis.js";
+import { connectToRedis } from "./configs/redis.js";
 
 // Validate and initialize shared resources
-initRedis();
+connectToRedis();
 
 console.log("Worker process is starting with NODE_ENV =", process.env.NODE_ENV);
 
