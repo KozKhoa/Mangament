@@ -1,33 +1,18 @@
 import express from "express";
 
-import { AuthenticationToken, AuthorizationRole } from "../middlewares/Auth.Middleware.js";
+import { AuthenticationToken, AuthorizationRole, SetAuditRequest } from "../middlewares/Auth.Middleware.js";
 
 import * as adminController from "../controllers/Admin.Controller.js";
 import { ValidateData } from "../middlewares/Validate.Middleware.js";
 import adminSchemas from "../schemas/admin.schemas.js";
-
-const adminRoute = express.Router();
-
-adminRoute.use(AuthenticationToken);
-adminRoute.use(AuthorizationRole);
 
 /**
  * @openapi
  * tags:
  *   - name: Admin
  *     description: Admin operations
- */
-
-//
-//
-//
-// Dashboard
-//
-//
-//
-
-/**
- * @openapi
+ *
+ *
  * /admin/dashboard/overview:
  *   get:
  *     tags: [Admin]
@@ -79,11 +64,8 @@ adminRoute.use(AuthorizationRole);
  *                         type: integer
  *       '401':
  *         $ref: '#/components/responses/Unauthorized'
- */
-adminRoute.get("/dashboard/overview", adminController.GetDashboardOverview);
-
-/**
- * @openapi
+ *
+ *
  * /admin/dashboard/stats/views:
  *   get:
  *     tags: [Admin]
@@ -165,11 +147,8 @@ adminRoute.get("/dashboard/overview", adminController.GetDashboardOverview);
  *                   view: 0
  *       '401':
  *         $ref: '#/components/responses/Unauthorized'
- */
-adminRoute.get("/dashboard/stats/views", ValidateData(adminSchemas.dashboardView), adminController.GetDashboardViewInRange);
-
-/**
- * @openapi
+ *
+ *
  * /admin/dashboard/stats/new-users:
  *   get:
  *     tags: [Admin]
@@ -243,19 +222,8 @@ adminRoute.get("/dashboard/stats/views", ValidateData(adminSchemas.dashboardView
  *                   count: 0
  *       '401':
  *         $ref: '#/components/responses/Unauthorized'
- */
-adminRoute.get("/dashboard/stats/new-users", ValidateData(adminSchemas.dashboardNewUsers), adminController.GetDashboardNewUsers);
-
-//
-//
-//
-// Stories
-//
-//
-//
-
-/**
- * @openapi
+ *
+ *
  * /admin/stories:
  *   get:
  *     tags: [Admin]
@@ -309,11 +277,80 @@ adminRoute.get("/dashboard/stats/new-users", ValidateData(adminSchemas.dashboard
  *                   $ref: '#/components/schemas/Pagination'
  *       '401':
  *         $ref: '#/components/responses/Unauthorized'
- */
-adminRoute.get("/stories", ValidateData(adminSchemas.getAllStories), adminController.GetAllStories);
-
-/**
- * @openapi
+ *
+ *   post:
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     summary: Create story
+ *     requestBody:
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               title:
+ *                 type: string
+ *               type:
+ *                 type: string
+ *               nation:
+ *                 type: string
+ *               summary:
+ *                 type: string
+ *               status:
+ *                 type: string
+ *               genre:
+ *                 type: array
+ *               authorIds:
+ *                 type: array
+ *               coverArt:
+ *                 type: object
+ *                 properties:
+ *                   url:
+ *                      type: string
+ *                   key:
+ *                      type: string
+ *
+ *     responses:
+ *       '200':
+ *         description: Created story
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Story'
+ *       '401':
+ *         $ref: '#/components/responses/Unauthorized'
+ *
+ *
+ *   delete:
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     summary: This is used to permanently remove stories that soft-removed
+ *     requestBody:
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               ids:
+ *                 type: array
+ *     responses:
+ *       '200':
+ *         description: List of stories with pagination
+ *       '401':
+ *         $ref: '#/components/responses/Unauthorized'
+ *
+ *
  * /admin/stories/trash:
  *   get:
  *     tags: [Admin]
@@ -367,11 +404,8 @@ adminRoute.get("/stories", ValidateData(adminSchemas.getAllStories), adminContro
  *                   $ref: '#/components/schemas/Pagination'
  *       '401':
  *         $ref: '#/components/responses/Unauthorized'
- */
-adminRoute.get("/stories/trash", ValidateData(adminSchemas.getAllTrashStories), adminController.GetAllTrashStories);
-
-/**
- * @openapi
+ *
+ *
  * /admin/stories/{id}:
  *   get:
  *     tags: [Admin]
@@ -406,120 +440,7 @@ adminRoute.get("/stories/trash", ValidateData(adminSchemas.getAllTrashStories), 
  *                   $ref: '#/components/schemas/Story'
  *       '401':
  *         $ref: '#/components/responses/Unauthorized'
- */
-adminRoute.get("/stories/:id", ValidateData(adminSchemas.getStory), adminController.GetStory);
-
-/**
- * @openapi
- * /admin/stories:
- *   post:
- *     tags: [Admin]
- *     security:
- *       - bearerAuth: []
- *     summary: Create story
- *     requestBody:
- *       content:
- *         multipart/form-data:
- *           schema:
- *             type: object
- *             properties:
- *               title:
- *                 type: string
- *               type:
- *                 type: string
- *               nation:
- *                 type: string
- *               summary:
- *                 type: string
- *               status:
- *                 type: string
- *               genre:
- *                 type: array
- *               authorIds:
- *                 type: array
- *               coverArt:
- *                 type: object
- *                 properties:
- *                   url:
- *                      type: string
- *                   key:
- *                      type: string
  *
- *     responses:
- *       '200':
- *         description: Created story
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                 message:
- *                   type: string
- *                 data:
- *                   type: array
- *                   items:
- *                     $ref: '#/components/schemas/Story'
- *       '401':
- *         $ref: '#/components/responses/Unauthorized'
- *
- */
-adminRoute.post("/stories", ValidateData(adminSchemas.postStory), adminController.PostNewStory);
-
-/**
- * @openapi
- * /admin/stories/{id}/cover-art:
- *   patch:
- *     tags: [Admin]
- *     security:
- *       - bearerAuth: []
- *     summary: Update story cover art
- *     parameters:
- *       - name: id
- *         in: path
- *         required: true
- *         schema:
- *           type: string
- *     requestBody:
- *       content:
- *         multipart/form-data:
- *           schema:
- *             type: object
- *             properties:
- *               coverArt:
- *                 type: object
- *                 properties:
- *                   url:
- *                      type: string
- *                   key:
- *                      type: string
- *
- *     responses:
- *       '200':
- *         description: Updated story cover art
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                 message:
- *                   type: string
- *                 data:
- *                   type: array
- *                   items:
- *                     $ref: '#/components/schemas/Story'
- *       '401':
- *         $ref: '#/components/responses/Unauthorized'
- *
- */
-adminRoute.patch("/stories/:id/cover-art", ValidateData(adminSchemas.updateStoryCoverArt), adminController.UpdateStoryCoverArt);
-
-/**
- * @openapi
- * /admin/stories/{id}:
  *   put:
  *     tags: [Admin]
  *     security:
@@ -565,11 +486,80 @@ adminRoute.patch("/stories/:id/cover-art", ValidateData(adminSchemas.updateStory
  *               $ref: '#/components/schemas/Story'
  *       '401':
  *         $ref: '#/components/responses/Unauthorized'
- */
-adminRoute.put("/stories/:id", ValidateData(adminSchemas.updateStory), adminController.UpdateStory);
-
-/**
- * @openapi
+ *
+ *   delete:
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     summary: Soft Delete story
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       '200':
+ *         description: Deletion result
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *       '401':
+ *         $ref: '#/components/responses/Unauthorized'
+ * 
+ * 
+ * /admin/stories/{id}/cover-art:
+ *   patch:
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     summary: Update story cover art
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               coverArt:
+ *                 type: object
+ *                 properties:
+ *                   url:
+ *                      type: string
+ *                   key:
+ *                      type: string
+ *
+ *     responses:
+ *       '200':
+ *         description: Updated story cover art
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Story'
+ *       '401':
+ *         $ref: '#/components/responses/Unauthorized'
+ *
+ *
  * /admin/stories/{id}/active:
  *   patch:
  *     tags: [Admin]
@@ -607,68 +597,9 @@ adminRoute.put("/stories/:id", ValidateData(adminSchemas.updateStory), adminCont
  *       '401':
  *         $ref: '#/components/responses/Unauthorized'
  *
- */
-adminRoute.patch("/stories/:id/active", ValidateData(adminSchemas.toggleActiveStory), adminController.ToggleActiveStory);
+ *
 
-/**
- * @openapi
- * /admin/stories:
- *   delete:
- *     tags: [Admin]
- *     security:
- *       - bearerAuth: []
- *     summary: This is used to permanently remove stories that soft-removed
- *     requestBody:
- *       content:
- *         multipart/form-data:
- *           schema:
- *             type: object
- *             properties:
- *               ids:
- *                 type: array
- *     responses:
- *       '200':
- *         description: List of stories with pagination
- *       '401':
- *         $ref: '#/components/responses/Unauthorized'
- */
-// This is used to permanently remove many stories
-adminRoute.delete("/stories/trash", ValidateData(adminSchemas.deleteManyTrashStories), adminController.DeleteManyTrashStories);
-
-/**
- * @openapi
- * /admin/stories/{id}:
- *   delete:
- *     tags: [Admin]
- *     security:
- *       - bearerAuth: []
- *     summary: Soft Delete story
- *     parameters:
- *       - name: id
- *         in: path
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       '200':
- *         description: Deletion result
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                 message:
- *                   type: string
- *       '401':
- *         $ref: '#/components/responses/Unauthorized'
- */
-// This is used for soft removing story
-adminRoute.delete("/stories/:id", ValidateData(adminSchemas.deleteStory), adminController.DeleteStory);
-
-/**
- * @openapi
+ *
  * /admin/stories/trash/{id}:
  *   delete:
  *     tags: [Admin]
@@ -695,12 +626,7 @@ adminRoute.delete("/stories/:id", ValidateData(adminSchemas.deleteStory), adminC
  *                   type: string
  *       '401':
  *         $ref: '#/components/responses/Unauthorized'
- */
-// This is used to permanently remove story
-adminRoute.delete("/stories/trash/:id", ValidateData(adminSchemas.deleteTrashStory), adminController.DeleteTrashStory);
-
-/**
- * @openapi
+ *
  * /admin/stories/trash/restore:
  *   patch:
  *     tags: [Admin]
@@ -720,12 +646,8 @@ adminRoute.delete("/stories/trash/:id", ValidateData(adminSchemas.deleteTrashSto
  *         description: List of stories with pagination
  *       '401':
  *         $ref: '#/components/responses/Unauthorized'
- */
-// This is used to restore stories soft-removed
-adminRoute.patch("/stories/trash/restore", ValidateData(adminSchemas.restoreManyTrashStories), adminController.RestoreManyTrashStories);
-
-/**
- * @openapi
+ *
+ *
  * /admin/stories/trash/{id}/restore:
  *   patch:
  *     tags: [Admin]
@@ -752,18 +674,7 @@ adminRoute.patch("/stories/trash/restore", ValidateData(adminSchemas.restoreMany
  *                   type: string
  *       '401':
  *         $ref: '#/components/responses/Unauthorized'
- */
-// This is used to restored story soft-removed
-adminRoute.patch("/stories/trash/:id/restore", ValidateData(adminSchemas.restoreTrashStory), adminController.RestoreTrashStory);
-
-//
-//
-//
-// Story Nodes
-//
-//
-
-/**
+ *
  * @openapi
  * /admin/story-nodes/trash:
  *   get:
@@ -790,10 +701,7 @@ adminRoute.patch("/stories/trash/:id/restore", ValidateData(adminSchemas.restore
  *         description: List of story nodes with pagination
  *       '401':
  *         $ref: '#/components/responses/Unauthorized'
- */
-adminRoute.get("/story-nodes/trash", ValidateData(adminSchemas.getAllStoryNodesTrash), adminController.GetAllStoryNodesTrash);
-
-/**
+ *
  * @openapi
  * /admin/story-nodes/trash/restore:
  *   patch:
@@ -817,10 +725,7 @@ adminRoute.get("/story-nodes/trash", ValidateData(adminSchemas.getAllStoryNodesT
  *         description: Restore success
  *       '401':
  *         $ref: '#/components/responses/Unauthorized'
- */
-adminRoute.patch("/story-nodes/trash/restore", ValidateData(adminSchemas.restoreManyTrashStoryNodes), adminController.RestoreManyTrashStoryNodes);
-
-/**
+ *
  * @openapi
  * /admin/story-nodes/trash/{id}/restore:
  *   patch:
@@ -839,12 +744,7 @@ adminRoute.patch("/story-nodes/trash/restore", ValidateData(adminSchemas.restore
  *         description: Restore success
  *       '401':
  *         $ref: '#/components/responses/Unauthorized'
- */
-adminRoute.patch("/story-nodes/trash/:id/restore", ValidateData(adminSchemas.restoreTrashStoryNode), adminController.RestoreTrashStoryNode);
-
-adminRoute.delete("/story-nodes/trash/:id", ValidateData(adminSchemas.deletePermanentlyTrashStoryNode), adminController.DeletePermanentlyTrashStoryNode);
-
-/**
+ *
  * @openapi
  * /admin/story-nodes/trash:
  *   delete:
@@ -866,18 +766,7 @@ adminRoute.delete("/story-nodes/trash/:id", ValidateData(adminSchemas.deletePerm
  *     responses:
  *       '200':
  *         description: Deletion success
- */
-adminRoute.delete("/story-nodes/trash", ValidateData(adminSchemas.deletePermanentlyManyTrashStoryNodes), adminController.DeletePermanentlyManyTrashStoryNodes);
-
-//
-//
-//
-// User
-//
-//
-//
-
-/**
+ *
  * @openapi
  * /admin/users:
  *   get:
@@ -977,10 +866,7 @@ adminRoute.delete("/story-nodes/trash", ValidateData(adminSchemas.deletePermanen
  *                 totalItems: 10
  *       '401':
  *         $ref: '#/components/responses/Unauthorized'
- */
-adminRoute.get("/users", ValidateData(adminSchemas.getAllUsers), adminController.GetAllUsers);
-
-/**
+ *
  * @openapi
  * /admin/users/{id}:
  *   get:
@@ -1026,10 +912,7 @@ adminRoute.get("/users", ValidateData(adminSchemas.getAllUsers), adminController
  *                   height: 200
  *       '401':
  *         $ref: '#/components/responses/Unauthorized'
- */
-adminRoute.get("/users/:id", ValidateData(adminSchemas.getUser), adminController.GetUser);
-
-/**
+ *
  * @openapi
  * /admin/users/{id}:
  *   put:
@@ -1082,10 +965,7 @@ adminRoute.get("/users/:id", ValidateData(adminSchemas.getUser), adminController
  *                 role: "admin"
  *       '401':
  *         $ref: '#/components/responses/Unauthorized'
- */
-adminRoute.put("/users/:id", ValidateData(adminSchemas.updateUser), adminController.UpdateUserInfo);
-
-/**
+ *
  * @openapi
  * /admin/users/{id}:
  *   delete:
@@ -1116,10 +996,7 @@ adminRoute.put("/users/:id", ValidateData(adminSchemas.updateUser), adminControl
  *               message: "Delete user user_1"
  *       '401':
  *         $ref: '#/components/responses/Unauthorized'
- */
-adminRoute.delete("/users/:id", ValidateData(adminSchemas.deleteUser), adminController.DeleteUser);
-
-/**
+ *
  * @openapi
  * /admin/users/{id}/ban:
  *   patch:
@@ -1161,18 +1038,7 @@ adminRoute.delete("/users/:id", ValidateData(adminSchemas.deleteUser), adminCont
  *               message: "Banned user_1"
  *       '401':
  *         $ref: '#/components/responses/Unauthorized'
- */
-adminRoute.patch("/users/:id/ban", ValidateData(adminSchemas.banUser), adminController.BanUser);
-
-//
-//
-//
-// Images
-//
-//
-//
-
-/**
+ *
  * @openapi
  * /admin/images/trash:
  *   get:
@@ -1207,10 +1073,7 @@ adminRoute.patch("/users/:id/ban", ValidateData(adminSchemas.banUser), adminCont
  *                     $ref: '#/components/schemas/Image'
  *       '401':
  *         $ref: '#/components/responses/Unauthorized'
- */
-adminRoute.get("/images/trash", ValidateData(adminSchemas.getAllTrashImages), adminController.GetAllTrashImages);
-
-/**
+ *
  * @openapi
  * /admin/images/trash/{id}:
  *   delete:
@@ -1241,10 +1104,7 @@ adminRoute.get("/images/trash", ValidateData(adminSchemas.getAllTrashImages), ad
  *               message: "Delete image image_1"
  *       '401':
  *         $ref: '#/components/responses/Unauthorized'
- */
-adminRoute.delete("/images/trash/:id", ValidateData(adminSchemas.deleteTrashImage), adminController.DeleteTrashImage);
-
-/**
+ *
  * @openapi
  * /admin/images/trash:
  *   delete:
@@ -1286,6 +1146,70 @@ adminRoute.delete("/images/trash/:id", ValidateData(adminSchemas.deleteTrashImag
  *       '401':
  *         $ref: '#/components/responses/Unauthorized'
  */
+
+const adminRoute = express.Router();
+
+adminRoute.use(AuthenticationToken);
+adminRoute.use(AuthorizationRole);
+
+adminRoute.use(SetAuditRequest); // Set isAudit = true for non GET request
+
+adminRoute.get("/dashboard/overview", adminController.GetDashboardOverview);
+
+adminRoute.get("/dashboard/stats/views", ValidateData(adminSchemas.dashboardView), adminController.GetDashboardViewInRange);
+
+adminRoute.get("/dashboard/stats/new-users", ValidateData(adminSchemas.dashboardNewUsers), adminController.GetDashboardNewUsers);
+
+adminRoute.get("/stories", ValidateData(adminSchemas.getAllStories), adminController.GetAllStories);
+
+adminRoute.get("/stories/trash", ValidateData(adminSchemas.getAllTrashStories), adminController.GetAllTrashStories);
+
+adminRoute.get("/stories/:id", ValidateData(adminSchemas.getStory), adminController.GetStory);
+
+adminRoute.post("/stories", ValidateData(adminSchemas.postStory), adminController.PostNewStory);
+
+adminRoute.patch("/stories/:id/cover-art", ValidateData(adminSchemas.updateStoryCoverArt), adminController.UpdateStoryCoverArt);
+
+adminRoute.put("/stories/:id", ValidateData(adminSchemas.updateStory), adminController.UpdateStory);
+
+adminRoute.patch("/stories/:id/active", ValidateData(adminSchemas.toggleActiveStory), adminController.ToggleActiveStory);
+
+adminRoute.delete("/stories/trash", ValidateData(adminSchemas.deleteManyTrashStories), adminController.DeleteManyTrashStories);
+
+adminRoute.delete("/stories/:id", ValidateData(adminSchemas.deleteStory), adminController.DeleteStory);
+
+adminRoute.delete("/stories/trash/:id", ValidateData(adminSchemas.deleteTrashStory), adminController.DeleteTrashStory);
+
+adminRoute.patch("/stories/trash/restore", ValidateData(adminSchemas.restoreManyTrashStories), adminController.RestoreManyTrashStories);
+
+adminRoute.patch("/stories/trash/:id/restore", ValidateData(adminSchemas.restoreTrashStory), adminController.RestoreTrashStory);
+
+adminRoute.get("/story-nodes/trash", ValidateData(adminSchemas.getAllStoryNodesTrash), adminController.GetAllStoryNodesTrash);
+
+adminRoute.patch("/story-nodes/trash/restore", ValidateData(adminSchemas.restoreManyTrashStoryNodes), adminController.RestoreManyTrashStoryNodes);
+
+adminRoute.patch("/story-nodes/trash/:id/restore", ValidateData(adminSchemas.restoreTrashStoryNode), adminController.RestoreTrashStoryNode);
+
+adminRoute.delete("/story-nodes/trash/:id", ValidateData(adminSchemas.deletePermanentlyTrashStoryNode), adminController.DeletePermanentlyTrashStoryNode);
+
+adminRoute.delete("/story-nodes/trash", ValidateData(adminSchemas.deletePermanentlyManyTrashStoryNodes), adminController.DeletePermanentlyManyTrashStoryNodes);
+
+adminRoute.get("/users", ValidateData(adminSchemas.getAllUsers), adminController.GetAllUsers);
+
+adminRoute.get("/users/:id", ValidateData(adminSchemas.getUser), adminController.GetUser);
+
+adminRoute.put("/users/:id", ValidateData(adminSchemas.updateUser), adminController.UpdateUserInfo);
+
+adminRoute.delete("/users/:id", ValidateData(adminSchemas.deleteUser), adminController.DeleteUser);
+
+adminRoute.patch("/users/:id/ban", ValidateData(adminSchemas.banUser), adminController.BanUser);
+
+adminRoute.get("/images/trash", ValidateData(adminSchemas.getAllTrashImages), adminController.GetAllTrashImages);
+
+adminRoute.delete("/images/trash/:id", ValidateData(adminSchemas.deleteTrashImage), adminController.DeleteTrashImage);
+
 adminRoute.delete("/images/trash", ValidateData(adminSchemas.deleteManyTrashImages), adminController.DeleteManyTrashImages);
+
+// This is audit request
 
 export default adminRoute;

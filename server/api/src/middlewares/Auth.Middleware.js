@@ -127,3 +127,10 @@ export const OptionalAuth = async (req, res, next) => {
     next(error);
   }
 };
+
+export async function SetAuditRequest(req, res, next) {
+  if (req.method === "GET" || !req.user || req.user.role === "user") return next();
+
+  req.isAudit = true;
+  next();
+}
