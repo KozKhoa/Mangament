@@ -31,6 +31,3 @@ jobs:
 
             # Deploy All Services (API, Worker, ML, Redis, Client)
             docker-compose up -d --build
-
-            # Stop ML Service due to my home server memory not enough, I will deploy it later
-            docker stop mangament_ml_service
