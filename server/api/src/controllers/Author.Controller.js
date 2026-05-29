@@ -1,4 +1,3 @@
-import ErrorCodes from "../constants/Error.js";
 import { AddAuthor, FindAllAuthors, FindAuthor, HardDeleteAuthor, UpdateAuthor } from "../services/author.service.js";
 
 import { CreateError } from "../utils/ErrorHandle.js";
@@ -29,8 +28,6 @@ export async function GetAllAuthors(req, res, next) {
 
 export async function PostAuthor(req, res, next) {
   try {
-    const userId = req.user.id;
-
     const authorName = req.body?.name;
     if (!authorName) throw CreateError(400, "'name' for author is require");
 
@@ -54,7 +51,6 @@ export async function PostAuthor(req, res, next) {
 
 export async function PutAuthor(req, res, next) {
   try {
-    const userId = req.user.id;
     const newAuthorName = req.body?.name;
     const authorId = req.params?.id;
     if (!authorId) throw CreateError();

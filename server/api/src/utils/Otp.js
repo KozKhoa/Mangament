@@ -5,7 +5,6 @@ import { redis } from "../../configs/redis.js";
 const OTP_EXPIRATION_TIME = 5 * 60; // 5 minutes
 const MAX_RETRY_COUNT = 5;
 const SHORT_COOLDOWN_TIME = 60;
-const LONG_COOLDOWN_TIME = 60 * 60;
 
 export function generateOtp(email) {
   const otp = crypto.randomInt(100000, 1000000); // Ensure it's a 6-digit number

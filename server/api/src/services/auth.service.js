@@ -27,9 +27,7 @@ class AuthService {
     await redis.setex(`otp_cooldown:${email}`, SHORT_COOLDOWN_TIME, "true");
   }
 
-  async #generateOtp(email) {
-    const isOnCoolDown = await redis.get(`otp_cooldown:${email}`);
-
+  async #generateOtp() {
     const otp = crypto.randomInt(100000, 1000000); // Ensure it's a 6-digit number
     return otp;
   }
@@ -225,7 +223,7 @@ class AuthService {
   }
 
   async logout(refreshToken) {
-    await db.refreshToken.delete({ where: { token: refreshToken } }).catch(async (error) => {
+    await db.refreshToken.delete({ where: { token: refreshToken } }).catch(async () => {
       return { success: true, message: "Refresh toke not found" };
     });
 

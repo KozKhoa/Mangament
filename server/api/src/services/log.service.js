@@ -1,9 +1,3 @@
-import { v7 as uuid7 } from "uuid";
-
-import { AuditLog } from "../models/mongodb/audit-log.js";
-import { RequestLog } from "../models/mongodb/request-log.js";
-import logger from "../../configs/logger.js";
-
 import logQueue from "../../queues/log.queue.js";
 
 class LogService {

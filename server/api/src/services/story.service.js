@@ -5,18 +5,14 @@ import { randomInt } from "../utils/Number.js";
 
 import storyQueue from "../../queues/story.queue.js";
 
-import { throwErrorIfInvalidGenres } from "../utils/Validators.js";
-
 import { validate as isUUID } from "uuid";
 import redisUtils from "../utils/Redis.js";
 
 import { STORY_SEARCH_SIMILARITY } from "../constants/Story.js";
-import mailQueue from "../../queues/mail.queue.js";
+
 import mailService from "./mail.service.js";
 
 const REDIS_TTL = 60 * 30; // 30 minutes
-
-const OTHER_TITLES_SEPARATOR = ";";
 
 export async function BuildStoryTree(storyId, storyNodeId, { isGettingContent = false, isGettingTrashNode = false, isGettingTrashContent = false }) {
   const storiesVer = await redisUtils.stories(storyId).get();
@@ -429,7 +425,6 @@ export async function FindStory({
       ...(title && { title: title }),
       deleted_status: deletedStatus,
       is_actived: isActived,
-      deleted_status: deletedStatus,
     },
     include: {
       authors: { select: { author: { select: { id: true, name: true } } } },
@@ -624,7 +619,7 @@ export async function ActiveStory(id, isActived = true) {
       include: { cover_art: { select: { url: true, height: true, width: true } } },
     })
     .catch(async (error) => {
-      const story = await db.story.findUnique({ where: { ...(id && { id: id }), ...(title && { title: title }) }, deleted_status: "not_deleted" });
+      const story = await db.story.findUnique({ where: { ...(id && { id: id }) }, deleted_status: "not_deleted" });
       if (!story) throw CreateError(404, "Story not found");
 
       throw new Error(error);
@@ -740,13 +735,13 @@ export async function AddOneViewForStory(id) {
 export async function GetRecommendStories({ storyId, userId, page = 1, limit = 10 }) {
   if (!storyId) throw CreateError(400, "Require at least 'storyId'");
 
-  let ids = [];
-
   const storiesVer = redisUtils.stories().get();
 
   const REDIS_KEY = ["GetRecommendStories", "storiesVer=" + storiesVer, "storyId=" + storyId, "userId=" + userId, "page=" + page, "limit=" + limit].join(":");
 
   const cached = await redis.get(REDIS_KEY);
+
+  let ids;
 
   if (cached) {
     ids = JSON.parse(cached);

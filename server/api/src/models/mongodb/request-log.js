@@ -85,7 +85,6 @@ const requestLogSchema = new mongoose.Schema(
     },
   },
   {
-    versionKey: "_version",
     versionKey: false,
   },
 );

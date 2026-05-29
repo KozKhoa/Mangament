@@ -8,7 +8,6 @@ import * as storyNodeService from "../services/story-node.service.js";
 
 import {
   isUUID,
-  throwErrorIfInvalidGenders,
   throwErrorIfInvalidGenres,
   throwErrorIfInvalidRoles,
   throwErrorIfInvalidStoryStatus,

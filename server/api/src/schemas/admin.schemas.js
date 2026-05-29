@@ -5,9 +5,7 @@ import {
   arrayOfRangeNumberSchema,
   dateSchema,
   booleanSchema,
-  genderSchema,
   sortSchema,
-  roleSchema,
   roleArraySchema,
   genderArraySchema,
 } from "./default.schemas.js";

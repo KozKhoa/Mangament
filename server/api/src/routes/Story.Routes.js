@@ -4,7 +4,7 @@ import { AddOneViewForStory, GetAllStories, GetRandomStory, GetStory, GetStoryRe
 
 import * as storyController from "../controllers/Story.Controller.js";
 
-import { AuthenticationToken, OptionalAuth } from "../middlewares/Auth.Middleware.js";
+import { OptionalAuth } from "../middlewares/Auth.Middleware.js";
 import { ValidateData } from "../middlewares/Validate.Middleware.js";
 import storySchemas from "../schemas/story.schemas.js";
 

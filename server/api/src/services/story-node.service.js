@@ -227,16 +227,20 @@ export async function FindStoryNode({ id, storyId, parentId, storyNodeType, orde
   return result;
 }
 
-export async function AddStoryNode(
-  storyId,
-  parentId,
-  data = {
-    title,
-    type,
-    orderIndex,
-    posterId,
-  },
-) {
+/**
+ *
+ * @param {string} storyId
+ * @param {string} parentId
+ * @param {{
+ * title?: string
+ * type?: string
+ * orderIndex?: Number
+ * posterId?: string
+ *
+ * }} data
+ * @returns
+ */
+export async function AddStoryNode(storyId, parentId, data) {
   if (!storyId) throw CreateError(400, "Require 'storyId'");
 
   const { title, type, orderIndex, posterId } = data;
@@ -281,16 +285,26 @@ export async function AddStoryNode(
   });
 }
 
-export async function UpdateStoryNode(
-  storyNodeId,
-  data = {
-    title,
-    type,
-    orderIndex,
-    posterId,
-    contents: [{ type, orderIndex, content, image: { url, height, width } }],
-  },
-) {
+/**
+ * @param {string} storyNodeId
+ * @param {{
+ *   title?: string,
+ *   type?: string,
+ *   orderIndex?: number,
+ *   posterId?: string,
+ *   contents?: Array<{
+ *      type?: string,
+ *      orderIndex?: number,
+ *      content?: string,
+ *      image?: {
+ *          url?: string,
+ *          height?: number,
+ *          width?: number
+ *      }
+ *   }>
+ * }} data
+ */
+export async function UpdateStoryNode(storyNodeId, data) {
   const { title, type, orderIndex, contents } = data;
 
   const uploadImage =
@@ -467,7 +481,7 @@ export async function FindAllStoryNodesTrash({ storyId, parentId, page = 1, limi
   ].join(":");
 
   const cached = await redis.get(REDIS_KEY);
-  // if (cached) return JSON.parse(cached);
+  if (cached) return JSON.parse(cached);
 
   const where = {
     deleted_status: { in: ["soft_deleted", "soft_deleted_by_parent"] },

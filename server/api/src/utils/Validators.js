@@ -28,7 +28,7 @@ export function IsJsonString(string) {
   try {
     JSON.parse(string);
     return true;
-  } catch (e) {
+  } catch {
     return false;
   }
 }

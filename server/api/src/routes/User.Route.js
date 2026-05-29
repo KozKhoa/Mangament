@@ -101,7 +101,5 @@ const userRoute = express.Router();
 userRoute.get("/me", AuthenticationToken, ValidateData(userSchemas.getUser), userController.GetUser); // Get user info
 
 userRoute.put("/me", AuthenticationToken, ValidateData(userSchemas.updateProfile), userController.UpdateUserInfo); // Update user info
-userRoute.patch("/me/password", AuthenticationToken, ValidateData(userSchemas.changePassword), userController.ChangeUserPassword); // Change user password
-userRoute.patch("/me/avatar", AuthenticationToken, userController.ChangeUserAvatar);
 
 export default userRoute;
