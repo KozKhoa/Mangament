@@ -12,7 +12,7 @@
 // import * as commentSeeding from "./comment.js";
 // import * as genreSeeding from "./genre.js";
 
-// // await imageSeeding.default();
+// await imageSeeding.default();
 
 // // await nationSeeding.default();
 

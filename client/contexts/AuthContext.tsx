@@ -16,7 +16,7 @@ interface AuthContextProps {
   user: User | null;
   loading: boolean;
 
-  setUser: (user: User) => void;
+  setUser: (user: User | null) => void;
 
   updateGender: (newGender: string) => Promise<string | number | void>;
   updateUsername: (name: string) => Promise<string | number | void>;
@@ -36,7 +36,7 @@ const AuthContext = createContext<AuthContextProps | null>(null);
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(false);
 
   async function updateGender(newGender: string) {
     if (!user) return;
@@ -48,7 +48,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const res = await userService.updateUser(newUser);
     setLoading(false);
 
-    if (!res.success) toast.warning(res.message);
+    if (!res.success) return toast.warning(res.message);
 
     toast.message("Update user gender successfully");
 
@@ -66,7 +66,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setLoading(false);
 
     if (!res) return toast.warning("Cannot connect with server");
-    if (!res.success) toast.warning(res.message);
+    if (!res.success) return toast.warning(res.message);
 
     toast.message("Update user name successfully");
 
@@ -76,14 +76,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   async function updateBirthday(date: Date) {
     if (!user) return;
 
-    const newUser: User = user;
-    newUser.birthday = date;
+    const newUser: User = { ...user, birthday: date };
 
     setLoading(true);
     const res = await userService.updateUser(newUser);
     setLoading(false);
 
-    if (!res.success) toast.warning(res.message);
+    if (!res.success) return toast.warning(res.message);
 
     toast.message("Update user name successfully");
 
@@ -99,6 +98,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const res = await userService.updateUser(newUser);
     setLoading(false);
 
+    if (!res.success || !res.data) {
+      toast.warning(res.message);
+      return;
+    }
+
     newUser.avatar = {
       url: res.data?.avatar?.key ? [process.env.NEXT_PUBLIC_CDN_URL, res.data?.avatar?.key].join("/") : res.data?.avatar?.url,
       key: res.data?.avatar?.key,
@@ -106,24 +110,29 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     setUser(newUser);
 
-    if (!res.success) toast.warning(res.message);
+    if (!res.success) return toast.warning(res.message);
 
     toast.message("Cập nhật avatar thành công");
   }
 
   async function me() {
-    setLoading(true);
-    const res = await authService.me();
+    try {
+      setLoading(true);
 
-    const user = res.data;
-    if (user) {
-      setUser(user);
-    } else {
+      const res = await authService.me();
+
+      if (res.data) {
+        setUser(res.data);
+      } else {
+        setUser(null);
+        token.removeAccessToken();
+      }
+    } catch {
       setUser(null);
       token.removeAccessToken();
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   }
 
   async function login(email: string, password: string): Promise<string | number | void> {
@@ -197,11 +206,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }
 
   async function logout() {
-    authService.logout();
+    await authService.logout();
     setUser(null);
     token.removeAccessToken();
     rememberMe.turnOff();
-    await signOut();
+    await signOut({ redirect: false });
 
     toast.message("Đã đăng xuất thành công");
 
@@ -255,5 +264,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
 export default function useAuth() {
   const context = useContext(AuthContext);
+
+  if (!context) {
+    throw new Error("useAuth must be used within AuthProvider");
+  }
+
   return context;
 }

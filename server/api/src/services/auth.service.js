@@ -12,8 +12,6 @@ import * as tokenUtils from "../utils/Token.js";
 
 import mailService from "./mail.service.js";
 
-const AVATAR_DEFAUTL_KEY = "user/avatar/avatar.png";
-
 const OTP_EXPIRATION_TIME = 5 * 60; // 5 minutes
 const MAX_RETRY_COUNT = 5;
 const SHORT_COOLDOWN_TIME = 60;
@@ -187,6 +185,7 @@ class AuthService {
       data: {
         email: email,
         name: name,
+        role: "user",
         accounts: {
           create: {
             provider: "email",
@@ -194,7 +193,7 @@ class AuthService {
             password: hashedPassword,
           },
         },
-        avatar: { connect: { key: AVATAR_DEFAUTL_KEY } },
+        avatar: { connect: { key: process.env.DEFAULT_AVATAR_IAMGE_KEY } },
       },
       select: {
         id: true,
