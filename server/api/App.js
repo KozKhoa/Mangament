@@ -310,11 +310,11 @@ setInterval(
 
 if (process.env.NODE_ENV === "development") {
   // Listen
-  app.listen(process.env.LOCAL_PORT, "0.0.0.0", () => {
-    console.log(`🚀 Server chạy tại http://localhost:${process.env.LOCAL_PORT}`);
+  app.listen(process.env.APP_PORT, "0.0.0.0", () => {
+    console.log(`🚀 Server chạy tại http://localhost:${process.env.APP_PORT}`);
   });
 } else if (process.env.NODE_ENV === "production") {
-  app.listen(process.env.PORT, () => {
-    console.log(`🚀 Server chạy tại PORT = ${process.env.PORT}`);
+  app.listen(process.env.APP_PORT, () => {
+    console.log(`🚀 Server chạy tại PORT = ${process.env.APP_PORT}`);
   });
 }

@@ -76,8 +76,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   async function updateBirthday(date: Date) {
     if (!user) return;
 
-    const newUser: User = user;
-    newUser.birthday = date;
+    const newUser: User = { ...user, birthday: date };
 
     setLoading(true);
     const res = await userService.updateUser(newUser);
