@@ -8,10 +8,7 @@ const LOG_FILE_EXCEPTION = "./logs/exception.log";
 const logger = winston.createLogger({
   level: process.env.LOG_LEVEL || "info",
   format: combine(errors({ stack: true }), timestamp(), json()),
-  transports: [
-    new winston.transports.File({ filename: LOG_FILE_STANDARD }),
-    // new winston.transports.Console({ format: combine(prettyPrint()) }),
-  ],
+  transports: [new winston.transports.File({ filename: LOG_FILE_STANDARD }), new winston.transports.Console({ format: combine(prettyPrint()) })],
   rejectionHandlers: [new winston.transports.File({ filename: LOG_FILE_REJECTION }), new winston.transports.Console({ format: prettyPrint() })],
   exceptionHandlers: [new winston.transports.File({ filename: LOG_FILE_EXCEPTION }), new winston.transports.Console({ format: prettyPrint() })],
 });

@@ -9,5 +9,6 @@ console.log("Worker process is starting with NODE_ENV =", process.env.NODE_ENV);
 import "./workers/image.worker.js";
 import "./workers/mail.worker.js";
 import "./workers/story.worker.js";
+import "./workers/log.worker.js";
 
 console.log(`🚀 Worker Background Process is initialized and listening to queues.`);

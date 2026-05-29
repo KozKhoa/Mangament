@@ -2,7 +2,6 @@ import { redis } from "../configs/redis.js";
 import { Worker } from "bullmq";
 
 import mail from "../configs/mail.js";
-import db from "../configs/db.js";
 
 const connection = {
   host: redis.options.host,
@@ -57,7 +56,7 @@ const sendNewPasswordEmailWorker = new Worker(
 const sendUpdateStoryStatusEmailWorker = new Worker(
   "send-update-story-status",
   async (job) => {
-    const { email, storyTitle, storyCoverArt = { url, key }, success, log } = job.data;
+    const { email, storyTitle, storyCoverArt, success, log } = job.data;
 
     await mail.sendMail({
       from: `"Mangament" <${process.env.EMAIL_USER}>`,
@@ -91,7 +90,7 @@ const sendUpdateStoryStatusEmailWorker = new Worker(
 const sendNotificationWhenStoryUpdatedWorder = new Worker(
   "send-notification-when-story-updated",
   async (job) => {
-    const { email, storyId, storyTitle, storyType, storyCoverArt } = job.data;
+    const { email, storyTitle, storyType, storyCoverArt } = job.data;
 
     await mail.sendMail({
       from: `"Mangament" <${process.env.EMAIL_USER}>`,
