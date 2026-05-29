@@ -7,6 +7,8 @@ export default defineConfig([
     files: ["**/*.{js,mjs,cjs}"],
     plugins: { js },
     extends: ["js/recommended"],
+    ignores: ["node_modules/**", "**/generated/**"],
+
     languageOptions: {
       ecmaVersion: "latest",
       sourceType: "module",

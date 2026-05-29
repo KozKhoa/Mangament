@@ -40,12 +40,3 @@ export async function AddManyStoryGenres(data = {}) {
     return { success: false, error: error.code };
   }
 }
-
-export async function HardDeleteStoryGenre(where = { story_id }) {
-  try {
-    const deleting = await db.story_Genre.deleteMany({ where: where });
-    return { success: true };
-  } catch (error) {
-    return { success: false, error: error.code };
-  }
-}

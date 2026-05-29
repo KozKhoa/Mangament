@@ -1,11 +1,3 @@
-import crypto from "crypto";
-
-import * as imageService from "../services/image.service.js";
-
-import pLimit from "p-limit";
-import sharp from "sharp";
-
-import r2CloudflareUtils from "../utils/R2Cloudflare.js";
 import uploadService from "../services/upload.service.js";
 
 // POST /uploads/user/:userId/avatar

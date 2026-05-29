@@ -2,8 +2,6 @@ import db from "../../configs/db.js";
 
 import { randomInt } from "crypto";
 
-import { faker } from "@faker-js/faker";
-
 export default async function main() {
   const users = await db.user.findMany();
   const stories = await db.story.findMany();

@@ -1,4 +1,3 @@
-import { execSync } from "child_process";
 import db from "../../configs/db.js";
 
 export default async function main() {

@@ -30,7 +30,7 @@ export async function FindImage({ id, url }) {
 }
 
 export async function AddImage({ url, key }) {
-  const addImage = await db.image.create({ data: { url, key } }).catch(async (error) => {
+  const addImage = await db.image.create({ data: { url, key } }).catch(async () => {
     return { success: false, message: "Url already exists", data: await db.image.findUnique({ where: { url: url } }) };
   });
 

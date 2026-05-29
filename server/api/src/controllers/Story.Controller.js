@@ -6,7 +6,6 @@ import * as storyService from "../services/story.service.js";
 import * as favouriteService from "../services/favourite.service.js";
 import * as ratingService from "../services/rating.service.js";
 
-import { ConvertQuery } from "../utils/QueryConvert.js";
 import { FindAllReadingHistories } from "../services/history.service.js";
 import { throwErrorIfInvalidGenres } from "../utils/Validators.js";
 
@@ -19,7 +18,7 @@ export async function GetStory(req, res, next) {
     // Check user request
     if (!storyId && !title) throw CreateError(400, '"id" or "title" is required');
 
-    const { type, isGettingChildren, isGettingSummary, isGettingNewestChapter } = req.query;
+    const { isGettingChildren, isGettingSummary, isGettingNewestChapter } = req.query;
 
     const story = await FindStory({
       id: storyId,
@@ -143,7 +142,7 @@ export async function GetAllStories(req, res, next) {
 
       const favouriteStoryIds = new Map(favourites.data.map((fav) => [fav.story.id, fav.id]));
 
-      stories.data.map((story, i) => {
+      stories.data.map((story) => {
         const favId = favouriteStoryIds.get(story.id);
         if (favId) story.favourite = { id: favId };
       });

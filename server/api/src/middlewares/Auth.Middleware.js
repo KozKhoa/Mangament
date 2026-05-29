@@ -81,7 +81,7 @@ export async function AuthorizationRole(req, res, next) {
 
     // If you are the admin
     next();
-  } catch (error) {
+  } catch {
     res.status(ErrorCodes.INTERNAL_SERVER_ERROR.status).json({
       success: false,
       message: ErrorCodes.INTERNAL_SERVER_ERROR.message,
