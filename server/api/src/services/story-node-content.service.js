@@ -2,8 +2,6 @@ import db from "../../configs/db.js";
 
 import { CreateError } from "../utils/ErrorHandle.js";
 
-const REDIS_TTL = 60 * 30; // 30 minutes
-
 // Đây là hàm lấy version redis. Khi adim thêm mới story thì sẽ update version lên
 
 export async function DeleteStoryNodeContent(id) {

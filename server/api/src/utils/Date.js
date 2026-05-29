@@ -1,4 +1,4 @@
-export function forEachDate(fromDate, toDate, callback = (date = new Date()) => {}) {
+export function forEachDate(fromDate, toDate, callback) {
   const current = new Date(fromDate);
 
   //   current.setHours(0, 0, 0, 0);

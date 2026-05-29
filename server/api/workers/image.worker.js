@@ -71,7 +71,7 @@ const addNewImageWorker = new Worker(
 
       console.log("Added image " + key + " successfully");
     } catch (error) {
-      console.error("Added image " + key + " failed");
+      console.error("Added image failed");
       console.error(error);
     }
   },

@@ -65,7 +65,7 @@ export async function AddAuthor({ name, nationId, avatarId }) {
 
 export async function HardDeleteAuthor(id) {
   const author = await db.author.delete({ where: { id: id } });
-  s;
+
   redisUtils.authors().incr();
 
   return { success: true, data: author };

@@ -4,6 +4,7 @@ import db from "../configs/db.js";
 import mailService from "../src/services/mail.service.js";
 import redisUtils from "../src/utils/Redis.js";
 import * as storyService from "../src/services/story.service.js";
+import { CreateError } from "../src/utils/ErrorHandle.js";
 
 const connection = {
   host: redis.options.host,
@@ -224,7 +225,7 @@ const updateStoryWorker = new Worker(
 
             // Add content
             await tx.storyNodeContent.createMany({
-              data: children.add.content.map((cont, i) => ({
+              data: children.add.content.map((cont) => ({
                 id: cont.id,
                 type: cont.type,
                 story_node_id: cont.story_node_id,

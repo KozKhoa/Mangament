@@ -1,13 +1,9 @@
-import { v7 as uuid7 } from "uuid";
-
-import { AuditLog } from "../models/mongodb/audit-log.js";
-import { RequestLog } from "../models/mongodb/request-log.js";
-import logger from "../../configs/logger.js";
+import logQueue from "../../queues/log.queue.js";
 
 class LogService {
   async saveRequestLog(req, res, responseTime) {
-    await RequestLog.create({
-      requestId: req.requestId || uuid7(),
+    await logQueue.addJob_SaveRequestLog({
+      requestId: req.requestId,
       method: req.method,
       protocol: req.protocol,
       httpVersion: req.httpVersion,
@@ -24,14 +20,12 @@ class LogService {
       responseTime: responseTime,
       ip: req.ip,
       createdAt: new Date(),
-    }).catch((err) => {
-      logger.error("Cannot save request log", err);
     });
   }
 
   async saveAuditLog(req, res, responseTime) {
-    await AuditLog.create({
-      requestId: req.requestId || uuid7(),
+    await logQueue.addJob_SaveAuditLog({
+      requestId: req.requestId,
       method: req.method,
       protocol: req.protocol,
       httpVersion: req.httpVersion,
@@ -48,12 +42,9 @@ class LogService {
       responseTime: responseTime,
       ip: req.ip,
       createdAt: new Date(),
-    }).catch((err) => {
-      logger.error("Cannot save audit log", err);
     });
   }
 }
 
 const logService = new LogService();
-
 export default logService;

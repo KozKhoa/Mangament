@@ -1,6 +1,6 @@
 import { isPrismaError } from "../utils/Validators.js";
 
-const ErrorMiddleware = (err, req, res, next) => {
+const ErrorMiddleware = (err, req, res) => {
   try {
     console.log(err);
 

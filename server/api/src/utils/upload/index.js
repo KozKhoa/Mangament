@@ -15,7 +15,7 @@ const alreadyAddStoryNodes = new Map();
 const alreadyCheckFolder = new Set();
 
 const watch = chokidar.watch(root, {
-  ignored: /(^|[\/\\])\../, // ignore file và folder ẩn bắt đầu bằng .
+  ignored: /(^|[/\\])\../, // ignore file và folder ẩn bắt đầu bằng .
   persistent: true,
 });
 
@@ -60,7 +60,8 @@ async function handleAdd(filePath) {
 
     const coverArtResJson = await coverArtRes.json();
 
-    const { url: coverArtUrl, key: coverArtKey, id: coverArtId } = coverArtResJson.data;
+    // const { url: coverArtUrl, key: coverArtKey, id: coverArtId } = coverArtResJson.data;
+    const { url: coverArtUrl } = coverArtResJson.data;
 
     // Update cover art for story
     await db.story.update({
@@ -115,7 +116,7 @@ async function handleAdd(filePath) {
 
   const uploadJson = await Promise.all(uploadImages.map((upload) => upload.json()));
 
-  const addContent = await db.storyNodeContent.createMany({
+  await db.storyNodeContent.createMany({
     data: uploadJson.map((image, i) => ({ story_node_id: storyNodeId, image_id: image.data.id, type: "image", order_index: i })),
   });
 

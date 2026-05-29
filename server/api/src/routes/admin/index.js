@@ -1,10 +1,11 @@
 import express from "express";
 
-import { AuthenticationToken, AuthorizationRole, SetAuditRequest } from "../middlewares/Auth.Middleware.js";
+import adminUserRoute from "./user.route.js";
+import adminStoryRoute from "./story.route.js";
+import adminDashboardRoute from "./dashboard.route.js";
+import adminImageRoute from "./image.route.js";
 
-import * as adminController from "../controllers/Admin.Controller.js";
-import { ValidateData } from "../middlewares/Validate.Middleware.js";
-import adminSchemas from "../schemas/admin.schemas.js";
+import { AuthenticationToken, AuthorizationRole, SetAuditRequest } from "../../middlewares/Auth.Middleware.js";
 
 /**
  * @openapi
@@ -1150,66 +1151,17 @@ import adminSchemas from "../schemas/admin.schemas.js";
 const adminRoute = express.Router();
 
 adminRoute.use(AuthenticationToken);
+
 adminRoute.use(AuthorizationRole);
 
 adminRoute.use(SetAuditRequest); // Set isAudit = true for non GET request
 
-adminRoute.get("/dashboard/overview", adminController.GetDashboardOverview);
+adminRoute.use("/users", adminUserRoute);
 
-adminRoute.get("/dashboard/stats/views", ValidateData(adminSchemas.dashboardView), adminController.GetDashboardViewInRange);
+adminRoute.use("/stories", adminStoryRoute);
 
-adminRoute.get("/dashboard/stats/new-users", ValidateData(adminSchemas.dashboardNewUsers), adminController.GetDashboardNewUsers);
+adminRoute.use("/dashboard", adminDashboardRoute);
 
-adminRoute.get("/stories", ValidateData(adminSchemas.getAllStories), adminController.GetAllStories);
-
-adminRoute.get("/stories/trash", ValidateData(adminSchemas.getAllTrashStories), adminController.GetAllTrashStories);
-
-adminRoute.get("/stories/:id", ValidateData(adminSchemas.getStory), adminController.GetStory);
-
-adminRoute.post("/stories", ValidateData(adminSchemas.postStory), adminController.PostNewStory);
-
-adminRoute.patch("/stories/:id/cover-art", ValidateData(adminSchemas.updateStoryCoverArt), adminController.UpdateStoryCoverArt);
-
-adminRoute.put("/stories/:id", ValidateData(adminSchemas.updateStory), adminController.UpdateStory);
-
-adminRoute.patch("/stories/:id/active", ValidateData(adminSchemas.toggleActiveStory), adminController.ToggleActiveStory);
-
-adminRoute.delete("/stories/trash", ValidateData(adminSchemas.deleteManyTrashStories), adminController.DeleteManyTrashStories);
-
-adminRoute.delete("/stories/:id", ValidateData(adminSchemas.deleteStory), adminController.DeleteStory);
-
-adminRoute.delete("/stories/trash/:id", ValidateData(adminSchemas.deleteTrashStory), adminController.DeleteTrashStory);
-
-adminRoute.patch("/stories/trash/restore", ValidateData(adminSchemas.restoreManyTrashStories), adminController.RestoreManyTrashStories);
-
-adminRoute.patch("/stories/trash/:id/restore", ValidateData(adminSchemas.restoreTrashStory), adminController.RestoreTrashStory);
-
-adminRoute.get("/story-nodes/trash", ValidateData(adminSchemas.getAllStoryNodesTrash), adminController.GetAllStoryNodesTrash);
-
-adminRoute.patch("/story-nodes/trash/restore", ValidateData(adminSchemas.restoreManyTrashStoryNodes), adminController.RestoreManyTrashStoryNodes);
-
-adminRoute.patch("/story-nodes/trash/:id/restore", ValidateData(adminSchemas.restoreTrashStoryNode), adminController.RestoreTrashStoryNode);
-
-adminRoute.delete("/story-nodes/trash/:id", ValidateData(adminSchemas.deletePermanentlyTrashStoryNode), adminController.DeletePermanentlyTrashStoryNode);
-
-adminRoute.delete("/story-nodes/trash", ValidateData(adminSchemas.deletePermanentlyManyTrashStoryNodes), adminController.DeletePermanentlyManyTrashStoryNodes);
-
-adminRoute.get("/users", ValidateData(adminSchemas.getAllUsers), adminController.GetAllUsers);
-
-adminRoute.get("/users/:id", ValidateData(adminSchemas.getUser), adminController.GetUser);
-
-adminRoute.put("/users/:id", ValidateData(adminSchemas.updateUser), adminController.UpdateUserInfo);
-
-adminRoute.delete("/users/:id", ValidateData(adminSchemas.deleteUser), adminController.DeleteUser);
-
-adminRoute.patch("/users/:id/ban", ValidateData(adminSchemas.banUser), adminController.BanUser);
-
-adminRoute.get("/images/trash", ValidateData(adminSchemas.getAllTrashImages), adminController.GetAllTrashImages);
-
-adminRoute.delete("/images/trash/:id", ValidateData(adminSchemas.deleteTrashImage), adminController.DeleteTrashImage);
-
-adminRoute.delete("/images/trash", ValidateData(adminSchemas.deleteManyTrashImages), adminController.DeleteManyTrashImages);
-
-// This is audit request
+adminRoute.use("/images", adminImageRoute);
 
 export default adminRoute;

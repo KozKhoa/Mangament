@@ -12,6 +12,8 @@
   "scripts": {
     "dev": "cross-env NODE_ENV=development nodemon App.js",
     "worker": "cross-env NODE_ENV=development node WorkerApp.js",
+    "lint": "npx eslint .",
+    "format": "npx prettier --write .",
     "upload": "cross-env NODE_ENV=development node Upload.js",
     "start": "cross-env NODE_ENV=production node App.js",
     "build": "npm i && npx prisma generate",
@@ -19,7 +21,8 @@
     "test:watch": "vitest --watch",
     "test:coverage": "vitest run --coverage",
     "migrate": "npx prisma migrate dev && npx prisma generate dev",
-    "seed": "npx prisma db seed"
+    "seed": "npx prisma db seed",
+    "prepare": "husky install"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1000.0",
@@ -62,9 +65,22 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@types/node": "^25.6.0",
+    "eslint": "^10.4.0",
+    "globals": "^17.6.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.4.0",
+    "prettier": "^3.8.3",
     "prisma": "^7.6.0",
     "tsx": "^4.21.0",
     "vitest": "^4.1.4"
+  },
+  "lint-staged": {
+    "*.{js,ts}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md,yml,yaml}": "prettier --write"
   }
 }

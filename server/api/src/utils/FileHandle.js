@@ -58,15 +58,7 @@ export async function IsFileExist(path) {
   try {
     await fs.access(path);
     return true;
-  } catch (error) {
-    return false;
-  }
-}
-
-export async function RenameFolder(folderPath, newName) {
-  try {
-  } catch (error) {
-    console.log("❌ Fail to rename folder " + folderPath, error);
+  } catch {
     return false;
   }
 }

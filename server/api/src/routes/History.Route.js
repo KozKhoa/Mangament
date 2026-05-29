@@ -162,7 +162,12 @@ historyRoute.get("/user/me", AuthenticationToken, ValidateData(historySchemas.ge
  *       401:
  *         $ref: '#/components/responses/Unauthorized'
  */
-historyRoute.post("/story/:storyId/story-node/:storyNodeId", AuthenticationToken, ValidateData(historySchemas.addHistory), historyController.AddNewReadingHistory);
+historyRoute.post(
+  "/story/:storyId/story-node/:storyNodeId",
+  AuthenticationToken,
+  ValidateData(historySchemas.addHistory),
+  historyController.AddNewReadingHistory,
+);
 
 /**
  * @swagger

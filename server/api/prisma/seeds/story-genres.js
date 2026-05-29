@@ -12,7 +12,7 @@ export default async function main() {
   const stories = await db.story.findMany();
 
   await db.story_Genre.createMany({
-    data: Array.from({ length: 600 }).map((_, i) => ({
+    data: Array.from({ length: 600 }).map(() => ({
       story_id: stories[randomInt(stories.length) % stories.length].id,
       genre_id: genres[randomInt(genres.length) % genres.length].id,
     })),

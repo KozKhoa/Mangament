@@ -10,7 +10,7 @@ export default async function main() {
   await db.author.deleteMany();
 
   const authors = await db.author.createManyAndReturn({
-    data: Array.from({ length: 1000 }, (_, i) => ({
+    data: Array.from({ length: 1000 }, () => ({
       name: faker.person.fullName(),
     })),
     skipDuplicates: true,

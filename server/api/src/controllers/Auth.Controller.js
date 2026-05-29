@@ -83,7 +83,7 @@ export async function Login(req, res, next) {
 export async function Register(req, res, next) {
   try {
     // Get user name, email, password from require
-    const { name, email, password } = req?.body;
+    const { name, email, password } = req.body;
     if (!name || !email || !password) throw CreateError(400, "Require 'name', 'email' and 'password'");
 
     throwErrorIfInvalidEmailAndPassword(email, password); // Check email and password format

@@ -183,7 +183,7 @@ export async function UpdateUser(id, { name, birthday, gender, avatar, role }) {
   return { success: true, data: update };
 }
 
-export async function AddUser({ name, email, password, avatarUrl }) {
+export async function AddUser({ name, email, password }) {
   if (!name || !email || !password) throw new Error("Require 'name', 'email' and 'password'");
 
   const hashedPassword = await passwordService.HashPassword(password);

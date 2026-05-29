@@ -7,7 +7,7 @@ export default async function main() {
   const storyNodes = await db.storyNode.findMany();
 
   await db.readingHistory.createMany({
-    data: Array.from({ length: 1000 }).map((_, i) => {
+    data: Array.from({ length: 1000 }).map(() => {
       const storyNode = storyNodes[randomInt(storyNodes.length) % storyNodes.length];
 
       const randomDate = new Date();

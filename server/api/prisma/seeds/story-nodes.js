@@ -1,5 +1,4 @@
-import { execSync } from "child_process";
-import db, { StoryNodeType, StoryStatus, StoryType } from "../../configs/db.js";
+import db from "../../configs/db.js";
 import { randomInt } from "crypto";
 
 export default async function main() {

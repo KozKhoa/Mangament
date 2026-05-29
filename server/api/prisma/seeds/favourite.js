@@ -7,7 +7,7 @@ export default async function main() {
   const stories = await db.story.findMany();
 
   await db.favouriteStory.createMany({
-    data: Array.from({ length: 1000 }).map((_, i) => ({
+    data: Array.from({ length: 1000 }).map(() => ({
       user_id: users[randomInt(users.length) % users.length].id,
       story_id: stories[randomInt(stories.length) % stories.length].id,
     })),

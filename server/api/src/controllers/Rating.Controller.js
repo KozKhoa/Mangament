@@ -61,8 +61,10 @@ export async function PutRating(req, res, next) {
 
     if (!ratingId) throw CreateError(400, "'id' is required");
 
-    const title = req.body?.title || null;
-    const content = req.body?.content || null;
+    const title = req.body?.title || undefined;
+    const content = req.body?.content || undefined;
+    const star = req.body?.star ? Number(req.body.star) : undefined;
+
     if (!star || !title || !content) throw CreateError(400, "Missing field");
     if (star < 1 || star > 5) throw CreateError(400, '"star" must be number in range (1, 5)');
 

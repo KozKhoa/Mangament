@@ -22,6 +22,7 @@ if (process.env.NODE_ENV !== "production") {
 
 export async function connectToRedis() {
   try {
+    console.log("▪️▪️▪️Connecting to Redis...");
     await redis.connect();
     await redis.ping();
     console.log("✅ Redis connected");

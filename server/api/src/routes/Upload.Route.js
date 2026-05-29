@@ -1,13 +1,7 @@
 import express from "express";
 import multer from "multer";
-import path from "path";
-
-import { PutObjectCommand } from "@aws-sdk/client-s3";
 
 import * as uploadController from "../controllers/Upload.Controller.js";
-import crypto from "crypto";
-
-import { S3Client } from "@aws-sdk/client-s3";
 
 import { AuthorizationRole, AuthenticationToken } from "../middlewares/Auth.Middleware.js";
 

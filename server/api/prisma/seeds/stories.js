@@ -1,12 +1,5 @@
 import db from "../../configs/db.js";
 
-import { StoryStatus, StoryType } from "../../configs/db.js";
-
-import { execSync } from "child_process";
-
-import { faker } from "@faker-js/faker";
-import { randomBytes, randomInt } from "crypto";
-
 import storyQueue from "../../queues/story.queue.js";
 
 export default async function main() {

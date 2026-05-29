@@ -1,7 +1,5 @@
 import { redis } from "../../configs/redis.js";
 
-const REDIS_TTL = 60 * 30; // 15 minutes
-
 const version = {
   get: async (key) => {
     const versionKey = `version:${key}`;
@@ -52,7 +50,7 @@ const favourites = (favouriteId) => {
 
 const users = (userId) => {
   const key = ["users", "userId=" + userId].join(":");
-  return { get: () => version.get("users"), incr: () => version.incr("users") };
+  return { get: () => version.get(key), incr: () => version.incr("users") };
 };
 
 const admin = () => ({ get: () => version.get("admin"), incr: () => version.incr("admin") });
