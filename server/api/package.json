@@ -75,5 +75,12 @@
     "prisma": "^7.6.0",
     "tsx": "^4.21.0",
     "vitest": "^4.1.4"
+  },
+  "lint-staged": {
+    "*.{js,ts}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md,yml,yaml}": "prettier --write"
   }
 }

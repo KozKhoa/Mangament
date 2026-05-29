@@ -19,7 +19,7 @@ export async function GetAllGenres(req, res, next) {
 
 export async function AddNewGenre(req, res, next) {
   try {
-    const newGenres = req?.body?.genres;
+    const newGenres = req?.body?.genre;
 
     if (genres) throw CreateError(400, "'genres' are required");
   } catch (err) {
