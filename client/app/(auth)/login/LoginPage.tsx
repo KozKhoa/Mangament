@@ -4,7 +4,6 @@ import { useEffect, useState, useRef } from "react";
 import { toast } from "sonner";
 
 import Link from "@/components/link/Link";
-import { useRouter } from "next/navigation";
 
 import { validateEmailFormat, validatePasswordFormat } from "@/lib/validation";
 import * as rememberMe from "@/lib/remember-me";
@@ -17,6 +16,10 @@ import Button from "@/components/buttons/button";
 import { loadingBar } from "@/components/loadings/loading-bar/top-loading-bar.store";
 
 import { signIn, useSession } from "next-auth/react";
+
+interface SessionWithIdToken {
+  idToken?: string | null;
+}
 
 function GoogleSvg() {
   return (
@@ -100,12 +103,12 @@ export default function LoginPage() {
   const processedToken = useRef<string | null>(null);
 
   useEffect(() => {
-    const idToken = (session as any)?.idToken;
+    const idToken = (session as SessionWithIdToken | null)?.idToken;
     if (session && idToken && !auth?.user && processedToken.current !== idToken) {
       processedToken.current = idToken;
       auth?.loginWithGoogle(idToken);
     }
-  }, [session, auth?.user]);
+  }, [session, auth]);
 
   return (
     <div className="w-full min-h-[80vh] flex justify-center items-center">

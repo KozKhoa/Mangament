@@ -75,7 +75,7 @@ function RegisterPage() {
         <Input
           label="Tên tài khoản"
           type="text"
-          name="username"
+          name="name"
           error={errorUsername}
           placeHolder="VD: Nguyễn Văn A"
           require={true}

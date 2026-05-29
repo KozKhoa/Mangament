@@ -185,6 +185,7 @@ class AuthService {
       data: {
         email: email,
         name: name,
+        role: "user",
         accounts: {
           create: {
             provider: "email",

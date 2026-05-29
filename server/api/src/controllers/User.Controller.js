@@ -32,6 +32,8 @@ export async function UpdateUserInfo(req, res, next) {
     // Update user infomation
     const updateUser = await userService.UpdateUser(userId, { name, birthday, gender, avatar });
 
+    console.log(avatar);
+
     delete updateUser.data.password;
 
     return res.status(200).json({
