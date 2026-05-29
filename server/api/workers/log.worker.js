@@ -17,60 +17,100 @@ const connection = {
 const requestLogWorker = new Worker(
   "save-request-log",
   async (job) => {
-    const { req, res, responseTime } = job.data;
+    const {
+      requestId,
+      method,
+      protocol,
+      httpVersion,
+      host,
+      url,
+      path,
+      query,
+      params,
+      statusCode,
+      userAgent,
+      requestBody,
+      responseBody,
+      userId,
+      responseTime,
+      ip,
+      createdAt,
+    } = job.data;
 
     await RequestLog.create({
-      requestId: req.requestId || uuid7(),
-      method: req.method,
-      protocol: req.protocol,
-      httpVersion: req.httpVersion,
-      host: req.hostname,
-      url: req.originalUrl,
-      path: req.path,
-      query: req.query,
-      params: req.params,
-      statusCode: res.statusCode,
-      userAgent: req.headers["user-agent"],
-      requestBody: req.body,
-      responseBody: res.body,
-      userId: req.user?.id ?? null,
+      requestId: requestId || uuid7(),
+      method: method,
+      protocol: protocol,
+      httpVersion: httpVersion,
+      host: host,
+      url: url,
+      path: path,
+      query: query,
+      params: params,
+      statusCode: statusCode,
+      userAgent: userAgent,
+      requestBody: requestBody,
+      responseBody: responseBody,
+      userId: userId ?? null,
       responseTime: responseTime,
-      ip: req.ip,
-      createdAt: new Date(),
+      ip: ip,
+      createdAt: createdAt,
     }).catch((err) => {
       logger.error("Cannot save request log", err);
     });
+
+    console.log("Saved request log ", requestId, " successfully");
   },
-  { connection, concurrency: 20 },
+  { connection, concurrency: 10 },
 );
 
 const auditLogWorker = new Worker(
   "save-audit-log",
   async (job) => {
-    const { req, res, responseTime } = job.data;
+    const {
+      requestId,
+      method,
+      protocol,
+      httpVersion,
+      host,
+      url,
+      path,
+      query,
+      params,
+      statusCode,
+      userAgent,
+      requestBody,
+      responseBody,
+      userId,
+      responseTime,
+      ip,
+      createdAt,
+    } = job.data;
 
     await AuditLog.create({
-      requestId: req.requestId || uuid7(),
-      method: req.method,
-      protocol: req.protocol,
-      httpVersion: req.httpVersion,
-      host: req.hostname,
-      url: req.originalUrl,
-      path: req.path,
-      query: req.query,
-      params: req.params,
-      statusCode: res.statusCode,
-      userAgent: req.headers["user-agent"],
-      requestBody: req.body,
-      responseBody: res.body,
-      userId: req.user?.id ?? null,
+      requestId: requestId || uuid7(),
+      method: method,
+      protocol: protocol,
+      httpVersion: httpVersion,
+      host: host,
+      url: url,
+      path: path,
+      query: query,
+      params: params,
+      statusCode: statusCode,
+      userAgent: userAgent,
+      requestBody: requestBody,
+      responseBody: responseBody,
+      userId: userId ?? null,
       responseTime: responseTime,
-      ip: req.ip,
-      createdAt: new Date(),
+      ip: ip,
+      createdAt: createdAt,
     }).catch((err) => {
       logger.error("Cannot save audit log", err);
     });
+
+    console.log("Saved audit log ", requestId, " successfully");
   },
-  { connection, concurrency: 20 },
+  { connection, concurrency: 10 },
 );
 export { requestLogWorker, auditLogWorker };

@@ -15,11 +15,11 @@ import * as authMiddleware from "./src/middlewares/Auth.Middleware.js";
 import RequestLogger from "./src/middlewares/LogReport.Middleware.js";
 import * as PerformanceMiddleware from "./src/middlewares/Performance.Middleware.js";
 
+import adminRoute from "./src/routes/admin/index.js";
 import storyRoute from "./src/routes/Story.Routes.js";
 import storyNodeRoute from "./src/routes/StoryNode.Route.js";
 import authorRoute from "./src/routes/Author.Route.js";
 import genreRoute from "./src/routes/Genre.Route.js";
-import adminRoute from "./src/routes/Admin.Route.js";
 import commentRoute from "./src/routes/Comment.Route.js";
 import uploadRoute from "./src/routes/Upload.Route.js";
 

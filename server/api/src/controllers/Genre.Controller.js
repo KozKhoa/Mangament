@@ -17,11 +17,32 @@ export async function GetAllGenres(req, res, next) {
   }
 }
 
-export async function AddNewGenre(req, res, next) {
+// POST /genres
+/**
+ *
+ * @param {{
+ *    userId: string,
+ *    body: {
+ *      genres: Array<string>,
+ *      descriptions?: Array<string>,
+ *      thumbnails?: Array<{
+ *        url?: string,
+ *        key: string
+ *      }>
+ *    }
+ * }} req
+ * @param {*} res
+ * @param {*} next
+ */
+export async function PostManyGenres(req, res, next) {
   try {
-    const newGenres = req?.body?.genres;
+    const { genres, descriptions, thumbnails } = req.body;
 
-    if (genres) throw CreateError(400, "'genres' are required");
+    if (!genres) throw CreateError(400, "'genres' are required");
+
+    const result = await genreService.AddManyGenres(genres, descriptions, thumbnails);
+
+    res.status(200).json({ success: true, message: result.message });
   } catch (err) {
     next(err);
   }

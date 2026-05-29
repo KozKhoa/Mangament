@@ -228,17 +228,15 @@ export async function FindStoryNode({ id, storyId, parentId, storyNodeType, orde
 }
 
 /**
- *
  * @param {string} storyId
  * @param {string} parentId
  * @param {{
- * title?: string
- * type?: string
- * orderIndex?: Number
- * posterId?: string
- *
+ *   title?: string,
+ *   type?: string,
+ *   orderIndex?: number,
+ *   posterId?: string
  * }} data
- * @returns
+ * @returns {Promise<any>}
  */
 export async function AddStoryNode(storyId, parentId, data) {
   if (!storyId) throw CreateError(400, "Require 'storyId'");

@@ -21,6 +21,7 @@ if (process.env.NODE_ENV !== "production") {
 
 export const connectToDatabase = async () => {
   try {
+    console.log("▪️▪️▪️Connecting to Database...");
     await db.$queryRaw`SELECT 1`;
     console.log("✅ Database connected");
   } catch (e) {

@@ -1,7 +1,9 @@
 import { connectToRedis } from "./configs/redis.js";
+import { connectToMongoDB } from "./configs/logs-db.js";
 
 // Validate and initialize shared resources
 connectToRedis();
+connectToMongoDB();
 
 console.log("Worker process is starting with NODE_ENV =", process.env.NODE_ENV);
 

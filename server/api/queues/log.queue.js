@@ -16,12 +16,92 @@ class LogQueue {
   #requestLogQueue = new Queue("save-request-log", { connection });
   #auditLogQueue = new Queue("save-audit-log", { connection });
 
-  async addJob_SaveRequestLog(req, res, responseTime) {
-    await this.#requestLogQueue.add("saveRequestLog", { req, res, responseTime }, ADD_JOB_OPTION);
+  async addJob_SaveRequestLog({
+    requestId,
+    method,
+    protocol,
+    httpVersion,
+    host,
+    url,
+    path,
+    query,
+    params,
+    statusCode,
+    userAgent,
+    requestBody,
+    responseBody,
+    userId,
+    responseTime,
+    ip,
+    createdAt,
+  }) {
+    await this.#requestLogQueue.add(
+      "saveRequestLog",
+      {
+        requestId,
+        method,
+        protocol,
+        httpVersion,
+        host,
+        url,
+        path,
+        query,
+        params,
+        statusCode,
+        userAgent,
+        requestBody,
+        responseBody,
+        userId,
+        responseTime,
+        ip,
+        createdAt,
+      },
+      ADD_JOB_OPTION,
+    );
   }
 
-  async addJob_SaveAuditLog(req, res, responseTime) {
-    await this.#auditLogQueue.add("saveAuditLog", { req, res, responseTime }, ADD_JOB_OPTION);
+  async addJob_SaveAuditLog({
+    requestId,
+    method,
+    protocol,
+    httpVersion,
+    host,
+    url,
+    path,
+    query,
+    params,
+    statusCode,
+    userAgent,
+    requestBody,
+    responseBody,
+    userId,
+    responseTime,
+    ip,
+    createdAt,
+  }) {
+    await this.#auditLogQueue.add(
+      "saveAuditLog",
+      {
+        requestId,
+        method,
+        protocol,
+        httpVersion,
+        host,
+        url,
+        path,
+        query,
+        params,
+        statusCode,
+        userAgent,
+        requestBody,
+        responseBody,
+        userId,
+        responseTime,
+        ip,
+        createdAt,
+      },
+      ADD_JOB_OPTION,
+    );
   }
 }
 
