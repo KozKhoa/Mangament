@@ -4,30 +4,141 @@ on:
   push:
     branches:
       - main
+    paths:
+      # Cập nhật chính xác các path cần theo dõi để kích hoạt workflow
+      - 'server/api/**'
+      - 'server/ml-services/**'
+      - '.github/workflows/**'
 
 jobs:
-  deploy:
+
+  build-and-push-api:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Connect to Tailscale
-        uses: tailscale/github-action@v2
+      - uses: actions/checkout@v4
+      
+      - name: Check for api changes
+        id: changed-files
+        uses: tj-actions/changed-files@v44
         with:
-          authkey: ${{ secrets.TAILSCALE_AUTH_KEY }}
+          files: server/api/**
 
-      - name: Deploy via SSH
+      # Các bước cài đặt môi trường ĐỨNG TRONG JOB để máy ảo này có hiệu lực
+      - name: Set up QEMU
+        if: steps.changed-files.outputs.any_changed == 'true'
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        if: steps.changed-files.outputs.any_changed == 'true'
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        if: steps.changed-files.outputs.any_changed == 'true'
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }} # Đã sửa dấu :: thành .
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build & Push API
+        if: steps.changed-files.outputs.any_changed == 'true'
+        uses: docker/build-push-action@v5
+        with:
+          context: ./server/api
+          file: ./server/api/Dockerfile
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/mangament-server-api:latest
+    
+
+  build-and-push-worker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Check for worker changes
+        id: changed-files
+        uses: tj-actions/changed-files@v44
+        with:
+          files: server/api/workers/**
+
+      - name: Set up QEMU
+        if: steps.changed-files.outputs.any_changed == 'true'
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        if: steps.changed-files.outputs.any_changed == 'true'
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        if: steps.changed-files.outputs.any_changed == 'true'
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build & Push Worker
+        if: steps.changed-files.outputs.any_changed == 'true'
+        uses: docker/build-push-action@v5
+        with:
+          context: ./server/api/workers
+          file: ./server/api/workers/Dockerfile
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/mangament-server-worker:latest
+    
+  build-and-push-ml-service:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Check for ml-service changes
+        id: changed-files
+        uses: tj-actions/changed-files@v44
+        with:
+          files: server/ml-services/**
+
+      - name: Set up QEMU
+        if: steps.changed-files.outputs.any_changed == 'true'
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        if: steps.changed-files.outputs.any_changed == 'true'
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        if: steps.changed-files.outputs.any_changed == 'true'
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build & Push ML Service
+        if: steps.changed-files.outputs.any_changed == 'true'
+        uses: docker/build-push-action@v5
+        with:
+          context: ./server/ml-services
+          file: ./server/ml-services/Dockerfile
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/mangament-server-ml-service:latest
+    
+
+  deploy:
+    if: always() 
+    needs: [build-and-push-api, build-and-push-worker, build-and-push-ml-service]
+    runs-on: ubuntu-latest
+    steps:
+      - name: SSH to Server and Deploy
         uses: appleboy/ssh-action@v1.0.3
-
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
-          command_timeout: 30m
           script: |
             cd /home/khoa/Mangament/server
             git pull origin main
-
-            # Deploy All Services (API, Worker, ML, Redis, Client)
-            docker-compose up -d --build
+            docker compose pull
+            docker compose up -d
