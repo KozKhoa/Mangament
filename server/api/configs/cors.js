@@ -1,4 +1,11 @@
-const WHITE_LIST = ["http://localhost:3000", "https://mangament.netlify.app", "http://100.79.140.6:3000"];
+const WHITE_LIST = process.env.CORS_WHITE_LIST.split(",").map((url) => url.trim());
+
+
+if (!WHITE_LIST.length) {
+  console.warn(
+    "CORS_WHITE_LIST is empty. Please set it in the .env file to allow specific origins."
+  );
+}
 
 export const corsOptions = {
   origin: function (origin, callback) {
