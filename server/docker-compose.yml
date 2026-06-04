@@ -8,19 +8,19 @@ services:
     ports:
       - "6378:6379" # <host>:<container>
 
-  nginx:
-    image: jc21/nginx-proxy-manager:latest
-    container_name: mangament_nginx
-    restart: always
-    ports:
-      - "81:81"   # Cổng vào giao diện Web UI Quản trị (Chỉ mở nội bộ)
-      - "80:80"   # Mở cổng 80 ra ngoài cho HTTP
-      - "443:443" # Mở cổng 443 ra ngoài cho HTTPS (chuẩn bị trước)
-    volumes:
-      - ./npm/data:/data
-      - ./npm/letsencrypt:/etc/letsencrypt
-    depends_on:
-      - api 
+  # nginx:
+  #   image: jc21/nginx-proxy-manager:latest
+  #   container_name: mangament_nginx
+  #   restart: always
+  #   ports:
+  #     - "81:81"   # Cổng vào giao diện Web UI Quản trị (Chỉ mở nội bộ)
+  #     - "80:80"   # Mở cổng 80 ra ngoài cho HTTP
+  #     - "443:443" # Mở cổng 443 ra ngoài cho HTTPS (chuẩn bị trước)
+  #   volumes:
+  #     - ./npm/data:/data
+  #     - ./npm/letsencrypt:/etc/letsencrypt
+  #   depends_on:
+  #     - api 
       
   cloudflare-tunnel:
     container_name: mangament_cloudflared_tunnel
@@ -30,7 +30,6 @@ services:
     env_file:
       - ./api/.env
     depends_on:
-      - nginx # hoặc service nodejs của bạn để đảm bảo mạng nội bộ đã sẵn sàng
       - api
 
   ml-service:
