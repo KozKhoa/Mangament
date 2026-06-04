@@ -30,7 +30,7 @@ services:
     env_file:
       - ./api/.env
     depends_on:
-      - mangament_nginx # hoặc service nodejs của bạn để đảm bảo mạng nội bộ đã sẵn sàng
+      - nginx # hoặc service nodejs của bạn để đảm bảo mạng nội bộ đã sẵn sàng
       - api
 
   ml-service:
