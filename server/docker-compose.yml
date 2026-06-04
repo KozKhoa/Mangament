@@ -22,16 +22,16 @@ services:
     depends_on:
       - api 
       
-    cloudflare-tunnel:
-      container_name: mangament_cloudflared_tunnel
-      image: cloudflare/cloudflared:latest
-      restart: always
-      command: tunnel --no-autoupdate run
-      env_file:
-        - ./api/.env
-      depends_on:
-        - mangament_nginx # hoặc service nodejs của bạn để đảm bảo mạng nội bộ đã sẵn sàng
-        - api
+  cloudflare-tunnel:
+    container_name: mangament_cloudflared_tunnel
+    image: cloudflare/cloudflared:latest
+    restart: always
+    command: tunnel --no-autoupdate run
+    env_file:
+      - ./api/.env
+    depends_on:
+      - mangament_nginx # hoặc service nodejs của bạn để đảm bảo mạng nội bộ đã sẵn sàng
+      - api
 
   ml-service:
     build:
