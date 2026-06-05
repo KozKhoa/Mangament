@@ -47,3 +47,27 @@ export async function PostManyGenres(req, res, next) {
     next(err);
   }
 }
+
+// GET /genres/trending?limit=10&page=1
+/**
+ *
+ * @param {*} req
+ * @param {*} res
+ * @param {*} next
+ */
+export async function GetTrendingGenres(req, res, next) {
+  try {
+    const { limit, page } = req.query;
+
+    const genres = await genreService.GetTrendingGenres({ limit, page });
+
+    return res.status(200).json({
+      success: true,
+      message: "Get trending genres successfully",
+      data: genres.data,
+      pagination: genres.pagination,
+    });
+  } catch (error) {
+    next(error);
+  }
+}

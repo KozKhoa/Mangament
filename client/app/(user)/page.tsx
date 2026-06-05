@@ -20,6 +20,8 @@ import RankingCard from "@/components/cards/ranking-card";
 import Link from "@/components/link/Link";
 import { loadingBar } from "@/components/loadings/loading-bar/top-loading-bar.store";
 import { routes } from "@/lib/routes";
+import genreService from "@/services/genre";
+import Genre from "@/types/genre";
 
 export default function Home() {
   const router = useRouter();
@@ -28,6 +30,7 @@ export default function Home() {
   const [histories, setHistories] = useState<History[] | null>(null);
   const [newestStories, setNewestStories] = useState<Story[]>([]);
   const [bestRankingStories, setBestRankingStories] = useState<Story[]>([]);
+  const [trendingGenres, setTrendingGenres] = useState<{ genre: Genre; score: number }[]>([]);
 
   async function fetchHistories() {
     const res = await historyService.getHistories({ ...DEFAULT.params, ...{ page: 1, limit: 20 } });
@@ -69,10 +72,19 @@ export default function Home() {
     setHistories((prev) => (prev ? prev.filter((x) => x !== history) : null));
   }
 
+  async function fetchTrendingGenres() {
+    const res = await genreService.getTrendingGenres(1, 10);
+
+    if (!res) return toast.warning("Server Error");
+    if (!res.success) return toast.warning(res.message);
+
+    setTrendingGenres(res?.data ?? []);
+  }
+
   useEffect(() => {
     fetchNewestStories();
     fetchBestRankingStories();
-
+    fetchTrendingGenres();
     loadingBar.close();
   }, []);
 
@@ -143,46 +155,17 @@ export default function Home() {
         }}
         autoSlide={3000}
       >
-        <div className="py-3.5 px-2">
-          <Link href={`/genre/Comedy`}>
-            <CategoryCard className="m-auto hover:scale-110 hover:z-10" imageSource="/genres/comedy.jpg" label="COMEDY"></CategoryCard>
-          </Link>
-        </div>
-        <div className="py-3.5 px-2">
-          <Link href={`/genre/Fantasy`}>
-            <CategoryCard className="m-auto hover:scale-110 hover:z-10" imageSource="/genres/fantasy.jpg" label="FANTASY"></CategoryCard>
-          </Link>
-        </div>
-        <div className="py-3.5 px-2">
-          <Link href={`/genre/Harem`}>
-            <CategoryCard className="m-auto hover:scale-110 hover:z-10" imageSource="/genres/harem.jpg" label="HAREM"></CategoryCard>
-          </Link>
-        </div>
-        <div className="py-3.5 px-2">
-          <Link href={`/genre/Isekai`}>
-            <CategoryCard className="m-auto hover:scale-110 hover:z-10" imageSource="/genres/isekai.jpg" label="ISEKAI"></CategoryCard>
-          </Link>
-        </div>
-        <div className="py-3.5 px-2">
-          <Link href={`/genre/Romance`}>
-            <CategoryCard className="m-auto hover:scale-110 hover:z-10" imageSource="/genres/romance.jpg" label="ROMANCE"></CategoryCard>
-          </Link>
-        </div>
-        <div className="py-3.5 px-2">
-          <Link href={`/genre/Shonen`}>
-            <CategoryCard className="m-auto hover:scale-110 hover:z-10" imageSource="/genres/shonen.jpg" label="SHONEN"></CategoryCard>
-          </Link>
-        </div>
-        <div className="py-3.5 px-2">
-          <Link href={`/genre/Slice of Life`}>
-            <CategoryCard className="m-auto hover:scale-110 hover:z-10" imageSource="/genres/slice_of_life.jpg" label="SLICE OF LIFE"></CategoryCard>
-          </Link>
-        </div>
-        <div className="py-3.5 px-2">
-          <Link href={`/genre/Sport`}>
-            <CategoryCard className="m-auto hover:scale-110 hover:z-10" imageSource="/genres/sport.jpg" label="SPORT"></CategoryCard>
-          </Link>
-        </div>
+        {trendingGenres.map(({ genre, score }) => (
+          <div className="py-3.5 px-2" key={genre.id}>
+            <Link href={`/genre/${genre.name}`}>
+              <CategoryCard
+                className="m-auto hover:scale-110 hover:z-10"
+                imageSource={[process.env.NEXT_PUBLIC_CDN_URL, genre.thumbnail?.key].join("/")}
+                label={`${genre.name.toUpperCase()}`}
+              ></CategoryCard>
+            </Link>
+          </div>
+        ))}
       </InfinityScrollHorizontalList>
 
       {/* Best ranking stories */}

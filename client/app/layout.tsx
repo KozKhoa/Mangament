@@ -49,7 +49,6 @@ export default function RootLayout({
             </NextAuthProvider>
           </ThemeProvider>
         </AppProvider>
-
       </body>
     </html>
   );

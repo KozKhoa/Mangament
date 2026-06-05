@@ -5,6 +5,10 @@ import { CreateError } from "../utils/ErrorHandle.js";
 
 export async function verifyApiKey(req, res, next) {
   try {
+    if (process.env.NODE_ENV === "development") {
+      return next();
+    }
+
     const apiKey = req.headers["x-api-key"];
 
     if (!apiKey || apiKey !== process.env.API_KEY) {

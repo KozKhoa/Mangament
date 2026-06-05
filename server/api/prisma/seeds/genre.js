@@ -206,14 +206,14 @@ export default async function main() {
     key: `genre/${genre.name.toLowerCase().split(" ").join("_")}.jpg`,
   }));
 
-  const thumbnail = await db.image.createManyAndReturn({ data: thumbnailData, skipDuplicates: true });
+  const thumbnail = await db.image.findMany({ where: { key: { in: thumbnailData.map((d) => d.key) } } });
 
   const thumbnailMap = new Map();
   thumbnail.forEach((image) => {
     thumbnailMap.set(image.key, image.id);
   });
 
-  // await db.genre.deleteMany();
+  await db.genre.deleteMany();
 
   await db.genre.createMany({
     data: GENRES.map((genre) => ({

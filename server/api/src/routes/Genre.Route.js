@@ -21,4 +21,6 @@ const genreRoute = express.Router();
 
 genreRoute.get("/", genreController.GetAllGenres);
 
+genreRoute.get("/trending", genreController.GetTrendingGenres);
+
 export default genreRoute;
