@@ -144,42 +144,42 @@ export default function Home() {
         autoSlide={3000}
       >
         <div className="py-3.5 px-2">
-          <Link href={`/genre/comedy`}>
+          <Link href={`/genre/Comedy`}>
             <CategoryCard className="m-auto hover:scale-110 hover:z-10" imageSource="/genres/comedy.jpg" label="COMEDY"></CategoryCard>
           </Link>
         </div>
         <div className="py-3.5 px-2">
-          <Link href={`/genre/fantasy`}>
+          <Link href={`/genre/Fantasy`}>
             <CategoryCard className="m-auto hover:scale-110 hover:z-10" imageSource="/genres/fantasy.jpg" label="FANTASY"></CategoryCard>
           </Link>
         </div>
         <div className="py-3.5 px-2">
-          <Link href={`/genre/harem`}>
+          <Link href={`/genre/Harem`}>
             <CategoryCard className="m-auto hover:scale-110 hover:z-10" imageSource="/genres/harem.jpg" label="HAREM"></CategoryCard>
           </Link>
         </div>
         <div className="py-3.5 px-2">
-          <Link href={`/genre/isekai`}>
+          <Link href={`/genre/Isekai`}>
             <CategoryCard className="m-auto hover:scale-110 hover:z-10" imageSource="/genres/isekai.jpg" label="ISEKAI"></CategoryCard>
           </Link>
         </div>
         <div className="py-3.5 px-2">
-          <Link href={`/genre/romance`}>
+          <Link href={`/genre/Romance`}>
             <CategoryCard className="m-auto hover:scale-110 hover:z-10" imageSource="/genres/romance.jpg" label="ROMANCE"></CategoryCard>
           </Link>
         </div>
         <div className="py-3.5 px-2">
-          <Link href={`/genre/shonen`}>
+          <Link href={`/genre/Shonen`}>
             <CategoryCard className="m-auto hover:scale-110 hover:z-10" imageSource="/genres/shonen.jpg" label="SHONEN"></CategoryCard>
           </Link>
         </div>
         <div className="py-3.5 px-2">
-          <Link href={`/genre/slice_of_life`}>
+          <Link href={`/genre/Slice of Life`}>
             <CategoryCard className="m-auto hover:scale-110 hover:z-10" imageSource="/genres/slice_of_life.jpg" label="SLICE OF LIFE"></CategoryCard>
           </Link>
         </div>
         <div className="py-3.5 px-2">
-          <Link href={`/genre/sport`}>
+          <Link href={`/genre/Sport`}>
             <CategoryCard className="m-auto hover:scale-110 hover:z-10" imageSource="/genres/sport.jpg" label="SPORT"></CategoryCard>
           </Link>
         </div>
