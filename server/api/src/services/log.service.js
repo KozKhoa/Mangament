@@ -1,4 +1,4 @@
-import logQueue from "../../queues/log.queue.js";
+import logQueue from "../../workers/queues/log.queue.js";
 
 class LogService {
   async saveRequestLog(req, res, responseTime) {
