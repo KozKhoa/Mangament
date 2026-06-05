@@ -16,7 +16,7 @@ class GenreService {
     }
   }
 
-  async getTrendingGenres(page: number, limit: number): Promise<ServiceResult<{ genre: Genre; score: number }[]>> {
+  async getTrendingGenres({ page, limit }: { page: number; limit: number }): Promise<ServiceResult<{ genre: Genre; score: number }[]>> {
     try {
       const res = await api.get(`/genres/trending?page=${page || 1}&limit=${limit || 10}`);
       return res.data;

@@ -23,6 +23,8 @@ import { routes } from "@/lib/routes";
 import genreService from "@/services/genre";
 import Genre from "@/types/genre";
 
+const MAX_TRENDING_GENRES = 5;
+
 export default function Home() {
   const router = useRouter();
   const auth = useAuth();
@@ -73,7 +75,7 @@ export default function Home() {
   }
 
   async function fetchTrendingGenres() {
-    const res = await genreService.getTrendingGenres(1, 10);
+    const res = await genreService.getTrendingGenres({ page: 1, limit: MAX_TRENDING_GENRES });
 
     if (!res) return toast.warning("Server Error");
     if (!res.success) return toast.warning(res.message);
