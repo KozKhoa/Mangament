@@ -1,7 +1,7 @@
-// import * as nationSeeding from "./nations.js";
+import * as nationSeeding from "./nations.js";
 // import * as userSeeding from "./users.js";
 // import * as storySeeding from "./stories.js";
-// import * as imageSeeding from "./images.js";
+import * as imageSeeding from "./images.js";
 // import * as storyNodeSeeding from "./story-nodes.js";
 // import * as storyGenreSeeding from "./story-genres.js";
 // import * as historySeeding from "./history.js";
@@ -10,30 +10,32 @@
 // import * as authorSeeding from "./author.js";
 // import * as ratingSeeding from "./rating.js";
 // import * as commentSeeding from "./comment.js";
-// import * as genreSeeding from "./genre.js";
+import * as genreSeeding from "./genre.js";
 
-// await imageSeeding.default();
+await imageSeeding.default();
 
-// // await nationSeeding.default();
+await nationSeeding.default();
 
-// await genreSeeding.default();
+await genreSeeding.default();
 
-// // await userSeeding.default();
+// await userSeeding.default();
 
-// // await storySeeding.default();
+// await storySeeding.default();
 
-// // await authorSeeding.default();
+// await authorSeeding.default();
 
 // await storyGenreSeeding.default();
 
-// // await storyNodeSeeding.default();
+// await storyNodeSeeding.default();
 
-// // await historySeeding.default();
+// await historySeeding.default();
 
-// // await favouriteSeeding.default();
+// await favouriteSeeding.default();
 
-// // await storyNodeContentSeeding.default();
+// await storyNodeContentSeeding.default();
 
-// // await ratingSeeding.default();
+// await ratingSeeding.default();
 
-// // await commentSeeding.default();
+// await commentSeeding.default();
+
+process.exit(0);
