@@ -28,11 +28,6 @@ services:
     restart: unless-stopped
     ports:
       - "8000:8000"
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
 
   api:
     container_name: mangament_api # Đã sửa dấu : thành _

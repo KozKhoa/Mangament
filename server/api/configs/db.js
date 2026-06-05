@@ -9,11 +9,11 @@ const adapter = new PrismaPg(pool);
 
 const globalForPrisma = globalThis;
 
-const db = new PrismaClient({
-  adapter: adapter,
-});
+// const db = new PrismaClient({
+//   adapter: adapter,
+// });
 
-// const db = globalForPrisma.prisma || new PrismaClient({ adapter: adapter });
+const db = globalForPrisma.prisma || new PrismaClient({ adapter: adapter });
 
 if (process.env.NODE_ENV !== "production") {
   globalForPrisma.prisma = db;
