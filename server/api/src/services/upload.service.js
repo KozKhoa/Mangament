@@ -1,6 +1,6 @@
 import crypto from "crypto";
 
-import imageQueue from "../../workers/queues/image.queue.js";
+import imageQueue from "../../worker/queues/image.queue.js";
 
 class UploadService {
   async uploadAvatar(userId, file) {
