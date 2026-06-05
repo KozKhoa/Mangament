@@ -1,4 +1,4 @@
-# Full Stack Docker Compose for Mangament
+version: '3.8'
 
 services:
   redis:
@@ -6,13 +6,34 @@ services:
     container_name: mangament_redis
     restart: always
     ports:
-      - "6378:6379" # <host>:<container>
+      - "6378:6379"
+
+  cloudflare-tunnel:
+    container_name: mangament_cloudflared_tunnel # Đã sửa dấu : thành _
+    image: cloudflare/cloudflared:latest
+    restart: always
+    command: tunnel --no-autoupdate run
+    env_file:
+      - ./server/api/.env
+    depends_on:
+      - api
+
+  client:
+    container_name: mangament_client
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./client/.env
+
 
   ml-service:
-    build:
-      context: ./server/ml-service
-      dockerfile: Dockerfile
     container_name: mangament_ml_service
+    # THAY build BẰNG image TRÊN DOCKER HUB
+    image: kozkhoa/mangament-server-ml-service:latest 
     restart: unless-stopped
     ports:
       - "8000:8000"
@@ -22,24 +43,10 @@ services:
       timeout: 10s
       retries: 3
 
-  client:
-    build:
-      context: ./client
-      dockerfile: Dockerfile
-    container_name: mangament_client
-    restart: always
-    ports:
-      - "3000:3000"
-    env_file:
-      - ./client/.env
-    depends_on:
-      - api
-
   api:
-    build:
-      context: ./server/api
-      dockerfile: Dockerfile
-    container_name: mangament_api
+    container_name: mangament_api # Đã sửa dấu : thành _
+    # THAY build BẰNG image TRÊN DOCKER HUB
+    image: kozkhoa/mangament-server-api:latest
     restart: always
     ports:
       - "${PORT:-5000}:${PORT:-5000}"
@@ -52,13 +59,13 @@ services:
     depends_on:
       - redis
     volumes:
+      # BỎ MUNT CODE ĐÈ VÀO /app, CHỈ GIỮ LẠI THƯ MỤC UPLOADS ĐỂ LƯU TRỮ ẢNH MANGA
       - ../uploads:/app/uploads
 
   worker:
-    build:
-      context: ./server/api
-      dockerfile: workers/Dockerfile
-    container_name: mangament_worker
+    container_name: mangament_worker # Đã sửa dấu : thành _
+    # THAY build BẰNG image TRÊN DOCKER HUB
+    image: kozkhoa/mangament-server-worker:latest
     restart: always
     env_file:
       - ./server/api/.env
@@ -72,8 +79,8 @@ services:
       - api
 
   logs-db:
+    container_name: mangament_logs_db # Đã sửa dấu : thành _
     image: mongo:8
-    container_name: mangament_logs_db
     restart: always
     ports:
       - "27016:27017"

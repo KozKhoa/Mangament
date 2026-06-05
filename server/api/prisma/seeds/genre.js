@@ -201,29 +201,28 @@ const GENRES = [
 export default async function main() {
   console.log("Seeding genres");
 
-  await db.genre.deleteMany();
+  const thumbnailData = GENRES.map((genre) => ({
+    url: `${process.env.CDN_URL}/genre/${genre.name.toLowerCase().split(" ").join("_")}.jpg`,
+    key: `genre/${genre.name.toLowerCase().split(" ").join("_")}.jpg`,
+  }));
 
-  await Promise.all(
-    GENRES.map((genre) =>
-      db.genre.create({
-        data: {
-          name: genre.name,
-          description: genre.description,
-          thumbnail: {
-            connectOrCreate: {
-              where: {
-                key: `genre/${genre.name.toLowerCase().split(" ").join("_")}.jpg`,
-              },
-              create: {
-                url: `${process.env.CDN_URL}/genre/${genre.name.toLowerCase().split(" ").join("_")}.jpg`,
-                key: `genre/${genre.name.toLowerCase().split(" ").join("_")}.jpg`,
-              },
-            },
-          },
-        },
-      }),
-    ),
-  );
+  const thumbnail = await db.image.createManyAndReturn({ data: thumbnailData, skipDuplicates: true });
+
+  const thumbnailMap = new Map();
+  thumbnail.forEach((image) => {
+    thumbnailMap.set(image.key, image.id);
+  });
+
+  // await db.genre.deleteMany();
+
+  await db.genre.createMany({
+    data: GENRES.map((genre) => ({
+      name: genre.name,
+      description: genre.description,
+      thumbnail_id: thumbnailMap.get(`genre/${genre.name.toLowerCase().split(" ").join("_")}.jpg`),
+    })),
+    skipDuplicates: true,
+  });
 
   console.log("Seeding genres successfully");
 }
