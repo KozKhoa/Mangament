@@ -1,10 +1,10 @@
-import { redis } from "../configs/redis.js";
+import { redis } from "../../configs/redis.js";
 import { Worker } from "bullmq";
-import db from "../configs/db.js";
-import mailService from "../src/services/mail.service.js";
-import redisUtils from "../src/utils/Redis.js";
-import * as storyService from "../src/services/story.service.js";
-import { CreateError } from "../src/utils/ErrorHandle.js";
+import db from "../../configs/db.js";
+import mailService from "../../src/services/mail.service.js";
+import redisUtils from "../../src/utils/Redis.js";
+import * as storyService from "../../src/services/story.service.js";
+import { CreateError } from "../../src/utils/ErrorHandle.js";
 
 const connection = {
   host: redis.options.host,

@@ -1,6 +1,6 @@
-import { redis } from "../configs/redis.js";
+import { redis } from "../../configs/redis.js";
 import { Queue } from "bullmq";
-import db from "../configs/db.js";
+import db from "../../configs/db.js";
 
 const connection = {
   host: redis.options.host,

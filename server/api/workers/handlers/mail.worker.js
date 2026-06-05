@@ -1,7 +1,7 @@
-import { redis } from "../configs/redis.js";
+import { redis } from "../../configs/redis.js";
 import { Worker } from "bullmq";
 
-import mail from "../configs/mail.js";
+import mail from "../../configs/mail.js";
 
 const connection = {
   host: redis.options.host,

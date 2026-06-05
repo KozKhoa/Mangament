@@ -1,12 +1,12 @@
-import { redis } from "../configs/redis.js";
+import { redis } from "../../configs/redis.js";
 import { Worker } from "bullmq";
 
 import { v7 as uuid7 } from "uuid";
 
-import { RequestLog } from "../src/models/mongodb/request-log.js";
-import { AuditLog } from "../src/models/mongodb/audit-log.js";
+import { RequestLog } from "../../src/models/mongodb/request-log.js";
+import { AuditLog } from "../../src/models/mongodb/audit-log.js";
 
-import logger from "../configs/logger.js";
+import logger from "../../configs/logger.js";
 
 const connection = {
   host: redis.options.host,

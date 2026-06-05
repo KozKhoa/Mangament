@@ -3,7 +3,7 @@ import { redis } from "../../configs/redis.js";
 import { CreateError } from "../utils/ErrorHandle.js";
 import { randomInt } from "../utils/Number.js";
 
-import storyQueue from "../../queues/story.queue.js";
+import storyQueue from "../../workers/queues/story.queue.js";
 
 import { validate as isUUID } from "uuid";
 import redisUtils from "../utils/Redis.js";

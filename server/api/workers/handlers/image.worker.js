@@ -1,11 +1,11 @@
-import { redis } from "../configs/redis.js";
+import { redis } from "../../configs/redis.js";
 import { Worker } from "bullmq";
-import db from "../configs/db.js";
-import r2CloudflareUtils from "../src/utils/R2Cloudflare.js";
+import db from "../../configs/db.js";
+import r2CloudflareUtils from "../../src/utils/R2Cloudflare.js";
 import sharp from "sharp";
 import pLimit from "p-limit";
 
-import * as imageService from "../src/services/image.service.js";
+import * as imageService from "../../src/services/image.service.js";
 
 const connection = {
   host: redis.options.host,
