@@ -58,8 +58,6 @@ const requestLogWorker = new Worker(
     }).catch((err) => {
       logger.error("Cannot save request log", err);
     });
-
-    console.log("Saved request log ", requestId, " successfully");
   },
   { connection, concurrency: 10 },
 );
@@ -108,8 +106,6 @@ const auditLogWorker = new Worker(
     }).catch((err) => {
       logger.error("Cannot save audit log", err);
     });
-
-    console.log("Saved audit log ", requestId, " successfully");
   },
   { connection, concurrency: 10 },
 );
