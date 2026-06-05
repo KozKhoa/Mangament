@@ -1,4 +1,4 @@
-import mailQueue from "../../workers/queues/mail.queue.js";
+import mailQueue from "../../worker/queues/mail.queue.js";
 
 class MailService {
   sendOtpEmail(email, otp) {

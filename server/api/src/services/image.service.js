@@ -3,7 +3,7 @@ import { redis } from "../../configs/redis.js";
 import redisUtils from "../utils/Redis.js";
 import { CreateError } from "../utils/ErrorHandle.js";
 
-import imageQueue from "../../workers/queues/image.queue.js";
+import imageQueue from "../../worker/queues/image.queue.js";
 
 const REDIS_TTL = 60 * 30;
 

@@ -1,6 +1,6 @@
 import db from "../../configs/db.js";
 
-import storyQueue from "../../workers/queues/story.queue.js";
+import storyQueue from "../../worker/queues/story.queue.js";
 
 export default async function main() {
   // execSync(
