@@ -10,3 +10,5 @@ server/logs/
 .trash
 
 npm/
+
+build-and-push.sh

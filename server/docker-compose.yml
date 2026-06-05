@@ -49,7 +49,6 @@ services:
     environment:
       - REDIS_URL=redis://redis:6379
       - ML_SERVICE_URL=http://ml-service:8000
-      - MONGODB_CONNECTION_STRING=mongodb://admin:password@logs-db:27017/management_logs?authSource=admin
     depends_on:
       - redis
     volumes:
@@ -69,25 +68,24 @@ services:
     environment:
       - REDIS_URL=redis://redis:6379
       - ML_SERVICE_URL=http://ml-service:8000
-      - MONGODB_CONNECTION_STRING=mongodb://admin:password@logs-db:27017/management_logs?authSource=admin
     depends_on:
       - redis
       - ml-service
       - api
 
-  logs-db:
-    container_name: mangament_logs_db # Đã sửa dấu : thành _
-    image: mongo:8
-    restart: always
-    ports:
-      - "27016:27017"
-    env_file:
-      - ./api/.env
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: admin
-      MONGO_INITDB_ROOT_PASSWORD: password
-    volumes:
-      - mangament_logs_db_data:/data/db
+  # logs-db:
+  #   container_name: mangament_logs_db # Đã sửa dấu : thành _
+  #   image: mongo:8
+  #   restart: always
+  #   ports:
+  #     - "27016:27017"
+  #   env_file:
+  #     - ./api/.env
+  #   environment:
+  #     MONGO_INITDB_ROOT_USERNAME: admin
+  #     MONGO_INITDB_ROOT_PASSWORD: password
+  #   volumes:
+  #     - mangament_logs_db_data:/data/db
 
 volumes:
   mangament_logs_db_data:
