@@ -14,6 +14,7 @@ import Nation from "@/types/nation";
 
 interface AppContextProps {
   genres: Genre[];
+  trendingGenres: Genre[];
   authors: Author[];
   nations: Nation[];
   font?: string;
@@ -37,6 +38,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   const [genres, setGenres] = useState<Genre[]>([]);
+  const [trendingGenres, setTrendingGenres] = useState<Genre[]>([]);
   const [nations, setNations] = useState<Nation[]>([]);
 
   const [authors, setAuthors] = useState<Author[]>([]);
@@ -94,6 +96,14 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
       setGenres(res.data ?? []);
     }
 
+    async function fetchTrendingGenres() {
+      const res = await genreService.getTrendingGenres({ page: 1, limit: Infinity });
+
+      if (!res.success) return toast.warning(res.message);
+
+      setTrendingGenres(res.data ? res.data.map((data) => data.genre) : []);
+    }
+
     async function fetchAuthors() {
       const res = await authorService.getAuthors();
 
@@ -126,6 +136,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
       value={{
         authors,
         genres,
+        trendingGenres,
         nations,
         font,
         textSize,

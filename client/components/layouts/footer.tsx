@@ -1,11 +1,15 @@
+"use client";
+
 import Link from "@/components/link/Link";
 import { routes } from "@/lib/routes";
+import { useEffect, useState } from "react";
 
 import BookIcon from "@/public/book.svg";
 import FavouriteIcon from "@/public/favourite.svg";
 import HistoryIcon from "@/public/history.svg";
 import RankingIcon from "@/public/ranking.svg";
 import RandomIcon from "@/public/random.svg";
+import useApp from "@/contexts/AppContext";
 
 const currentYear = 2026;
 
@@ -21,15 +25,6 @@ const readerLinks = [
   { label: "Truyện yêu thích", href: "/favourites" },
   { label: "Lịch sử đọc", href: routes.history() },
   { label: "Tài khoản", href: "/me" },
-];
-
-const genreLinks = [
-  { label: "Action", href: routes.genre({ genre: "action" }) },
-  { label: "Fantasy", href: routes.genre({ genre: "fantasy" }) },
-  { label: "Romance", href: routes.genre({ genre: "romance" }) },
-  { label: "Comedy", href: routes.genre({ genre: "comedy" }) },
-  { label: "Mystery", href: routes.genre({ genre: "mystery" }) },
-  { label: "Slice of life", href: routes.genre({ genre: "slice_of_life" }) },
 ];
 
 function FooterLink({ href, label }: { href: string; label: string }) {
@@ -54,6 +49,15 @@ function FooterSection({ title, links }: { title: string; links: { label: string
 }
 
 export default function Footer() {
+  const app = useApp();
+  const [tredingGenres, setTrendingGenres] = useState<{ label: string; href: string }[]>([]);
+
+  useEffect(() => {
+    if (!app) return;
+
+    setTrendingGenres(app?.trendingGenres.map((genre) => ({ label: genre.name ?? "", href: `/genres/${genre.name.toLowerCase()}` })));
+  }, [app?.genres]);
+
   return (
     <footer className="mt-16 border-t-2 border-foreground/30 bg-background-items text-foreground">
       <div className="mx-auto flex max-w-[1500px] flex-col gap-8 px-4 py-8 sm:px-6 lg:px-10">
@@ -89,7 +93,7 @@ export default function Footer() {
           <div className="grid grid-cols-1 gap-7 sm:grid-cols-3">
             <FooterSection title="Khám phá" links={exploreLinks} />
             <FooterSection title="Tủ truyện" links={readerLinks} />
-            <FooterSection title="Thể loại nổi bật" links={genreLinks} />
+            <FooterSection title="Thể loại nổi bật" links={tredingGenres} />
           </div>
         </div>
 
