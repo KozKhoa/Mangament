@@ -1,4 +1,4 @@
-import { config } from "dotenv";
+import "dotenv-flow/config";
 
 config({ path: ".env.local" });
 config({ path: `.env.${process.env.NODE_ENV || "development"} ` });

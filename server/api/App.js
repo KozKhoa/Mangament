@@ -1,3 +1,4 @@
+import "dotenv-flow/config";
 import express from "express";
 import cookieParser from "cookie-parser";
 import cors from "cors";
@@ -34,7 +35,7 @@ connectToRedis();
 connectToMongoDB();
 connectToDatabase();
 
-console.log("App is running with NODE ENV =", process.env.NODE_ENV);
+console.log("App is running with NODE_ENV =", process.env.NODE_ENV);
 
 const app = express();
 

@@ -10,17 +10,20 @@
     "seed": "node prisma/seeds/index.js"
   },
   "scripts": {
+    "build": "npm i && npx prisma generate",
     "dev": "cross-env NODE_ENV=development nodemon App.js",
+    "start": "cross-env NODE_ENV=production node App.js",
     "worker": "cross-env NODE_ENV=development node WorkerApp.js",
     "lint": "npx eslint .",
     "format": "npx prettier --write .",
+
+
     "upload": "cross-env NODE_ENV=development node Upload.js",
-    "start": "cross-env NODE_ENV=production node App.js",
-    "build": "npm i && npx prisma generate",
     "test": "vitest",
     "test:watch": "vitest --watch",
     "test:coverage": "vitest run --coverage",
-    "migrate": "npx prisma migrate dev && npx prisma generate dev",
+    "migrate:dev": "cross-env NODE_ENV=development npx prisma migrate dev",
+    "migrate:prod": "cross-env NODE_ENV=production npx prisma migrate deploy",
     "seed": "npx prisma db seed",
     "prepare": "husky install"
   },

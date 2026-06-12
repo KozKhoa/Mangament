@@ -1,4 +1,4 @@
-import "dotenv/config";
+import "dotenv-flow/config";
 import pg from "pg";
 import { PrismaPg } from "@prisma/adapter-pg";
 
