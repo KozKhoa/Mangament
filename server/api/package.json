@@ -16,8 +16,6 @@
     "worker": "cross-env NODE_ENV=development node WorkerApp.js",
     "lint": "npx eslint .",
     "format": "npx prettier --write .",
-
-
     "upload": "cross-env NODE_ENV=development node Upload.js",
     "test": "vitest",
     "test:watch": "vitest --watch",
@@ -43,6 +41,7 @@
     "date-fns-tz": "^3.2.0",
     "dayjs": "^1.11.19",
     "dotenv": "^17.2.4",
+    "dotenv-flow": "^4.1.0",
     "express": "^5.1.0",
     "fs": "^0.0.1-security",
     "google-auth-library": "^10.6.2",
