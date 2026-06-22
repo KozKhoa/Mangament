@@ -5,7 +5,7 @@ import { DeleteObjectCommand, DeleteObjectsCommand, PutObjectCommand } from "@aw
 export async function uploadObject(key, fileBuffer, contentType) {
   return await r2.send(
     new PutObjectCommand({
-      Bucket: process.env.CLOUDFLARE_BUCKET,
+      Bucket: process.env.CLOUDFLARE_R2_BUCKET,
       Key: key,
       Body: fileBuffer,
       CacheControl: "public, max-age=31536000, immutable",
@@ -17,7 +17,7 @@ export async function uploadObject(key, fileBuffer, contentType) {
 export async function deleteObject(key) {
   return await r2.send(
     new DeleteObjectCommand({
-      Bucket: process.env.CLOUDFLARE_BUCKET,
+      Bucket: process.env.CLOUDFLARE_R2_BUCKET,
       Key: key,
     }),
   );
@@ -26,7 +26,7 @@ export async function deleteObject(key) {
 export async function deleteManyObjects(keys) {
   return await r2.send(
     new DeleteObjectsCommand({
-      Bucket: process.env.CLOUDFLARE_BUCKET,
+      Bucket: process.env.CLOUDFLARE_R2_BUCKET,
       Delete: { Objects: keys.map((key) => ({ Key: key })) },
     }),
   );
