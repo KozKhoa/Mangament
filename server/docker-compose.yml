@@ -68,19 +68,19 @@ services:
       - ml-service
       - api
 
-  # logs-db:
-  #   container_name: mangament_logs_db # Đã sửa dấu : thành _
-  #   image: mongo:8
-  #   restart: always
-  #   ports:
-  #     - "27016:27017"
-  #   env_file:
-  #     - ./api/.env
-  #   environment:
-  #     MONGO_INITDB_ROOT_USERNAME: admin
-  #     MONGO_INITDB_ROOT_PASSWORD: password
-  #   volumes:
-  #     - mangament_logs_db_data:/data/db
+  logs-db:
+    container_name: mangament_logs_db
+    image: mongo:8
+    restart: always
+    ports:
+      - "27016:27017"
+    env_file:
+      - ./api/.env
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password
+    volumes:
+      - mangament_logs_db_data:/data/db
 
 volumes:
   mangament_logs_db_data:
