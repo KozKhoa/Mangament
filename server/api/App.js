@@ -9,7 +9,7 @@ import { connectToRedis } from "./configs/redis.js";
 import { connectToMongoDB } from "./configs/logs-db.js";
 import { connectToDatabase } from "./configs/db.js";
 
-import authRouter from "./src/routes/auth/index.js";
+import authRouter from "./src/routes/Auth.Route.js";
 import userRoute from "./src/routes/User.Route.js";
 import ErrorMiddleware from "./src/middlewares/Error.Middleware.js";
 import * as authMiddleware from "./src/middlewares/Auth.Middleware.js";
