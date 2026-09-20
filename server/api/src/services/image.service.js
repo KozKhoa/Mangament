@@ -7,11 +7,12 @@ import imageQueue from "../../worker/queues/image.queue.js";
 
 const REDIS_TTL = 60 * 30;
 
-export async function FindImage({ id, url }) {
-  if (!id && !url) throw CreateError(400, "Require 'id' or 'url'");
+export async function FindImage({ id, path, url }) {
+  const imagePath = path || url;
+  if (!id && !imagePath) throw CreateError(400, "Require 'id' or 'path'");
 
-  const imageVer = await redisUtils.image(url || id).get();
-  const REDIS_KEY = ["FindImage", imageVer, id, url].join(":");
+  const imageVer = await redisUtils.image(imagePath || id).get();
+  const REDIS_KEY = ["FindImage", imageVer, id, imagePath].join(":");
 
   const cached = await redis.get(REDIS_KEY);
   if (cached) return JSON.parse(cached);
@@ -19,8 +20,8 @@ export async function FindImage({ id, url }) {
   const result = await db.image.findFirst({
     where: {
       deleted_status: "not_deleted",
-      id,
-      url,
+      ...(id && { id }),
+      ...(imagePath && { path: imagePath }),
     },
   });
 
@@ -29,39 +30,130 @@ export async function FindImage({ id, url }) {
   return { success: true, data: result };
 }
 
-export async function AddImage({ url, key }) {
-  const addImage = await db.image.create({ data: { url, key } }).catch(async () => {
-    return { success: false, message: "Url already exists", data: await db.image.findUnique({ where: { url: url } }) };
-  });
+export async function InsertImage({ provider = "local", mine_type = "image/jpeg", size = 0, path, key, url, width, height, metadata }) {
+  const resolvedPath = path || key || url;
 
-  return addImage;
+  if (resolvedPath) {
+    const existing = await db.image.findUnique({ where: { path: resolvedPath } });
+    if (existing) throw CreateError(409, "Image already exists");
+  }
+
+  const metaString = metadata ? (typeof metadata === "string" ? metadata : JSON.stringify(metadata)) : null;
+
+  const data = {
+    provider,
+    mine_type: mine_type || "image/jpeg",
+    size: size ? Number(size) : 0,
+    path: resolvedPath || null,
+    width: width ? Number(width) : null,
+    height: height ? Number(height) : null,
+    metadata: metaString,
+  };
+
+  const image = await db.image.create({ data });
+  return { success: true, data: image };
 }
 
-export async function SoftDeleteImage({ id, url }) {
-  if (!id && !url) throw CreateError(400, "Require 'id' or 'url'");
+export async function UpdateImage({ id, provider, mine_type, size, path, key, url, width, height, metadata, deleted_status }) {
+  if (!id) throw CreateError(400, "Require 'id'");
 
-  const softDelete = await db.image.update({
-    where: { ...(id && { id: id }), ...(url && { url: url }) },
-    data: { deleted_status: "soft_deleted" },
+  const existing = await db.image.findUnique({ where: { id } });
+  if (!existing) throw CreateError(404, "Image not found");
+
+  const resolvedPath = path || key || url;
+  const updateData = {
+    ...(provider !== undefined && { provider }),
+    ...(mine_type !== undefined && { mine_type }),
+    ...(size !== undefined && { size: Number(size) }),
+    ...(resolvedPath !== undefined && { path: resolvedPath }),
+    ...(width !== undefined && { width: width ? Number(width) : null }),
+    ...(height !== undefined && { height: height ? Number(height) : null }),
+    ...(metadata !== undefined && {
+      metadata: typeof metadata === "string" ? metadata : metadata ? JSON.stringify(metadata) : null,
+    }),
+    ...(deleted_status !== undefined && { deleted_status }),
+  };
+
+  const updatedImage = await db.image.update({
+    where: { id },
+    data: updateData,
   });
 
   redisUtils.image(id).incr();
-  redisUtils.image(url).incr();
+  if (existing.path) redisUtils.image(existing.path).incr();
+  if (resolvedPath && resolvedPath !== existing.path) redisUtils.image(resolvedPath).incr();
+
+  return { success: true, data: updatedImage };
+}
+
+export async function UpsertImage({ id, provider = "local", mine_type = "image/jpeg", size = 0, path, key, url, width, height, metadata, deleted_status }) {
+  if (!id) {
+    return await InsertImage({ provider, mine_type, size, path, key, url, width, height, metadata });
+  }
+
+  const existing = await db.image.findUnique({ where: { id } });
+  if (existing) {
+    return await UpdateImage({
+      id,
+      provider,
+      mine_type,
+      size,
+      path,
+      key,
+      url,
+      width,
+      height,
+      metadata,
+      deleted_status,
+    });
+  }
+
+  const resolvedPath = path || key || url;
+  const metaString = metadata ? (typeof metadata === "string" ? metadata : JSON.stringify(metadata)) : null;
+
+  const data = {
+    id,
+    provider,
+    mine_type: mine_type || "image/jpeg",
+    size: size ? Number(size) : 0,
+    path: resolvedPath || null,
+    width: width ? Number(width) : null,
+    height: height ? Number(height) : null,
+    metadata: metaString,
+    ...(deleted_status !== undefined && { deleted_status }),
+  };
+
+  const image = await db.image.create({ data });
+  return { success: true, data: image };
+}
+
+export async function SoftDeleteImage({ id, path, url }) {
+  const imagePath = path || url;
+  if (!id && !imagePath) throw CreateError(400, "Require 'id' or 'path'");
+
+  const softDelete = await db.image.update({
+    where: { ...(id && { id: id }), ...(imagePath && { path: imagePath }) },
+    data: { deleted_status: "soft_deleted" },
+  });
+
+  if (id) redisUtils.image(id).incr();
+  if (imagePath) redisUtils.image(imagePath).incr();
 
   return { success: true, data: softDelete };
 }
 
-export async function HardDeleteImage({ id, url }) {
-  // Hard delete image also mean remove it in cloudflare
-  if (!id && !url) throw CreateError(400, "Require 'id' or 'url'");
+export async function HardDeleteImage({ id, path, url }) {
+  // Hard delete image also mean remove it in cloudflare or local storage
+  const imagePath = path || url;
+  if (!id && !imagePath) throw CreateError(400, "Require 'id' or 'path'");
 
   const image = await db.image.update({
     where: {
       ...(id && { id: id }),
-      ...(url && { url: url }),
+      ...(imagePath && { path: imagePath }),
     },
     data: { deleted_status: "pending_permanent_deletion" },
-    select: { id: true },
+    select: { id: true, path: true, provider: true },
   });
 
   if (!image) throw CreateError(404, "Image not found");
@@ -69,29 +161,30 @@ export async function HardDeleteImage({ id, url }) {
   imageQueue.addJob_PermenantDeleteImage(image.id);
 
   redisUtils.image().incr();
-  redisUtils.image(id).incr();
-  redisUtils.image(url).incr();
+  if (id) redisUtils.image(id).incr();
+  if (imagePath) redisUtils.image(imagePath).incr();
 
   return { success: true, message: "Remove permanently" };
 }
 
-export async function HardDeleteManyImages({ ids = [], urls = [] }) {
-  if (ids.length === 0 && urls.length === 0) throw CreateError(400, "Require 'id' or 'url'");
+export async function HardDeleteManyImages({ ids = [], paths = [], urls = [] }) {
+  const allPaths = [...paths, ...urls];
+  if (ids.length === 0 && allPaths.length === 0) throw CreateError(400, "Require 'id' or 'path'");
 
   const imageIds = await db.image.updateManyAndReturn({
     where: {
       ...(ids && ids.length > 0 && { id: { in: ids } }),
-      ...(urls && urls.length > 0 && { url: { in: urls } }),
+      ...(allPaths && allPaths.length > 0 && { path: { in: allPaths } }),
     },
     data: { deleted_status: "pending_permanent_deletion" },
-    select: { id: true },
+    select: { id: true, path: true, provider: true },
   });
 
   imageQueue.addJob_PermenantDeleteManyImages(imageIds.map((image) => image.id));
 
   redisUtils.image().incr();
   ids.forEach((id) => redisUtils.image(id).incr());
-  urls.forEach((url) => redisUtils.image(url).incr());
+  allPaths.forEach((p) => redisUtils.image(p).incr());
 
   return { success: true, message: "Remove permanently" };
 }

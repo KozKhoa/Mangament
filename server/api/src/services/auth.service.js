@@ -75,7 +75,6 @@ class AuthService {
         name: true,
         email: true,
         role: true,
-        avatar: { select: { key: true, url: true, width: true, height: true } },
       },
     });
 
@@ -102,7 +101,6 @@ class AuthService {
           email: true,
           name: true,
           role: true,
-          avatar: { select: { key: true, url: true, width: true, height: true } },
         },
       });
     }
@@ -138,7 +136,6 @@ class AuthService {
           where: { provider: "email" },
           select: { password: true },
         },
-        avatar: { select: { key: true, url: true, width: true, height: true } },
       },
     });
 
@@ -193,14 +190,12 @@ class AuthService {
             password: hashedPassword,
           },
         },
-        avatar: { connect: { key: process.env.DEFAULT_AVATAR_IAMGE_KEY } },
       },
       select: {
         id: true,
         email: true,
         name: true,
         role: true,
-        avatar: { select: { key: true, url: true, width: true, height: true } },
       },
     });
 

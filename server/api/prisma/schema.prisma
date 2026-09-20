@@ -118,14 +118,20 @@ model StoryNodeContent {
 }
 
 model Image {
-  id                 String             @id @default(uuid()) @db.Uuid
-  url                String?            @unique
-  key                String?            @unique
-  public_id          String?            @unique
-  width              Int?
-  height             Int?
-  deleted_status     DeletedStatus      @default(not_deleted)
-  created_at         DateTime           @default(now())
+  id        String        @id @default(uuid()) @db.Uuid
+  provider  ImageProvider
+  mine_type String //'image/jpeg', 'image/png', 'image/webp'
+  size      Int           @default(0)
+  path       String?       @unique // This is 'key' in r2, 'path' in local disk
+  width     Int?
+  height    Int?
+  metadata  String? // Jsonb in postgresql
+
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now())
+
+  deleted_status DeletedStatus @default(not_deleted)
+
   author             Author[]
   nation             Nation[]
   story              Story[]
@@ -293,6 +299,12 @@ enum Gender {
   male
   female
   other
+}
+
+enum ImageProvider {
+  local
+  r2
+  s3
 }
 
 enum DeletedStatus {

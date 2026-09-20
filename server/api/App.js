@@ -1,4 +1,6 @@
 import "dotenv-flow/config";
+import fs from "fs";
+import path from "path";
 import express from "express";
 import cookieParser from "cookie-parser";
 import cors from "cors";
@@ -292,6 +294,8 @@ app.use("/favourites", favouriteRoute);
 app.use("/admin", adminRoute);
 
 app.use("/uploads", uploadRoute);
+const publicDir = fs.existsSync(path.resolve("../public")) ? path.resolve("../public") : path.resolve("public");
+app.use("/public", express.static(publicDir));
 
 // Middlewares
 app.use(ErrorMiddleware);

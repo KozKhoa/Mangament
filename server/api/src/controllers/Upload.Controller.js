@@ -16,48 +16,14 @@ export async function UploadAvatar(req, res, next) {
   }
 }
 
-//  POST /uploads/story/:storyId/cover-art
-export async function UploadStoryCoverArt(req, res, next) {
+// POST /uploads/story/images
+export async function UploadStoryImages(req, res, next) {
   try {
-    const file = req.file;
-
-    const storyId = req.params?.storyId;
-
-    const coverArt = (await uploadService.uploadStoryCoverArt(storyId, file)).data;
-
-    res.json({ success: true, data: coverArt });
-  } catch (err) {
-    next(err);
-  }
-}
-
-// POST /uploads/story/:storyId/story-node/:storyNodeId/contents
-export async function UploadManyContentsForStoryNode(req, res, next) {
-  try {
-    const storyId = req.params.storyId;
-    const storyNodeId = req.params.storyNodeId;
-
     const files = req.files;
 
-    const contents = (await uploadService.uploadManyContentsForStoryNode(storyId, storyNodeId, files)).data;
+    const images = (await uploadService.uploadStoryImages(files)).data;
 
-    res.json({ success: true, data: contents });
-  } catch (err) {
-    next(err);
-  }
-}
-
-// POST /uploads/story/:storyId/story-node/:storyNodeId/content
-export async function UploadContentForStoryNode(req, res, next) {
-  try {
-    const storyId = req.params.storyId;
-    const storyNodeId = req.params.storyNodeId;
-
-    const file = req.file;
-
-    const content = (await uploadService.uploadContentForStoryNode(storyId, storyNodeId, file)).data;
-
-    res.json({ success: true, data: content });
+    res.json({ success: true, data: images });
   } catch (err) {
     next(err);
   }

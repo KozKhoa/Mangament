@@ -57,7 +57,7 @@ export async function FindAllUser({
       join_date: true,
       role: true,
       is_banned: true,
-      avatar: { select: { url: true, width: true, height: true } },
+      avatar: { select: { id: true, path: true, width: true, height: true, size: true, mime_type: true } },
     },
 
     take: limit,
@@ -100,8 +100,7 @@ export async function FindUser({ id, email }) {
       ...(id && { id: id }),
       ...(email && { email: email }),
     },
-
-    include: { avatar: true },
+    include: { avatar: { select: { id: true, path: true, width: true, height: true, size: true, mime_type: true } } },
   });
 
   if (!user) throw CreateError(404, "User not found");

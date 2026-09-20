@@ -6,17 +6,16 @@ on:
       - main
     paths:
       # Cập nhật chính xác các path cần theo dõi để kích hoạt workflow
-      - 'server/api/**'
-      - 'server/ml-services/**'
-      - '.github/workflows/**'
+      - "server/api/**"
+      - "server/ml-services/**"
+      - ".github/workflows/**"
 
 jobs:
-
   build-and-push-api:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Check for api changes
         id: changed-files
         uses: tj-actions/changed-files@v44
@@ -49,13 +48,12 @@ jobs:
           cache-to: type=gha,mode=max
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/mangament-server-api:latest
-    
 
   build-and-push-worker:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Check for worker changes
         id: changed-files
         uses: tj-actions/changed-files@v44
@@ -87,13 +85,12 @@ jobs:
           cache-to: type=gha,mode=max
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/mangament-server-worker:latest
-    
 
   build-and-push-ml-service:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Check for ml-service changes
         id: changed-files
         uses: tj-actions/changed-files@v44
@@ -125,11 +122,11 @@ jobs:
           cache-to: type=gha,mode=max
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/mangament-server-ml-service:latest
-    
 
   deploy:
-    if: always() 
-    needs: [build-and-push-api, build-and-push-worker, build-and-push-ml-service]
+    if: always()
+    needs:
+      [build-and-push-api, build-and-push-worker, build-and-push-ml-service]
     runs-on: ubuntu-latest
     steps:
       - name: Connect to Tailscale

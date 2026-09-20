@@ -12,3 +12,6 @@ server/logs/
 npm/
 
 build-and-push.sh
+
+public/
+public/

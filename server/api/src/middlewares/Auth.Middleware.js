@@ -1,7 +1,38 @@
+import jwt from "jsonwebtoken";
 import ErrorCodes from "../constants/Error.js";
 import { VerifyAccessToken } from "../utils/Token.js";
 import { FindUser } from "../services/user.service.js";
 import { CreateError } from "../utils/ErrorHandle.js";
+
+function getAdminToken() {
+  const raw = process.env.ADMIN_TOKEN;
+  if (!raw) return null;
+  return raw.replace(/^['"]|['"]$/g, "").trim();
+}
+
+function isDevAdminToken(token) {
+  if (process.env.NODE_ENV !== "development") {
+    return false;
+  }
+  const adminToken = getAdminToken();
+  return Boolean(adminToken && token === adminToken);
+}
+
+function resolveAdminUser(token) {
+  let decoded = null;
+  try {
+    decoded = jwt.decode(token);
+  } catch {
+    // fallback if decode fails
+  }
+
+  return {
+    id: decoded?.id || "8d9305f2-5923-46d2-99bd-7e32ea5d7a07",
+    name: decoded?.name || "Nguyễn Văn A",
+    email: decoded?.email || "a@gmail.com",
+    role: decoded?.role || "admin",
+  };
+}
 
 export async function verifyApiKey(req, res, next) {
   try {
@@ -34,6 +65,12 @@ export async function AuthenticationToken(req, res, next) {
 
     // Get token from authorization
     const token = req.headers.authorization.split(" ")[1];
+
+    // Trong môi trường development, nếu token khớp ADMIN_TOKEN thì chấp nhận cho qua luôn
+    if (isDevAdminToken(token)) {
+      req.user = resolveAdminUser(token);
+      return next();
+    }
 
     // Decoded token
     const { decodedToken, isExpire } = VerifyAccessToken(token);
@@ -104,6 +141,12 @@ export const OptionalAuth = async (req, res, next) => {
 
     // Get token from authorization
     const token = req.headers.authorization.split(" ")[1];
+
+    // Trong môi trường development, nếu token khớp ADMIN_TOKEN thì chấp nhận cho qua luôn
+    if (isDevAdminToken(token)) {
+      req.user = resolveAdminUser(token);
+      return next();
+    }
 
     // Decoded token
     const { decodedToken, isExpire } = VerifyAccessToken(token);

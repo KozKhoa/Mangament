@@ -4,8 +4,10 @@ import { vi } from "vitest";
 vi.mock("../configs/redis.js", () => {
   return {
     redis: {
+      options: { host: "localhost", port: 6379, password: "" },
       get: vi.fn(),
       set: vi.fn(),
+      setex: vi.fn(),
       del: vi.fn(),
       incr: vi.fn(),
       ping: vi.fn().mockResolvedValue("PONG"),
