@@ -1,9 +1,39 @@
 import express from "express";
+import multer from "multer";
+import path from "path";
 
 import { ValidateData } from "../../middlewares/Validate.Middleware.js";
 import adminSchemas from "../../schemas/admin.schemas.js";
 
 import adminController from "../../controllers/admin/index.js";
+
+const spreadsheetFileFilter = (req, file, cb) => {
+  const ext = path.extname(file.originalname || "").toLowerCase();
+  const allowed = [".csv", ".xlsx", ".xls"];
+  if (allowed.includes(ext)) {
+    cb(null, true);
+  } else {
+    const error = new Error("Chỉ hỗ trợ tải lên file định dạng .csv, .xlsx, .xls");
+    error.status = 400;
+    cb(error, false);
+  }
+};
+
+const uploadSpreadsheet = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 20 * 1024 * 1024, // 20MB
+    files: 1,
+  },
+  fileFilter: spreadsheetFileFilter,
+});
+
+const validatePostStory = (req, res, next) => {
+  if (req.file) {
+    return next();
+  }
+  return ValidateData(adminSchemas.postStory)(req, res, next);
+};
 
 const adminStoryRoute = express.Router();
 
@@ -11,9 +41,11 @@ adminStoryRoute.get("/", ValidateData(adminSchemas.getAllStories), adminControll
 
 adminStoryRoute.get("/trash", ValidateData(adminSchemas.getAllTrashStories), adminController.story.getAllTrashStories);
 
+adminStoryRoute.get("/import-template", adminController.story.getStoryImportTemplate);
+
 adminStoryRoute.get("/:id", ValidateData(adminSchemas.getStory), adminController.story.getStory);
 
-adminStoryRoute.post("/", ValidateData(adminSchemas.postStory), adminController.story.postNewStory);
+adminStoryRoute.post("/", uploadSpreadsheet.single("file"), validatePostStory, adminController.story.postNewStory);
 
 adminStoryRoute.patch("/:id/cover-art", ValidateData(adminSchemas.updateStoryCoverArt), adminController.story.updateStoryCoverArt);
 

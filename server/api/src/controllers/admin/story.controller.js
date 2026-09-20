@@ -3,6 +3,8 @@ import { CreateError } from "../../utils/ErrorHandle.js";
 import * as storyService from "../../services/story.service.js";
 
 import { isUUID, throwErrorIfInvalidGenres, throwErrorIfInvalidStoryStatus, throwErrorIfInvalidStoryType } from "../../utils/Validators.js";
+import { parseStoriesSpreadsheet, generateStoryImportTemplate } from "../../utils/spreadsheet.parser.js";
+import storyQueue from "../../../worker/queues/story.queue.js";
 
 // GET /admin/stories/:id
 export async function getStory(req, res, next) {
@@ -69,12 +71,59 @@ export async function getAllStories(req, res, next) {
   }
 }
 
-// POST /admin/stories
+// GET /admin/stories/import-template
+export async function getStoryImportTemplate(req, res, next) {
+  try {
+    const format = String(req.query?.format || "xlsx").toLowerCase();
+    const type = String(req.query?.type || "full").toLowerCase();
+
+    const { buffer, mimeType, fileName } = generateStoryImportTemplate(type, format);
+
+    res.setHeader("Content-Type", mimeType);
+    res.setHeader("Content-Disposition", `attachment; filename="${fileName}"`);
+    return res.send(buffer);
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
+ * POST /admin/stories
+ * Tạo truyện đơn lẻ hoặc import truyện hàng loạt từ file (.csv, .xlsx, .xls).
+ *
+ * - Batch Import: Gửi file qua multipart/form-data field `file`.
+ *   Cấu trúc file, danh sách cột và ví dụ chi tiết: xem tại `docs/BATCH_IMPORT_GUIDE.md`.
+ * - Single Story: Gửi JSON body với các trường thông tin truyện thông thường.
+ */
 export async function postNewStory(req, res, next) {
   try {
-    // Get information from body
-    const userId = req.user.id;
+    const userId = req.user?.id;
 
+    // Nếu người dùng tải lên file (csv, xlsx, xls) -> xử lý thêm truyện hàng loạt qua worker
+    if (req.file) {
+      const rows = parseStoriesSpreadsheet(req.file.buffer);
+
+      if (!rows || rows.length === 0) {
+        throw CreateError(400, "File bảng tính không có dòng dữ liệu truyện hợp lệ nào");
+      }
+
+      await storyQueue.addJob_BatchImportStories({
+        rows,
+        userId,
+        fileName: req.file.originalname,
+      });
+
+      return res.status(200).json({
+        success: true,
+        message: "File đã được tiếp nhận và đang được xử lý thêm truyện hàng loạt trong worker",
+        data: {
+          fileName: req.file.originalname,
+          totalRows: rows.length,
+        },
+      });
+    }
+
+    // Get information from body cho tạo truyện đơn lẻ
     const title = req.body?.title;
     const otherTitles = req?.body?.other_titles ?? [];
     const type = req.body?.type;
