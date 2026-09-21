@@ -42,6 +42,18 @@ const mockDb = {
   user: {
     findUnique: vi.fn(),
   },
+  genre: {
+    findFirst: vi.fn(),
+  },
+  author: {
+    findUnique: vi.fn(),
+  },
+  story_Genre: {
+    createMany: vi.fn(),
+  },
+  story_Author: {
+    createMany: vi.fn(),
+  },
 };
 
 vi.mock("../../configs/db.js", () => ({
@@ -450,5 +462,99 @@ describe("Batch Import Stories Worker", () => {
         poster_id: null,
       }),
     });
+  });
+
+  it("should attach genres and author_ids to story, skipping non-existent ones", async () => {
+    const validGenreId1 = "genre-uuid-1";
+    const validGenreId2 = "genre-uuid-2";
+    const validAuthorId1 = "11111111-1111-4111-8111-111111111111";
+
+    mockDb.user.findUnique.mockResolvedValue(null);
+    mockDb.story.findUnique.mockResolvedValue(null);
+    mockDb.story.create.mockResolvedValue({ id: "story-uuid-genres" });
+
+    // Mock genre queries: Action & Comedy exist, NonExistent does not
+    mockDb.genre.findFirst.mockImplementation(async ({ where }) => {
+      const name = where.name.equals.toLowerCase();
+      if (name === "action") return { id: validGenreId1, name: "Action" };
+      if (name === "comedy") return { id: validGenreId2, name: "Comedy" };
+      return null;
+    });
+
+    // Mock author queries: validAuthorId1 exists, others do not
+    mockDb.author.findUnique.mockImplementation(async ({ where }) => {
+      if (where.id === validAuthorId1) return { id: validAuthorId1, name: "Oda Eiichiro" };
+      return null;
+    });
+
+    mockDb.story_Genre.createMany.mockResolvedValue({ count: 2 });
+    mockDb.story_Author.createMany.mockResolvedValue({ count: 1 });
+
+    const job = {
+      data: {
+        rows: [
+          {
+            story: {
+              title: "Story with Genres and Authors",
+              genres: ["Action", "NonExistentGenre", "Comedy"],
+              author_ids: [
+                validAuthorId1,
+                "99999999-9999-4999-8999-999999999999", // non-existent UUID
+                "not-a-valid-uuid", // invalid UUID format
+              ],
+            },
+            nodes: [],
+          },
+        ],
+      },
+    };
+
+    await batchImportWorkerHandler(job);
+
+    // Verify genres
+    expect(mockDb.genre.findFirst).toHaveBeenCalledTimes(3);
+    expect(mockDb.story_Genre.createMany).toHaveBeenCalledWith({
+      data: [
+        { story_id: "story-uuid-genres", genre_id: validGenreId1 },
+        { story_id: "story-uuid-genres", genre_id: validGenreId2 },
+      ],
+      skipDuplicates: true,
+    });
+
+    // Verify authors: invalid UUID format is skipped without querying DB, valid UUID queried
+    expect(mockDb.author.findUnique).toHaveBeenCalledTimes(2);
+    expect(mockDb.story_Author.createMany).toHaveBeenCalledWith({
+      data: [{ story_id: "story-uuid-genres", author_id: validAuthorId1 }],
+      skipDuplicates: true,
+    });
+  });
+
+  it("should not call story_Genre.createMany or story_Author.createMany if no valid genres or authors exist", async () => {
+    mockDb.user.findUnique.mockResolvedValue(null);
+    mockDb.story.findUnique.mockResolvedValue(null);
+    mockDb.story.create.mockResolvedValue({ id: "story-uuid-empty-rel" });
+
+    mockDb.genre.findFirst.mockResolvedValue(null);
+    mockDb.author.findUnique.mockResolvedValue(null);
+
+    const job = {
+      data: {
+        rows: [
+          {
+            story: {
+              title: "Story with Invalid Genres and Authors",
+              genres: ["UnknownGenre"],
+              author_ids: ["not-a-valid-uuid"],
+            },
+            nodes: [],
+          },
+        ],
+      },
+    };
+
+    await batchImportWorkerHandler(job);
+
+    expect(mockDb.story_Genre.createMany).not.toHaveBeenCalled();
+    expect(mockDb.story_Author.createMany).not.toHaveBeenCalled();
   });
 });

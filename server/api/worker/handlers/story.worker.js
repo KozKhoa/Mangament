@@ -507,6 +507,72 @@ async function resolveUserId(userId, usersCache) {
   return null;
 }
 
+async function resolveGenreIds(genres = [], genresCache) {
+  if (!genres || genres.length === 0) return [];
+  const resolvedIds = [];
+
+  for (const genreName of genres) {
+    if (!genreName || typeof genreName !== "string") continue;
+    const cleanName = genreName.trim();
+    if (!cleanName) continue;
+    const cacheKey = cleanName.toLowerCase();
+
+    if (genresCache.has(cacheKey)) {
+      const cachedId = genresCache.get(cacheKey);
+      if (cachedId) resolvedIds.push(cachedId);
+      continue;
+    }
+
+    const genre = await db.genre.findFirst({
+      where: {
+        name: { equals: cleanName, mode: "insensitive" },
+        deleted_status: "not_deleted",
+      },
+      select: { id: true },
+    });
+
+    if (genre) {
+      genresCache.set(cacheKey, genre.id);
+      resolvedIds.push(genre.id);
+    } else {
+      genresCache.set(cacheKey, null);
+    }
+  }
+
+  return [...new Set(resolvedIds)];
+}
+
+async function resolveAuthorIds(authorIds = [], authorsCache) {
+  if (!authorIds || authorIds.length === 0) return [];
+  const resolvedIds = [];
+
+  for (const rawId of authorIds) {
+    if (!rawId || typeof rawId !== "string") continue;
+    const cleanId = rawId.trim();
+    if (!cleanId || !isUUID(cleanId)) continue;
+
+    if (authorsCache.has(cleanId)) {
+      const cachedId = authorsCache.get(cleanId);
+      if (cachedId) resolvedIds.push(cachedId);
+      continue;
+    }
+
+    const author = await db.author.findUnique({
+      where: { id: cleanId },
+      select: { id: true },
+    });
+
+    if (author) {
+      authorsCache.set(cleanId, author.id);
+      resolvedIds.push(author.id);
+    } else {
+      authorsCache.set(cleanId, null);
+    }
+  }
+
+  return [...new Set(resolvedIds)];
+}
+
 const batchImportStoriesWorker = new Worker(
   "batch-import-stories",
   async (job) => {
@@ -518,6 +584,8 @@ const batchImportStoriesWorker = new Worker(
     const nationsCache = new Map();
     const imagesCache = new Map();
     const usersCache = new Map();
+    const genresCache = new Map();
+    const authorsCache = new Map();
     const affectedStoryIds = new Set();
 
     let importedStoriesCount = 0;
@@ -565,6 +633,36 @@ const batchImportStoriesWorker = new Worker(
         }
 
         affectedStoryIds.add(story.id);
+
+        // Attach genres if provided
+        const genresList = sData.genres || [];
+        if (genresList.length > 0) {
+          const resolvedGenreIds = await resolveGenreIds(genresList, genresCache);
+          if (resolvedGenreIds.length > 0) {
+            await db.story_Genre.createMany({
+              data: resolvedGenreIds.map((genre_id) => ({
+                story_id: story.id,
+                genre_id,
+              })),
+              skipDuplicates: true,
+            });
+          }
+        }
+
+        // Attach authors if provided
+        const authorIdsList = sData.author_ids || sData.authorIds || [];
+        if (authorIdsList.length > 0) {
+          const resolvedAuthorIds = await resolveAuthorIds(authorIdsList, authorsCache);
+          if (resolvedAuthorIds.length > 0) {
+            await db.story_Author.createMany({
+              data: resolvedAuthorIds.map((author_id) => ({
+                story_id: story.id,
+                author_id,
+              })),
+              skipDuplicates: true,
+            });
+          }
+        }
 
         // Support dynamic N-level nodes (or fallback to parentNode/childNode)
         const nodes = Array.isArray(item.nodes) ? item.nodes : [item.parentNode, item.childNode].filter(Boolean);

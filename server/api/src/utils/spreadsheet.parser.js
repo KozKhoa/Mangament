@@ -152,6 +152,8 @@ export function parseStoriesSpreadsheet(buffer) {
   let isActivedCol;
   let summaryCol;
   let coverArtIdCol;
+  let genresCol;
+  let authorIdsCol;
   const nodeConfigs = [];
 
   if (hasHeader) {
@@ -165,6 +167,8 @@ export function parseStoriesSpreadsheet(buffer) {
     isActivedCol = getCol([], ["is_actived", "is_active", "active"]);
     summaryCol = getCol([], ["story_summary", "summary", "description"]);
     coverArtIdCol = getCol([], ["story_cover_art_id", "cover_art_id", "cover_id"]);
+    genresCol = getCol([], ["story_genres", "genres", "genre", "story_genre"]);
+    authorIdsCol = getCol([], ["story_author_ids", "author_ids", "author_id", "story_author_id", "authorids", "authorid", "authors", "author"]);
 
     // Determine how many node levels exist
     let maxNumberedLevel = 0;
@@ -415,6 +419,22 @@ export function parseStoriesSpreadsheet(buffer) {
           .filter((t) => t.length > 0)
       : [];
 
+    const genresRaw = cleanString(getVal(row, genresCol));
+    const genres = genresRaw
+      ? genresRaw
+          .split(/[,;\n|]+/)
+          .map((g) => g.trim())
+          .filter((g) => g.length > 0)
+      : [];
+
+    const authorIdsRaw = cleanString(getVal(row, authorIdsCol));
+    const authorIds = authorIdsRaw
+      ? authorIdsRaw
+          .split(/[,;\n|]+/)
+          .map((a) => a.trim())
+          .filter((a) => a.length > 0)
+      : [];
+
     const storyData = {
       title,
       other_titles: otherTitles,
@@ -426,6 +446,9 @@ export function parseStoriesSpreadsheet(buffer) {
       is_actived: cleanBoolean(getVal(row, isActivedCol), true),
       summary: cleanString(getVal(row, summaryCol)),
       cover_art_id: cleanUUID(getVal(row, coverArtIdCol)),
+      genres,
+      author_ids: authorIds,
+      authorIds,
     };
 
     // Scan all detected node levels
@@ -494,8 +517,18 @@ export function generateStoryImportTemplate(type = "full", format = "xlsx") {
 
   switch (normType) {
     case "story_only":
-      headers = ["title", "other_title", "story_type", "story_status", "nation", "summary", "is_actived"];
-      sampleRow = ["One Piece", "Vua Hải Tặc", "manga", "ongoing", "Japan", "Hành trình tìm kiếm kho báu One Piece của Monkey D. Luffy.", "true"];
+      headers = ["title", "other_title", "story_type", "story_status", "nation", "genres", "author_ids", "summary", "is_actived"];
+      sampleRow = [
+        "One Piece",
+        "Vua Hải Tặc",
+        "manga",
+        "ongoing",
+        "Japan",
+        "Action,Adventure,Comedy",
+        "11111111-1111-4111-8111-111111111111,22222222-2222-4222-8222-222222222222",
+        "Hành trình tìm kiếm kho báu One Piece của Monkey D. Luffy.",
+        "true",
+      ];
       break;
 
     case "chapters_only":
@@ -512,6 +545,8 @@ export function generateStoryImportTemplate(type = "full", format = "xlsx") {
         "story_status",
         "nation_id",
         "nation",
+        "genres",
+        "author_ids",
         "deleted_status",
         "is_actived",
         "summary",
@@ -544,6 +579,8 @@ export function generateStoryImportTemplate(type = "full", format = "xlsx") {
         "finished",
         "",
         "Korea",
+        "Action,Adventure,Fantasy",
+        "",
         "not_deleted",
         "true",
         "Thợ săn yếu nhất Sung Jin-woo thức tỉnh sức mạnh vô hạn.",

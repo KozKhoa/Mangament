@@ -49,18 +49,20 @@ Hệ thống được thiết kế theo cơ chế **Dynamic Schema**, cho phép:
 
 ### A. Thông tin Truyện (Story Columns)
 
-| Tên cột (Header)                  | Bắt buộc? |  Kiểu dữ liệu  | Giá trị mặc định | Mô tả & Lưu ý                                                                                                   |
-| :-------------------------------- | :-------: | :------------: | :--------------: | :-------------------------------------------------------------------------------------------------------------- |
-| `title` hoặc `story_title`        |  **Có**   | Chuỗi (String) |    _(Không)_     | Tên truyện (Unique). Nếu truyện đã có trong DB, hệ thống sẽ sử dụng lại và gắn node mới vào.                    |
-| `other_title` hoặc `other_titles` |   Không   | Chuỗi (String) |       `[]`       | Tên khác của truyện. Hỗ trợ phân cách nhiều tên bằng dấu `,` hoặc `;` hoặc `\|`.                                |
-| `story_type` hoặc `type`          |   Không   |      Enum      |     `manga`      | Loại truyện: `manga`, `light_novel` (hoặc `novel`).                                                             |
-| `story_status` hoặc `status`      |   Không   |      Enum      |    `ongoing`     | Trạng thái phát hành: `ongoing`, `finished`, `postpone`, `upcoming`.                                            |
-| `nation_id`                       |   Không   |      UUID      |      `null`      | UUID của quốc gia trong bảng `Nation`. Ưu tiên cao nhất nếu cung cấp.                                           |
-| `nation` hoặc `country`           |   Không   | Chuỗi (String) |      `null`      | Tên quốc gia (ví dụ: `Japan`, `Korea`, `Vietnam`). Nếu `nation_id` trống, hệ thống sẽ tự tìm kiếm theo tên này. |
-| `deleted_status` (Story)          |   Không   |      Enum      |  `not_deleted`   | Trạng thái xóa: `not_deleted`, `soft_deleted`.                                                                  |
-| `is_actived` hoặc `is_active`     |   Không   |    Boolean     |      `true`      | Trạng thái kích hoạt: `true`/`false`, `1`/`0`, `yes`/`no`.                                                      |
-| `summary` hoặc `description`      |   Không   | Chuỗi (String) |      `null`      | Nội dung tóm tắt cốt truyện.                                                                                    |
-| `cover_art_id`                    |   Không   |      UUID      |      `null`      | UUID của ảnh bìa trong bảng `Image`. Nếu rỗng hoặc ID không tồn tại sẽ tự động lưu `null`.                      |
+| Tên cột (Header)                     | Bắt buộc? |  Kiểu dữ liệu  | Giá trị mặc định | Mô tả & Lưu ý                                                                                                                                                                                                                                                         |
+| :----------------------------------- | :-------: | :------------: | :--------------: | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `title` hoặc `story_title`           |  **Có**   | Chuỗi (String) |    _(Không)_     | Tên truyện (Unique). Nếu truyện đã có trong DB, hệ thống sẽ sử dụng lại và gắn node mới vào.                                                                                                                                                                          |
+| `other_title` hoặc `other_titles`    |   Không   | Chuỗi (String) |       `[]`       | Tên khác của truyện. Hỗ trợ phân cách nhiều tên bằng dấu `,` hoặc `;` hoặc `\|`.                                                                                                                                                                                      |
+| `story_type` hoặc `type`             |   Không   |      Enum      |     `manga`      | Loại truyện: `manga`, `light_novel` (hoặc `novel`).                                                                                                                                                                                                                   |
+| `story_status` hoặc `status`         |   Không   |      Enum      |    `ongoing`     | Trạng thái phát hành: `ongoing`, `finished`, `postpone`, `upcoming`.                                                                                                                                                                                                  |
+| `nation_id`                          |   Không   |      UUID      |      `null`      | UUID của quốc gia trong bảng `Nation`. Ưu tiên cao nhất nếu cung cấp.                                                                                                                                                                                                 |
+| `nation` hoặc `country`              |   Không   | Chuỗi (String) |      `null`      | Tên quốc gia (ví dụ: `Japan`, `Korea`, `Vietnam`). Nếu `nation_id` trống, hệ thống sẽ tự tìm kiếm theo tên này.                                                                                                                                                       |
+| `genres` hoặc `story_genres`         |   Không   | Chuỗi (String) |       `[]`       | Danh sách tên các thể loại cách nhau bằng dấu phẩy (ví dụ: `Action,Detective,Romance`). Hệ thống tự động tìm kiếm theo tên thể loại (không phân biệt hoa thường, `genre.name` là unique) và liên kết vào truyện. Thể loại nào không tồn tại sẽ tự động bỏ qua (skip). |
+| `author_ids` hoặc `story_author_ids` |   Không   | Chuỗi (UUIDs)  |       `[]`       | Danh sách UUID của tác giả cách nhau bằng dấu phẩy, không có dấu cách ở giữa (ví dụ: `uuid-1,uuid-2,uuid-3`). Nếu UUID tác giả tồn tại trong DB sẽ được gắn vào truyện; nếu không tồn tại sẽ tự động bỏ qua (skip).                                                   |
+| `deleted_status` (Story)             |   Không   |      Enum      |  `not_deleted`   | Trạng thái xóa: `not_deleted`, `soft_deleted`.                                                                                                                                                                                                                        |
+| `is_actived` hoặc `is_active`        |   Không   |    Boolean     |      `true`      | Trạng thái kích hoạt: `true`/`false`, `1`/`0`, `yes`/`no`.                                                                                                                                                                                                            |
+| `summary` hoặc `description`         |   Không   | Chuỗi (String) |      `null`      | Nội dung tóm tắt cốt truyện.                                                                                                                                                                                                                                          |
+| `cover_art_id`                       |   Không   |      UUID      |      `null`      | UUID của ảnh bìa trong bảng `Image`. Nếu rỗng hoặc ID không tồn tại sẽ tự động lưu `null`.                                                                                                                                                                            |
 
 ---
 
@@ -119,10 +121,10 @@ Solo Leveling,"Tôi Thăng Cấp Một Mình, I Alone Level Up",manga,finished,,
 Dành cho trường hợp khởi tạo danh mục truyện trước, chapter sẽ thêm sau:
 
 ```csv
-title,other_title,story_type,story_status,nation,summary,is_actived
-One Piece,Vua Hải Tặc,manga,ongoing,Japan,"Hành trình tìm kho báu One Piece của Luffy",true
-Doraemon,Chú Mèo Máy Đến Từ Tương Lai,manga,finished,Japan,"Câu chuyện về chú mèo máy Doraemon và Nobita",true
-Lord of the Mysteries,Quỷ Bí Chi Chủ,light_novel,finished,China,"Hành trình thăng tiến của Klein Moretti trong thế giới steampunk ma thuật",true
+title,other_title,story_type,story_status,nation,genres,author_ids,summary,is_actived
+One Piece,Vua Hải Tặc,manga,ongoing,Japan,"Action,Adventure,Comedy","11111111-1111-4111-8111-111111111111,22222222-2222-4222-8222-222222222222","Hành trình tìm kho báu One Piece của Luffy",true
+Doraemon,Chú Mèo Máy Đến Từ Tương Lai,manga,finished,Japan,"Comedy,Sci-Fi",,"Câu chuyện về chú mèo máy Doraemon và Nobita",true
+Lord of the Mysteries,Quỷ Bí Chi Chủ,light_novel,finished,China,"Fantasy,Mystery",,"Hành trình thăng tiến của Klein Moretti trong thế giới steampunk ma thuật",true
 ```
 
 ---
@@ -158,6 +160,8 @@ Tam Quốc Diễn Nghĩa,Hồi 1-10,arc,1,Quyển 1,volume,1,Hồi 2,chapter,2,t
 3. **Bảo toàn tính toàn vẹn khóa ngoại (Foreign Keys)**:
    - Nếu `nation_id` hoặc `nation` không tồn tại trong hệ thống: trường quốc gia của truyện sẽ được gán `null` (không gây lỗi gián đoạn).
    - Nếu `cover_art_id` hoặc `image_id` không tồn tại trong bảng `Image`: trường ảnh sẽ được gán `null` (không gây lỗi gián đoạn).
+   - Nếu `genres` chứa tên thể loại không có trong DB: hệ thống sẽ tự động bỏ qua thể loại đó và gắn các thể loại hợp lệ còn lại.
+   - Nếu `author_ids` chứa UUID không có trong DB: hệ thống sẽ tự động bỏ qua UUID đó và gắn các tác giả hợp lệ còn lại.
 4. **Xử lý nền (Background Worker)**:
    - Khi gọi API upload file, server phản hồi ngay lập tức `HTTP 200: Đã tiếp nhận file và chuyển vào hàng đợi xử lý nền`.
    - BullMQ Worker sẽ thực hiện import từng dòng, cập nhật số lượng con (`number_of_children`), làm mới bộ nhớ đệm Redis và tự động kích hoạt tạo vector embedding cho truyện.

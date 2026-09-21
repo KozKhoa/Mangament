@@ -370,6 +370,29 @@ describe("Spreadsheet Parser", () => {
     expect(result[0].nodes[0].title).toBe("Shuffled Chapter");
   });
 
+  it("should parse genres and author_ids correctly from columns", () => {
+    const wb = XLSX.utils.book_new();
+    const headers = ["title", "genres", "author_ids"];
+    const row = ["One Piece", "Action, Detective, Romance", "11111111-1111-4111-8111-111111111111,22222222-2222-4222-8222-222222222222"];
+    const ws = XLSX.utils.aoa_to_sheet([headers, row]);
+    XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+    const buffer = XLSX.write(wb, { type: "buffer", bookType: "xlsx" });
+
+    const result = parseStoriesSpreadsheet(buffer);
+    expect(result).toHaveLength(1);
+    expect(result[0].story.title).toBe("One Piece");
+    expect(result[0].story.genres).toEqual(["Action", "Detective", "Romance"]);
+    expect(result[0].story.author_ids).toEqual(["11111111-1111-4111-8111-111111111111", "22222222-2222-4222-8222-222222222222"]);
+  });
+
+  it("should support story_genres and story_author_ids aliases", () => {
+    const csvContent = `title,story_genres,story_author_ids\nNaruto,"Ninja;Adventure","33333333-3333-4333-8333-333333333333"`;
+    const result = parseStoriesSpreadsheet(Buffer.from(csvContent));
+    expect(result).toHaveLength(1);
+    expect(result[0].story.genres).toEqual(["Ninja", "Adventure"]);
+    expect(result[0].story.author_ids).toEqual(["33333333-3333-4333-8333-333333333333"]);
+  });
+
   it("should throw an error for empty buffer or empty spreadsheet", () => {
     expect(() => parseStoriesSpreadsheet(Buffer.from(""))).toThrow(/File tải lên rỗng/);
   });
