@@ -67,8 +67,8 @@ services:
       - REDIS_URL=redis://redis:6379
       - ML_SERVICE_URL=http://ml-service:8000
       - MONGODB_CONNECTION_STRING=mongodb://admin:password@logs-db:27017/management_logs?authSource=admin # if you wanna use local mongodb
-      - DATABASE_URL=postgresql://postgres:postgres@db:5432/mangament_postgres_db?schema=public
-      - DIRECT_URL=postgresql://postgres:postgres@db:5432/mangament_postgres_db?schema=public
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/mangament_db?schema=public
+      - DIRECT_URL=postgresql://postgres:postgres@db:5432/mangament_db?schema=public
     depends_on:
       redis:
         condition: service_started
@@ -93,8 +93,8 @@ services:
       - REDIS_URL=redis://redis:6379
       - ML_SERVICE_URL=http://ml-service:8000
       - MONGODB_CONNECTION_STRING=mongodb://admin:password@logs-db:27017/management_logs?authSource=admin # if you wanna use local mongodb
-      - DATABASE_URL=postgresql://postgres:postgres@db:5432/mangament_postgres_db?schema=public
-      - DIRECT_URL=postgresql://postgres:postgres@db:5432/mangament_postgres_db?schema=public
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/mangament_db?schema=public
+      - DIRECT_URL=postgresql://postgres:postgres@db:5432/mangament_db?schema=public
     volumes:
       - ./public:/app/public
       - ./api/.env.production:/app/.env.production:ro
