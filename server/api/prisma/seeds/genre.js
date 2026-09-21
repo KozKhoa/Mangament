@@ -202,18 +202,15 @@ export default async function main() {
   console.log("Seeding genres");
 
   const thumbnailData = GENRES.map((genre) => ({
-    url: `${process.env.CDN_URL}/genre/${genre.name.toLowerCase().split(" ").join("_")}.jpg`,
-    key: `genre/${genre.name.toLowerCase().split(" ").join("_")}.jpg`,
+    path: `genre/${genre.name.toLowerCase().split(" ").join("_")}.jpg`,
   }));
 
-  const thumbnail = await db.image.findMany({ where: { key: { in: thumbnailData.map((d) => d.key) } } });
+  const thumbnail = await db.image.findMany({ where: { path: { in: thumbnailData.map((d) => d.path) } } });
 
   const thumbnailMap = new Map();
   thumbnail.forEach((image) => {
-    thumbnailMap.set(image.key, image.id);
+    thumbnailMap.set(image.path, image.id);
   });
-
-  await db.genre.deleteMany();
 
   await db.genre.createMany({
     data: GENRES.map((genre) => ({
