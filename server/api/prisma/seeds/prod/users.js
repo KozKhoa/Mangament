@@ -1,5 +1,5 @@
-import db from "../../configs/db.js";
-import { HashPassword } from "../../src/utils/Password.js";
+import db from "../../../configs/db.js";
+import { HashPassword } from "../../../src/utils/Password.js";
 
 export default async function main() {
   const hashedPassword = await HashPassword("111111");

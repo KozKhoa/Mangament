@@ -22,7 +22,8 @@
     "test:coverage": "vitest run --coverage",
     "migrate:dev": "cross-env NODE_ENV=development npx prisma migrate dev",
     "migrate:prod": "cross-env NODE_ENV=production npx prisma migrate deploy",
-    "seed": "npx prisma db seed",
+    "seed:dev": "cross-env NODE_ENV=development npx prisma db seed -- dev",
+    "seed:prod": "cross-env NODE_ENV=production npx prisma db seed -- prod",
     "prepare": "husky install"
   },
   "dependencies": {
