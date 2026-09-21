@@ -159,7 +159,7 @@ jobs:
         run: |
           if [ -n "$SERVER_ENV" ]; then
             echo "Syncing .env file to /home/khoa/Mangament/server/api/.env.production..."
-            printf '%s\n' "$SERVER_ENV" | ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} 'mkdir -p /home/khoa/Mangament/server/api && cat > /home/khoa/Mangament/server/api/.env.production && cp /home/khoa/Mangament/server/api/.env.production /home/khoa/Mangament/server/api/.env.production && chmod 600 /home/khoa/Mangament/server/api/.env.production'
+            printf '%s\n' "$SERVER_ENV" | ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} 'mkdir -p /home/khoa/Mangament/server/api && cat > /home/khoa/Mangament/server/api/.env.production && chmod 600 /home/khoa/Mangament/server/api/.env.production'
           else
             echo "Notice: No .env secret provided (API_ENV / SERVER_API_ENV / SERVER_ENV). Retaining existing .env.production on VM."
           fi
