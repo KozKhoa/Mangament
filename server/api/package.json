@@ -17,6 +17,8 @@
     "lint": "npx eslint .",
     "format": "npx prettier --write .",
     "upload": "cross-env NODE_ENV=development node Upload.js",
+    "upload:stories": "node scripts/upload-stories/index.js",
+    "upload:stories:dry-run": "node scripts/upload-stories/index.js --dry-run",
     "test": "vitest",
     "test:watch": "vitest --watch",
     "test:coverage": "vitest run --coverage",

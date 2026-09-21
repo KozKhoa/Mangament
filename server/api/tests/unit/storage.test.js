@@ -45,6 +45,23 @@ describe("Storage System", () => {
       expect(url).toBe("http://localhost:5000/public/images/stories/chapter_1.jpg");
     });
 
+    it("should resolve disk path using PUBLIC_DIR when configured", () => {
+      process.env.PUBLIC_DIR = "/mnt/external_drive/public";
+      const customLocal = new LocalStorageProvider();
+      const resolvedStory = customLocal.resolveDiskPath("/public/images/stories/ch1/001.jpg");
+      expect(resolvedStory).toBe("/mnt/external_drive/public/images/stories/ch1/001.jpg");
+
+      const resolvedAvatar = customLocal.resolveDiskPath("/public/images/avatars/user.jpg");
+      expect(resolvedAvatar).toBe("/mnt/external_drive/public/images/avatars/user.jpg");
+    });
+
+    it("should resolve disk path using default public directory when PUBLIC_DIR is not set", () => {
+      delete process.env.PUBLIC_DIR;
+      const defaultLocal = new LocalStorageProvider();
+      const resolved = defaultLocal.resolveDiskPath("/public/images/stories/ch1/001.jpg");
+      expect(resolved).toBe(path.join(defaultLocal.baseDir, "images/stories/ch1/001.jpg"));
+    });
+
     it("should upload buffer to local disk", async () => {
       vi.spyOn(fs.promises, "mkdir").mockResolvedValue();
       vi.spyOn(fs.promises, "writeFile").mockResolvedValue();

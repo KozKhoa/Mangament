@@ -1,0 +1,12 @@
+{
+  "name": "upload-stories",
+  "version": "1.0.0",
+  "description": "Script import danh mục truyện, chapters và các trang truyện từ cấu trúc thư mục ổ đĩa vào Database",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dry-run": "node index.js --dry-run",
+    "scan": "node index.js --limit 5"
+  }
+}

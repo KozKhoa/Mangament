@@ -294,7 +294,16 @@ app.use("/favourites", favouriteRoute);
 app.use("/admin", adminRoute);
 
 app.use("/uploads", uploadRoute);
-const publicDir = fs.existsSync(path.resolve("../public")) ? path.resolve("../public") : path.resolve("public");
+
+// Thư mục tĩnh public phục vụ toàn bộ file tĩnh và ảnh (hỗ trợ đường dẫn tuyệt đối, có thể nằm ở ổ cứng khác)
+const publicDir = process.env.PUBLIC_DIR
+  ? path.resolve(process.env.PUBLIC_DIR)
+  : fs.existsSync(path.resolve("../public"))
+    ? path.resolve("../public")
+    : path.resolve("public");
+if (!fs.existsSync(publicDir)) {
+  fs.mkdirSync(publicDir, { recursive: true });
+}
 app.use("/public", express.static(publicDir));
 
 // Middlewares

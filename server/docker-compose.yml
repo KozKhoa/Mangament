@@ -69,13 +69,14 @@ services:
       - MONGODB_CONNECTION_STRING=mongodb://admin:password@logs-db:27017/management_logs?authSource=admin # if you wanna use local mongodb
       - DATABASE_URL=postgresql://postgres:postgres@db:5432/mangament_db?schema=public
       - DIRECT_URL=postgresql://postgres:postgres@db:5432/mangament_db?schema=public
+      - PUBLIC_DIR=/app/public
     depends_on:
       redis:
         condition: service_started
       db:
         condition: service_healthy
     volumes:
-      - ./public:/app/public
+      - ${PUBLIC_DIR:-./public}:/app/public
       - ./api/.env.production:/app/.env.production:ro
       - ./api/.env.production:/app/.env:ro
 
@@ -95,8 +96,9 @@ services:
       - MONGODB_CONNECTION_STRING=mongodb://admin:password@logs-db:27017/management_logs?authSource=admin # if you wanna use local mongodb
       - DATABASE_URL=postgresql://postgres:postgres@db:5432/mangament_db?schema=public
       - DIRECT_URL=postgresql://postgres:postgres@db:5432/mangament_db?schema=public
+      - PUBLIC_DIR=/app/public
     volumes:
-      - ./public:/app/public
+      - ${PUBLIC_DIR:-./public}:/app/public
       - ./api/.env.production:/app/.env.production:ro
       - ./api/.env.production:/app/.env:ro
     depends_on:
