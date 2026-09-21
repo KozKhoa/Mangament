@@ -7,6 +7,8 @@ services:
     restart: always
     ports:
       - "6378:6379"
+    volumes:
+      - mangament_redis_data:/data
 
   cloudflare-tunnel:
     container_name: mangament_cloudflared_tunnel
@@ -36,19 +38,15 @@ services:
     env_file:
       - ./api/.env.production
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      POSTGRES_DB: ${POSTGRES_DB:-mangament_postgres_db}
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: mangament_db
     ports:
-      - "${DB_PORT:-5432}:5432"
+      - "5432:5432"
     volumes:
       - mangament_db_data:/var/lib/postgresql/data
     healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "pg_isready -U $${POSTGRES_USER:-postgres} -d $${POSTGRES_DB:-mangament_postgres_db}",
-        ]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d mangament_db"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -62,15 +60,15 @@ services:
       dockerfile: Dockerfile
     restart: always
     ports:
-      - "${PORT:-5000}:${PORT:-5000}"
+      - "5000:5000"
     env_file:
       - ./api/.env.production
     environment:
       - REDIS_URL=redis://redis:6379
       - ML_SERVICE_URL=http://ml-service:8000
       - MONGODB_CONNECTION_STRING=mongodb://admin:password@logs-db:27017/management_logs?authSource=admin # if you wanna use local mongodb
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-mangament_postgres_db}?schema=public
-      - DIRECT_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-mangament_postgres_db}?schema=public
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/mangament_postgres_db?schema=public
+      - DIRECT_URL=postgresql://postgres:postgres@db:5432/mangament_postgres_db?schema=public
     depends_on:
       redis:
         condition: service_started
@@ -78,7 +76,7 @@ services:
         condition: service_healthy
     volumes:
       # BỎ MOUNT CODE ĐÈ VÀO /app, CHỈ GIỮ LẠI THƯ MỤC UPLOADS ĐỂ LƯU TRỮ ẢNH MANGA
-      - ../uploads:/app/uploads
+      - ./public:/app/public
 
   worker:
     container_name: mangament_worker # Đã sửa dấu : thành _
@@ -94,8 +92,8 @@ services:
       - REDIS_URL=redis://redis:6379
       - ML_SERVICE_URL=http://ml-service:8000
       - MONGODB_CONNECTION_STRING=mongodb://admin:password@logs-db:27017/management_logs?authSource=admin # if you wanna use local mongodb
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-mangament_postgres_db}?schema=public
-      - DIRECT_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-mangament_postgres_db}?schema=public
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/mangament_db?schema=public
+      - DIRECT_URL=postgresql://postgres:postgres@db:5432/mangament_db?schema=public
     depends_on:
       redis:
         condition: service_started
@@ -121,3 +119,4 @@ services:
 volumes:
   mangament_logs_db_data:
   mangament_db_data:
+  mangament_redis_data:
