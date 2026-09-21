@@ -14,7 +14,7 @@ services:
     restart: always
     command: tunnel --no-autoupdate run
     env_file:
-      - ./api/.env
+      - ./api/.env.production
     depends_on:
       - api
 
@@ -34,7 +34,7 @@ services:
     image: postgres:16-alpine
     restart: always
     env_file:
-      - ./api/.env
+      - ./api/.env.production
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-posgresql}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-posgresql}
@@ -64,7 +64,7 @@ services:
     ports:
       - "${PORT:-5000}:${PORT:-5000}"
     env_file:
-      - ./api/.env
+      - ./api/.env.production
     environment:
       - REDIS_URL=redis://redis:6379
       - ML_SERVICE_URL=http://ml-service:8000
@@ -89,7 +89,7 @@ services:
       dockerfile: worker/Dockerfile
     restart: always
     env_file:
-      - ./api/.env
+      - ./api/.env.production
     environment:
       - REDIS_URL=redis://redis:6379
       - ML_SERVICE_URL=http://ml-service:8000
@@ -111,7 +111,7 @@ services:
     ports:
       - "27016:27017"
     env_file:
-      - ./api/.env
+      - ./api/.env.production
     environment:
       MONGO_INITDB_ROOT_USERNAME: admin
       MONGO_INITDB_ROOT_PASSWORD: password
