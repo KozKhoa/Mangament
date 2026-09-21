@@ -7,8 +7,13 @@ on:
     paths:
       # Cập nhật chính xác các path cần theo dõi để kích hoạt workflow
       - "server/api/**"
-      - "server/ml-services/**"
+      - "server/ml-service/**"
+      - "server/docker-compose.yml"
       - ".github/workflows/**"
+
+permissions:
+  id-token: write
+  contents: read
 
 jobs:
   build-and-push-api:
@@ -35,7 +40,7 @@ jobs:
         if: steps.changed-files.outputs.any_changed == 'true'
         uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }} # Đã sửa dấu :: thành .
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build & Push API
@@ -58,7 +63,13 @@ jobs:
         id: changed-files
         uses: tj-actions/changed-files@v44
         with:
-          files: server/api/workers/**
+          files: |
+            server/api/worker/**
+            server/api/WorkerApp.js
+            server/api/configs/**
+            server/api/src/**
+            server/api/prisma/**
+            server/api/package*.json
 
       - name: Set up QEMU
         if: steps.changed-files.outputs.any_changed == 'true'
@@ -79,8 +90,8 @@ jobs:
         if: steps.changed-files.outputs.any_changed == 'true'
         uses: docker/build-push-action@v5
         with:
-          context: ./server/api/workers
-          file: ./server/api/workers/Dockerfile
+          context: ./server/api
+          file: ./server/api/worker/Dockerfile
           cache-from: type=gha
           cache-to: type=gha,mode=max
           push: true
@@ -95,7 +106,7 @@ jobs:
         id: changed-files
         uses: tj-actions/changed-files@v44
         with:
-          files: server/ml-services/**
+          files: server/ml-service/**
 
       - name: Set up QEMU
         if: steps.changed-files.outputs.any_changed == 'true'
@@ -116,34 +127,38 @@ jobs:
         if: steps.changed-files.outputs.any_changed == 'true'
         uses: docker/build-push-action@v5
         with:
-          context: ./server/ml-services
-          file: ./server/ml-services/Dockerfile
+          context: ./server/ml-service
+          file: ./server/ml-service/Dockerfile
           cache-from: type=gha
           cache-to: type=gha,mode=max
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/mangament-server-ml-service:latest
 
   deploy:
-    if: always()
+    if: |
+      always() &&
+      !contains(needs.*.result, 'failure') &&
+      !contains(needs.*.result, 'cancelled')
     needs:
       [build-and-push-api, build-and-push-worker, build-and-push-ml-service]
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
     steps:
-      - name: Connect to Tailscale
-        uses: tailscale/github-action@v2
+      - name: Connect to Tailscale (OIDC Workload Identity Federation)
+        uses: tailscale/github-action@v4
         with:
-          authkey: ${{ secrets.TAILSCALE_AUTH_KEY }}
+          oauth-client-id: ${{ secrets.TS_OIDC_CLIENT_ID || secrets.TS_OAUTH_CLIENT_ID || secrets.TS_CLIENT_ID }}
+          audience: ${{ secrets.TS_AUDIENCE }}
+          tags: ${{ vars.TS_TAGS || secrets.TS_TAGS || 'tag:ci' }}
 
-      - name: Deploy via SSH
-        uses: appleboy/ssh-action@v1.0.3
-
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
-          command_timeout: 30m
-          script: |
+      - name: Deploy via Tailscale SSH
+        run: |
+          ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
+            set -e
             cd /home/khoa/Mangament/server
             git pull origin main
             docker compose pull
             docker compose up -d
+          EOF
