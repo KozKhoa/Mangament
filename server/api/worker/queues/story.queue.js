@@ -17,6 +17,11 @@ class StoryQueue {
   #hardDeleteManyStoriesQueue = new Queue("hard-delete-many-stories", { connection });
   #embeddingStoryQueue = new Queue("embedding-story", { connection });
   #updateStory = new Queue("update-story", { connection });
+  #batchImportStoriesQueue = new Queue("batch-import-stories", { connection });
+
+  addJob_BatchImportStories({ rows = [], userId, fileName }) {
+    return this.#batchImportStoriesQueue.add("batchImportStories", { rows, userId, fileName }, ADD_JOB_OPTION);
+  }
 
   addJob_EmbeddingStory(storyId) {
     this.#embeddingStoryQueue.add("updateEmbeddingStory", { storyId }, ADD_JOB_OPTION);

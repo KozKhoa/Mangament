@@ -29,6 +29,30 @@ services:
     ports:
       - "8000:8000"
 
+  db:
+    container_name: mangament_db
+    image: postgres:16-alpine
+    restart: always
+    env_file:
+      - ./api/.env
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres_mangament}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password123_postgres_mangament}
+      POSTGRES_DB: ${POSTGRES_DB:-management_db}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - mangament_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U $${POSTGRES_USER:-postgres_mangament} -d $${POSTGRES_DB:-management_db}",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   api:
     container_name: mangament_api # Đã sửa dấu : thành _
     # THAY build BẰNG image TRÊN DOCKER HUB
@@ -45,10 +69,15 @@ services:
       - REDIS_URL=redis://redis:6379
       - ML_SERVICE_URL=http://ml-service:8000
       - MONGODB_CONNECTION_STRING=mongodb://admin:password@logs-db:27017/management_logs?authSource=admin # if you wanna use local mongodb
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres_mangament}:${POSTGRES_PASSWORD:-password123_postgres_mangament}@db:5432/${POSTGRES_DB:-management_db}?schema=public
+      - DIRECT_URL=postgresql://${POSTGRES_USER:-postgres_mangament}:${POSTGRES_PASSWORD:-password123_postgres_mangament}@db:5432/${POSTGRES_DB:-management_db}?schema=public
     depends_on:
-      - redis
+      redis:
+        condition: service_started
+      db:
+        condition: service_healthy
     volumes:
-      # BỎ MUNT CODE ĐÈ VÀO /app, CHỈ GIỮ LẠI THƯ MỤC UPLOADS ĐỂ LƯU TRỮ ẢNH MANGA
+      # BỎ MOUNT CODE ĐÈ VÀO /app, CHỈ GIỮ LẠI THƯ MỤC UPLOADS ĐỂ LƯU TRỮ ẢNH MANGA
       - ../uploads:/app/uploads
 
   worker:
@@ -65,10 +94,15 @@ services:
       - REDIS_URL=redis://redis:6379
       - ML_SERVICE_URL=http://ml-service:8000
       - MONGODB_CONNECTION_STRING=mongodb://admin:password@logs-db:27017/management_logs?authSource=admin # if you wanna use local mongodb
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres_mangament}:${POSTGRES_PASSWORD:-password123_postgres_mangament}@db:5432/${POSTGRES_DB:-management_db}?schema=public
+      - DIRECT_URL=postgresql://${POSTGRES_USER:-postgres_mangament}:${POSTGRES_PASSWORD:-password123_postgres_mangament}@db:5432/${POSTGRES_DB:-management_db}?schema=public
     depends_on:
-      - redis
-      - ml-service
-      - api
+      redis:
+        condition: service_started
+      db:
+        condition: service_healthy
+      api:
+        condition: service_started
 
   logs-db:
     container_name: mangament_logs_db
@@ -86,3 +120,4 @@ services:
 
 volumes:
   mangament_logs_db_data:
+  mangament_db_data:
