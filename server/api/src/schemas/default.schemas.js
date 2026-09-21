@@ -29,7 +29,17 @@ export const dateSchema = z
   })
   .transform((value) => new Date(value));
 
-export const imageSchema = z.object({ url: z.string().url().optional(), key: z.string() });
+export const imageSchema = z.object({
+  id: z.string().optional(),
+  path: z.string().optional(),
+  url: z.string().optional(),
+  key: z.string().optional(),
+  provider: z.string().optional(),
+  mine_type: z.string().optional(),
+  width: z.number().optional(),
+  height: z.number().optional(),
+  size: z.number().optional(),
+});
 
 export const genderSchema = z.enum(Object.values(Gender));
 

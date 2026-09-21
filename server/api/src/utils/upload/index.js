@@ -60,13 +60,14 @@ async function handleAdd(filePath) {
 
     const coverArtResJson = await coverArtRes.json();
 
-    // const { url: coverArtUrl, key: coverArtKey, id: coverArtId } = coverArtResJson.data;
-    const { url: coverArtUrl } = coverArtResJson.data;
+    const { url: coverArtUrl, path: coverArtPath, id: coverArtId } = coverArtResJson.data || {};
 
     // Update cover art for story
     await db.story.update({
       where: { id: story.id },
-      data: { cover_art: { connect: { url: coverArtUrl } } },
+      data: {
+        cover_art: coverArtId ? { connect: { id: coverArtId } } : { connect: { path: coverArtPath || coverArtUrl } },
+      },
     });
 
     // const covertArtKey = ["story", dir].join("/");

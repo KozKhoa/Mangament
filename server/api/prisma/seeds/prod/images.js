@@ -202,19 +202,14 @@ const GENRES = [
 export default async function main() {
   // Create avatar default image
 
-  const defaultAvatarKey = process.env.DEFAULT_AVATAR_IAMGE_KEY;
-  const defaultAvatarUrl = process.env.DEFAULT_AVATAR_IAMGE_URL;
-
-  if (!defaultAvatarKey || !defaultAvatarUrl) {
-    console.log("Default avatar image key or url is not defined in environment variables");
-    return;
-  }
+  const defaultAvatarKey = process.env.DEFAULT_AVATAR_IAMGE_KEY || "user/avatar/avatar.png";
 
   await db.image
     .create({
       data: {
-        key: defaultAvatarKey,
-        url: defaultAvatarUrl,
+        path: defaultAvatarKey,
+        provider: "r2",
+        mine_type: "image/png",
       },
     })
     .catch((error) => {
@@ -228,8 +223,9 @@ export default async function main() {
   await db.image
     .createMany({
       data: GENRES.map((genre) => ({
-        key: `genre/${genre.name.toLowerCase().split(" ").join("_")}.jpg`,
-        url: `${process.env.CDN_URL}/genre/${genre.name.toLowerCase().split(" ").join("_")}.jpg`,
+        path: `genre/${genre.name.toLowerCase().split(" ").join("_")}.jpg`,
+        provider: "r2",
+        mine_type: "image/jpeg",
       })),
       skipDuplicates: true,
     })

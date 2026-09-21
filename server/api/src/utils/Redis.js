@@ -57,8 +57,8 @@ const admin = () => ({ get: () => version.get("admin"), incr: () => version.incr
 
 const authors = () => ({ get: () => version.get("authors"), incr: () => version.incr("authors") });
 
-const image = (url) => {
-  const key = `image:url=${url}`;
+const image = (identifier) => {
+  const key = identifier ? `image:path=${identifier}` : "image";
   return { get: () => version.get(key), incr: () => version.incr(key) };
 };
 

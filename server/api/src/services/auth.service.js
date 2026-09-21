@@ -91,8 +91,9 @@ class AuthService {
           },
           avatar: {
             create: {
-              url: picture,
-              key: `user/avatar/${email}_google_${Date.now()}`,
+              path: picture || `user/avatar/${email}_google_${Date.now()}`,
+              provider: "r2",
+              mine_type: "image/jpeg",
             },
           },
         },

@@ -130,7 +130,7 @@ export async function AddComment({ userId, storyId, storyNodeId, title, content 
           select: {
             id: true,
             name: true,
-            avatar: { select: { url: true, height: true, width: true } },
+            avatar: { select: { id: true, path: true, height: true, width: true } },
           },
         },
       },

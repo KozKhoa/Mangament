@@ -132,7 +132,7 @@ export async function SoftDeleteImage({ id, path, url }) {
   if (!id && !imagePath) throw CreateError(400, "Require 'id' or 'path'");
 
   const softDelete = await db.image.update({
-    where: { ...(id && { id: id }), ...(imagePath && { path: imagePath }) },
+    where: id ? { id: id } : { path: imagePath },
     data: { deleted_status: "soft_deleted" },
   });
 
@@ -148,10 +148,7 @@ export async function HardDeleteImage({ id, path, url }) {
   if (!id && !imagePath) throw CreateError(400, "Require 'id' or 'path'");
 
   const image = await db.image.update({
-    where: {
-      ...(id && { id: id }),
-      ...(imagePath && { path: imagePath }),
-    },
+    where: id ? { id: id } : { path: imagePath },
     data: { deleted_status: "pending_permanent_deletion" },
     select: { id: true, path: true, provider: true },
   });
@@ -173,8 +170,7 @@ export async function HardDeleteManyImages({ ids = [], paths = [], urls = [] }) 
 
   const imageIds = await db.image.updateManyAndReturn({
     where: {
-      ...(ids && ids.length > 0 && { id: { in: ids } }),
-      ...(allPaths && allPaths.length > 0 && { path: { in: allPaths } }),
+      OR: [...(ids && ids.length > 0 ? [{ id: { in: ids } }] : []), ...(allPaths && allPaths.length > 0 ? [{ path: { in: allPaths } }] : [])],
     },
     data: { deleted_status: "pending_permanent_deletion" },
     select: { id: true, path: true, provider: true },

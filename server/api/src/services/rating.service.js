@@ -135,7 +135,7 @@ export async function AddRatings({ userId, storyId, star, title, content }) {
           content: content,
         },
 
-        include: { user: { select: { id: true, name: true, avatar: { select: { url: true, height: true, width: true } } } } },
+        include: { user: { select: { id: true, name: true, avatar: { select: { id: true, path: true, height: true, width: true } } } } },
       })
       .catch(async (error) => {
         const oldRating = await db.rating.findUnique({ where: { user_id_story_id: { story_id: storyId, user_id: userId } } });

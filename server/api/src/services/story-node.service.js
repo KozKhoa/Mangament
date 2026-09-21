@@ -305,14 +305,24 @@ export async function AddStoryNode(storyId, parentId, data) {
 export async function UpdateStoryNode(storyNodeId, data) {
   const { title, type, orderIndex, contents } = data;
 
-  const uploadImage =
-    contents && contents.length > 0
-      ? await db.image.createManyAndReturn({
-          data: contents.map((content) => ({ url: content?.image?.url, height: content?.image?.height, width: content?.image?.width })),
-        })
-      : null;
+  let createdImages = [];
+  if (contents && contents.length > 0) {
+    const imagesToCreate = contents
+      .filter((c) => c.type === "image" && !c.image?.id && (c.image?.path || c.image?.url || c.image?.key))
+      .map((c) => ({
+        path: c.image.path || c.image.url || c.image.key,
+        provider: c.image.provider || "local",
+        mine_type: c.image.mine_type || "image/jpeg",
+        width: c.image.width ? Number(c.image.width) : null,
+        height: c.image.height ? Number(c.image.height) : null,
+      }));
 
-  let uploadImageIndex = 0;
+    if (imagesToCreate.length > 0) {
+      createdImages = await db.image.createManyAndReturn({ data: imagesToCreate });
+    }
+  }
+
+  let createdImageIndex = 0;
 
   const updating = await db.storyNode
     .update({
@@ -323,12 +333,18 @@ export async function UpdateStoryNode(storyNodeId, data) {
         order_index: orderIndex,
         content: {
           createMany: {
-            data: contents.map((content) => ({
-              order_index: content.orderIndex,
-              type: content.type,
-              content: content.content,
-              ...(content.type === "image" && { image_id: uploadImage[uploadImageIndex++].id }),
-            })),
+            data: contents.map((content) => {
+              let imageId = content.image?.id;
+              if (content.type === "image" && !imageId && (content.image?.path || content.image?.url || content.image?.key)) {
+                imageId = createdImages[createdImageIndex++]?.id;
+              }
+              return {
+                order_index: content.orderIndex,
+                type: content.type,
+                content: content.content,
+                ...(imageId && { image_id: imageId }),
+              };
+            }),
           },
         },
       },
@@ -506,7 +522,7 @@ export async function FindAllStoryNodesTrash({ storyId, parentId, page = 1, limi
         select: {
           id: true,
           title: true,
-          cover_art: { select: { url: true, key: true, width: true, height: true } },
+          cover_art: { select: { id: true, path: true, width: true, height: true } },
         },
       },
 

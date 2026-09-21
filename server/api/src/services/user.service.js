@@ -57,7 +57,7 @@ export async function FindAllUser({
       join_date: true,
       role: true,
       is_banned: true,
-      avatar: { select: { id: true, path: true, width: true, height: true, size: true, mime_type: true } },
+      avatar: { select: { id: true, path: true, width: true, height: true, size: true, mine_type: true } },
     },
 
     take: limit,
@@ -100,7 +100,7 @@ export async function FindUser({ id, email }) {
       ...(id && { id: id }),
       ...(email && { email: email }),
     },
-    include: { avatar: { select: { id: true, path: true, width: true, height: true, size: true, mime_type: true } } },
+    include: { avatar: { select: { id: true, path: true, width: true, height: true, size: true, mine_type: true } } },
   });
 
   if (!user) throw CreateError(404, "User not found");
@@ -158,7 +158,23 @@ export async function UpdateUser(id, { name, birthday, gender, avatar, role }) {
         ...(birthday && { birthday: new Date(birthday) }),
         ...(gender && { gender: gender }),
         ...(role && { role: role }),
-        ...(avatar && { avatar: { connectOrCreate: { where: { url: avatar.url }, create: { url: avatar.url, key: avatar.key } } } }),
+        ...(avatar && {
+          avatar: avatar.id
+            ? { connect: { id: avatar.id } }
+            : {
+                connectOrCreate: {
+                  where: { path: avatar.path || avatar.key || avatar.url },
+                  create: {
+                    path: avatar.path || avatar.key || avatar.url,
+                    provider: avatar.provider || "r2",
+                    mine_type: avatar.mine_type || "image/jpeg",
+                    size: avatar.size ? Number(avatar.size) : 0,
+                    width: avatar.width ? Number(avatar.width) : null,
+                    height: avatar.height ? Number(avatar.height) : null,
+                  },
+                },
+              },
+        }),
       },
       select: {
         id: true,
@@ -198,8 +214,12 @@ export async function AddUser({ name, email, password }) {
 
       avatar: {
         connectOrCreate: {
-          create: { url: "https://pub-626aeddeabe146fb92f0e8ca1377235a.r2.dev/user/avatar/avatar.png" },
-          where: { url: "https://pub-626aeddeabe146fb92f0e8ca1377235a.r2.dev/user/avatar/avatar.png" },
+          create: {
+            path: "user/avatar/avatar.png",
+            provider: "r2",
+            mine_type: "image/png",
+          },
+          where: { path: "user/avatar/avatar.png" },
         },
       },
     },

@@ -53,6 +53,15 @@ const sendNewPasswordEmailWorker = new Worker(
   { connection, concurrency: 1 },
 );
 
+function getCoverArtUrl(storyCoverArt) {
+  if (!storyCoverArt) return "";
+  const path = storyCoverArt.path || storyCoverArt.key || storyCoverArt.url || "";
+  if (!path) return "";
+  if (path.startsWith("http://") || path.startsWith("https://")) return path;
+  const cleanPath = path.replace(/^\/+/, "");
+  return [process.env.CDN_URL || "", cleanPath].filter(Boolean).join("/");
+}
+
 const sendUpdateStoryStatusEmailWorker = new Worker(
   "send-update-story-status",
   async (job) => {
@@ -64,7 +73,7 @@ const sendUpdateStoryStatusEmailWorker = new Worker(
       subject: "Update Story Status",
       html: `
         <h2>Update Story Status</h2>
-        <img src="${[process.env.CDN_URL, storyCoverArt.key].join("/")}" alt="${storyTitle}"/>
+        <img src="${getCoverArtUrl(storyCoverArt)}" alt="${storyTitle}"/>
         <h2>${storyTitle}</h2>
         <h3>${success ? "Succeeded" : "Failed"}</h3>
         <p>Log: <p>
@@ -98,7 +107,7 @@ const sendNotificationWhenStoryUpdatedWorder = new Worker(
       subject: `${storyTitle} has been updated!`,
       html: `
         <h2>${storyTitle} has been updated!</h2>
-        <img src="${[process.env.CDN_URL, storyCoverArt.key].join("/")}" alt="${storyTitle}"/>
+        <img src="${getCoverArtUrl(storyCoverArt)}" alt="${storyTitle}"/>
         <p>Come here and findout more!</p>
         <a href="${[process.env.CLIENT_URL, "stories", storyType, storyTitle].join("/")}"><h2>View Story</h2></a>
       `,

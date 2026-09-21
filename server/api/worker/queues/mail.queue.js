@@ -37,7 +37,7 @@ class MailQueue {
       select: {
         user: { select: { email: true } },
         story: {
-          select: { id: true, title: true, type: true, cover_art: { select: { url: true, key: true } } },
+          select: { id: true, title: true, type: true, cover_art: { select: { id: true, path: true } } },
         },
       },
     });

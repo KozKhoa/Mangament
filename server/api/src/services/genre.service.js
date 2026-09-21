@@ -26,7 +26,7 @@ export async function GetAllGenres() {
       id: true,
       name: true,
       description: true,
-      thumbnail: { select: { url: true, key: true } },
+      thumbnail: { select: { id: true, path: true } },
     },
     orderBy: { name: "asc" },
   });
@@ -89,7 +89,7 @@ export async function GetTrendingGenres({ limit = 10, page = 1 }) {
   `;
 
   const [genres, topViewedGenres, topRatingGenres, topFavouriteGenres] = await Promise.all([
-    db.genre.findMany({ select: { id: true, name: true, description: true, thumbnail: { select: { url: true, key: true } } } }),
+    db.genre.findMany({ select: { id: true, name: true, description: true, thumbnail: { select: { id: true, path: true } } } }),
     topViewedGenresPromise,
     topRatingGenresPromise,
     topFavouriteGenresPromise,
@@ -132,8 +132,10 @@ export async function GetTrendingGenres({ limit = 10, page = 1 }) {
  * @param {Array<string>} genres
  * @param {Array<string>} descriptions
  * @param {Array<{
+ *   id?: string,
+ *   path?: string,
  *   url?: string,
- *   key: string
+ *   key?: string
  * }>} thumbnails
  * @returns
  */

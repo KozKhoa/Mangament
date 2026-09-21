@@ -56,7 +56,7 @@ export async function FindAuthor(id) {
 }
 
 export async function AddAuthor({ name, nationId, avatarId }) {
-  const author = await db.author.create({ data: { name, nationId, avatarId } });
+  const author = await db.author.create({ data: { name, nation_id: nationId, avatar_id: avatarId } });
 
   redisUtils.authors().incr();
 

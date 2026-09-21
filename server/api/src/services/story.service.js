@@ -142,7 +142,7 @@ export async function GetReview(storyId, number = 1) {
 
   const storyNodeContents = await db.storyNodeContent.findMany({
     where: { story_node_id: { in: storyNodes.map((node) => node.id) } },
-    select: { image: { select: { key: true, url: true, width: true, height: true } } },
+    select: { image: { select: { id: true, path: true, width: true, height: true } } },
     take: number,
   });
 
@@ -350,7 +350,7 @@ export async function FindAllStories({
       include: {
         authors: { select: { author: { select: { id: true, name: true } } } },
         cover_art: true,
-        nation: { select: { name: true, flag_icon: true, flag_image: { select: { url: true, height: true, width: true } } } },
+        nation: { select: { name: true, flag_icon: true, flag_image: { select: { id: true, path: true, height: true, width: true } } } },
         genres: { select: { genre: { select: { name: true } } } },
       },
     });
@@ -429,8 +429,8 @@ export async function FindStory({
     include: {
       authors: { select: { author: { select: { id: true, name: true } } } },
       genres: { select: { genre: { select: { name: true } } } },
-      cover_art: { select: { url: true, height: true, width: true } },
-      nation: { select: { name: true, flag_icon: true, flag_image: { select: { url: true, height: true, width: true } } } },
+      cover_art: { select: { id: true, path: true, height: true, width: true } },
+      nation: { select: { name: true, flag_icon: true, flag_image: { select: { id: true, path: true, height: true, width: true } } } },
     },
   });
 
@@ -506,7 +506,23 @@ export async function AddStory({ title, otherTitles, type, nation, genres, autho
           ...(nation && { nation: { connect: { name: nation.name } } }),
           ...(genres && genres.length > 0 && { genres: { createMany: { data: genresId.map((genre) => ({ genre_id: genre })) } } }),
           ...(authorIds && authorIds.length > 0 && { authors: { connectOrCreate: authorIds.map((authorId) => ({ author_id: authorId })) } }),
-          ...(coverArt && { cover_art: { connectOrCreate: { where: { url: coverArt.url }, create: { url: coverArt.url, public_id: coverArt.publicId } } } }),
+          ...(coverArt && {
+            cover_art: coverArt.id
+              ? { connect: { id: coverArt.id } }
+              : {
+                  connectOrCreate: {
+                    where: { path: coverArt.path || coverArt.key || coverArt.url },
+                    create: {
+                      path: coverArt.path || coverArt.key || coverArt.url,
+                      provider: coverArt.provider || "local",
+                      mine_type: coverArt.mine_type || "image/jpeg",
+                      width: coverArt.width ? Number(coverArt.width) : null,
+                      height: coverArt.height ? Number(coverArt.height) : null,
+                      size: coverArt.size ? Number(coverArt.size) : 0,
+                    },
+                  },
+                },
+          }),
         },
       })
       .catch(async (error) => {
@@ -616,7 +632,7 @@ export async function ActiveStory(id, isActived = true) {
     .update({
       where: { id: id, deleted_status: "not_deleted" },
       data: { is_actived: isActived },
-      include: { cover_art: { select: { url: true, height: true, width: true } } },
+      include: { cover_art: { select: { id: true, path: true, height: true, width: true } } },
     })
     .catch(async (error) => {
       const story = await db.story.findUnique({ where: { ...(id && { id: id }) }, deleted_status: "not_deleted" });
@@ -702,12 +718,21 @@ export async function UpdateStoryCoverArt(storyId, coverArt) {
       where: { id: storyId },
       data: {
         ...(coverArt && {
-          cover_art: {
-            connectOrCreate: {
-              where: { key: coverArt?.key },
-              create: { url: coverArt?.url, key: coverArt?.key, width: coverArt?.width, height: coverArt?.height },
-            },
-          },
+          cover_art: coverArt.id
+            ? { connect: { id: coverArt.id } }
+            : {
+                connectOrCreate: {
+                  where: { path: coverArt?.path || coverArt?.key || coverArt?.url },
+                  create: {
+                    path: coverArt?.path || coverArt?.key || coverArt?.url,
+                    provider: coverArt?.provider || "local",
+                    mine_type: coverArt?.mine_type || "image/jpeg",
+                    width: coverArt?.width ? Number(coverArt.width) : null,
+                    height: coverArt?.height ? Number(coverArt.height) : null,
+                    size: coverArt?.size ? Number(coverArt.size) : 0,
+                  },
+                },
+              },
         }),
       },
     })
@@ -781,7 +806,7 @@ export async function GetRecommendStories({ storyId, userId, page = 1, limit = 1
       type: true,
       view: true,
       star: true,
-      cover_art: { select: { key: true, url: true, width: true, height: true } },
+      cover_art: { select: { id: true, path: true, width: true, height: true } },
     },
   });
 

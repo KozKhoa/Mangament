@@ -107,7 +107,7 @@ const updateStoryWorker = new Worker(
       select: {
         id: true,
         title: true,
-        cover_art: { select: { url: true, key: true } },
+        cover_art: { select: { id: true, path: true } },
       },
     });
 
@@ -128,7 +128,21 @@ const updateStoryWorker = new Worker(
                 ...(nation && nation.length > 0 && { nation: { connect: { name: nation } } }),
 
                 ...(coverArt && {
-                  cover_art: { connectOrCreate: { where: { key: coverArt?.key }, create: { url: coverArt?.url, key: coverArt?.key } } },
+                  cover_art: coverArt.id
+                    ? { connect: { id: coverArt.id } }
+                    : {
+                        connectOrCreate: {
+                          where: { path: coverArt?.path || coverArt?.key || coverArt?.url },
+                          create: {
+                            path: coverArt?.path || coverArt?.key || coverArt?.url,
+                            provider: coverArt?.provider || "r2",
+                            mine_type: coverArt?.mine_type || "image/jpeg",
+                            width: coverArt?.width ? Number(coverArt.width) : null,
+                            height: coverArt?.height ? Number(coverArt.height) : null,
+                            size: coverArt?.size ? Number(coverArt.size) : 0,
+                          },
+                        },
+                      },
                 }),
 
                 ...(posterId && { poster: { connect: { id: posterId } } }),
@@ -251,13 +265,17 @@ const updateStoryWorker = new Worker(
               });
               query += `    ELSE order_index\n  END`;
 
-              const hasImage = contents.some((c) => c.image?.url);
+              const hasImage = contents.some((c) => c.image?.id || c.image?.path || c.image?.url || c.image?.key);
               if (hasImage) {
                 query += `,\n  image_id = CASE\n`;
                 contents.forEach((c) => {
-                  if (c.image?.url) {
-                    params.push(c.id, c.image.url);
-                    query += `    WHEN id = $${params.length - 1}::uuid THEN (SELECT id FROM "Image" WHERE url = $${params.length} LIMIT 1)\n`;
+                  const imgPath = c.image?.path || c.image?.key || c.image?.url;
+                  if (c.image?.id) {
+                    params.push(c.id, c.image.id);
+                    query += `    WHEN id = $${params.length - 1}::uuid THEN $${params.length}::uuid\n`;
+                  } else if (imgPath) {
+                    params.push(c.id, imgPath);
+                    query += `    WHEN id = $${params.length - 1}::uuid THEN (SELECT id FROM "Image" WHERE path = $${params.length} LIMIT 1)\n`;
                   }
                 });
                 query += `    ELSE image_id\n  END`;
