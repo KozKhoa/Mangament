@@ -10,4 +10,4 @@ COPY . .
 
 EXPOSE 5000
 
-CMD ["sh", "-c", "npx prisma generate && npm run seed && npm run start"]
+CMD ["sh", "-c", "npx prisma generate && npm run seed:prod && npm run start"]
