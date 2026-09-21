@@ -31,7 +31,7 @@ services:
 
   db:
     container_name: mangament_db
-    image: postgres:16-alpine
+    image: pgvector/pgvector:pg16
     restart: always
     env_file:
       - ./api/.env.production
