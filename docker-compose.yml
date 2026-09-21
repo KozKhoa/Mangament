@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   redis:
@@ -14,7 +14,7 @@ services:
     restart: always
     command: tunnel --no-autoupdate run
     env_file:
-      - ./server/api/.env
+      - ./server/api/.env.production
     depends_on:
       - api
 
@@ -29,11 +29,10 @@ services:
     env_file:
       - ./client/.env
 
-
   ml-service:
     container_name: mangament_ml_service
     # THAY build BẰNG image TRÊN DOCKER HUB
-    image: kozkhoa/mangament-server-ml-service:latest 
+    image: kozkhoa/mangament-server-ml-service:latest
     restart: unless-stopped
     ports:
       - "8000:8000"
@@ -51,7 +50,7 @@ services:
     ports:
       - "${PORT:-5000}:${PORT:-5000}"
     env_file:
-      - ./server/api/.env
+      - ./server/api/.env.production
     environment:
       - REDIS_URL=redis://redis:6379
       - ML_SERVICE_URL=http://ml-service:8000
@@ -68,7 +67,7 @@ services:
     image: kozkhoa/mangament-server-worker:latest
     restart: always
     env_file:
-      - ./server/api/.env
+      - ./server/api/.env.production
     environment:
       - REDIS_URL=redis://redis:6379
       - ML_SERVICE_URL=http://ml-service:8000
@@ -85,7 +84,7 @@ services:
     ports:
       - "27016:27017"
     env_file:
-      - ./server/api/.env
+      - ./server/api/.env.production
     environment:
       MONGO_INITDB_ROOT_USERNAME: admin
       MONGO_INITDB_ROOT_PASSWORD: password
