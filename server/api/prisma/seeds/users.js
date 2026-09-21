@@ -1,31 +1,32 @@
 import db from "../../configs/db.js";
 import { HashPassword } from "../../src/utils/Password.js";
 
-import { faker } from "@faker-js/faker";
-
 export default async function main() {
-  const avatar = await db.image.findUnique({ where: { key: "user/avatar/avatar.png" } });
-
   const hashedPassword = await HashPassword("111111");
 
-  const admin = { name: "khoa", email: "a@a.a", role: "admin", password: hashedPassword, avatar_id: avatar.id };
+  const admin = { name: "admin", email: "admin@gmail.com", role: "admin", password: hashedPassword };
 
-  await db.user.createMany({
-    data: [
-      admin,
-      ...Array.from({ length: 500 }).map((_, i) => {
-        const name = faker.person.lastName() + " " + faker.person.firstName();
-        const email = faker.internet.email();
+  const adminExists = await db.user.findUnique({ where: { email: admin.email } });
 
-        return {
-          name: name,
-          email: email,
-          password: hashedPassword,
-          role: i % 12 === 0 ? "admin" : "user",
-          avatar_id: avatar.id,
-        };
-      }),
-    ],
-    skipDuplicates: true,
+  if (adminExists) {
+    console.log("Admin user already exists, skipping seeding");
+    return;
+  }
+
+  await db.user.create({
+    data: {
+      name: admin.name,
+      email: admin.email,
+      role: admin.role,
+      accounts: {
+        create: {
+          provider: "email",
+          provider_account_id: admin.email,
+          password: admin.password,
+        },
+      },
+    },
   });
+
+  console.log("Admin user created successfully");
 }
