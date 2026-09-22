@@ -78,8 +78,7 @@ const mockComment: Comment = {
     role: "user",
     avatar: {
       id: "img-1",
-      key: "avatars/john.png",
-      url: "http://cdn.com/avatars/john.png",
+      path: "avatars/john.png",
     },
   },
 };

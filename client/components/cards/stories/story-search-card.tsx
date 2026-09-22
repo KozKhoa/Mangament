@@ -20,15 +20,26 @@ export default function StorySearchCard({ story, className }: { story: Story; cl
     >
       <div className={`relative aspect-2/3 rounded-sm h-full`}>
         {/* Cover art */}
-        <Image src={story?.cover_art?.url ?? ""} alt="Cover Art" width={100} height={100}></Image>
+        <Image
+          src={story?.cover_art?.path ? [process.env.NEXT_PUBLIC_CDN_URL, story?.cover_art?.path].join("/") : ""}
+          alt="Cover Art"
+          width={100}
+          height={100}
+        ></Image>
       </div>
 
       <div className="flex flex-col gap-1 w-full h-full">
         <div className="text-[1.1em] text-start font-bold leading-tight line-clamp-2">
           {story.nation && (
             <span className="inline-block mr-1.5 align-middle">
-              {story.nation.flag_image?.url ? (
-                <Image src={story.nation.flag_image.url} alt={story.nation.name} width={20} height={14} className="object-contain inline-block"></Image>
+              {story.nation.flag_image?.path ? (
+                <Image
+                  src={[process.env.NEXT_PUBLIC_CDN_URL, story.nation.flag_image.path].join("/")}
+                  alt={story.nation.name}
+                  width={20}
+                  height={14}
+                  className="object-contain inline-block"
+                ></Image>
               ) : (
                 <span className="text-[1.2rem]">{story.nation.flag_icon}</span>
               )}

@@ -314,7 +314,7 @@ export function EditStory() {
             <div className="col-span-1">
               <ImagePicker
                 className="w-full h-full"
-                defaultValue={story?.cover_art?.url}
+                defaultValue={story?.cover_art?.path ? [process.env.NEXT_PUBLIC_CDN_URL, story.cover_art.path].join("/") : ""}
                 onChange={(file) => setCoverArtFile(file as File)}
                 onReset={() => setCoverArtFile(undefined)}
               />

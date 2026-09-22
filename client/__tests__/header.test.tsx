@@ -101,7 +101,9 @@ vi.mock("@/components/buttons/dropdown/btn-dropdown", () => ({
     const [isOpen, setIsOpen] = React.useState(false);
     return (
       <div data-testid="button-dropdown">
-        <div data-testid="dropdown-label" onClick={onClick}>{label}</div>
+        <div data-testid="dropdown-label" onClick={onClick}>
+          {label}
+        </div>
         <div data-testid="dropdown-icon" onClick={() => setIsOpen(!isOpen)}>
           {icon ? icon : <svg data-testid="triangle-down-icon" />}
         </div>
@@ -213,7 +215,7 @@ describe("HeaderBar Component", () => {
       user: {
         id: "1",
         name: "Test User",
-        avatar: { key: "avatar.png" },
+        avatar: { path: "avatar.png" },
       },
     });
     render(<HeaderBar />);

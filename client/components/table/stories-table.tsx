@@ -50,7 +50,13 @@ export default function StoriesTable({ className, data }: StoriesTableProps) {
           <p>
             <span className="font-semibold">Title:</span> {story.title}
           </p>
-          <Image className="w-64 m-auto my-1 rounded-sm" src={story?.cover_art?.url ?? ""} alt="Cover art" width={300} height={300}></Image>
+          <Image
+            className="w-64 m-auto my-1 rounded-sm"
+            src={story?.cover_art?.path ? [process.env.NEXT_PUBLIC_CDN_URL, story?.cover_art?.path].join("/") : ""}
+            alt="Cover art"
+            width={300}
+            height={300}
+          ></Image>
         </div>
       ),
 
@@ -147,10 +153,10 @@ export default function StoriesTable({ className, data }: StoriesTableProps) {
               <tr key={story.id} className={`hover:bg-foreground/10 ${i % 2 === 0 ? "" : "bg-foreground/2"}`}>
                 <TD>
                   <Link href={`/stories/${story.type}/${story.id}`}>
-                    {story.cover_art?.url && (
+                    {story.cover_art?.path && (
                       <Image
                         className="w-24 m-auto my-1 hover:w-48 duration-200 rounded-sm min-w-[100px]"
-                        src={story.cover_art?.url}
+                        src={[process.env.NEXT_PUBLIC_CDN_URL, story.cover_art.path].join("/")}
                         alt={story.title}
                         width={200}
                         height={300}

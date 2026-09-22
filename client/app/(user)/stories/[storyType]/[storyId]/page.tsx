@@ -15,7 +15,7 @@ export async function generateMetadata({ params }: { params: { storyType: string
     openGraph: {
       title: story?.title,
       description: story?.summary,
-      images: story?.cover_art?.key ? [process.env.NEXT_PUBLIC_CDN_URL, story.cover_art.key].join("/") : "",
+      images: story?.cover_art?.path ? [process.env.NEXT_PUBLIC_CDN_URL, story.cover_art.path].join("/") : "",
     },
   };
 }

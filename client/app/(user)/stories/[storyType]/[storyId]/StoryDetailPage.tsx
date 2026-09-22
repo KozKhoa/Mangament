@@ -158,7 +158,7 @@ export default function StoryDetailPage() {
             <div key={i} className="border border-foreground/30 rounded-sm overflow-hidden">
               {review && (
                 <Image
-                  src={[process.env.NEXT_PUBLIC_CDN_URL, review.key].join("/")}
+                  src={[process.env.NEXT_PUBLIC_CDN_URL, review.path].join("/")}
                   alt={`review ${i}`}
                   width={300}
                   height={400}

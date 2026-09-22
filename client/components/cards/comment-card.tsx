@@ -34,7 +34,7 @@ export default function CommentCard({ comment, className, onDelete }: { comment:
         <div className="flex flex-row justify-center items-center gap-3">
           <Image
             className="rounded-full"
-            src={[process.env.NEXT_PUBLIC_CDN_URL, comment.user?.avatar?.key].join("/") ?? "/avatar.png"}
+            src={[process.env.NEXT_PUBLIC_CDN_URL, comment.user?.avatar?.path].join("/") ?? "/avatar.png"}
             alt="Avatar"
             width={32}
             height={32}

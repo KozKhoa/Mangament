@@ -155,15 +155,15 @@ export function ImageTrashPage() {
       content: (
         <div className="min-w-[350px] w-[80vw] h-[90vh] relative flex flex-col gap-1">
           <div className="relative w-full h-full">
-            <Image src={[process.env.NEXT_PUBLIC_CDN_URL, image.key].join("/")} className="object-contain m-auto" alt={image.key ?? ""} fill />
+            <Image src={[process.env.NEXT_PUBLIC_CDN_URL, image.path].join("/")} className="object-contain m-auto" alt={image.path ?? ""} fill />
           </div>
 
           <div className="w-full bg-background px-2 rounded-lg text-lg">
             <p>
-              <span className="font-semibold">URL: </span> {image.url}
+              <span className="font-semibold">URL: </span> {[process.env.NEXT_PUBLIC_CDN_URL, image.path].join("/")}
             </p>
             <p>
-              <span className="font-semibold">Key: </span> {image.key}
+              <span className="font-semibold">Key: </span> {image.path}
             </p>
           </div>
 
@@ -281,8 +281,8 @@ export function ImageTrashPage() {
                 <Image
                   className={`object-contain ${selected.has(image.id ?? "") ? "opacity-40" : ""}`}
                   onClick={(e) => handleToggleSelectedImage(image.id ?? "", e as any)}
-                  src={[process.env.NEXT_PUBLIC_CDN_URL, image.key].join("/") ?? image.url}
-                  alt={image.key ?? ""}
+                  src={[process.env.NEXT_PUBLIC_CDN_URL, image.path].join("/")}
+                  alt={image.path ?? ""}
                   width={300}
                   height={400}
                   style={{ width: "auto", height: "auto" }}

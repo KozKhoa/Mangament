@@ -39,17 +39,9 @@ export default function TrashStoryNodeCard({
         {/* Story Cover Art & Meta */}
         <div className="relative">
           <div className="shrink-0 max-w-[200px] overflow-hidden rounded-md m-auto">
-            {story?.cover_art?.key ? (
+            {story?.cover_art?.path ? (
               <Image
-                src={[process.env.NEXT_PUBLIC_CDN_URL, story.cover_art.key].join("/")}
-                alt={story.title}
-                width={200}
-                height={150}
-                className="object-cover group-hover:scale-110 transition-transform duration-300"
-              />
-            ) : story?.cover_art?.url ? (
-              <Image
-                src={story.cover_art.url}
+                src={[process.env.NEXT_PUBLIC_CDN_URL, story.cover_art.path].join("/")}
                 alt={story.title}
                 width={200}
                 height={150}

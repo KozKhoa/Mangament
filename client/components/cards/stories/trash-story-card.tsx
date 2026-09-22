@@ -1,6 +1,7 @@
 import Button from "@/components/buttons/button";
 import Story from "@/types/story";
 import { snakeCaseToCapitalizeWord } from "@/utils/string";
+import image from "next/image";
 import Image from "next/image";
 import { MouseEvent, MouseEventHandler } from "react";
 
@@ -33,7 +34,7 @@ export default function TrashStoryCard({
       >
         <Image
           className="aspect-7/10 object-contain"
-          src={story.cover_art?.key ? [process.env.NEXT_PUBLIC_CDN_URL, story.cover_art?.key].join("/") : (story.cover_art?.url ?? "/blur-image.png")}
+          src={story.cover_art?.path ? [process.env.NEXT_PUBLIC_CDN_URL, story.cover_art?.path].join("/") : "/blur-image.png"}
           width={250}
           height={250}
           alt="Cover Art"
@@ -41,8 +42,14 @@ export default function TrashStoryCard({
         <p className="text-[1.2em] text-start leading-tight font-semibold line-clamp-2">
           {story.nation && (
             <span className="inline-block mr-1.5 align-middle">
-              {story.nation.flag_image?.url ? (
-                <Image src={story.nation.flag_image.url} alt={story.nation.name} width={20} height={14} className="object-contain inline-block" />
+              {story.nation.flag_image?.path ? (
+                <Image
+                  src={[process.env.NEXT_PUBLIC_CDN_URL, story.nation.flag_image.path].join("/")}
+                  alt={story.nation.name}
+                  width={20}
+                  height={14}
+                  className="object-contain inline-block"
+                />
               ) : (
                 <span className="text-[1.2rem]">{story.nation.flag_icon}</span>
               )}

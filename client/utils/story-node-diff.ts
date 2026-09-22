@@ -28,7 +28,7 @@ export function isStoryNodeContentChanged(content1: StoryNodeContent, content2: 
   const image1 = content1.image;
   const image2 = content2.image;
   if (!!image1 !== !!image2) return true;
-  if (image1 && image2 && (image1.id !== image2.id || image1.url !== image2.url)) return true;
+  if (image1 && image2 && (image1.id !== image2.id || image1.path !== image2.path)) return true;
 
   // Check for local file changes
   if (content1.imageFile !== content2.imageFile) return true;

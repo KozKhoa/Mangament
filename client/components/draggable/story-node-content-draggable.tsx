@@ -53,7 +53,7 @@ const StoryNodeContentDraggable = React.memo(function StoryNodeContentDraggable(
   function handleUpdateContent(newContent?: File | string) {
     if (content.type === "image") {
       if (typeof newContent === "string") {
-        onChange?.({ ...content, type: "image", image: { url: newContent }, isEdited: isEdited.current });
+        onChange?.({ ...content, type: "image", image: { path: newContent }, isEdited: isEdited.current });
       } else {
         onChange?.({ ...content, type: "image", imageFile: newContent, isEdited: isEdited.current });
       }
@@ -98,8 +98,8 @@ const StoryNodeContentDraggable = React.memo(function StoryNodeContentDraggable(
           <ImagePicker
             className="h-full w-full max-w-[500px] m-auto"
             disabled={content.deleted_status !== "not_deleted"}
-            defaultValue={content.image?.url}
-            value={content.image?.url ? content.imageFile : content.imageFile ? content.imageFile : ""}
+            defaultValue={content.image?.path}
+            value={content.image?.path ? content.imageFile : content.imageFile ? content.imageFile : ""}
             onSelectMultiImage={(images) => {
               onAddManyContent?.(
                 images.map((image, i) => ({

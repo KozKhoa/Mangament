@@ -73,7 +73,7 @@ export default function StoryGenreCard({ story, className }: { story: Story; cla
         <Image
           className="aspect-7/10 object-contain rounded-sm overflow-hidden m-auto"
           onClick={handleClickStory}
-          src={story?.cover_art?.url ?? ""}
+          src={story?.cover_art?.path ? [process.env.NEXT_PUBLIC_CDN_URL, story?.cover_art?.path].join("/") : ""}
           alt="Cover Art"
           width={200}
           height={300}
@@ -98,8 +98,14 @@ export default function StoryGenreCard({ story, className }: { story: Story; cla
         <div onClick={handleClickStory} className="text-[1.2em] text-start font-bold leading-tight cursor-pointer">
           {story.nation && (
             <span className="inline-block mr-1.5 align-middle">
-              {story.nation.flag_image?.url ? (
-                <Image src={story.nation.flag_image.url} alt={story.nation.name} width={20} height={14} className="object-contain inline-block"></Image>
+              {story.nation.flag_image?.path ? (
+                <Image
+                  src={[process.env.NEXT_PUBLIC_CDN_URL, story.nation.flag_image.path].join("/")}
+                  alt={story.nation.name}
+                  width={20}
+                  height={14}
+                  className="object-contain inline-block"
+                ></Image>
               ) : (
                 <span className="text-[1.2rem]">{story.nation.flag_icon}</span>
               )}

@@ -92,7 +92,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   async function updateAvatar(avatarFile: File) {
     if (!user) return;
 
-    const newUser: User = { ...user, avatar: { file: avatarFile, url: undefined } };
+    const newUser: User = { ...user, avatar: { file: avatarFile, path: undefined } };
 
     setLoading(true);
     const res = await userService.updateUser(newUser);
@@ -104,8 +104,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
 
     newUser.avatar = {
-      url: res.data?.avatar?.key ? [process.env.NEXT_PUBLIC_CDN_URL, res.data?.avatar?.key].join("/") : res.data?.avatar?.url,
-      key: res.data?.avatar?.key,
+      path: res.data?.avatar?.path,
     };
 
     setUser(newUser);

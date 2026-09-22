@@ -395,10 +395,10 @@ export default function ReadingStoryPage() {
                 }
                 className={`flex flex-col justify-center items-center w-full text-foreground/80 ${con.type === "image" ? "" : `px-1`}`}
               >
-                {con.type === "image" && con?.image?.url ? (
+                {con.type === "image" && con?.image?.path ? (
                   <Image
                     className="max-w-[1200px]"
-                    src={con.image?.url}
+                    src={[process.env.NEXT_PUBLIC_CDN_URL, con.image?.path].join("/")}
                     alt="Cover Art"
                     width={1200}
                     height={1800}
