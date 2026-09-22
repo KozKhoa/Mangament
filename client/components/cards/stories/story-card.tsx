@@ -85,9 +85,16 @@ export default function StoryCard({ data, className }: StoryCardProps) {
       <div className={`relative rounded-sm w-full h-fit cursor-pointer`}>
         {/* Cover art */}
         <div className="rounded-sm overflow-hidden">
-          {story.cover_art?.url && (
+          {story.cover_art?.path && (
             <Link href={hrefStory}>
-              <Image className="aspect-7/10 object-contain m-auto" src={story.cover_art?.url} alt="Cover Art" width={300} height={300} priority />
+              <Image
+                className="aspect-7/10 object-contain m-auto"
+                src={[(process.env.NEXT_PUBLIC_API_URL, story.cover_art?.path)].join("/")}
+                alt="Cover Art"
+                width={300}
+                height={300}
+                priority
+              />
             </Link>
           )}
         </div>
@@ -120,8 +127,14 @@ export default function StoryCard({ data, className }: StoryCardProps) {
         <Link href={hrefStory} prefetch className="text-[1.2em] text-start font-bold leading-tight cursor-pointer line-clamp-2">
           {story.nation && (
             <span className="inline-block mr-1.5 align-middle">
-              {story.nation.flag_image?.url ? (
-                <Image src={story.nation.flag_image.url} alt={story.nation.name} width={20} height={14} className="object-contain inline-block" />
+              {story.nation.flag_image?.path ? (
+                <Image
+                  src={[(process.env.NEXT_PUBLIC_API_URL, story.nation.flag_image?.path)].join("/")}
+                  alt={story.nation.name}
+                  width={20}
+                  height={14}
+                  className="object-contain inline-block"
+                />
               ) : (
                 <span className="text-[1.2rem]">{story.nation.flag_icon}</span>
               )}

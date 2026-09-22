@@ -162,7 +162,7 @@ export default function Home() {
             <Link href={`/genre/${genre.name}`}>
               <CategoryCard
                 className="m-auto hover:scale-110 hover:z-10"
-                imageSource={[process.env.NEXT_PUBLIC_CDN_URL, genre.thumbnail?.key].join("/")}
+                imageSource={[process.env.NEXT_PUBLIC_CDN_URL, genre.thumbnail?.path].join("/")}
                 label={`${genre.name.toUpperCase()}`}
               ></CategoryCard>
             </Link>

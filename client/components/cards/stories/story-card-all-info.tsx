@@ -38,13 +38,7 @@ export default function StoryCardAllInfo({ story, className }: StoryCardAllInfoP
           <div className="w-full min-w-[100] md:row-span-2 flex justify-center m-auto">
             <Image
               className="object-cover rounded-sm justify-center"
-              src={
-                story.cover_art?.key
-                  ? [(process.env.NEXT_PUBLIC_API_URL, story.cover_art?.key)].join("/")
-                  : story.cover_art?.url
-                    ? story.cover_art?.url
-                    : "/blur-image.png"
-              }
+              src={story.cover_art?.path ? [(process.env.NEXT_PUBLIC_API_URL, story.cover_art?.path)].join("/") : "/blur-image.png"}
               alt="Cover Art"
               width={500}
               height={500}
@@ -57,9 +51,9 @@ export default function StoryCardAllInfo({ story, className }: StoryCardAllInfoP
             <h2 className="flex flex-row items-center gap-1.5 font-bold leading-tight text-xl">
               {story?.nation && (
                 <span className="shrink-0">
-                  {story.nation.flag_image?.key ? (
+                  {story.nation.flag_image?.path ? (
                     <Image
-                      src={[(process.env.NEXT_PUBLIC_API_URL, story.nation.flag_image.key)].join("/")}
+                      src={[(process.env.NEXT_PUBLIC_API_URL, story.nation.flag_image?.path)].join("/")}
                       alt={story.nation.name}
                       width={24}
                       height={16}
