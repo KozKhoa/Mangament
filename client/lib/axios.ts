@@ -4,7 +4,7 @@ import * as token from "@/lib/token";
 
 // Create instance
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL,
+  baseURL: process.env.NEXT_PUBLIC_CDN_URL,
   timeout: 30000,
 });
 
@@ -61,7 +61,7 @@ api.interceptors.response.use(
       try {
         // Call api refresh token
         const res = await axios.post(
-          `${process.env.NEXT_PUBLIC_API_URL}/auth/refresh`,
+          `${process.env.NEXT_PUBLIC_CDN_URL}/auth/refresh`,
           {},
           {
             withCredentials: true,
