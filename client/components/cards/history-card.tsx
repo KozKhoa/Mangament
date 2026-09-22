@@ -70,7 +70,7 @@ export default function HistoryCard({ history, onClickRemove, className }: { his
           <Image
             className="aspect-7/10 object-contain rounded-sm overflow-hidden m-auto"
             onClick={() => navigateToStoryNode()}
-            src={[process.env.NEXT_PUBLIC_CDN_URL, story?.cover_art?.path].join("/")}
+            src={[process.env.NEXT_PUBLIC_CDN_URL, story?.cover_art?.path].join("")}
             alt="Cover Art"
             width={200}
             height={300}
@@ -95,7 +95,7 @@ export default function HistoryCard({ history, onClickRemove, className }: { his
               <span className="inline-block mr-1.5 align-middle">
                 {story.nation.flag_image?.path ? (
                   <Image
-                    src={[process.env.NEXT_PUBLIC_CDN_URL, story.nation.flag_image.path].join("/")}
+                    src={[process.env.NEXT_PUBLIC_CDN_URL, story.nation.flag_image.path].join("")}
                     alt={story.nation.name}
                     width={20}
                     height={14}

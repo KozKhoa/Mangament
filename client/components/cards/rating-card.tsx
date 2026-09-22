@@ -24,7 +24,7 @@ export default function RatingCard({ className, rating }: { rating: Rating; clas
           {rating.user?.avatar?.path && (
             <Image
               className="rounded-full"
-              src={[process.env.NEXT_PUBLIC_CDN_URL, rating.user.avatar.path].join("/")}
+              src={[process.env.NEXT_PUBLIC_CDN_URL, rating.user.avatar.path].join("")}
               alt="Avatar"
               width={32}
               height={32}

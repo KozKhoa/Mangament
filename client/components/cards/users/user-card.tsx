@@ -22,7 +22,7 @@ export default function UserCard({ className }: { className?: string }) {
   const auth = useAuth();
   const user = auth?.user;
 
-  const [image, setImage] = useState([process.env.NEXT_PUBLIC_CDN_URL, user?.avatar?.path].join("/"));
+  const [image, setImage] = useState([process.env.NEXT_PUBLIC_CDN_URL, user?.avatar?.path].join(""));
 
   function handleEditAvatar(imageFile: File) {
     const url = URL.createObjectURL(imageFile);
@@ -53,7 +53,7 @@ export default function UserCard({ className }: { className?: string }) {
   }
 
   useEffect(() => {
-    setImage([process.env.NEXT_PUBLIC_CDN_URL, user?.avatar?.path].join("/"));
+    setImage([process.env.NEXT_PUBLIC_CDN_URL, user?.avatar?.path].join(""));
   }, [user?.avatar]);
 
   useEffect(() => {

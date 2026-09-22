@@ -24,7 +24,7 @@ export function GenrePagerCard({ genre, className }: { genre: Genre; className?:
         <Link href={`/genre/${genre.name}`}>
           <Image
             className="w-full aspect-3/2"
-            src={[process.env.NEXT_PUBLIC_CDN_URL, genre.thumbnail?.path].join("/")}
+            src={[process.env.NEXT_PUBLIC_CDN_URL, genre.thumbnail?.path].join("")}
             alt={genre.name}
             width={200}
             height={150}

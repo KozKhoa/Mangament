@@ -37,7 +37,7 @@ export default function StoryInfoCard({ story, className }: StoryInfoCardProps) 
           <span className="inline-block mr-1.5 align-middle">
             {story.nation.flag_image?.path ? (
               <Image
-                src={[process.env.NEXT_PUBLIC_CDN_URL, story.nation.flag_image.path].join("/")}
+                src={[process.env.NEXT_PUBLIC_CDN_URL, story.nation.flag_image.path].join("")}
                 alt={story.nation.name}
                 width={28}
                 height={20}

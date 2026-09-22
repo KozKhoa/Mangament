@@ -23,7 +23,7 @@ export async function generateMetadata({ params }: { params: { storyType: string
     openGraph: {
       title: `${snakeCaseToCapitalizeWord(storyNode.type)} ${storyNode?.order_index} - ${story?.title}`,
       description: story?.summary,
-      images: story?.cover_art?.path ? [process.env.NEXT_PUBLIC_CDN_URL, story.cover_art.path].join("/") : "",
+      images: story?.cover_art?.path ? [process.env.NEXT_PUBLIC_CDN_URL, story.cover_art.path].join("") : "",
     },
   };
 }

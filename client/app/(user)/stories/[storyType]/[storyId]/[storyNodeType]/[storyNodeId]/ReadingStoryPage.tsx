@@ -398,7 +398,7 @@ export default function ReadingStoryPage() {
                 {con.type === "image" && con?.image?.path ? (
                   <Image
                     className="max-w-[1200px]"
-                    src={[process.env.NEXT_PUBLIC_CDN_URL, con.image?.path].join("/")}
+                    src={[process.env.NEXT_PUBLIC_CDN_URL, con.image?.path].join("")}
                     alt="Cover Art"
                     width={1200}
                     height={1800}

@@ -21,7 +21,7 @@ export default function StorySearchCard({ story, className }: { story: Story; cl
       <div className={`relative aspect-2/3 rounded-sm h-full`}>
         {/* Cover art */}
         <Image
-          src={story?.cover_art?.path ? [process.env.NEXT_PUBLIC_CDN_URL, story?.cover_art?.path].join("/") : ""}
+          src={story?.cover_art?.path ? [process.env.NEXT_PUBLIC_CDN_URL, story?.cover_art?.path].join("") : ""}
           alt="Cover Art"
           width={100}
           height={100}
@@ -34,7 +34,7 @@ export default function StorySearchCard({ story, className }: { story: Story; cl
             <span className="inline-block mr-1.5 align-middle">
               {story.nation.flag_image?.path ? (
                 <Image
-                  src={[process.env.NEXT_PUBLIC_CDN_URL, story.nation.flag_image.path].join("/")}
+                  src={[process.env.NEXT_PUBLIC_CDN_URL, story.nation.flag_image.path].join("")}
                   alt={story.nation.name}
                   width={20}
                   height={14}
