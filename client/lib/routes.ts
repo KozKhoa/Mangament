@@ -1,11 +1,10 @@
 export const routes = {
-  storyNode: (params?: { storyType?: string; storyId?: string; storyNodeType?: string; storyNodeId?: string }) => {
+  storyNode: (params?: { storyType?: string; storyId?: string; storyNodeId?: string }) => {
     // Format: stories/storyType/storyId/storyNodeType/storyNodeId
     const dir: string[] = ["/stories"];
 
     if (params?.storyType) dir.push(params.storyType);
     if (params?.storyId) dir.push(params.storyId);
-    if (params?.storyNodeType) dir.push(params.storyNodeType);
     if (params?.storyNodeId) dir.push(params.storyNodeId);
 
     return dir.join("/");

@@ -49,7 +49,7 @@ export default function HistoryCard({ history, onClickRemove, className }: { his
 
   function navigateToStoryNode() {
     if (!story?.id || !story?.type) return;
-    router.push(routes.storyNode({ storyType: story.type, storyId: story.id, storyNodeType: history.story_node?.type, storyNodeId: history.story_node?.id }));
+    router.push(routes.storyNode({ storyType: story.type, storyId: story.id, storyNodeId: history.story_node?.id }));
   }
 
   function navigateToStory() {

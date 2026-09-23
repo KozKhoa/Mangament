@@ -70,7 +70,7 @@ export default function StoryDetailPage() {
 
     loadingBar.open({});
 
-    router.push(routes.storyNode({ storyType: story?.type, storyId: story?.id, storyNodeType: storyNode.type, storyNodeId: storyNode.id }));
+    router.push(routes.storyNode({ storyType: story?.type, storyId: story?.id, storyNodeId: storyNode.id }));
   }
 
   useEffect(() => {

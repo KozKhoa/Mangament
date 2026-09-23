@@ -12,7 +12,10 @@ export function ModalRoot() {
   useEffect(() => modal.subscribe(setStack), []);
 
   useEffect(() => {
-    if (stack.length === 0) return;
+    if (stack.length === 0) {
+      document.body.style.overflow = "";
+      return;
+    }
 
     const onEsc = (e: KeyboardEvent) => {
       if (e.key === "Escape") modal.close();
@@ -23,17 +26,28 @@ export function ModalRoot() {
 
     return () => {
       document.removeEventListener("keydown", onEsc);
-      document.body.style.overflow = "";
     };
   }, [stack.length]);
 
-  if (stack.length === 0) return null;
+  useEffect(() => {
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, []);
 
   return (
     <AnimatePresence>
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.1, ease: "linear" }}>
-        {stack.map((m, index) => (
-          <Modal key={m.id} zIndex={50 + index} onClickOutside={m.props?.onClickOutside}>
+      {stack.map((m, index) => (
+        <motion.div
+          key={m.id}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.15, ease: "easeOut" }}
+          className="fixed inset-0 pointer-events-auto"
+          style={{ zIndex: 50 + index }}
+        >
+          <Modal onClickOutside={m.props?.onClickOutside}>
             {m.type === "confirm" && (
               <ConfirmModal
                 title={m.props?.title ?? ""}
@@ -50,8 +64,8 @@ export function ModalRoot() {
 
             {m.type === "custom" && <div>{m.props?.content}</div>}
           </Modal>
-        ))}
-      </motion.div>
+        </motion.div>
+      ))}
     </AnimatePresence>
   );
 }

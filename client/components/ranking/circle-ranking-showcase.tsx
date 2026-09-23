@@ -203,7 +203,7 @@ export default function CircleRankingShowcase({
             aria-label="Truyện trước"
             className="w-5 h-5 rounded-lg flex items-center justify-center font-bold text-foreground transition-all cursor-pointer"
           >
-            <ArrowLeftIcon />
+            <ArrowLeftIcon className="w-5 h-5" />
           </button>
           <span className="text-md font-bold text-foreground/70 min-w-10 text-center">
             {activeRank} / {totalItems}
@@ -213,7 +213,7 @@ export default function CircleRankingShowcase({
             aria-label="Truyện tiếp theo"
             className="w-5 h-5 rounded-lg flex items-center justify-center font-bold text-foreground transition-all cursor-pointer"
           >
-            <ArrowRightIcon />
+            <ArrowRightIcon className="w-5 h-5" />
           </button>
         </div>
       </div>

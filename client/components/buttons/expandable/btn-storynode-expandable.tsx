@@ -50,10 +50,10 @@ export default function ButtonStoryNodeExpandable({ onClick, storyNode, classNam
       <AnimatePresence>
         {open && storyNode.children && storyNode.children.length > 0 && (
           <motion.div
-            initial={{ height: 0 }}
-            animate={{ height: "fit-content" }}
-            exit={{ height: 0 }}
-            transition={{ duration: 0.1, ease: "linear" }}
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.15, ease: "easeOut" }}
             className="pl-4 sm:pl-5 md:pl-6 w-full h-fit"
           >
             <div

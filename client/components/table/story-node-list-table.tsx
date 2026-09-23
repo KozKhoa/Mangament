@@ -24,17 +24,15 @@ interface ButtonStoryNodeExpandableProps {
   targetStoryNodeId?: string;
 }
 
-const ButtonStoryNodeExpandable = React.memo(({ index, onClick, storyNode, className, targetStoryNodeId }: ButtonStoryNodeExpandableProps) => {
-  const [open, setOpen] = useState<boolean>(false);
-  const containerRef = React.useRef<HTMLDivElement>(null);
-
-  React.useEffect(() => {
-    if (!targetStoryNodeId) return;
-
-    if (storyNode.id === targetStoryNodeId) {
-      containerRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-    }
-
+const ButtonStoryNodeExpandable = React.memo(function ButtonStoryNodeExpandable({
+  index,
+  onClick,
+  storyNode,
+  className,
+  targetStoryNodeId,
+}: ButtonStoryNodeExpandableProps) {
+  const containsTarget = React.useMemo(() => {
+    if (!targetStoryNodeId || !storyNode.children) return false;
     const checkContainsTarget = (children?: StoryNode[]): boolean => {
       if (!children) return false;
       for (const child of children) {
@@ -43,16 +41,54 @@ const ButtonStoryNodeExpandable = React.memo(({ index, onClick, storyNode, class
       }
       return false;
     };
+    return checkContainsTarget(storyNode.children);
+  }, [targetStoryNodeId, storyNode.children]);
 
-    if (checkContainsTarget(storyNode.children)) {
+  const [open, setOpen] = useState<boolean>(() => containsTarget);
+  const containerRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    if (containsTarget) {
       setOpen(true);
     }
-  }, [targetStoryNodeId, storyNode.id, storyNode.children]);
+  }, [containsTarget]);
+
+  React.useEffect(() => {
+    if (!targetStoryNodeId || storyNode.id !== targetStoryNodeId) return;
+
+    const el = containerRef.current;
+    if (!el) return;
+
+    const frameId = requestAnimationFrame(() => {
+      let parent = el.parentElement;
+      let scrollContainer: HTMLElement | null = null;
+
+      while (parent && parent !== document.body && parent !== document.documentElement) {
+        const style = window.getComputedStyle(parent);
+        if (style.overflowY === "auto" || style.overflowY === "scroll") {
+          scrollContainer = parent;
+          break;
+        }
+        parent = parent.parentElement;
+      }
+
+      if (scrollContainer) {
+        const containerRect = scrollContainer.getBoundingClientRect();
+        const elRect = el.getBoundingClientRect();
+        const offsetTop = elRect.top - containerRect.top + scrollContainer.scrollTop;
+        const targetScrollTop = offsetTop - containerRect.height / 2 + elRect.height / 2;
+
+        scrollContainer.scrollTop = Math.max(0, targetScrollTop);
+      }
+    });
+
+    return () => cancelAnimationFrame(frameId);
+  }, [targetStoryNodeId, storyNode.id]);
 
   const isTarget = storyNode.id === targetStoryNodeId;
 
   return (
-    <div ref={containerRef} className={`flex flex-col w-full h-fit overflow-hidden transition-all duration-100 animate-fade-in`}>
+    <div ref={containerRef} className="flex flex-col w-full h-fit overflow-hidden">
       {/* Label*/}
       <div
         className={`flex flex-row justify-between items-center px-2 py-2 w-full cursor-pointer
@@ -85,22 +121,19 @@ const ButtonStoryNodeExpandable = React.memo(({ index, onClick, storyNode, class
       </div>
 
       {/* List of sub story node */}
-      <AnimatePresence>
+      <AnimatePresence initial={false}>
         {open && storyNode.children && storyNode.children.length > 0 && (
           <motion.div
-            initial={{ height: 0 }}
-            animate={{ height: "fit-content" }}
-            exit={{ height: 0 }}
-            transition={{ duration: 0.1, ease: "linear" }}
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.15, ease: "easeOut" }}
             className="pl-4 sm:pl-5 md:pl-6 w-full h-fit mb-1"
           >
-            <div
-              className={`flex w-full h-fit max-h-[700] overflow-y-auto custom-scrollbar
-                border-b border-l border-foreground rounded-bl-md overflow-hidden`}
-            >
+            <div className="flex w-full h-fit border-b border-l border-foreground rounded-bl-md overflow-hidden">
               <div className="flex flex-col justify-center items-start w-full h-fit">
                 {storyNode.children.map((child, i) => (
-                  <div key={i} className={`flex justify-start items-center w-full h-fit`}>
+                  <div key={child.id ?? i} className={`flex justify-start items-center w-full h-fit`}>
                     <ButtonStoryNodeExpandable
                       className={`${i === (storyNode?.children?.length ?? 0) - 1 ? "" : "border-b border-foreground"}`}
                       index={i}
@@ -125,18 +158,18 @@ export default function StoryNodeList({ storyNodes, onClickItem, className, targ
   }
 
   return (
-    <div className={`flex flex-col border border-foreground/30 rounded-sm px-2.5 py-2 h-fit ${className}`}>
+    <div className={`flex flex-col border border-foreground/30 rounded-sm px-2.5 py-2 ${className ?? "h-fit"}`}>
       {!storyNodes ? (
         <Loading className="w-full h-64"></Loading>
       ) : (
-        <div className="w-full">
-          <div className="flex flex-row items-center justify-between px-2 pb-1.5 border-b border-foreground text-[1.1em] font-bold w-full">
+        <div className="w-full flex flex-col flex-1 min-h-0">
+          <div className="flex flex-row items-center justify-between px-2 pb-1.5 border-b border-foreground text-[1.1em] font-bold w-full shrink-0">
             <div className="flex-1 text-left">Title</div>
             <div className="md:w-28 shrink-0 text-end pr-2">View</div>
             <div className="md:w-28 shrink-0 text-end">Date</div>
           </div>
 
-          <div className="w-full overflow-y-auto max-h-[70vh] custom-scrollbar">
+          <div className="w-full overflow-y-auto max-h-[65vh] flex-1 custom-scrollbar">
             <div className="flex flex-col py-2 w-full h-fit">
               {storyNodes?.map((node, i) => (
                 <ButtonStoryNodeExpandable

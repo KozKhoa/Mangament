@@ -204,16 +204,24 @@ export default function ReadingStoryPage() {
 
     modal.close();
 
-    router.push(routes.storyNode({ storyType: story?.type, storyId: story?.id, storyNodeType: storyNode?.type, storyNodeId: storyNode?.id }));
+    router.push(routes.storyNode({ storyType: story?.type, storyId: story?.id, storyNodeId: storyNode?.id }));
   }
 
   function handleOpenStoryNodeList() {
     modal.open("custom", {
       content: (
-        <div className="min-w-[350px] w-[80vw] h-[80vh] flex flex-col gap-2 justify-between">
-          <StoryNodeList onClickItem={handleNavigateStoryNode} storyNodes={story?.children} size={story?.number_of_children} targetStoryNode={storyNode} />
+        <div className="min-w-[320px] w-[80vw] max-w-4xl h-[75vh] flex flex-col gap-3">
+          <div className="flex-1 min-h-0 overflow-hidden">
+            <StoryNodeList
+              className="h-full"
+              onClickItem={handleNavigateStoryNode}
+              storyNodes={story?.children}
+              size={story?.number_of_children}
+              targetStoryNode={storyNode}
+            />
+          </div>
 
-          <Button buttonType="default" onClick={() => modal.close()} className="my-2 ml-auto">
+          <Button buttonType="default" onClick={() => modal.close()} className="shrink-0 ml-auto">
             Đóng
           </Button>
         </div>

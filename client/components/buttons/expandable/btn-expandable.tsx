@@ -1,5 +1,4 @@
-import Image from "next/image";
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import React from "react";
 
@@ -29,7 +28,7 @@ function ButtonExpandable({
   }
 
   function handleClick() {
-    onClick && onClick();
+    onClick?.();
   }
 
   return (
@@ -55,10 +54,10 @@ function ButtonExpandable({
       <AnimatePresence>
         {open && (
           <motion.div
-            initial={{ height: 0 }}
-            animate={{ height: "fit-content" }}
-            exit={{ height: 0 }}
-            transition={{ duration: duration / 1000, ease: "linear" }}
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: Math.max(0.1, duration / 1000), ease: "easeOut" }}
             className={`flex pl-5 md:pl-7 w-full h-fit `}
           >
             <div

@@ -64,14 +64,7 @@ export default function ContinueReadingCard({ history, onClickRemove, className 
 
   function navigateToStoryNode() {
     if (!story?.id || !story?.type || !currentChapter?.id) return;
-    router.push(
-      routes.storyNode({
-        storyType: story.type,
-        storyId: story.id,
-        storyNodeType: currentChapter.type || "chapter",
-        storyNodeId: currentChapter.id,
-      }),
-    );
+    router.push(routes.storyNode({ storyType: story.type, storyId: story.id, storyNodeId: currentChapter.id }));
   }
 
   function navigateToStory(e?: React.MouseEvent) {
@@ -104,13 +97,13 @@ export default function ContinueReadingCard({ history, onClickRemove, className 
   return (
     <div
       onClick={navigateToStoryNode}
-      className={`group relative flex flex-row overflow-hidden rounded-lg border-foreground/15 
+      className={`group relative flex flex-row items-stretch overflow-hidden rounded-lg border-foreground/15 
         bg-background-items text-foreground shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer
         w-full min-h-[220px] sm:min-h-[240px] md:min-h-[260px] lg:min-h-[270px]
         md:aspect-[2/1] ${className}`}
     >
       {/* CỘT TRÁI: COVER ART (Chiếm ~35% chiều rộng, kích thước to rõ, tỉ lệ chuẩn bìa truyện) */}
-      <div className="relative h-full w-[35%] sm:w-[33%] md:w-[35%] shrink-0 overflow-hidden bg-foreground/5">
+      <div className="relative self-stretch w-[35%] sm:w-[33%] md:w-[35%] shrink-0 overflow-hidden bg-foreground/5 min-h-[220px] sm:min-h-[240px] md:min-h-[260px] lg:min-h-[270px]">
         {story?.cover_art?.path ? (
           <Image
             src={[process.env.NEXT_PUBLIC_CDN_URL, story.cover_art.path].join("")}
@@ -120,7 +113,7 @@ export default function ContinueReadingCard({ history, onClickRemove, className 
             className="object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-xs text-foreground/40 italic">Không có ảnh</div>
+          <div className="absolute inset-0 flex items-center justify-center text-xs text-foreground/40 italic">Không có ảnh</div>
         )}
 
         {/* Gradient bóng đổ chân ảnh */}
@@ -157,7 +150,7 @@ export default function ContinueReadingCard({ history, onClickRemove, className 
       </div>
 
       {/* CỘT PHẢI: THÔNG TIN TRUYỆN & TIẾN TRÌNH (Chiếm ~65% chiều rộng, layout thông thoáng không chồng lấn) */}
-      <div className="flex flex-col justify-between p-3.5 sm:p-4 md:p-5 w-[65%] sm:w-[67%] md:w-[65%] h-full gap-2 overflow-hidden">
+      <div className="flex flex-col justify-between p-3.5 sm:p-4 md:p-5 w-[65%] sm:w-[67%] md:w-[65%] self-stretch gap-2 overflow-hidden">
         {/* Hàng 1: Thời gian & Nút xoá khỏi lịch sử */}
         <div className="flex items-center justify-between text-xs text-foreground/60 w-full shrink-0">
           <span className="italic truncate max-w-[80%] font-medium">{formatRelativeTime(history?.updated_at)}</span>
