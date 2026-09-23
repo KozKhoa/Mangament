@@ -64,11 +64,11 @@ const mockStory: Story = {
   status: "ongoing",
   view: 1000,
   star: 4.5,
-  cover_art: { url: "https://example.com/cover.jpg" },
+  cover_art: { path: "https://example.com/cover.jpg" },
   nation: {
     name: "Japan",
     flag_icon: "🇯🇵",
-    flag_image: { url: "https://example.com/flag.png" }
+    flag_image: { path: "https://example.com/flag.png" },
   },
   newest_chapter: [
     {
@@ -76,8 +76,8 @@ const mockStory: Story = {
       type: "chapter",
       order_index: 10,
       created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
-      children: []
-    } as any
+      children: [],
+    } as any,
   ],
   children: [],
 };
@@ -111,7 +111,7 @@ describe("StoryCard Component", () => {
 
   it("shows warning toast when trying to favourite while not logged in", () => {
     render(<StoryCard data={mockStory} />);
-    
+
     const favButton = screen.getByRole("button");
     fireEvent.click(favButton);
 
@@ -126,16 +126,16 @@ describe("StoryCard Component", () => {
     });
 
     render(<StoryCard data={mockStory} />);
-    
+
     const favButton = screen.getByRole("button");
     fireEvent.click(favButton);
 
     expect(favouriteService.addNewFavouriteStory).toHaveBeenCalledWith("story-1");
-    
+
     await waitFor(() => {
       expect(toast.message).toHaveBeenCalledWith("Đã thêm Test Story vào danh sách yêu thích");
     });
-    
+
     // Check if heart icon is filled
     const heartIcon = screen.getByTestId("heart-icon");
     expect(heartIcon.className).toContain("fill-red-400");
@@ -152,16 +152,16 @@ describe("StoryCard Component", () => {
     });
 
     render(<StoryCard data={favouritedStory} />);
-    
+
     const favButton = screen.getByRole("button");
-    
+
     // Heart should be filled initially
     expect(screen.getByTestId("heart-icon").className).toContain("fill-red-400");
 
     fireEvent.click(favButton);
 
     expect(favouriteService.removeFavouriteStory).toHaveBeenCalledWith("fav-1");
-    
+
     await waitFor(() => {
       expect(toast.message).toHaveBeenCalledWith("Đã xóa Test Story khỏi danh sách yêu thích");
     });
@@ -172,7 +172,7 @@ describe("StoryCard Component", () => {
 
   it("shows loading spinner while processing favourite toggle", async () => {
     (useAuth as any).mockReturnValue({ user: { id: "user-1" } });
-    
+
     // Make service hang
     let resolvePromise: any;
     const promise = new Promise((resolve) => {
@@ -181,7 +181,7 @@ describe("StoryCard Component", () => {
     (favouriteService.addNewFavouriteStory as any).mockReturnValue(promise);
 
     render(<StoryCard data={mockStory} />);
-    
+
     const favButton = screen.getByRole("button");
     fireEvent.click(favButton);
 
@@ -190,7 +190,7 @@ describe("StoryCard Component", () => {
 
     // Finish the request
     resolvePromise({ success: true, data: { id: "fav-2" } });
-    
+
     await waitFor(() => {
       expect(screen.queryByTestId("loading-spinner")).not.toBeInTheDocument();
     });

@@ -47,7 +47,7 @@ const mockStory: Story = {
   view: 5000,
   star: 4.8,
   summary: "This is a test summary for the story.",
-  cover_art: { url: "https://example.com/cover-all.jpg" },
+  cover_art: { path: "https://example.com/cover-all.jpg" },
   nation: {
     name: "Korea",
     flag_icon: "🇰🇷",

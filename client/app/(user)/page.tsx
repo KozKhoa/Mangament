@@ -21,11 +21,11 @@ import ContinueReadingBar from "@/components/list/continue-reading-bar";
 import InfinityScrollHorizontalList from "@/components/list/infinity-scroll-horizontal-list";
 import CategoryCard from "@/components/cards/categories/category-card";
 import StoryCard from "@/components/cards/stories/story-card";
-import RankingCard from "@/components/cards/ranking-card";
 import SwitchPageBig from "@/components/switch-page/big";
 import Loading from "@/components/loadings/loading";
 import Link from "@/components/link/Link";
 import RankingVerticalCard from "@/components/cards/ranking-vertical-card";
+import CircleRankingShowcase from "@/components/ranking/circle-ranking-showcase";
 
 const MAX_TRENDING_GENRES = 5;
 const NEWEST_STORIES_PER_PAGE = 18; // 18 truyện: chia hết cho 2, 3, 6 để lưới hiển thị luôn đồng đều
@@ -42,6 +42,8 @@ export default function Home() {
   const [loadingNewest, setLoadingNewest] = useState(false);
 
   const [bestRankingStories, setBestRankingStories] = useState<Story[]>([]);
+  const [mostViewedStories, setMostViewedStories] = useState<Story[]>([]);
+  const [loadingMostViewed, setLoadingMostViewed] = useState(false);
   const [trendingGenres, setTrendingGenres] = useState<{ genre: Genre; score: number }[]>([]);
 
   async function removeHistory(history: History) {
@@ -78,8 +80,9 @@ export default function Home() {
 
     async function loadInitialData() {
       setLoadingNewest(true);
+      setLoadingMostViewed(true);
       try {
-        const [newestRes, rankingRes, genresRes] = await Promise.all([
+        const [newestRes, rankingRes, mostViewedRes, genresRes] = await Promise.all([
           storyService.getStories({
             page: 1,
             limit: NEWEST_STORIES_PER_PAGE,
@@ -90,6 +93,11 @@ export default function Home() {
             page: 1,
             limit: 10,
             sort: "star:desc",
+          }),
+          storyService.getStories({
+            page: 1,
+            limit: 10,
+            sort: "view:desc",
           }),
           genreService.getTrendingGenres({ page: 1, limit: MAX_TRENDING_GENRES }),
         ]);
@@ -107,6 +115,10 @@ export default function Home() {
           setBestRankingStories(rankingRes.data ?? []);
         }
 
+        if (mostViewedRes?.success) {
+          setMostViewedStories(mostViewedRes.data ?? []);
+        }
+
         if (genresRes?.success) {
           setTrendingGenres(genresRes.data ?? []);
         }
@@ -115,6 +127,7 @@ export default function Home() {
       } finally {
         if (isMounted) {
           setLoadingNewest(false);
+          setLoadingMostViewed(false);
           loadingBar.close();
         }
       }
@@ -132,7 +145,7 @@ export default function Home() {
     let isMounted = true;
 
     async function loadHistories() {
-      const res = await historyService.getHistories({ ...DEFAULT.params, page: 1, limit: 20 });
+      const res = await historyService.getHistories({ ...DEFAULT.params, page: 1, limit: 10 });
       if (!isMounted) return;
       if (!res) return toast.warning("Server error");
       if (!res.success) return toast.warning(res.message);
@@ -160,7 +173,15 @@ export default function Home() {
         />
       )}
 
-      {/* 2. Best ranking stories (Thay thế StoriesRankingList) */}
+      {/* 2. Top 8 Truyện Xem Nhiều Nhất (Biểu đồ tròn 8 phần & Story Card) */}
+      <CircleRankingShowcase
+        label="Top 8 Xem Nhiều Nhất"
+        subLabel="Biểu đồ tròn 8 phần tương ứng với 8 tác phẩm có lượt theo dõi và đọc nhiều nhất"
+        stories={mostViewedStories}
+        isLoading={loadingMostViewed}
+      />
+
+      {/* 3. Best ranking stories (Đánh giá cao nhất) */}
       <div className="flex flex-col gap-2 w-full">
         <InfinityScrollHorizontalList
           label="Đánh giá cao nhất"
@@ -226,7 +247,7 @@ export default function Home() {
 
       {/* 5. Mới cập nhật (Chuyển thành Grid responsive 2-6 cột kèm phân trang) */}
       <div ref={newestSectionRef} className="flex flex-col gap-6 w-full">
-        <div className="flex items-center justify-between border-b-2 border-foreground pb-2">
+        <div className="flex items-center justify-between border-b-2 border-foreground pb-2 px-5">
           <h2 onClick={() => router.push(routes.story())} className="text-2xl sm:text-3xl font-bold cursor-pointer hover:underline">
             Mới cập nhật
           </h2>
