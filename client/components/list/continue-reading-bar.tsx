@@ -188,7 +188,7 @@ export default function ContinueReadingBar({
       <div
         ref={containerRef}
         onScroll={handleScroll}
-        className="flex flex-row overflow-x-auto scroll-smooth py-6 px-3 sm:px-6 w-full 
+        className="flex flex-row overflow-x-scroll overflow-y-hidden scroll-smooth py-6 px-3 sm:px-6 w-full 
           snap-x snap-mandatory gap-4 sm:gap-6 md:gap-8
           [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
       >
