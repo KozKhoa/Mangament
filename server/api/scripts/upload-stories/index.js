@@ -53,6 +53,15 @@ async function getDb() {
   return db;
 }
 
+let syncStoryChildren = null;
+async function getSyncStoryChildren() {
+  if (!syncStoryChildren) {
+    const storyService = await import("../../src/services/story.service.js");
+    syncStoryChildren = storyService.SyncStoryChildren;
+  }
+  return syncStoryChildren;
+}
+
 // Danh sách đuôi file ảnh được hỗ trợ
 const SUPPORTED_IMAGE_EXTS = new Set([".jpg", ".jpeg", ".png", ".webp", ".avif"]);
 
@@ -563,6 +572,8 @@ async function main() {
         where: { id: story.id },
         data: { number_of_children: { increment: newNodesCount } },
       });
+      const syncFn = await getSyncStoryChildren();
+      await syncFn(story.id, prisma);
     }
 
     console.log("");

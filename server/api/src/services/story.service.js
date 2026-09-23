@@ -14,6 +14,73 @@ import mailService from "./mail.service.js";
 
 const REDIS_TTL = 60 * 30; // 30 minutes
 
+export async function BuildStoryChildrenTree(storyId, client = db) {
+  if (!storyId) return [];
+
+  const storyNodes = await client.storyNode.findMany({
+    where: {
+      story_id: storyId,
+      deleted_status: "not_deleted",
+    },
+    select: {
+      id: true,
+      story_id: true,
+      parent_id: true,
+      title: true,
+      type: true,
+      order_index: true,
+      number_of_children: true,
+      updated_at: true,
+      created_at: true,
+      deleted_status: true,
+      poster_id: true,
+    },
+    orderBy: { order_index: "asc" },
+  });
+
+  const map = new Map();
+  for (const node of storyNodes) {
+    map.set(node.id, {
+      id: node.id,
+      story_id: node.story_id,
+      parent_id: node.parent_id,
+      title: node.title,
+      type: node.type,
+      order_index: node.order_index,
+      number_of_children: node.number_of_children,
+      updated_at: node.updated_at,
+      created_at: node.created_at,
+      deleted_status: node.deleted_status,
+      poster_id: node.poster_id,
+      children: [],
+    });
+  }
+
+  const tree = [];
+  for (const node of storyNodes) {
+    const item = map.get(node.id);
+    if (item.parent_id && map.has(item.parent_id)) {
+      map.get(item.parent_id).children.push(item);
+    } else {
+      tree.push(item);
+    }
+  }
+
+  return tree;
+}
+
+export async function SyncStoryChildren(storyId, client = db) {
+  if (!storyId) return [];
+  const tree = await BuildStoryChildrenTree(storyId, client);
+
+  await client.story.update({
+    where: { id: storyId },
+    data: { children: tree },
+  });
+
+  return tree;
+}
+
 export async function BuildStoryTree(storyId, storyNodeId, { isGettingContent = false, isGettingTrashNode = false, isGettingTrashContent = false }) {
   const storiesVer = await redisUtils.stories(storyId).get();
   const storyNodeVer = await redisUtils.storyNodes(storyId).get();
@@ -368,7 +435,13 @@ export async function FindAllStories({
     story.genres = story.genres?.map((genre) => genre.genre.name);
 
     if (story.favourite && story.favourite.length > 0) story.favourite = story.favourite[0];
-    if (isGettingChildren) story.children = await BuildStoryTree(story.id, null);
+    if (isGettingChildren) {
+      if (!story.children || (Array.isArray(story.children) && story.children.length === 0)) {
+        story.children = await BuildStoryChildrenTree(story.id, db);
+      }
+    } else {
+      delete story.children;
+    }
     if (isGettingNewestChapter) {
       story.newest_chapter = await GetNewestChapter(story.id, 5);
     }
@@ -441,12 +514,19 @@ export async function FindStory({
   story.authors = story.authors.map((author) => author.author);
   story.genres = story.genres.map((genre) => genre.genre.name);
 
+  const isGettingTrashOrContent = isGettingContent || isGettingTrashStoryNodes || isGettingTrashContents;
   if (isGettingChildren) {
-    story.children = await BuildStoryTree(story.id, null, {
-      isGettingContent: isGettingContent,
-      isGettingTrashNode: isGettingTrashStoryNodes,
-      isGettingTrashContent: isGettingTrashContents,
-    });
+    if (isGettingTrashOrContent) {
+      story.children = await BuildStoryTree(story.id, null, {
+        isGettingContent: isGettingContent,
+        isGettingTrashNode: isGettingTrashStoryNodes,
+        isGettingTrashContent: isGettingTrashContents,
+      });
+    } else if (!story.children || (Array.isArray(story.children) && story.children.length === 0)) {
+      story.children = await BuildStoryChildrenTree(story.id, db);
+    }
+  } else {
+    delete story.children;
   }
 
   if (isGettingNewestChapter) {

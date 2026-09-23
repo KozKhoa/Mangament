@@ -18,6 +18,17 @@ class StoryQueue {
   #embeddingStoryQueue = new Queue("embedding-story", { connection });
   #updateStory = new Queue("update-story", { connection });
   #batchImportStoriesQueue = new Queue("batch-import-stories", { connection });
+  #syncStoryChildrenQueue = new Queue("sync-story-children", { connection });
+
+  addJob_SyncStoryChildren(storyId) {
+    if (!storyId) return;
+    return this.#syncStoryChildrenQueue.add("syncStoryChildren", { storyId }, ADD_JOB_OPTION);
+  }
+
+  addJob_SyncManyStoryChildren(storyIds = []) {
+    const uniqueIds = [...new Set(storyIds.filter(Boolean))];
+    return Promise.all(uniqueIds.map((storyId) => this.addJob_SyncStoryChildren(storyId)));
+  }
 
   addJob_BatchImportStories({ rows = [], userId, fileName }) {
     return this.#batchImportStoriesQueue.add("batchImportStories", { rows, userId, fileName }, ADD_JOB_OPTION);

@@ -63,6 +63,9 @@ model Story {
   poster_id          String?                @db.Uuid
   created_at         DateTime               @default(now())
   updated_at         DateTime               @default(now())
+
+  children           Json?                   @default("[]") @db.JsonB
+  
   summary            String?
   embedding          Unsupported("vector")?
   comment            Comment[]
@@ -72,7 +75,8 @@ model Story {
   cover_art          Image?                 @relation(fields: [cover_art_id], references: [id])
   nation             Nation?                @relation(fields: [nation_id], references: [id])
   poster             User?                  @relation(fields: [poster_id], references: [id])
-  children           StoryNode[]
+  
+  story_nodes        StoryNode[]
   authors            Story_Author[]
   genres             Story_Genre[]
 

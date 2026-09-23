@@ -62,9 +62,11 @@ vi.mock("../../configs/db.js", () => ({
 
 // Mock story queue
 const addJobEmbeddingMock = vi.fn();
+const addJobSyncStoryChildrenMock = vi.fn();
 vi.mock("../../worker/queues/story.queue.js", () => ({
   default: {
     addJob_EmbeddingStory: addJobEmbeddingMock,
+    addJob_SyncStoryChildren: addJobSyncStoryChildrenMock,
   },
 }));
 

@@ -4,6 +4,7 @@ import redisUtils from "../utils/Redis.js";
 import { CreateError } from "../utils/ErrorHandle.js";
 
 import * as storyService from "./story.service.js";
+import storyQueue from "../../worker/queues/story.queue.js";
 
 import { isUUID } from "../utils/Validators.js";
 
@@ -279,6 +280,9 @@ export async function AddStoryNode(storyId, parentId, data) {
     } else {
       await db.story.update({ where: { id: storyId }, data: { number_of_children: { increment: 1 } } });
     }
+
+    storyQueue.addJob_SyncStoryChildren(storyId);
+
     return { success: true, data: newStoryNode };
   });
 }
@@ -360,6 +364,8 @@ export async function UpdateStoryNode(storyNodeId, data) {
   redisUtils.stories(updating.story_id).incr();
   if (updating.parent_id) redisUtils.storyNodes(updating.parent_id).incr();
 
+  storyQueue.addJob_SyncStoryChildren(updating.story_id);
+
   return { success: true, data: updating };
 }
 
@@ -384,6 +390,8 @@ export async function ToggleSoftDeleteStoryNode(id, deletedStatus = "not_deleted
   if (storyNode.parent_id) {
     redisUtils.storyNodes(storyNode.parent_id).incr();
   }
+
+  storyQueue.addJob_SyncStoryChildren(storyNode.story_id);
 
   return { success: true, message: deletedStatus === "soft_deleted" ? "Remove successfully" : "Restore successfully" };
 }
@@ -412,6 +420,8 @@ export async function ToggleSoftDeleteManyStoryNodes(ids = [], deletedStatus = "
   Promise.all([...parentIds].map((parentId) => redisUtils.storyNodes(parentId).incr()));
   Promise.all([...storyIds].map((storyId) => redisUtils.stories(storyId).incr()));
 
+  storyQueue.addJob_SyncManyStoryChildren([...storyIds]);
+
   return { success: true, message: deletedStatus === "soft_deleted" ? "Remove successfully" : "Restore successfully" };
 }
 
@@ -425,6 +435,10 @@ export async function PermanentlyDeleteStoryNodeTrash(id) {
 
   if (storyNode.parent_id) {
     redisUtils.storyNodes(storyNode.parent_id).incr();
+  }
+
+  if (storyNode?.story_id) {
+    storyQueue.addJob_SyncStoryChildren(storyNode.story_id);
   }
 
   return { success: true, message: "Remove successfully" };
@@ -447,6 +461,8 @@ export async function PermanentlyDeleteManyStoryNodesTrash(ids = []) {
   Promise.all(storyNodes.map((node) => redisUtils.storyNodes(node.id).incr()));
   Promise.all([...parentIds].map((parentId) => redisUtils.storyNodes(parentId).incr()));
   Promise.all([...storyIds].map((storyId) => redisUtils.stories(storyId).incr()));
+
+  storyQueue.addJob_SyncManyStoryChildren([...storyIds]);
 
   return { success: true, message: "Remove successfully" };
 }

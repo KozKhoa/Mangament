@@ -3,6 +3,7 @@ import path from "path";
 import fs from "fs";
 
 import db from "../../../configs/db.js";
+import storyQueue from "../../../worker/queues/story.queue.js";
 
 import { getAllFiles } from "../FileHandle.js";
 
@@ -230,6 +231,10 @@ const handleAddStoryNode = async ({ storyNodeName = "", storyId, parentId }) => 
           },
         },
       });
+    }
+
+    if (storyId) {
+      storyQueue.addJob_SyncStoryChildren(storyId);
     }
   }
 

@@ -416,6 +416,10 @@ const updateStoryWorker = new Worker(
             }
           }
 
+          if (children && (children.add || children.edit || children.delete || children.permanently_delete || children.restore)) {
+            await storyService.SyncStoryChildren(storyId, tx);
+          }
+
           return updateStory;
         },
         {
@@ -744,6 +748,7 @@ const batchImportStoriesWorker = new Worker(
         try {
           await redisUtils.stories(storyId).incr();
           storyQueue.addJob_EmbeddingStory(storyId);
+          storyQueue.addJob_SyncStoryChildren(storyId);
         } catch (err) {
           console.error(`[BatchImport] Error triggering post-import for story ${storyId}:`, err);
         }
@@ -763,10 +768,28 @@ batchImportStoriesWorker.on("failed", (job, err) => {
   console.error(`[BatchImport] ❌ Job ${job?.id} thất bại (Lần thử ${job?.attemptsMade}/${job?.opts?.attempts}):`, err?.message || err);
 });
 
+const syncStoryChildrenWorker = new Worker(
+  "sync-story-children",
+  async (job) => {
+    const { storyId } = job.data;
+    console.log(`[SyncStoryChildren] Begin syncing children for story ${storyId}`);
+    const tree = await storyService.SyncStoryChildren(storyId, db);
+    await redisUtils.stories(storyId).incr();
+    console.log(`[SyncStoryChildren] Finish syncing children for story ${storyId}`);
+    return tree;
+  },
+  { connection, concurrency: 5 },
+);
+
+syncStoryChildrenWorker.on("failed", (job, err) => {
+  console.error(`[SyncStoryChildren] ❌ Job ${job?.id} thất bại (Lần thử ${job?.attemptsMade}/${job?.opts?.attempts}):`, err?.message || err);
+});
+
 export default {
   embeddingStoryWorker,
   hardDeleteStoryWorker,
   hardDeleteManyStoriesWorker,
   updateStoryWorker,
   batchImportStoriesWorker,
+  syncStoryChildrenWorker,
 };

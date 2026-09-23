@@ -4,7 +4,7 @@ import { defineConfig, env } from "prisma/config";
 
 import fs from "fs";
 
-const envFiles = [`.env.${process.env.NODE_ENV}.local`, `.env.${process.env.NODE_ENV}`, ".env.local", ".env"];
+const envFiles = [`.env.${process.env.NODE_ENV}.development`, `.env.${process.env.NODE_ENV}`, ".env.development", ".env.production", ".env"];
 
 for (const file of envFiles) {
   const fullPath = path.resolve(process.cwd(), file);
