@@ -2,11 +2,17 @@ import path from "path";
 import dotenv from "dotenv";
 import { defineConfig, env } from "prisma/config";
 
-const envFile = process.env.NODE_ENV === "development" ? ".env.local" : ".env";
+import fs from "fs";
 
-dotenv.config({
-  path: path.resolve(process.cwd(), envFile)
-});
+const envFiles = [`.env.${process.env.NODE_ENV}.local`, `.env.${process.env.NODE_ENV}`, ".env.local", ".env"];
+
+for (const file of envFiles) {
+  const fullPath = path.resolve(process.cwd(), file);
+  if (fs.existsSync(fullPath)) {
+    dotenv.config({ path: fullPath });
+    break;
+  }
+}
 
 export default defineConfig({
   schema: "prisma/schema.prisma",

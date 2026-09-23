@@ -28,7 +28,8 @@ export default function InfinityScrollHorizontalList({
   children?: React.ReactNode[];
 }) {
   const slideIntervalId = useRef<NodeJS.Timeout | null>(null);
-  const arrowClassName = " w-5 h-5 lg:w-6 lg:h-6 cursor-pointer ";
+  const arrowClassNameEnabled = " w-4 h-4 lg:w-5 lg:h-5 cursor-pointer";
+  const arrowClassNameDisabled = " w-4 h-4 lg:w-5 lg:h-5 cursor-pointer text-gray-400 opacity-50 pointer-events-none ";
 
   const sliderRef = useRef<HTMLDivElement>(null);
 
@@ -84,15 +85,27 @@ export default function InfinityScrollHorizontalList({
   }, [endSliderRef.current, endSliderInView, autoSlide, children]);
 
   return (
-    <div className={` flex flex-col justify-center items-center gap-2 w-full ${className}`}>
-      <div className="w-full flex flex-row justify-between items-center">
-        {!topSliderInView ? <ArrowLeftIcon onClick={slideToPrevItem} className={arrowClassName}></ArrowLeftIcon> : <div className={arrowClassName}></div>}
-
+    <div className={` flex flex-col justify-center items-center gap-5 w-full  ${className}`}>
+      <div className="w-full flex flex-row justify-between items-center px-5">
         <div onClick={() => onClickLabel?.()} className="text-[1.5em] lg:text-[2em] font-bold cursor-pointer underline">
           {label}
         </div>
 
-        {!endSliderInView ? <ArrowRightIcon onClick={slideToNextItem} className={arrowClassName}></ArrowRightIcon> : <div className={arrowClassName}></div>}
+        <div className="flex flex-row justify-end items-center gap-8 ml-auto">
+          {!topSliderInView ? (
+            <ArrowLeftIcon onClick={slideToPrevItem} className={arrowClassNameEnabled}></ArrowLeftIcon>
+          ) : (
+            <ArrowLeftIcon className={arrowClassNameDisabled}></ArrowLeftIcon>
+          )}
+
+          <div className="text-xl font-semibold">{children?.length || 0}</div>
+
+          {!endSliderInView ? (
+            <ArrowRightIcon onClick={slideToNextItem} className={arrowClassNameEnabled}></ArrowRightIcon>
+          ) : (
+            <ArrowRightIcon className={arrowClassNameDisabled}></ArrowRightIcon>
+          )}
+        </div>
       </div>
 
       <div

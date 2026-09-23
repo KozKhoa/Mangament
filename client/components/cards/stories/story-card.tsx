@@ -88,7 +88,7 @@ export default function StoryCard({ data, className }: StoryCardProps) {
           {story.cover_art?.path && (
             <Link href={hrefStory}>
               <Image
-                className="aspect-7/10 object-contain m-auto"
+                className="aspect-7/10 object-contain m-auto hover:scale-105 transition-all duration-200 ease-linear"
                 src={[process.env.NEXT_PUBLIC_CDN_URL, story.cover_art?.path].join("")}
                 alt="Cover Art"
                 width={300}
@@ -124,7 +124,7 @@ export default function StoryCard({ data, className }: StoryCardProps) {
 
       <div className="flex flex-col justify-between gap-1 w-full h-full">
         {/* Tittle */}
-        <Link href={hrefStory} prefetch className="text-[1.2em] text-start font-bold leading-tight cursor-pointer line-clamp-2">
+        <Link href={hrefStory} prefetch className="text-[1.2em] text-start font-bold leading-tight cursor-pointer line-clamp-3">
           {story.nation && (
             <span className="inline-block mr-1.5 align-middle">
               {story.nation.flag_image?.path ? (
@@ -160,7 +160,7 @@ export default function StoryCard({ data, className }: StoryCardProps) {
             <div className="flex flex-col justify-center items-start gap-x-2.5-2.5 opacity-90">
               <p className="text-[0.8em] italic ">Chap mới nhất:</p>
 
-              <Link href={hrefNewestChapter} className="flex flex-wrap items-center justify-between cursor-pointer gap-x-2">
+              <Link href={hrefNewestChapter} className="flex flex-wrap items-center justify-between cursor-pointer gap-x-2 hover:underline">
                 <p>{newestChapter?.[0].dir}</p>
                 <p className="text-[0.8em] italic">{newestChapter?.[0].dayPass} ngày trước</p>
               </Link>
