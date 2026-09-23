@@ -221,7 +221,7 @@ export default function ContinueReadingBar({
                 }
               }}
               style={{
-                transform: `scale(${scale}) rotate(${rotate}deg) translateY(${translateY}px)`,
+                transform: `${isCurrent ? "scale(1) rotate(0deg)" : `scale(${scale}) rotate(${rotate}deg)`} translateY(${translateY}px)`,
                 opacity: opacity,
                 zIndex: zIndex,
                 transformOrigin: diff > 0 ? "bottom left" : "bottom right",
@@ -239,25 +239,6 @@ export default function ContinueReadingBar({
                   onClickRemove={() => onRemoveElement?.(history)}
                 />
               </div>
-
-              {/* Lớp phủ & Huy hiệu gợi ý khi card đang ở trạng thái phụ bên cạnh */}
-              {!isCurrent && (
-                <div className="absolute inset-0 bg-background/25 hover:bg-transparent rounded-lg transition-colors flex items-center justify-center pointer-events-none">
-                  <div className="bg-foreground text-background-items px-3 py-1.5 rounded-full text-xs font-bold shadow-xl flex items-center gap-1.5 backdrop-blur-xs border border-background/20">
-                    {diff > 0 ? (
-                      <>
-                        <span>Tiếp theo</span>
-                        <span className="text-[10px]">▶</span>
-                      </>
-                    ) : (
-                      <>
-                        <span className="text-[10px]">◀</span>
-                        <span>Trước đó</span>
-                      </>
-                    )}
-                  </div>
-                </div>
-              )}
             </div>
           );
         })}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -24,6 +24,8 @@ interface CircleRankingShowcaseProps {
   stories: Story[];
   isLoading?: boolean;
   className?: string;
+  autoPlay?: boolean;
+  intervalMs?: number;
 }
 
 function getCoverUrl(story?: Story): string {
@@ -119,6 +121,8 @@ export default function CircleRankingShowcase({
   stories = [],
   isLoading = false,
   className = "",
+  autoPlay = true,
+  intervalMs = 4000,
 }: CircleRankingShowcaseProps) {
   const router = useRouter();
 
@@ -130,6 +134,7 @@ export default function CircleRankingShowcase({
 
   const [activeIndex, setActiveIndex] = useState(0);
   const [rotationAngle, setRotationAngle] = useState(0);
+  const [isHovered, setIsHovered] = useState(false);
 
   // Kích thước toạ độ SVG Donut Chart
   const svgSize = 500;
@@ -165,6 +170,18 @@ export default function CircleRankingShowcase({
     setActiveIndex((prev) => (prev - 1 + totalItems) % totalItems);
   }, [SLICE_ANGLE, totalItems]);
 
+  // Tự động xoay sau mỗi chu kỳ intervalMs, tạm dừng khi người dùng hover chuột vào showcase
+  useEffect(() => {
+    if (!autoPlay || totalItems <= 1 || isLoading || isHovered) return;
+
+    const timer = setInterval(() => {
+      if (typeof document !== "undefined" && document.hidden) return;
+      handleNext();
+    }, intervalMs);
+
+    return () => clearInterval(timer);
+  }, [autoPlay, totalItems, isLoading, isHovered, intervalMs, handleNext]);
+
   if (isLoading || rankingStories.length === 0) {
     return (
       <div className={`flex flex-col gap-4 w-full ${className}`}>
@@ -183,7 +200,7 @@ export default function CircleRankingShowcase({
   const activeTheme = getRankTheme(activeRank);
 
   return (
-    <div className={`flex flex-col gap-5 w-full ${className}`}>
+    <div className={`flex flex-col gap-5 w-full ${className}`} onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
       {/* Tiêu đề mục */}
       <div className="flex flex-wrap items-end justify-between border-b-2 border-foreground pb-2 px-2 gap-3">
         <div>
@@ -404,20 +421,17 @@ export default function CircleRankingShowcase({
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -15, scale: 0.98 }}
               transition={{ duration: 0.3, ease: "easeOut" }}
-              className="relative w-full rounded-2xl bg-background-items/95 backdrop-blur-xl border border-foreground/15 p-5 sm:p-7 shadow-2xl overflow-hidden"
-              style={{
-                boxShadow: `0 20px 40px -15px ${activeTheme.glowColor}`,
-              }}
+              className="relative w-full rounded-lg p-5 sm:p-7 overflow-hidden bg-background-items"
             >
               {/* Ảnh nền mờ nghệ thuật lấy từ cover của truyện đang chọn */}
-              <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-10 dark:opacity-20 z-0">
+              {/* <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-10 dark:opacity-20 z-0">
                 <Image src={getCoverUrl(activeStory)} alt="" fill className="object-cover blur-3xl scale-125" />
-              </div>
+              </div> */}
 
               {/* Quầng sáng góc */}
-              <div className="absolute top-0 right-0 w-48 h-48 rounded-full pointer-events-none blur-3xl" style={{ backgroundColor: activeTheme.glowColor }} />
+              {/* <div className="absolute top-0 right-0 w-48 h-48 rounded-full pointer-events-none blur-3xl" style={{ backgroundColor: activeTheme.glowColor }} /> */}
 
-              <div className="relative z-10 flex flex-col gap-4 sm:gap-5 w-full">
+              <div className="relative z-10 flex flex-col gap-4 sm:gap-5 w-full ">
                 {/* 1. Thanh tiêu đề thứ hạng & thẻ trạng thái */}
                 <div className="flex flex-wrap items-center justify-between gap-2.5">
                   <div className="flex items-center gap-2 flex-wrap">

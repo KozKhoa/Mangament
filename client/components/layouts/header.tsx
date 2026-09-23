@@ -273,7 +273,7 @@ function HeaderBar({ duration = 100, autoHide = true, className }: NavBarProps) 
       >
         <div className={`flex flex-row justify-center items-center gap-5 h-10`}>
           <Link href={"/"}>
-            <p className={`text-2xl font-holtwood`}>Mangament</p>
+            <p className={`text-5xl font-holtwood`}>Mangament</p>
           </Link>
 
           {/* Desktop */}

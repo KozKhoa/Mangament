@@ -98,7 +98,7 @@ export default function ContinueReadingCard({ history, onClickRemove, className 
     <div
       onClick={navigateToStoryNode}
       className={`group relative flex flex-row items-stretch overflow-hidden rounded-lg border-foreground/15 
-        bg-background-items text-foreground shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer
+        bg-background-items shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer
         w-full min-h-[220px] sm:min-h-[240px] md:min-h-[260px] lg:min-h-[270px]
         md:aspect-[2/1] ${className}`}
     >
@@ -214,7 +214,7 @@ export default function ContinueReadingCard({ history, onClickRemove, className 
               e.stopPropagation();
               navigateToStoryNode();
             }}
-            className="px-4 py-2 bg-foreground text-background-items hover:opacity-90 rounded font-semibold text-xs sm:text-sm whitespace-nowrap shrink-0 flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
+            className="px-4 py-2 text-background-items bg-foreground hover:opacity-90 rounded font-semibold text-xs sm:text-sm whitespace-nowrap shrink-0 flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
           >
             <span>Đọc tiếp</span>
             <span className="text-xs">➤</span>

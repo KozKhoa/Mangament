@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor, act } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
 import CircleRankingShowcase from "@/components/ranking/circle-ranking-showcase";
 import Story from "@/types/story";
@@ -14,7 +14,7 @@ vi.mock("next/navigation", () => ({
 // Mocking Next.js Image
 vi.mock("next/image", () => ({
   __esModule: true,
-  default: ({ priority, ...props }: any) => <img {...props} />,
+  default: ({ priority, fill, ...props }: any) => <img {...props} />,
 }));
 
 // Mocking Link
@@ -152,5 +152,63 @@ describe("CircleRankingShowcase Component", () => {
     fireEvent.click(readNowBtn);
 
     expect(mockPush).toHaveBeenCalledWith("/stories/manga/story-1");
+  });
+
+  it("auto-rotates to next story after interval when autoPlay is true", () => {
+    vi.useFakeTimers();
+    render(<CircleRankingShowcase stories={mockStories} autoPlay={true} intervalMs={3000} />);
+
+    expect(screen.getByText("1 / 3")).toBeInTheDocument();
+
+    // Advance time by 3 seconds
+    act(() => {
+      vi.advanceTimersByTime(3000);
+    });
+
+    // Should have advanced to Top 2
+    expect(screen.getByText("2 / 3")).toBeInTheDocument();
+
+    // Advance another 3 seconds
+    act(() => {
+      vi.advanceTimersByTime(3000);
+    });
+
+    // Should have advanced to Top 3
+    expect(screen.getByText("3 / 3")).toBeInTheDocument();
+
+    vi.useRealTimers();
+  });
+
+  it("pauses auto-rotation on hover and resumes when mouse leaves", () => {
+    vi.useFakeTimers();
+    const { container } = render(<CircleRankingShowcase stories={mockStories} autoPlay={true} intervalMs={3000} />);
+
+    expect(screen.getByText("1 / 3")).toBeInTheDocument();
+
+    const showcase = container.firstChild as HTMLElement;
+
+    // Hover mouse over showcase
+    fireEvent.mouseEnter(showcase);
+
+    // Advance time by 3 seconds while hovering
+    act(() => {
+      vi.advanceTimersByTime(3000);
+    });
+
+    // Should still be at 1 / 3 because auto-rotation is paused
+    expect(screen.getByText("1 / 3")).toBeInTheDocument();
+
+    // Mouse leaves
+    fireEvent.mouseLeave(showcase);
+
+    // Advance time by 3 seconds after leaving
+    act(() => {
+      vi.advanceTimersByTime(3000);
+    });
+
+    // Now it should have advanced to 2 / 3
+    expect(screen.getByText("2 / 3")).toBeInTheDocument();
+
+    vi.useRealTimers();
   });
 });

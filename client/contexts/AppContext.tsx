@@ -131,6 +131,19 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
     loadFont();
   }, []);
 
+  useEffect(() => {
+    if (typeof window !== "undefined" && textSize) {
+      document.documentElement.style.setProperty("--app-text-size", `${textSize}px`);
+      document.documentElement.style.setProperty("--text-base", `${textSize}px`);
+    }
+  }, [textSize]);
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && font) {
+      document.documentElement.style.setProperty("--app-font", font);
+    }
+  }, [font]);
+
   return (
     <AppContext.Provider
       value={{
