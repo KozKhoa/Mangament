@@ -3,6 +3,7 @@ import StoryNode from "@/types/story-node";
 import { snakeCaseToCapitalizeWord } from "@/utils/string";
 import Image from "next/image";
 import { MouseEventHandler } from "react";
+import { imageUrlResole } from "@/utils/imageUrlResole";
 
 export default function TrashStoryNodeCard({
   storyNode,
@@ -41,7 +42,7 @@ export default function TrashStoryNodeCard({
           <div className="shrink-0 max-w-[200px] overflow-hidden rounded-md m-auto">
             {story?.cover_art?.path ? (
               <Image
-                src={[process.env.NEXT_PUBLIC_CDN_URL, story.cover_art.path].join("")}
+                src={imageUrlResole(story.cover_art)}
                 alt={story.title}
                 width={200}
                 height={150}

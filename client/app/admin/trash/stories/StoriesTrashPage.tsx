@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { imageUrlResole } from "@/utils/imageUrlResole";
 import { toast } from "sonner";
 import { useRouter, useSearchParams } from "next/navigation";
 import { MouseEvent, useEffect, useMemo, useState } from "react";
@@ -216,7 +217,7 @@ export function StoriesTrashPage() {
       content: (
         <div className="min-w-[350px] w-[80vw] h-[90vh] relative flex flex-col gap-1">
           <div className="relative w-full h-full">
-            <Image src={[process.env.NEXT_PUBLIC_CDN_URL, story.cover_art?.path].join("")} className="object-contain m-auto" alt="Cover Art" fill />
+            <Image src={imageUrlResole(story.cover_art)} className="object-contain m-auto" alt="Cover Art" fill />
           </div>
 
           {/* Title */}

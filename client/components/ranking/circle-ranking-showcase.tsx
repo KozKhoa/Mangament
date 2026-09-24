@@ -12,6 +12,7 @@ import Story from "@/types/story";
 import { routes } from "@/lib/routes";
 import { beautifulView } from "@/utils/beautiful";
 import { snakeCaseToCapitalizeWord, capitalizeFirstChar } from "@/utils/string";
+import imageUrlResole from "@/utils/imageUrlResole";
 import DisplayStar from "@/components/displays/ratings/display-star";
 import StoryStatusTag from "@/components/tags/story-status-tag";
 import GenreTag from "@/components/tags/genre-tag";
@@ -29,9 +30,7 @@ interface CircleRankingShowcaseProps {
 }
 
 function getCoverUrl(story?: Story): string {
-  if (!story?.cover_art?.path) return "/blur-image.png";
-  if (story.cover_art.path.startsWith("http")) return story.cover_art.path;
-  return `${process.env.NEXT_PUBLIC_CDN_URL || ""}${story.cover_art.path}`;
+  return imageUrlResole(story?.cover_art, "/blur-image.png");
 }
 
 function getRankTheme(rank: number) {
@@ -218,7 +217,7 @@ export default function CircleRankingShowcase({
           <button
             onClick={handlePrev}
             aria-label="Truyện trước"
-            className="w-5 h-5 rounded-lg flex items-center justify-center font-bold text-foreground transition-all cursor-pointer"
+            className="w-5 h-5 rounded-md flex items-center justify-center font-bold text-foreground transition-all cursor-pointer"
           >
             <ArrowLeftIcon className="w-5 h-5" />
           </button>
@@ -228,7 +227,7 @@ export default function CircleRankingShowcase({
           <button
             onClick={handleNext}
             aria-label="Truyện tiếp theo"
-            className="w-5 h-5 rounded-lg flex items-center justify-center font-bold text-foreground transition-all cursor-pointer"
+            className="w-5 h-5 rounded-md flex items-center justify-center font-bold text-foreground transition-all cursor-pointer"
           >
             <ArrowRightIcon className="w-5 h-5" />
           </button>
@@ -378,7 +377,7 @@ export default function CircleRankingShowcase({
 
                     {/* Khung thẻ ảnh bìa đặt contain trong lát cắt */}
                     <div
-                      className={`relative w-[58px] h-[82px] sm:w-[68px] sm:h-[98px] md:w-[74px] md:h-[106px] rounded-lg overflow-hidden transition-all duration-300 ${
+                      className={`relative w-[58px] h-[82px] sm:w-[68px] sm:h-[98px] md:w-[74px] md:h-[106px] rounded-md overflow-hidden transition-all duration-300 ${
                         isActive
                           ? `${theme.ringClass} scale-110 shadow-2xl`
                           : "opacity-75 hover:opacity-100 hover:scale-105 shadow-md border border-foreground/20"
@@ -457,7 +456,7 @@ export default function CircleRankingShowcase({
                     <div className="flex items-center gap-1.5 text-xs text-foreground/70 font-semibold">
                       {activeStory.nation.flag_image?.path ? (
                         <Image
-                          src={`${process.env.NEXT_PUBLIC_CDN_URL || ""}${activeStory.nation.flag_image.path}`}
+                          src={imageUrlResole(activeStory.nation.flag_image)}
                           alt={activeStory.nation.name}
                           width={20}
                           height={14}
@@ -477,7 +476,7 @@ export default function CircleRankingShowcase({
                   <div className="sm:col-span-4 flex justify-center sm:justify-start">
                     <div
                       onClick={() => router.push(routes.story({ storyType: activeStory.type, storyId: activeStory.id }))}
-                      className="group relative w-36 h-52 sm:w-full sm:h-64 rounded-xl overflow-hidden shadow-xl border border-white/20 cursor-pointer"
+                      className="group relative w-36 h-52 sm:w-full sm:h-64 rounded-md overflow-hidden shadow-xl border border-white/20 cursor-pointer"
                     >
                       <Image
                         src={getCoverUrl(activeStory)}
@@ -519,7 +518,7 @@ export default function CircleRankingShowcase({
                     )}
 
                     {/* Hộp số liệu đo lường: Lượt xem, Đánh giá, Số chương */}
-                    <div className="grid grid-cols-3 gap-2 py-2 px-3 rounded-xl bg-foreground/5 border border-foreground/10 text-center my-1">
+                    <div className="grid grid-cols-3 gap-2 py-2 px-3 rounded-md bg-foreground/5 border border-foreground/10 text-center my-1">
                       <div className="flex flex-col items-center justify-center">
                         <span className="text-[11px] text-foreground/60">Lượt xem</span>
                         <span className="font-black text-sm sm:text-base text-foreground">{beautifulView(activeStory.view || 0)}</span>
@@ -549,7 +548,7 @@ export default function CircleRankingShowcase({
 
                     {/* Tóm tắt ngắn gọn */}
                     {activeStory.summary && (
-                      <div className="relative text-xs sm:text-sm text-foreground/75 leading-relaxed bg-foreground/[0.03] p-2.5 rounded-lg border-l-2 border-foreground/30 line-clamp-3">
+                      <div className="relative text-xs sm:text-sm text-foreground/75 leading-relaxed bg-foreground/[0.03] p-2.5 rounded-r-lg rounded-l-sm border-l-2 border-foreground/30 line-clamp-3">
                         {activeStory.summary}
                       </div>
                     )}
@@ -562,17 +561,10 @@ export default function CircleRankingShowcase({
                   <div className="flex items-center gap-2.5">
                     <button
                       onClick={() => router.push(routes.story({ storyType: activeStory.type, storyId: activeStory.id }))}
-                      className="px-5 py-2.5 rounded-xl font-extrabold text-sm bg-accept-button text-white hover:opacity-90 active:scale-95 transition-all shadow-md flex items-center gap-2 cursor-pointer"
+                      className="px-5 py-2.5 rounded-md font-extrabold text-sm bg-accept-button text-white hover:opacity-90 active:scale-95 transition-all shadow-md flex items-center gap-2 cursor-pointer"
                     >
                       <span>📖</span> Đọc ngay
                     </button>
-
-                    <Link
-                      href={routes.story({ storyType: activeStory.type, storyId: activeStory.id })}
-                      className="px-4 py-2.5 rounded-xl font-bold text-sm bg-foreground/10 hover:bg-foreground/20 text-foreground transition-all flex items-center gap-1.5"
-                    >
-                      Chi tiết
-                    </Link>
                   </div>
 
                   {/* Thanh 8 Dots đại diện cho 8 thứ hạng */}

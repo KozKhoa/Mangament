@@ -1,6 +1,7 @@
 import { convertDateTo_yyyMMddHHmm } from "@/utils/convert";
 import Comment from "@/types/comment";
 import Image from "next/image";
+import { imageUrlResole } from "@/utils/imageUrlResole";
 
 import TrashIcon from "@/public/trash.svg";
 import { modal } from "../modal/modal.store";
@@ -32,13 +33,7 @@ export default function CommentCard({ comment, className, onDelete }: { comment:
 
       <div className="flex flex-row flex-wrap gap-2 justify-between items-center">
         <div className="flex flex-row justify-center items-center gap-3">
-          <Image
-            className="rounded-full"
-            src={[process.env.NEXT_PUBLIC_CDN_URL, comment.user?.avatar?.path].join("") ?? "/avatar.png"}
-            alt="Avatar"
-            width={32}
-            height={32}
-          />
+          <Image className="rounded-full" src={imageUrlResole(comment.user?.avatar, { fallback: "/avatar.png" })} alt="Avatar" width={32} height={32} />
           <p className="text-[0.9em] line-clamp-2">{comment.user?.name}</p>
         </div>
         <div className="flex flex-row gap-2">

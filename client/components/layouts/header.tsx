@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { imageUrlResole } from "@/utils/imageUrlResole";
 import Link from "@/components/link/Link";
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -295,13 +296,7 @@ function HeaderBar({ duration = 100, autoHide = true, className }: NavBarProps) 
             openOnLeft={false}
             icon={
               <div className="flex gap-1.5 min-w-10 aspect-square rounded-full overflow-hidden shrink-0">
-                <Image
-                  src={user?.avatar?.path ? [process.env.NEXT_PUBLIC_CDN_URL, user?.avatar?.path].join("") : "/avatar.png"}
-                  className="rounded-full shrink-0 "
-                  alt="Avatar"
-                  width={40}
-                  height={40}
-                />
+                <Image src={imageUrlResole(user?.avatar, { fallback: "/avatar.png" })} className="rounded-full shrink-0 " alt="Avatar" width={40} height={40} />
               </div>
             }
           >

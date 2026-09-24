@@ -8,6 +8,7 @@ import GenreTag from "@/components/tags/genre-tag";
 import { useEffect, useState } from "react";
 import { convertNewestChapter } from "@/utils/convert";
 import Image from "next/image";
+import imageUrlResole from "@/utils/imageUrlResole";
 
 interface StoryInfoCardProps {
   story?: Story;
@@ -37,7 +38,7 @@ export default function StoryInfoCard({ story, className }: StoryInfoCardProps) 
           <span className="inline-block mr-1.5 align-middle">
             {story.nation.flag_image?.path ? (
               <Image
-                src={[process.env.NEXT_PUBLIC_CDN_URL, story.nation.flag_image.path].join("")}
+                src={imageUrlResole(story.nation.flag_image)}
                 alt={story.nation.name}
                 width={28}
                 height={20}

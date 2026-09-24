@@ -17,6 +17,7 @@ import { beautifulView } from "@/utils/beautiful";
 import GenreTag from "@/components/tags/genre-tag";
 import Image from "next/image";
 import { routes } from "@/lib/routes";
+import { imageUrlResole } from "@/utils/imageUrlResole";
 
 export default function StoryGenreCard({ story, className }: { story: Story; className?: string }) {
   const auth = useAuth();
@@ -73,7 +74,7 @@ export default function StoryGenreCard({ story, className }: { story: Story; cla
         <Image
           className="aspect-7/10 object-contain rounded-sm overflow-hidden m-auto"
           onClick={handleClickStory}
-          src={story?.cover_art?.path ? [process.env.NEXT_PUBLIC_CDN_URL, story?.cover_art?.path].join("") : ""}
+          src={imageUrlResole(story?.cover_art)}
           alt="Cover Art"
           width={200}
           height={300}
@@ -100,7 +101,7 @@ export default function StoryGenreCard({ story, className }: { story: Story; cla
             <span className="inline-block mr-1.5 align-middle">
               {story.nation.flag_image?.path ? (
                 <Image
-                  src={[process.env.NEXT_PUBLIC_CDN_URL, story.nation.flag_image.path].join("")}
+                  src={imageUrlResole(story.nation.flag_image)}
                   alt={story.nation.name}
                   width={20}
                   height={14}

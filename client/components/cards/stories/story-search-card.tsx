@@ -8,6 +8,7 @@ import StarIcon from "@/public/star.svg";
 import { snakeCaseToCapitalizeWord } from "@/utils/string";
 import { beautifulView } from "@/utils/beautiful";
 import Image from "next/image";
+import imageUrlResole from "@/utils/imageUrlResole";
 
 export default function StorySearchCard({ story, className }: { story: Story; className?: string }) {
   return (
@@ -20,12 +21,7 @@ export default function StorySearchCard({ story, className }: { story: Story; cl
     >
       <div className={`relative aspect-2/3 rounded-sm h-full`}>
         {/* Cover art */}
-        <Image
-          src={story?.cover_art?.path ? [process.env.NEXT_PUBLIC_CDN_URL, story?.cover_art?.path].join("") : ""}
-          alt="Cover Art"
-          width={100}
-          height={100}
-        ></Image>
+        <Image src={imageUrlResole(story?.cover_art, "/blur-image.png")} alt="Cover Art" width={100} height={100}></Image>
       </div>
 
       <div className="flex flex-col gap-1 w-full h-full">
@@ -34,7 +30,7 @@ export default function StorySearchCard({ story, className }: { story: Story; cl
             <span className="inline-block mr-1.5 align-middle">
               {story.nation.flag_image?.path ? (
                 <Image
-                  src={[process.env.NEXT_PUBLIC_CDN_URL, story.nation.flag_image.path].join("")}
+                  src={imageUrlResole(story.nation.flag_image)}
                   alt={story.nation.name}
                   width={20}
                   height={14}

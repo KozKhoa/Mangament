@@ -1,5 +1,6 @@
 import storyService from "@/services/story";
 import StoryDetailPage from "./StoryDetailPage";
+import { imageUrlResole } from "@/utils/imageUrlResole";
 
 export async function generateMetadata({ params }: { params: { storyType: string; storyId: string } }) {
   const storyId = (await params).storyId;
@@ -15,7 +16,7 @@ export async function generateMetadata({ params }: { params: { storyType: string
     openGraph: {
       title: story?.title,
       description: story?.summary,
-      images: story?.cover_art?.path ? [process.env.NEXT_PUBLIC_CDN_URL, story.cover_art.path].join("") : "",
+      images: imageUrlResole(story?.cover_art),
     },
   };
 }

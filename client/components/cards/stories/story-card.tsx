@@ -19,6 +19,7 @@ import { convertNewestChapter } from "@/utils/convert";
 import Image from "next/image";
 import Loading from "@/components/loadings/loading";
 import Link from "@/components/link/Link";
+import imageUrlResole from "@/utils/imageUrlResole";
 
 interface StoryCardProps {
   data: Story;
@@ -89,7 +90,7 @@ export default function StoryCard({ data, className }: StoryCardProps) {
             <Link href={hrefStory}>
               <Image
                 className="aspect-7/10 object-contain m-auto hover:scale-105 transition-all duration-200 ease-linear"
-                src={[process.env.NEXT_PUBLIC_CDN_URL, story.cover_art?.path].join("")}
+                src={imageUrlResole(story.cover_art)}
                 alt="Cover Art"
                 width={300}
                 height={300}
@@ -128,13 +129,7 @@ export default function StoryCard({ data, className }: StoryCardProps) {
           {story.nation && (
             <span className="inline-block mr-1.5 align-middle">
               {story.nation.flag_image?.path ? (
-                <Image
-                  src={[process.env.NEXT_PUBLIC_CDN_URL, story.nation.flag_image?.path].join("")}
-                  alt={story.nation.name}
-                  width={20}
-                  height={14}
-                  className="object-contain inline-block"
-                />
+                <Image src={imageUrlResole(story.nation.flag_image)} alt={story.nation.name} width={20} height={14} className="object-contain inline-block" />
               ) : (
                 <span className="text-[1.2rem]">{story.nation.flag_icon}</span>
               )}

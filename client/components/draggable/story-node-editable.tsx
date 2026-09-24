@@ -26,6 +26,7 @@ import NumberInput from "../inputs/number-input";
 import Story from "@/types/story";
 import { isEqual } from "lodash";
 import { compareStoryNodes } from "@/utils/story-node-diff";
+import { imageUrlResole } from "@/utils/imageUrlResole";
 
 const StoryNodeEditable = React.memo(function StoryNodeEditable({
   storyNode,
@@ -138,7 +139,7 @@ const StoryNodeEditable = React.memo(function StoryNodeEditable({
     if (!content) return;
 
     const isImage = content.type === "image";
-    const imageUrl = content.imageFile ? URL.createObjectURL(content.imageFile) : [process.env.NEXT_PUBLIC_CDN_URL, content.image?.path].join("");
+    const imageUrl = content.imageFile ? URL.createObjectURL(content.imageFile) : imageUrlResole(content.image);
     const textPreview = content.content ? (content.content.length > 100 ? content.content.substring(0, 100) + "..." : content.content) : "";
 
     modal.open("confirm", {

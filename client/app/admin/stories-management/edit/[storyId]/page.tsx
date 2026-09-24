@@ -27,6 +27,7 @@ import Nation from "@/types/nation";
 import StoryNode, { StoryNodeContent } from "@/types/story-node";
 
 import { snakeCaseToCapitalizeWord } from "@/utils/string";
+import { imageUrlResole } from "@/utils/imageUrlResole";
 
 import withAdmin from "@/hoc/withAdmin";
 
@@ -314,7 +315,7 @@ export function EditStory() {
             <div className="col-span-1">
               <ImagePicker
                 className="w-full h-full"
-                defaultValue={story?.cover_art?.path ? [process.env.NEXT_PUBLIC_CDN_URL, story.cover_art.path].join("") : ""}
+                defaultValue={imageUrlResole(story?.cover_art)}
                 onChange={(file) => setCoverArtFile(file as File)}
                 onReset={() => setCoverArtFile(undefined)}
               />

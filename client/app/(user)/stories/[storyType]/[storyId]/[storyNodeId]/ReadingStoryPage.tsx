@@ -30,6 +30,7 @@ import ButtonOfFavouriteStory from "@/components/buttons/favourite-button";
 import useAuth from "@/contexts/AuthContext";
 import CommentMasonryGrid from "@/components/grids/comment-masonry-grid";
 import Image from "next/image";
+import { imageUrlResole } from "@/utils/imageUrlResole";
 import { loadingBar } from "@/components/loadings/loading-bar/top-loading-bar.store";
 import Link from "next/link";
 import { modal } from "@/components/modal/modal.store";
@@ -406,7 +407,7 @@ export default function ReadingStoryPage() {
                 {con.type === "image" && con?.image?.path ? (
                   <Image
                     className="max-w-[1200px]"
-                    src={[process.env.NEXT_PUBLIC_CDN_URL, con.image?.path].join("")}
+                    src={imageUrlResole(con.image)}
                     alt="Cover Art"
                     width={1200}
                     height={1800}

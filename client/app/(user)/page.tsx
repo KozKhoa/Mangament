@@ -26,6 +26,7 @@ import Loading from "@/components/loadings/loading";
 import Link from "@/components/link/Link";
 import RankingVerticalCard from "@/components/cards/ranking-vertical-card";
 import CircleRankingShowcase from "@/components/ranking/circle-ranking-showcase";
+import { imageUrlResole } from "@/utils/imageUrlResole";
 
 const MAX_TRENDING_GENRES = 5;
 const NEWEST_STORIES_PER_PAGE = 18; // 18 truyện: chia hết cho 2, 3, 6 để lưới hiển thị luôn đồng đều
@@ -235,11 +236,7 @@ export default function Home() {
         {trendingGenres.map(({ genre }) => (
           <div className="py-3.5 px-2" key={genre.id}>
             <Link href={`/genre/${genre.name}`}>
-              <CategoryCard
-                className="m-auto hover:scale-110 hover:z-10"
-                imageSource={[process.env.NEXT_PUBLIC_CDN_URL, genre.thumbnail?.path].join("")}
-                label={`${genre.name.toUpperCase()}`}
-              />
+              <CategoryCard className="m-auto hover:scale-110 hover:z-10" imageSource={imageUrlResole(genre.thumbnail)} label={`${genre.name.toUpperCase()}`} />
             </Link>
           </div>
         ))}

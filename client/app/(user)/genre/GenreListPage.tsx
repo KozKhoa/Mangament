@@ -10,6 +10,7 @@ import Genre from "@/types/genre";
 import useApp from "@/contexts/AppContext";
 import Image from "next/image";
 import Loading from "@/components/loadings/loading";
+import { imageUrlResole } from "@/utils/imageUrlResole";
 
 export function GenrePagerCard({ genre, className }: { genre: Genre; className?: string }) {
   return (
@@ -22,13 +23,7 @@ export function GenrePagerCard({ genre, className }: { genre: Genre; className?:
         ${className}`}
       >
         <Link href={`/genre/${genre.name}`}>
-          <Image
-            className="w-full aspect-3/2"
-            src={[process.env.NEXT_PUBLIC_CDN_URL, genre.thumbnail?.path].join("")}
-            alt={genre.name}
-            width={200}
-            height={150}
-          />
+          <Image className="w-full aspect-3/2" src={imageUrlResole(genre.thumbnail)} alt={genre.name} width={200} height={150} />
         </Link>
 
         <div className="p-8 pt-2 flex flex-col gap-2 w-full">

@@ -15,6 +15,7 @@ import { useEffect, useState } from "react";
 import { modal } from "@/components/modal/modal.store";
 import Cropper, { Area } from "react-easy-crop";
 import AvatarCropper from "@/components/inputs/avatar-cropper";
+import { imageUrlResole } from "@/utils/imageUrlResole";
 
 const GENDER = ["male", "female", "other"];
 
@@ -22,7 +23,7 @@ export default function UserCard({ className }: { className?: string }) {
   const auth = useAuth();
   const user = auth?.user;
 
-  const [image, setImage] = useState([process.env.NEXT_PUBLIC_CDN_URL, user?.avatar?.path].join(""));
+  const [image, setImage] = useState(imageUrlResole(user?.avatar, { fallback: "/avatar.png" }));
 
   function handleEditAvatar(imageFile: File) {
     const url = URL.createObjectURL(imageFile);
@@ -53,7 +54,7 @@ export default function UserCard({ className }: { className?: string }) {
   }
 
   useEffect(() => {
-    setImage([process.env.NEXT_PUBLIC_CDN_URL, user?.avatar?.path].join(""));
+    setImage(imageUrlResole(user?.avatar, { fallback: "/avatar.png" }));
   }, [user?.avatar]);
 
   useEffect(() => {

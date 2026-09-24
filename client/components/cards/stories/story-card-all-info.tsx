@@ -10,6 +10,7 @@ import Loading from "@/components/loadings/loading";
 import Line from "@/components/lines/line";
 import GenreTag from "@/components/tags/genre-tag";
 import Image from "next/image";
+import imageUrlResole from "@/utils/imageUrlResole";
 
 interface StoryCardAllInfoProps {
   story?: Story;
@@ -38,7 +39,7 @@ export default function StoryCardAllInfo({ story, className }: StoryCardAllInfoP
           <div className="w-full min-w-[100] md:row-span-2 flex justify-center m-auto">
             <Image
               className="object-cover rounded-sm justify-center"
-              src={story.cover_art?.path ? [process.env.NEXT_PUBLIC_CDN_URL, story.cover_art?.path].join("") : "/blur-image.png"}
+              src={imageUrlResole(story.cover_art, "/blur-image.png")}
               alt="Cover Art"
               width={500}
               height={500}
@@ -52,13 +53,7 @@ export default function StoryCardAllInfo({ story, className }: StoryCardAllInfoP
               {story?.nation && (
                 <span className="shrink-0">
                   {story.nation.flag_image?.path ? (
-                    <Image
-                      src={[process.env.NEXT_PUBLIC_CDN_URL, story.nation.flag_image?.path].join("")}
-                      alt={story.nation.name}
-                      width={24}
-                      height={16}
-                      className="object-contain"
-                    />
+                    <Image src={imageUrlResole(story.nation.flag_image)} alt={story.nation.name} width={24} height={16} className="object-contain" />
                   ) : (
                     <span className="text-[1.2rem]">{story.nation.flag_icon}</span>
                   )}

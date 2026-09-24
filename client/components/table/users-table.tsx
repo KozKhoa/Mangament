@@ -18,6 +18,7 @@ import { modal } from "../modal/modal.store";
 import NoContent from "../cards/no-content";
 import AdjustUserInfoForm from "../forms/adjust-user-info";
 import Image from "next/image";
+import { imageUrlResole } from "@/utils/imageUrlResole";
 
 export interface UserTableProps {
   className?: string;
@@ -172,7 +173,7 @@ export default function UserTable({ className, data }: UserTableProps) {
                 {/* Avatar */}
                 <TD>
                   <div className="w-8 aspect-square m-auto">
-                    <Image src={[process.env.NEXT_PUBLIC_CDN_URL, user.avatar?.path].join("") ?? "/avatar.png"} alt="Avatar" width={100} height={100} />
+                    <Image src={imageUrlResole(user.avatar, { fallback: "/avatar.png" })} alt="Avatar" width={100} height={100} />
                   </div>
                 </TD>
                 <TD>{user.name}</TD>

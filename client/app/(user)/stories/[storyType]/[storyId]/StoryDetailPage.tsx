@@ -23,6 +23,7 @@ import CommentMasonryGrid from "@/components/grids/comment-masonry-grid";
 import RatingMasonryGrid from "@/components/grids/rating-masonry-grid";
 
 import Image from "next/image";
+import { imageUrlResole } from "@/utils/imageUrlResole";
 import { loadingBar } from "@/components/loadings/loading-bar/top-loading-bar.store";
 import ImageType from "@/types/image";
 import useAuth from "@/contexts/AuthContext";
@@ -156,15 +157,7 @@ export default function StoryDetailPage() {
         >
           {reviews?.map((review, i) => (
             <div key={i} className="border border-foreground/30 rounded-sm overflow-hidden">
-              {review && (
-                <Image
-                  src={[process.env.NEXT_PUBLIC_CDN_URL, review.path].join("")}
-                  alt={`review ${i}`}
-                  width={300}
-                  height={400}
-                  style={{ width: "100%", height: "auto" }}
-                ></Image>
-              )}
+              {review && <Image src={imageUrlResole(review)} alt={`review ${i}`} width={300} height={400} style={{ width: "100%", height: "auto" }}></Image>}
             </div>
           ))}
         </div>

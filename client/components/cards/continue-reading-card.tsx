@@ -11,6 +11,7 @@ import historyService from "@/services/history";
 import { routes } from "@/lib/routes";
 import { snakeCaseToCapitalizeWord } from "@/utils/string";
 import TrashIcon from "@/public/trash.svg";
+import { imageUrlResole } from "@/utils/imageUrlResole";
 
 interface ContinueReadingCardProps {
   history: History;
@@ -106,7 +107,7 @@ export default function ContinueReadingCard({ history, onClickRemove, className 
       <div className="relative self-stretch w-[35%] sm:w-[33%] md:w-[35%] shrink-0 overflow-hidden bg-foreground/5 min-h-[220px] sm:min-h-[240px] md:min-h-[260px] lg:min-h-[270px]">
         {story?.cover_art?.path ? (
           <Image
-            src={[process.env.NEXT_PUBLIC_CDN_URL, story.cover_art.path].join("")}
+            src={imageUrlResole(story.cover_art)}
             alt={story.title || "Cover Art"}
             fill
             sizes="(max-width: 640px) 40vw, (max-width: 1024px) 30vw, 20vw"
@@ -125,7 +126,7 @@ export default function ContinueReadingCard({ history, onClickRemove, className 
             <span className="shrink-0 drop-shadow">
               {story.nation.flag_image?.path ? (
                 <Image
-                  src={[process.env.NEXT_PUBLIC_CDN_URL, story.nation.flag_image.path].join("")}
+                  src={imageUrlResole(story.nation.flag_image)}
                   alt={story.nation.name}
                   width={20}
                   height={14}

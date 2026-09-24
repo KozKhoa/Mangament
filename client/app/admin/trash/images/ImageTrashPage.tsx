@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { imageUrlResole } from "@/utils/imageUrlResole";
 import { toast } from "sonner";
 import { useRouter, useSearchParams } from "next/navigation";
 import { MouseEvent, useEffect, useMemo, useState } from "react";
@@ -155,12 +156,12 @@ export function ImageTrashPage() {
       content: (
         <div className="min-w-[350px] w-[80vw] h-[90vh] relative flex flex-col gap-1">
           <div className="relative w-full h-full">
-            <Image src={[process.env.NEXT_PUBLIC_CDN_URL, image.path].join("")} className="object-contain m-auto" alt={image.path ?? ""} fill />
+            <Image src={imageUrlResole(image)} className="object-contain m-auto" alt={image.path ?? ""} fill />
           </div>
 
           <div className="w-full bg-background px-2 rounded-lg text-lg">
             <p>
-              <span className="font-semibold">URL: </span> {[process.env.NEXT_PUBLIC_CDN_URL, image.path].join("")}
+              <span className="font-semibold">URL: </span> {imageUrlResole(image)}
             </p>
             <p>
               <span className="font-semibold">Key: </span> {image.path}
@@ -281,7 +282,7 @@ export function ImageTrashPage() {
                 <Image
                   className={`object-contain ${selected.has(image.id ?? "") ? "opacity-40" : ""}`}
                   onClick={(e) => handleToggleSelectedImage(image.id ?? "", e as any)}
-                  src={[process.env.NEXT_PUBLIC_CDN_URL, image.path].join("")}
+                  src={imageUrlResole(image)}
                   alt={image.path ?? ""}
                   width={300}
                   height={400}
