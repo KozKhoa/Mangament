@@ -1,3 +1,7 @@
+import fs from "fs";
+import path from "path";
+import crypto from "crypto";
+import sharp from "sharp";
 import { redis } from "../../configs/redis.js";
 import { Worker } from "bullmq";
 import db from "../../configs/db.js";
@@ -7,6 +11,8 @@ import storyQueue from "../queues/story.queue.js";
 import * as storyService from "../../src/services/story.service.js";
 import { CreateError } from "../../src/utils/ErrorHandle.js";
 import { isUUID } from "../../src/utils/Validators.js";
+import { getTempDir, extractZipArchive, findCsvInDirectory, cleanupOrMoveProcessedZip, safeUnlink } from "../../src/utils/zip/zipStorage.js";
+import { parseStoriesSpreadsheet } from "../../src/utils/spreadsheet.parser.js";
 
 const connection = {
   host: redis.options.host,
@@ -577,195 +583,364 @@ async function resolveAuthorIds(authorIds = [], authorsCache) {
   return [...new Set(resolvedIds)];
 }
 
-const batchImportStoriesWorker = new Worker(
-  "batch-import-stories",
-  async (job) => {
-    const { rows = [], userId, fileName } = job.data;
-    console.log(`[BatchImport] Bắt đầu import ${rows.length} dòng từ file ${fileName || "bảng tính"}`);
+function getMimeType(ext) {
+  switch ((ext || "").toLowerCase()) {
+    case ".png":
+      return "image/png";
+    case ".webp":
+      return "image/webp";
+    case ".avif":
+      return "image/avif";
+    case ".gif":
+      return "image/gif";
+    case ".jpg":
+    case ".jpeg":
+    default:
+      return "image/jpeg";
+  }
+}
 
-    const storiesCache = new Map();
-    const nodesCache = new Map();
-    const nationsCache = new Map();
-    const imagesCache = new Map();
-    const usersCache = new Map();
-    const genresCache = new Map();
-    const authorsCache = new Map();
-    const affectedStoryIds = new Set();
+async function getImageDimensions(filePath) {
+  try {
+    const meta = await sharp(filePath).metadata();
+    return { width: meta.width || null, height: meta.height || null };
+  } catch {
+    return { width: null, height: null };
+  }
+}
 
-    let importedStoriesCount = 0;
-    let importedNodesCount = 0;
-    let importedContentsCount = 0;
+function resolvePublicStoriesDir() {
+  const publicBase = process.env.PUBLIC_DIR ? path.resolve(process.env.PUBLIC_DIR) : path.resolve(process.cwd(), "public");
+  const storiesDir = path.join(publicBase, "images/stories");
+  fs.mkdirSync(storiesDir, { recursive: true });
+  return storiesDir;
+}
 
-    // Kiểm tra userId có tồn tại trong bảng User không để tránh lỗi Foreign Key Constraint
-    const validPosterId = await resolveUserId(userId, usersCache);
+async function importImageFromRelativePath(relPath, csvDir, prefix = "img") {
+  if (!relPath || !csvDir) return null;
 
-    try {
-      for (const item of rows) {
-        const { story: sData } = item;
-        if (!sData || !sData.title) continue;
+  const normalizedRel = String(relPath).replace(/\\/g, "/");
+  const fullSrcPath = path.resolve(csvDir, normalizedRel);
 
-        const storyTitleKey = sData.title.toLowerCase().trim();
-        let story = storiesCache.get(storyTitleKey);
+  try {
+    if (!fs.existsSync(fullSrcPath)) {
+      console.warn(`[BatchImport] Ảnh không tồn tại tại: ${fullSrcPath} (từ đường dẫn: ${relPath})`);
+      return null;
+    }
+
+    const stat = await fs.promises.stat(fullSrcPath);
+    if (!stat.isFile()) return null;
+
+    const ext = path.extname(fullSrcPath).toLowerCase() || ".jpg";
+    const publicStoriesDir = resolvePublicStoriesDir();
+    const imageId = crypto.randomUUID();
+    const destFilename = `${prefix}_${Date.now()}_${crypto.randomUUID().slice(0, 8)}${ext}`;
+    const destPath = path.join(publicStoriesDir, destFilename);
+
+    await fs.promises.copyFile(fullSrcPath, destPath);
+
+    const dims = await getImageDimensions(destPath);
+    const relativeDbPath = `/public/images/stories/${destFilename}`;
+
+    const imageRecord = await db.image.create({
+      data: {
+        id: imageId,
+        provider: "local",
+        mine_type: getMimeType(ext),
+        size: stat.size,
+        path: relativeDbPath,
+        width: dims.width,
+        height: dims.height,
+      },
+    });
+
+    return imageRecord.id;
+  } catch (err) {
+    console.warn(`[BatchImport] Lỗi sao chép ảnh ${relPath}: ${err.message}`);
+    return null;
+  }
+}
+
+export async function executeBatchImportRows({ rows = [], userId, fileName, csvDir }) {
+  console.log(`[BatchImport] Bắt đầu import ${rows.length} dòng từ file ${fileName || "bảng tính"}${csvDir ? ` (Thư mục CSV: ${csvDir})` : ""}`);
+
+  const storiesCache = new Map();
+  const nodesCache = new Map();
+  const nationsCache = new Map();
+  const imagesCache = new Map();
+  const usersCache = new Map();
+  const genresCache = new Map();
+  const authorsCache = new Map();
+  const affectedStoryIds = new Set();
+
+  let importedStoriesCount = 0;
+  let importedNodesCount = 0;
+  let importedContentsCount = 0;
+
+  // Kiểm tra userId có tồn tại trong bảng User không để tránh lỗi Foreign Key Constraint
+  const validPosterId = await resolveUserId(userId, usersCache);
+
+  try {
+    for (const item of rows) {
+      const { story: sData } = item;
+      if (!sData || !sData.title) continue;
+
+      const storyTitleKey = sData.title.toLowerCase().trim();
+      let story = storiesCache.get(storyTitleKey);
+
+      if (!story) {
+        story = await db.story.findUnique({
+          where: { title: sData.title },
+        });
 
         if (!story) {
-          story = await db.story.findUnique({
-            where: { title: sData.title },
+          const resolvedNationId = await resolveNationId(sData.nation_id, sData.nation, nationsCache);
+          let resolvedCoverArtId = await resolveImageId(sData.cover_art_id, imagesCache);
+
+          if (!resolvedCoverArtId && sData.cover_art_path && csvDir) {
+            resolvedCoverArtId = await importImageFromRelativePath(sData.cover_art_path, csvDir, `cover_${storyTitleKey.replace(/[^a-z0-9]/gi, "_")}`);
+          }
+
+          story = await db.story.create({
+            data: {
+              title: sData.title,
+              other_titles: sData.other_titles || [],
+              type: sData.type || "manga",
+              status: sData.status || "ongoing",
+              nation_id: resolvedNationId,
+              deleted_status: sData.deleted_status || "not_deleted",
+              is_actived: sData.is_actived ?? true,
+              summary: sData.summary || null,
+              cover_art_id: resolvedCoverArtId,
+              poster_id: validPosterId,
+            },
+          });
+          importedStoriesCount++;
+        } else if (!story.cover_art_id && sData.cover_art_path && csvDir) {
+          const newCoverId = await importImageFromRelativePath(sData.cover_art_path, csvDir, `cover_${story.id}`);
+          if (newCoverId) {
+            await db.story.update({
+              where: { id: story.id },
+              data: { cover_art_id: newCoverId },
+            });
+            story.cover_art_id = newCoverId;
+          }
+        }
+
+        storiesCache.set(storyTitleKey, story);
+      }
+
+      affectedStoryIds.add(story.id);
+
+      // Attach genres if provided
+      const genresList = sData.genres || [];
+      if (genresList.length > 0) {
+        const resolvedGenreIds = await resolveGenreIds(genresList, genresCache);
+        if (resolvedGenreIds.length > 0) {
+          await db.story_Genre.createMany({
+            data: resolvedGenreIds.map((genre_id) => ({
+              story_id: story.id,
+              genre_id,
+            })),
+            skipDuplicates: true,
+          });
+        }
+      }
+
+      // Attach authors if provided
+      const authorIdsList = sData.author_ids || sData.authorIds || [];
+      if (authorIdsList.length > 0) {
+        const resolvedAuthorIds = await resolveAuthorIds(authorIdsList, authorsCache);
+        if (resolvedAuthorIds.length > 0) {
+          await db.story_Author.createMany({
+            data: resolvedAuthorIds.map((author_id) => ({
+              story_id: story.id,
+              author_id,
+            })),
+            skipDuplicates: true,
+          });
+        }
+      }
+
+      // Support dynamic N-level nodes (or fallback to parentNode/childNode)
+      const nodes = Array.isArray(item.nodes) ? item.nodes : [item.parentNode, item.childNode].filter(Boolean);
+
+      let currentParentId = null;
+
+      for (let depth = 0; depth < nodes.length; depth++) {
+        const nodeData = nodes[depth];
+        if (!nodeData || (!nodeData.title && nodeData.order_index === null && !nodeData.content)) {
+          continue;
+        }
+
+        const nodeOrder = Number(nodeData.order_index ?? 1);
+        const nodeKey = `${story.id}_${currentParentId || "root"}_${nodeOrder}_${nodeData.title || ""}`;
+        let currentNode = nodesCache.get(nodeKey);
+
+        if (!currentNode) {
+          currentNode = await db.storyNode.findFirst({
+            where: {
+              story_id: story.id,
+              parent_id: currentParentId,
+              order_index: nodeOrder,
+            },
           });
 
-          if (!story) {
-            const resolvedNationId = await resolveNationId(sData.nation_id, sData.nation, nationsCache);
-            const resolvedCoverArtId = await resolveImageId(sData.cover_art_id, imagesCache);
-
-            story = await db.story.create({
+          if (!currentNode) {
+            currentNode = await db.storyNode.create({
               data: {
-                title: sData.title,
-                other_titles: sData.other_titles || [],
-                type: sData.type || "manga",
-                status: sData.status || "ongoing",
-                nation_id: resolvedNationId,
-                deleted_status: sData.deleted_status || "not_deleted",
-                is_actived: sData.is_actived ?? true,
-                summary: sData.summary || null,
-                cover_art_id: resolvedCoverArtId,
+                story_id: story.id,
+                parent_id: currentParentId,
+                title: nodeData.title || null,
+                type: nodeData.type || (depth === 0 ? "volume" : "chapter"),
+                order_index: nodeOrder,
+                deleted_status: nodeData.deleted_status || "not_deleted",
                 poster_id: validPosterId,
               },
             });
-            importedStoriesCount++;
-          }
 
-          storiesCache.set(storyTitleKey, story);
-        }
-
-        affectedStoryIds.add(story.id);
-
-        // Attach genres if provided
-        const genresList = sData.genres || [];
-        if (genresList.length > 0) {
-          const resolvedGenreIds = await resolveGenreIds(genresList, genresCache);
-          if (resolvedGenreIds.length > 0) {
-            await db.story_Genre.createMany({
-              data: resolvedGenreIds.map((genre_id) => ({
-                story_id: story.id,
-                genre_id,
-              })),
-              skipDuplicates: true,
-            });
-          }
-        }
-
-        // Attach authors if provided
-        const authorIdsList = sData.author_ids || sData.authorIds || [];
-        if (authorIdsList.length > 0) {
-          const resolvedAuthorIds = await resolveAuthorIds(authorIdsList, authorsCache);
-          if (resolvedAuthorIds.length > 0) {
-            await db.story_Author.createMany({
-              data: resolvedAuthorIds.map((author_id) => ({
-                story_id: story.id,
-                author_id,
-              })),
-              skipDuplicates: true,
-            });
-          }
-        }
-
-        // Support dynamic N-level nodes (or fallback to parentNode/childNode)
-        const nodes = Array.isArray(item.nodes) ? item.nodes : [item.parentNode, item.childNode].filter(Boolean);
-
-        let currentParentId = null;
-
-        for (let depth = 0; depth < nodes.length; depth++) {
-          const nodeData = nodes[depth];
-          if (!nodeData || (!nodeData.title && nodeData.order_index === null && !nodeData.content)) {
-            continue;
-          }
-
-          const nodeOrder = Number(nodeData.order_index ?? 1);
-          const nodeKey = `${story.id}_${currentParentId || "root"}_${nodeOrder}_${nodeData.title || ""}`;
-          let currentNode = nodesCache.get(nodeKey);
-
-          if (!currentNode) {
-            currentNode = await db.storyNode.findFirst({
-              where: {
-                story_id: story.id,
-                parent_id: currentParentId,
-                order_index: nodeOrder,
-              },
-            });
-
-            if (!currentNode) {
-              currentNode = await db.storyNode.create({
-                data: {
-                  story_id: story.id,
-                  parent_id: currentParentId,
-                  title: nodeData.title || null,
-                  type: nodeData.type || (depth === 0 ? "volume" : "chapter"),
-                  order_index: nodeOrder,
-                  deleted_status: nodeData.deleted_status || "not_deleted",
-                  poster_id: validPosterId,
-                },
+            if (currentParentId) {
+              await db.storyNode.update({
+                where: { id: currentParentId },
+                data: { number_of_children: { increment: 1 } },
               });
-
-              if (currentParentId) {
-                await db.storyNode.update({
-                  where: { id: currentParentId },
-                  data: { number_of_children: { increment: 1 } },
-                });
-              } else {
-                await db.story.update({
-                  where: { id: story.id },
-                  data: { number_of_children: { increment: 1 } },
-                });
-              }
-              importedNodesCount++;
+            } else {
+              await db.story.update({
+                where: { id: story.id },
+                data: { number_of_children: { increment: 1 } },
+              });
             }
-
-            nodesCache.set(nodeKey, currentNode);
+            importedNodesCount++;
           }
 
-          // Nội dung của Node (nếu có)
-          if (nodeData.content && (nodeData.content.content || nodeData.content.image_id || nodeData.content.order_index !== null)) {
-            const contentImageId = await resolveImageId(nodeData.content.image_id, imagesCache);
-            await db.storyNodeContent.create({
-              data: {
-                story_node_id: currentNode.id,
-                order_index: Number(nodeData.content.order_index ?? 1),
-                type: nodeData.content.type || (contentImageId ? "image" : "text"),
-                content: nodeData.content.content || null,
-                image_id: contentImageId,
-                deleted_status: nodeData.content.deleted_status || "not_deleted",
-              },
-            });
-            importedContentsCount++;
+          nodesCache.set(nodeKey, currentNode);
+        }
+
+        // Nội dung của Node (nếu có)
+        if (
+          nodeData.content &&
+          (nodeData.content.content || nodeData.content.image_id || nodeData.content.image_path || nodeData.content.order_index !== null)
+        ) {
+          let contentImageId = await resolveImageId(nodeData.content.image_id, imagesCache);
+          if (!contentImageId && nodeData.content.image_path && csvDir) {
+            contentImageId = await importImageFromRelativePath(
+              nodeData.content.image_path,
+              csvDir,
+              `${story.id}_${currentNode.id}_${nodeData.content.order_index ?? 1}`,
+            );
           }
 
-          // Child node tiếp theo sẽ có parent_id là currentNode.id
-          currentParentId = currentNode.id;
+          await db.storyNodeContent.create({
+            data: {
+              story_node_id: currentNode.id,
+              order_index: Number(nodeData.content.order_index ?? 1),
+              type: nodeData.content.type || (contentImageId ? "image" : "text"),
+              content: nodeData.content.content || null,
+              image_id: contentImageId,
+              deleted_status: nodeData.content.deleted_status || "not_deleted",
+            },
+          });
+          importedContentsCount++;
         }
-      }
 
-      // Refresh redis cache and trigger embedding
-      for (const storyId of affectedStoryIds) {
-        try {
-          await redisUtils.stories(storyId).incr();
-          storyQueue.addJob_EmbeddingStory(storyId);
-          storyQueue.addJob_SyncStoryChildren(storyId);
-        } catch (err) {
-          console.error(`[BatchImport] Error triggering post-import for story ${storyId}:`, err);
-        }
+        // Child node tiếp theo sẽ có parent_id là currentNode.id
+        currentParentId = currentNode.id;
       }
-      await redisUtils.stories().incr();
-
-      console.log(`[BatchImport] Hoàn tất import: ${importedStoriesCount} truyện mới, ${importedNodesCount} nodes, ${importedContentsCount} contents.`);
-    } catch (error) {
-      console.error(`[BatchImport] ❌ Lỗi xử lý import file ${fileName}:`, error);
-      throw error;
     }
+
+    // Refresh redis cache and trigger embedding
+    for (const storyId of affectedStoryIds) {
+      try {
+        await redisUtils.stories(storyId).incr();
+        storyQueue.addJob_EmbeddingStory(storyId);
+        storyQueue.addJob_SyncStoryChildren(storyId);
+      } catch (err) {
+        console.error(`[BatchImport] Error triggering post-import for story ${storyId}:`, err);
+      }
+    }
+    await redisUtils.stories().incr();
+
+    console.log(`[BatchImport] Hoàn tất import: ${importedStoriesCount} truyện mới, ${importedNodesCount} nodes, ${importedContentsCount} contents.`);
+    return { importedStoriesCount, importedNodesCount, importedContentsCount };
+  } catch (error) {
+    console.error(`[BatchImport] ❌ Lỗi xử lý import file ${fileName}:`, error);
+    throw error;
+  }
+}
+
+const batchImportStoriesWorker = new Worker(
+  "batch-import-stories",
+  async (job) => {
+    const { rows = [], userId, fileName, csvDir } = job.data;
+    return await executeBatchImportRows({ rows, userId, fileName, csvDir });
   },
   { connection, concurrency: 1 },
 );
 
 batchImportStoriesWorker.on("failed", (job, err) => {
   console.error(`[BatchImport] ❌ Job ${job?.id} thất bại (Lần thử ${job?.attemptsMade}/${job?.opts?.attempts}):`, err?.message || err);
+});
+
+const batchImportZipWorker = new Worker(
+  "batch-import-zip",
+  async (job) => {
+    const { zipFilePath, originalName, userId, sessionId, cleanupAfterProcessing } = job.data;
+    console.log(`[BatchImportZip] Bắt đầu xử lý file zip ${originalName || zipFilePath} (Session: ${sessionId})`);
+
+    const { processingDir: rootProcessingDir } = getTempDir();
+    const processingDir = path.join(rootProcessingDir, sessionId);
+
+    try {
+      // 1. Giải nén vào thư mục processing
+      await extractZipArchive(zipFilePath, processingDir);
+
+      // 2. Tìm file CSV hoặc bảng tính bên trong thư mục giải nén
+      const csvPath = await findCsvInDirectory(processingDir);
+      if (!csvPath) {
+        throw new Error("Không tìm thấy file .csv hoặc bảng tính hợp lệ trong file zip đã giải nén");
+      }
+
+      console.log(`[BatchImportZip] Đã tìm thấy file bảng tính: ${csvPath}`);
+
+      // 3. Đọc và parse dữ liệu bảng tính
+      const csvBuffer = await fs.promises.readFile(csvPath);
+      const rows = parseStoriesSpreadsheet(csvBuffer);
+
+      if (!rows || rows.length === 0) {
+        throw new Error("File bảng tính trong file zip không có dòng dữ liệu truyện hợp lệ nào");
+      }
+
+      // 4. Thực thi import dữ liệu với đường dẫn thư mục CSV để resolve ảnh tương đối
+      const csvDir = path.dirname(csvPath);
+      await executeBatchImportRows({
+        rows,
+        userId,
+        fileName: originalName || path.basename(zipFilePath),
+        csvDir,
+      });
+
+      // 5. Dọn dẹp hoặc chuyển file zip vào thư mục completed
+      await cleanupOrMoveProcessedZip({
+        zipFilePath,
+        processingDir,
+        sessionId,
+        cleanupAfterProcessing,
+      });
+
+      console.log(`[BatchImportZip] ✅ Hoàn tất xử lý file zip (Session: ${sessionId})`);
+    } catch (error) {
+      console.error(`[BatchImportZip] ❌ Lỗi xử lý file zip (Session: ${sessionId}):`, error);
+      if (processingDir && fs.existsSync(processingDir)) {
+        await safeUnlink(processingDir);
+      }
+      throw error;
+    }
+  },
+  { connection, concurrency: 1 },
+);
+
+batchImportZipWorker.on("failed", (job, err) => {
+  console.error(`[BatchImportZip] ❌ Job ${job?.id} thất bại (Lần thử ${job?.attemptsMade}/${job?.opts?.attempts}):`, err?.message || err);
 });
 
 const syncStoryChildrenWorker = new Worker(
@@ -791,5 +966,6 @@ export default {
   hardDeleteManyStoriesWorker,
   updateStoryWorker,
   batchImportStoriesWorker,
+  batchImportZipWorker,
   syncStoryChildrenWorker,
 };

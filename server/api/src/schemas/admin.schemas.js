@@ -122,6 +122,13 @@ export class AdminSchemas {
     }),
   });
 
+  downloadBatchZipStory = z.object({
+    body: z.object({
+      url: z.string().url("URL không hợp lệ"),
+      cleanupAfterProcessing: z.boolean().optional(),
+    }),
+  });
+
   updateStoryCoverArt = z.object({
     params: uuidParamSchema,
     body: z.object({

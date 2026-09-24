@@ -18,6 +18,7 @@ class StoryQueue {
   #embeddingStoryQueue = new Queue("embedding-story", { connection });
   #updateStory = new Queue("update-story", { connection });
   #batchImportStoriesQueue = new Queue("batch-import-stories", { connection });
+  #batchImportZipQueue = new Queue("batch-import-zip", { connection });
   #syncStoryChildrenQueue = new Queue("sync-story-children", { connection });
 
   addJob_SyncStoryChildren(storyId) {
@@ -30,8 +31,12 @@ class StoryQueue {
     return Promise.all(uniqueIds.map((storyId) => this.addJob_SyncStoryChildren(storyId)));
   }
 
-  addJob_BatchImportStories({ rows = [], userId, fileName }) {
-    return this.#batchImportStoriesQueue.add("batchImportStories", { rows, userId, fileName }, ADD_JOB_OPTION);
+  addJob_BatchImportStories({ rows = [], userId, fileName, csvDir }) {
+    return this.#batchImportStoriesQueue.add("batchImportStories", { rows, userId, fileName, csvDir }, ADD_JOB_OPTION);
+  }
+
+  addJob_BatchImportZip({ zipFilePath, originalName, userId, sessionId, cleanupAfterProcessing }) {
+    return this.#batchImportZipQueue.add("batchImportZip", { zipFilePath, originalName, userId, sessionId, cleanupAfterProcessing }, ADD_JOB_OPTION);
   }
 
   addJob_EmbeddingStory(storyId) {

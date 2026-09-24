@@ -21,6 +21,8 @@
     "upload:stories:dry-run": "node scripts/upload-stories/index.js --dry-run",
     "sync:children": "node scripts/sync-story-children/index.js",
     "sync:children:dry-run": "node scripts/sync-story-children/index.js --dry-run",
+    "pack:zip": "node scripts/pack-stories-zip/index.js",
+    "pack:zip:dry-run": "node scripts/pack-stories-zip/index.js --dry-run",
     "test": "vitest",
     "test:watch": "vitest --watch",
     "test:coverage": "vitest run --coverage",

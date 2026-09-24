@@ -28,6 +28,24 @@ const uploadSpreadsheet = multer({
   fileFilter: spreadsheetFileFilter,
 });
 
+import { createZipDiskStorageEngine } from "../../utils/zip/zipStorage.js";
+
+const zipFileFilter = (req, file, cb) => {
+  const ext = path.extname(file.originalname || "").toLowerCase();
+  if (ext === ".zip") {
+    cb(null, true);
+  } else {
+    const error = new Error("Chỉ hỗ trợ tải lên file nén định dạng .zip");
+    error.status = 400;
+    cb(error, false);
+  }
+};
+
+const uploadZip = multer({
+  storage: createZipDiskStorageEngine(),
+  fileFilter: zipFileFilter,
+});
+
 const validatePostStory = (req, res, next) => {
   if (req.file) {
     return next();
@@ -44,6 +62,10 @@ adminStoryRoute.get("/trash", ValidateData(adminSchemas.getAllTrashStories), adm
 adminStoryRoute.get("/import-template", adminController.story.getStoryImportTemplate);
 
 adminStoryRoute.get("/:id", ValidateData(adminSchemas.getStory), adminController.story.getStory);
+
+adminStoryRoute.post("/upload-zip", uploadZip.single("file"), adminController.story.uploadBatchZipStory);
+
+adminStoryRoute.post("/download-zip", ValidateData(adminSchemas.downloadBatchZipStory), adminController.story.downloadBatchZipStory);
 
 adminStoryRoute.post("/", uploadSpreadsheet.single("file"), validatePostStory, adminController.story.postNewStory);
 

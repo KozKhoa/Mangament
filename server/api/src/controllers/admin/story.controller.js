@@ -1,10 +1,10 @@
+import path from "path";
 import { CreateError } from "../../utils/ErrorHandle.js";
 
 import * as storyService from "../../services/story.service.js";
 
 import { isUUID, throwErrorIfInvalidGenres, throwErrorIfInvalidStoryStatus, throwErrorIfInvalidStoryType } from "../../utils/Validators.js";
-import { parseStoriesSpreadsheet, generateStoryImportTemplate } from "../../utils/spreadsheet.parser.js";
-import storyQueue from "../../../worker/queues/story.queue.js";
+import { generateStoryImportTemplate } from "../../utils/spreadsheet.parser.js";
 
 // GET /admin/stories/:id
 export async function getStory(req, res, next) {
@@ -88,8 +88,62 @@ export async function getStoryImportTemplate(req, res, next) {
 }
 
 /**
+ * POST /admin/stories/upload-zip
+ * Tải file zip chứa bảng tính và các thư mục ảnh bìa / ảnh chapter lên diskStorage
+ * và đẩy vào hàng đợi worker để giải nén và xử lý.
+ */
+export async function uploadBatchZipStory(req, res, next) {
+  try {
+    const userId = req.user?.id;
+    const file = req.file;
+
+    const cleanupAfterProcessing =
+      req.body?.cleanupAfterProcessing !== undefined ? req.body.cleanupAfterProcessing === "true" || req.body.cleanupAfterProcessing === true : undefined;
+
+    const result = await storyService.ProcessUploadBatchZip({
+      file,
+      userId,
+      cleanupAfterProcessing,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "File zip đã được tải lên diskStorage thành công và đang được đưa vào worker giải nén, xử lý",
+      data: result,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
+ * POST /admin/stories/download-zip
+ * Tải file zip từ URL bên ngoài lưu trực tiếp vào diskStorage và đẩy vào worker xử lý.
+ */
+export async function downloadBatchZipStory(req, res, next) {
+  try {
+    const userId = req.user?.id;
+    const { url, cleanupAfterProcessing } = req.body || {};
+
+    const result = await storyService.ProcessDownloadBatchZip({
+      url,
+      userId,
+      cleanupAfterProcessing,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "File zip đã được tải về diskStorage thành công và đang được đưa vào worker giải nén, xử lý",
+      data: result,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
  * POST /admin/stories
- * Tạo truyện đơn lẻ hoặc import truyện hàng loạt từ file (.csv, .xlsx, .xls).
+ * Tạo truyện đơn lẻ hoặc import truyện hàng loạt từ file (.csv, .xlsx, .xls) hoặc .zip.
  *
  * - Batch Import: Gửi file qua multipart/form-data field `file`.
  *   Cấu trúc file, danh sách cột và ví dụ chi tiết: xem tại `docs/BATCH_IMPORT_GUIDE.md`.
@@ -99,26 +153,41 @@ export async function postNewStory(req, res, next) {
   try {
     const userId = req.user?.id;
 
-    // Nếu người dùng tải lên file (csv, xlsx, xls) -> xử lý thêm truyện hàng loạt qua worker
+    // Nếu người dùng tải lên file -> xử lý thêm truyện hàng loạt qua worker
     if (req.file) {
-      const rows = parseStoriesSpreadsheet(req.file.buffer);
+      const ext = path.extname(req.file.originalname || "").toLowerCase();
 
-      if (!rows || rows.length === 0) {
-        throw CreateError(400, "File bảng tính không có dòng dữ liệu truyện hợp lệ nào");
+      // Nếu file là zip (được lưu vào diskStorage)
+      if (ext === ".zip" || req.file.path) {
+        const cleanupAfterProcessing =
+          req.body?.cleanupAfterProcessing !== undefined ? req.body.cleanupAfterProcessing === "true" || req.body.cleanupAfterProcessing === true : undefined;
+
+        const result = await storyService.ProcessUploadBatchZip({
+          file: req.file,
+          userId,
+          cleanupAfterProcessing,
+        });
+
+        return res.status(200).json({
+          success: true,
+          message: "File zip đã được tiếp nhận vào diskStorage và đang được xử lý thêm truyện trong worker",
+          data: result,
+        });
       }
 
-      await storyQueue.addJob_BatchImportStories({
-        rows,
-        userId,
+      // File bảng tính thông thường trong bộ nhớ (.csv, .xlsx, .xls)
+      const result = await storyService.ProcessBatchImportSpreadsheet({
+        buffer: req.file.buffer,
         fileName: req.file.originalname,
+        userId,
       });
 
       return res.status(200).json({
         success: true,
         message: "File đã được tiếp nhận và đang được xử lý thêm truyện hàng loạt trong worker",
         data: {
-          fileName: req.file.originalname,
-          totalRows: rows.length,
+          fileName: result.fileName,
+          totalRows: result.totalRows,
         },
       });
     }

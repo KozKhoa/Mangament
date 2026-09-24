@@ -2,12 +2,14 @@
 
 Tài liệu này hướng dẫn chi tiết quy cách thiết kế file bảng tính (`.csv`, `.xlsx`, `.xls`) để thực hiện tải lên và tạo truyện hàng loạt qua API:
 
-- **Endpoint Upload**: `POST /admin/stories`
+- **Endpoint Upload Bảng tính (.csv/.xlsx)**: `POST /admin/stories`
+- **Endpoint Upload File ZIP (.zip)**: `POST /admin/stories/upload-zip` (hoặc gửi file `.zip` đến `POST /admin/stories`)
+- **Endpoint Download & Import File ZIP từ URL**: `POST /admin/stories/download-zip`
 - **Method**: `POST`
-- **Content-Type**: `multipart/form-data`
-- **Tên field file**: `file`
-- **Dung lượng tối đa**: 20MB / file
-- **Định dạng hỗ trợ**: `.csv`, `.xlsx`, `.xls`
+- **Content-Type**: `multipart/form-data` (đối với Upload) hoặc `application/json` (đối với Download ZIP)
+- **Tên field file upload**: `file`
+- **Dung lượng**: Không giới hạn RAM (Stream trực tiếp vào `diskStorage` của `TEMP_DIR` cho file zip lên đến hàng chục GB)
+- **Định dạng hỗ trợ**: `.csv`, `.xlsx`, `.xls`, `.zip`
 
 ---
 
@@ -63,6 +65,7 @@ Hệ thống được thiết kế theo cơ chế **Dynamic Schema**, cho phép:
 | `is_actived` hoặc `is_active`        |   Không   |    Boolean     |      `true`      | Trạng thái kích hoạt: `true`/`false`, `1`/`0`, `yes`/`no`.                                                                                                                                                                                                            |
 | `summary` hoặc `description`         |   Không   | Chuỗi (String) |      `null`      | Nội dung tóm tắt cốt truyện.                                                                                                                                                                                                                                          |
 | `cover_art_id`                       |   Không   |      UUID      |      `null`      | UUID của ảnh bìa trong bảng `Image`. Nếu rỗng hoặc ID không tồn tại sẽ tự động lưu `null`.                                                                                                                                                                            |
+| `cover_art_path`                     |   Không   | Chuỗi (String) |      `null`      | Đường dẫn tương đối đến file ảnh bìa tính từ vị trí file CSV trong file ZIP (ví dụ: `covers/naruto.jpg` hoặc `./images/cover.png`). Worker sẽ tự động import vào `PUBLIC_DIR/images/stories`, tạo bản ghi bảng `Image` (`provider: "local"`) và liên kết vào truyện.  |
 
 ---
 
@@ -92,13 +95,14 @@ Có **2 cách đặt tên tiêu đề** cho các tầng node:
 
 Một node có thể có hoặc không có nội dung kèm theo. Nếu các cột nội dung bị bỏ trống, hệ thống sẽ chỉ tạo Node mà không tạo bản ghi nội dung.
 
-| Tiêu đề Cách 1 (Lặp lại)            | Tiêu đề Cách 2 (Đánh số Cấp $K$)  | Bắt buộc? | Kiểu dữ liệu |             Giá trị mặc định             | Mô tả                                                       |
-| :---------------------------------- | :-------------------------------- | :-------: | :----------: | :--------------------------------------: | :---------------------------------------------------------- |
-| `story_node_content_order_index`    | `node_{k}_content_order_index`    |   Không   |   Số (Int)   |                   `1`                    | Thứ tự của đoạn nội dung / trang truyện.                    |
-| `story_node_content_type`           | `node_{k}_content_type`           |   Không   |     Enum     | Có image: `image`<br>Không image: `text` | Loại nội dung: `text`, `image`, `header`, `title`.          |
-| `story_node_content_content`        | `node_{k}_content_content`        |   Không   |    Chuỗi     |                  `null`                  | Đoạn văn bản, lời thoại hoặc nội dung text của chương.      |
-| `story_node_content_image_id`       | `node_{k}_content_image_id`       |   Không   |     UUID     |                  `null`                  | UUID của ảnh trang truyện trong bảng `Image`.               |
-| `story_node_content_deleted_status` | `node_{k}_content_deleted_status` |   Không   |     Enum     |              `not_deleted`               | Trạng thái xóa của nội dung: `not_deleted`, `soft_deleted`. |
+| Tiêu đề Cách 1 (Lặp lại)            | Tiêu đề Cách 2 (Đánh số Cấp $K$)  | Bắt buộc? | Kiểu dữ liệu |             Giá trị mặc định             | Mô tả                                                                                                                                                                                                                             |
+| :---------------------------------- | :-------------------------------- | :-------: | :----------: | :--------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `story_node_content_order_index`    | `node_{k}_content_order_index`    |   Không   |   Số (Int)   |                   `1`                    | Thứ tự của đoạn nội dung / trang truyện.                                                                                                                                                                                          |
+| `story_node_content_type`           | `node_{k}_content_type`           |   Không   |     Enum     | Có image: `image`<br>Không image: `text` | Loại nội dung: `text`, `image`, `header`, `title`.                                                                                                                                                                                |
+| `story_node_content_content`        | `node_{k}_content_content`        |   Không   |    Chuỗi     |                  `null`                  | Đoạn văn bản, lời thoại hoặc nội dung text của chương.                                                                                                                                                                            |
+| `story_node_content_image_id`       | `node_{k}_content_image_id`       |   Không   |     UUID     |                  `null`                  | UUID của ảnh trang truyện trong bảng `Image`.                                                                                                                                                                                     |
+| `story_node_content_image_path`     | `node_{k}_content_image_path`     |   Không   | Chuỗi (Path) |                  `null`                  | Đường dẫn tương đối đến file ảnh trang truyện tính từ vị trí file CSV trong file ZIP (ví dụ: `chapters/c1/p01.jpg`). Worker tự động import ảnh vào `PUBLIC_DIR/images/stories`, tạo bản ghi bảng `Image` và gán `type = "image"`. |
+| `story_node_content_deleted_status` | `node_{k}_content_deleted_status` |   Không   |     Enum     |              `not_deleted`               | Trạng thái xóa của nội dung: `not_deleted`, `soft_deleted`.                                                                                                                                                                       |
 
 ---
 
@@ -165,3 +169,137 @@ Tam Quốc Diễn Nghĩa,Hồi 1-10,arc,1,Quyển 1,volume,1,Hồi 2,chapter,2,t
 4. **Xử lý nền (Background Worker)**:
    - Khi gọi API upload file, server phản hồi ngay lập tức `HTTP 200: Đã tiếp nhận file và chuyển vào hàng đợi xử lý nền`.
    - BullMQ Worker sẽ thực hiện import từng dòng, cập nhật số lượng con (`number_of_children`), làm mới bộ nhớ đệm Redis và tự động kích hoạt tạo vector embedding cho truyện.
+
+---
+
+## 5. Batch Import Bằng File ZIP Kèm Hình Ảnh (Hỗ trợ file lớn hàng chục GB)
+
+### 5.1 Tổng quan kiến trúc & Luồng xử lý
+
+Đối với việc import khối lượng lớn truyện tranh kèm ảnh bìa và ảnh các trang truyện, hệ thống hỗ trợ đóng gói toàn bộ vào một file `.zip`.
+
+1. **Không giới hạn RAM (Stream to Disk)**:
+   - File zip có thể nặng từ vài trăm MB đến hàng chục GB.
+   - Quá trình upload/download tuyệt đối không đưa vào bộ nhớ RAM mà stream trực tiếp xuống ổ đĩa tại thư mục tạm `TEMP_DIR/uploads/<sessionId>.zip`.
+2. **Bảo vệ ổ đĩa (Disk Space Guard & ENOSPC)**:
+   - Hệ thống tự động kiểm tra dung lượng còn trống trên ổ đĩa (`MIN_DISK_FREE_SPACE_MB`, mặc định 1024MB).
+   - Nếu trong quá trình tải xuống/tải lên mà ổ đĩa bị đầy hoặc dung lượng trống thấp hơn ngưỡng an toàn, hệ thống sẽ **ngay lập tức hủy kết nối stream, xóa file zip đang tải dở** và trả về mã lỗi `HTTP 507/413: Dung lượng đĩa không đủ hoặc file quá lớn`.
+3. **Giải nén & Xử lý nền (Worker)**:
+   - Sau khi file zip về ổ đĩa an toàn, API trả về ngay `sessionId` cho client và đẩy job vào hàng đợi `batch-import-zip`.
+   - Worker giải nén file zip vào thư mục `TEMP_DIR/processing/<sessionId>` (sử dụng tiện ích hệ thống `7z` siêu tốc hoặc `unzip`).
+   - Tên file zip và file CSV là gì không quan trọng: Worker tự động quét và nhận diện file bảng tính CSV/XLSX nằm trong archive.
+   - Worker đọc từng dòng dữ liệu, lấy ảnh từ đường dẫn tương đối (tính từ vị trí file CSV), sao chép vào `PUBLIC_DIR/images/stories`, chèn vào bảng `Image` với `provider = "local"`, và gắn `cover_art_id` / `image_id` cho các trang truyện.
+4. **Dọn dẹp thư mục sau khi hoàn thành**:
+   - Thư mục giải nén `processing/<sessionId>` luôn được xóa sạch sau khi xử lý xong để giải phóng dung lượng đĩa.
+   - File gốc `.zip` được xử lý dựa trên cấu hình `CLEANUP_ZIP_AFTER_PROCESSING` (hoặc tham số request `cleanupAfterProcessing`):
+     - Nếu `true`: Xóa hoàn toàn file zip.
+     - Nếu `false`: Chuyển file zip sang thư mục lưu trữ `TEMP_DIR/completed/<sessionId>/`.
+
+---
+
+### 5.2 Cấu trúc file ZIP mẫu
+
+File nén `.zip` có thể chứa cấu trúc phẳng hoặc phân tầng. Đường dẫn ảnh luôn được tính **tương đối từ vị trí của file CSV**:
+
+```
+manga_batch.zip
+├── stories.csv
+├── covers/
+│   ├── naruto.jpg
+│   └── onepiece.png
+└── chapters/
+    ├── naruto_chap1/
+    │   ├── 01.jpg
+    │   └── 02.jpg
+    └── naruto_chap2/
+        ├── 01.jpg
+        └── 02.jpg
+```
+
+Hoặc nếu toàn bộ nội dung nằm trong một thư mục con bên trong file ZIP:
+
+```
+manga_batch.zip
+└── export_data/
+    ├── stories.csv
+    ├── covers/
+    │   └── naruto.jpg
+    └── pages/
+        ├── c1_01.jpg
+        └── c1_02.jpg
+```
+
+_(Trong trường hợp này, file CSV ở `export_data/stories.csv`, các đường dẫn `covers/naruto.jpg` hoặc `pages/c1_01.jpg` được tính tương đối từ `export_data/`)._
+
+---
+
+### 5.3 Mẫu CSV dùng trong File ZIP
+
+```csv
+title,story_type,story_status,nation,genres,summary,cover_art_path,story_node_title,story_node_type,story_node_order_index,story_node_content_order_index,story_node_content_image_path
+Naruto,manga,finished,Japan,"Action,Ninja","Hành trình trở thành Hokage của Naruto Uzumaki",covers/naruto.jpg,Chương 1,chapter,1,1,chapters/naruto_chap1/01.jpg
+Naruto,manga,finished,Japan,"Action,Ninja","Hành trình trở thành Hokage của Naruto Uzumaki",covers/naruto.jpg,Chương 1,chapter,1,2,chapters/naruto_chap1/02.jpg
+Naruto,manga,finished,Japan,"Action,Ninja","Hành trình trở thành Hokage của Naruto Uzumaki",covers/naruto.jpg,Chương 2,chapter,2,1,chapters/naruto_chap2/01.jpg
+Naruto,manga,finished,Japan,"Action,Ninja","Hành trình trở thành Hokage của Naruto Uzumaki",covers/naruto.jpg,Chương 2,chapter,2,2,chapters/naruto_chap2/02.jpg
+```
+
+---
+
+### 5.4 Chi tiết các API Zip Batch Import
+
+#### 1. Upload File ZIP từ Client
+
+- **Endpoint**: `POST /admin/stories/upload-zip` (hoặc `POST /admin/stories` với file zip)
+- **Method**: `POST`
+- **Content-Type**: `multipart/form-data`
+- **Form Fields**:
+  - `file`: File `.zip` (bắt buộc).
+  - `cleanupAfterProcessing`: `true` hoặc `false` (tùy chọn, ghi đè biến môi trường).
+- **Phản hồi mẫu**:
+  ```json
+  {
+    "status": "success",
+    "message": "Đã tiếp nhận file ZIP và chuyển vào hàng đợi xử lý nền",
+    "data": {
+      "sessionId": "4bb44158-b631-414d-91b7-9e455e967a57",
+      "fileName": "manga_batch.zip",
+      "size": 104857600
+    }
+  }
+  ```
+
+#### 2. Download File ZIP từ URL từ xa
+
+- **Endpoint**: `POST /admin/stories/download-zip`
+- **Method**: `POST`
+- **Content-Type**: `application/json`
+- **Request Body**:
+  ```json
+  {
+    "url": "https://storage.googleapis.com/my-bucket/manga_batch_50gb.zip",
+    "cleanupAfterProcessing": false
+  }
+  ```
+- **Phản hồi mẫu**:
+  ```json
+  {
+    "status": "success",
+    "message": "Đã tải file ZIP về máy chủ và chuyển vào hàng đợi xử lý nền",
+    "data": {
+      "sessionId": "4bb44158-b631-414d-91b7-9e455e967a57",
+      "fileName": "manga_batch_50gb.zip",
+      "size": 53687091200
+    }
+  }
+  ```
+
+---
+
+### 5.5 Cấu hình Biến Môi Trường (.env)
+
+| Tên biến                       | Giá trị mặc định           | Mô tả                                                                                                         |
+| :----------------------------- | :------------------------- | :------------------------------------------------------------------------------------------------------------ |
+| `TEMP_DIR`                     | `<root>/server/temp`       | Đường dẫn thư mục lưu trữ file tạm (chứa các thư mục `uploads`, `processing`, `completed`).                   |
+| `PUBLIC_DIR`                   | `<root>/server/src/public` | Thư mục static public (hình ảnh được sao chép vào `PUBLIC_DIR/images/stories`).                               |
+| `CLEANUP_ZIP_AFTER_PROCESSING` | `true`                     | Có tự động xóa file zip sau khi worker xử lý xong không (`true` là xóa, `false` là chuyển sang `completed`).  |
+| `MIN_DISK_FREE_SPACE_MB`       | `1024`                     | Dung lượng trống tối thiểu cần giữ lại trên ổ đĩa tính theo MB. Nếu thấp hơn mức này quá trình tải sẽ bị hủy. |

@@ -1,0 +1,13 @@
+{
+  "name": "pack-stories-zip",
+  "version": "1.0.0",
+  "description": "Script quét thư mục truyện tranh và đóng gói thành file ZIP kèm stories.csv chuẩn batch-import",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dry-run": "node index.js --dry-run",
+    "fast": "node index.js --fast",
+    "store": "node index.js --store"
+  }
+}

@@ -152,6 +152,7 @@ export function parseStoriesSpreadsheet(buffer) {
   let isActivedCol;
   let summaryCol;
   let coverArtIdCol;
+  let coverArtPathCol;
   let genresCol;
   let authorIdsCol;
   const nodeConfigs = [];
@@ -167,6 +168,7 @@ export function parseStoriesSpreadsheet(buffer) {
     isActivedCol = getCol([], ["is_actived", "is_active", "active"]);
     summaryCol = getCol([], ["story_summary", "summary", "description"]);
     coverArtIdCol = getCol([], ["story_cover_art_id", "cover_art_id", "cover_id"]);
+    coverArtPathCol = getCol([], ["story_cover_art_path", "cover_art_path", "cover_path"]);
     genresCol = getCol([], ["story_genres", "genres", "genre", "story_genre"]);
     authorIdsCol = getCol([], ["story_author_ids", "author_ids", "author_id", "story_author_id", "authorids", "authorid", "authors", "author"]);
 
@@ -191,6 +193,8 @@ export function parseStoriesSpreadsheet(buffer) {
       headerMap.get("node_order_index")?.length || 0,
       headerMap.get("story_node_content_content")?.length || 0,
       headerMap.get("story_node_content_image_id")?.length || 0,
+      headerMap.get("story_node_content_image_path")?.length || 0,
+      headerMap.get("content_image_path")?.length || 0,
       headerMap.get("story_node_content_order_index")?.length || 0,
     );
 
@@ -334,6 +338,17 @@ export function parseStoriesSpreadsheet(buffer) {
         ["story_node_content_image_id", "content_image_id"],
         k,
       );
+      const cImagePathCol = getColForLevel(
+        [
+          `story_node_${num}_content_image_path`,
+          `node_${num}_content_image_path`,
+          `content_${num}_image_path`,
+          `story_node_${num}_image_path`,
+          `node_${num}_image_path`,
+        ],
+        ["story_node_content_image_path", "content_image_path", "story_node_image_path", "node_image_path", "image_path"],
+        k,
+      );
       const cDeletedCol = getColForLevel(
         [`story_node_${num}_content_deleted_status`, `node_${num}_content_deleted_status`, `content_${num}_deleted_status`],
         ["story_node_content_deleted_status", "content_deleted_status"],
@@ -349,6 +364,7 @@ export function parseStoriesSpreadsheet(buffer) {
         content_type: cTypeCol,
         content_content: cContentCol,
         content_image_id: cImageIdCol,
+        content_image_path: cImagePathCol,
         content_deleted_status: cDeletedCol,
       });
     }
@@ -446,6 +462,7 @@ export function parseStoriesSpreadsheet(buffer) {
       is_actived: cleanBoolean(getVal(row, isActivedCol), true),
       summary: cleanString(getVal(row, summaryCol)),
       cover_art_id: cleanUUID(getVal(row, coverArtIdCol)),
+      cover_art_path: cleanString(getVal(row, coverArtPathCol)),
       genres,
       author_ids: authorIds,
       authorIds,
@@ -464,15 +481,17 @@ export function parseStoriesSpreadsheet(buffer) {
       const cTypeRaw = getVal(row, cfg.content_type);
       const cContent = cleanString(getVal(row, cfg.content_content));
       const cImageId = cleanUUID(getVal(row, cfg.content_image_id));
+      const cImagePath = cleanString(getVal(row, cfg.content_image_path));
       const cDeleted = getVal(row, cfg.content_deleted_status);
 
       let content = null;
-      if (cContent || cImageId || cOrder !== null) {
+      if (cContent || cImageId || cImagePath || cOrder !== null) {
         content = {
           order_index: cOrder ?? 1,
-          type: cleanStoryNodeContentType(cTypeRaw, Boolean(cImageId)),
+          type: cleanStoryNodeContentType(cTypeRaw, Boolean(cImageId || cImagePath)),
           content: cContent,
           image_id: cImageId,
+          image_path: cImagePath,
           deleted_status: cleanDeletedStatus(cDeleted),
         };
       }

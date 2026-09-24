@@ -453,5 +453,20 @@ describe("Spreadsheet Parser", () => {
       expect(headers["Content-Type"]).toBe("text/csv; charset=utf-8");
       expect(headers["Content-Disposition"]).toBe('attachment; filename="story_template_story_only.csv"');
     });
+
+    it("should parse cover_art_path and story_node_content_image_path correctly", () => {
+      const csv = `title,cover_art_path,story_node_title,story_node_type,story_node_order_index,story_node_content_order_index,story_node_content_image_path
+Naruto,images/covers/naruto.jpg,Chapter 1,chapter,1,1,images/chapters/ch1/01.png`;
+
+      const parsed = parseStoriesSpreadsheet(Buffer.from(csv, "utf-8"));
+      expect(parsed).toHaveLength(1);
+      expect(parsed[0].story.title).toBe("Naruto");
+      expect(parsed[0].story.cover_art_path).toBe("images/covers/naruto.jpg");
+      expect(parsed[0].nodes).toHaveLength(1);
+      expect(parsed[0].nodes[0].title).toBe("Chapter 1");
+      expect(parsed[0].nodes[0].content).toBeDefined();
+      expect(parsed[0].nodes[0].content.type).toBe("image");
+      expect(parsed[0].nodes[0].content.image_path).toBe("images/chapters/ch1/01.png");
+    });
   });
 });

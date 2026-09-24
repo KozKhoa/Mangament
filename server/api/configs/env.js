@@ -16,4 +16,9 @@ export const {
 
   EMAIL_USER,
   EMAIL_APP_PASSWORD,
+
+  PUBLIC_DIR,
+  TEMP_DIR,
+  CLEANUP_ZIP_AFTER_PROCESSING,
+  MIN_DISK_FREE_SPACE_MB,
 } = process.env;
