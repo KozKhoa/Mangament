@@ -139,7 +139,9 @@ export function createZipDiskStorageEngine() {
           if (writeStream) {
             writeStream.destroy();
           }
-        } catch {}
+        } catch {
+          // ignore cleanup errors
+        }
 
         await safeUnlink(destinationFilePath);
 
@@ -268,7 +270,9 @@ export async function downloadZipFromUrl(url, options = {}) {
 
     try {
       writeStream.destroy();
-    } catch {}
+    } catch {
+      // ignore cleanup errors
+    }
 
     await safeUnlink(destinationFilePath);
     throw CreateError(statusCode, errorMessage);
@@ -349,7 +353,7 @@ export async function extractZipArchive(zipFilePath, destinationDir) {
       console.log(`[ZipStorage] Giải nén thành công bằng unzip: ${zipFilePath} -> ${destinationDir}`);
     } catch (errUnzip) {
       await safeUnlink(destinationDir);
-      throw new Error(`Không thể giải nén file zip: ${errUnzip.message || err7z.message}`);
+      throw new Error(`Không thể giải nén file zip: ${errUnzip.message || err7z.message}`, { cause: errUnzip });
     }
   }
 

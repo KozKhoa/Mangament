@@ -144,7 +144,9 @@ describe("Batch Import Zip Worker & Image Handling", () => {
     try {
       fs.rmSync(testTempDir, { recursive: true, force: true });
       fs.rmSync(testPublicDir, { recursive: true, force: true });
-    } catch {}
+    } catch {
+      // ignore cleanup errors
+    }
   });
 
   it("should register batch-import-zip worker in BullMQ", () => {

@@ -1,7 +1,7 @@
-import "dotenv-flow/config";
+import dotenvFlow from "dotenv-flow";
 
-config({ path: ".env.local" });
-config({ path: `.env.${process.env.NODE_ENV || "development"} ` });
+dotenvFlow.config({ path: ".env.local" });
+dotenvFlow.config({ path: `.env.${process.env.NODE_ENV || "development"}` });
 
 export const {
   PORT,
