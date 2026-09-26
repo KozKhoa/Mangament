@@ -14,4 +14,4 @@ npm/
 build-and-push.sh
 
 public/
-public/
+temp/

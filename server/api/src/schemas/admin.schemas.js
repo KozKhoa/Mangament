@@ -129,6 +129,37 @@ export class AdminSchemas {
     }),
   });
 
+  initChunkUpload = z.object({
+    body: z.object({
+      fileName: z.string().min(1, "Tên file không được để trống"),
+      fileSize: z.number().positive("Kích thước file phải lớn hơn 0"),
+      totalChunks: z.number().int().positive("Tổng số chunk phải lớn hơn 0"),
+      chunkSize: z.number().int().positive().optional(),
+      fileHash: z.string().optional(),
+      cleanupAfterProcessing: z.boolean().optional(),
+    }),
+  });
+
+  getChunkStatus = z.object({
+    query: z.object({
+      sessionId: z.string().min(1, "sessionId không được để trống"),
+    }),
+  });
+
+  uploadChunk = z.object({
+    body: z.object({
+      sessionId: z.string().min(1, "sessionId không được để trống"),
+      chunkIndex: z.preprocess((val) => Number(val), z.number().int().min(0, "chunkIndex không hợp lệ")),
+    }),
+  });
+
+  completeChunkUpload = z.object({
+    body: z.object({
+      sessionId: z.string().min(1, "sessionId không được để trống"),
+      cleanupAfterProcessing: z.boolean().optional(),
+    }),
+  });
+
   updateStoryCoverArt = z.object({
     params: uuidParamSchema,
     body: z.object({

@@ -24,17 +24,32 @@ export function getTempDir() {
   const uploadsDir = path.join(root, "uploads");
   const processingDir = path.join(root, "processing");
   const completedDir = path.join(root, "completed");
+  const chunksDir = path.join(uploadsDir, "chunks");
+  const stagingDir = path.join(uploadsDir, "staging");
 
   fs.mkdirSync(uploadsDir, { recursive: true });
   fs.mkdirSync(processingDir, { recursive: true });
   fs.mkdirSync(completedDir, { recursive: true });
+  fs.mkdirSync(chunksDir, { recursive: true });
+  fs.mkdirSync(stagingDir, { recursive: true });
 
   return {
     root,
     uploadsDir,
     processingDir,
     completedDir,
+    chunksDir,
+    stagingDir,
   };
+}
+
+/**
+ * Returns the directory path for storing chunks of a specific session or root chunks directory.
+ */
+export function getChunksDir(sessionId) {
+  const { chunksDir } = getTempDir();
+  if (!sessionId) return chunksDir;
+  return path.join(chunksDir, sessionId);
 }
 
 /**
@@ -431,8 +446,77 @@ export async function cleanupOrMoveProcessedZip({ zipFilePath, processingDir, se
   }
 }
 
+/**
+ * Merges chunks sequentially into a target destination file with streaming.
+ * Each chunk is deleted after being merged to conserve disk space.
+ *
+ * @param {object} params
+ * @param {string} params.sessionId
+ * @param {number} params.totalChunks
+ * @param {string} params.targetFilePath
+ * @returns {Promise<{ filePath: string, size: number }>}
+ */
+export async function mergeChunksSequentially({ sessionId, totalChunks, targetFilePath }) {
+  const sessionChunksDir = getChunksDir(sessionId);
+
+  if (!fs.existsSync(sessionChunksDir)) {
+    throw CreateError(404, `Thư mục chunk không tồn tại cho phiên ${sessionId}`);
+  }
+
+  await fs.promises.mkdir(path.dirname(targetFilePath), { recursive: true });
+
+  const writeStream = fs.createWriteStream(targetFilePath, { flags: "w" });
+
+  try {
+    for (let i = 0; i < totalChunks; i++) {
+      const chunkPath = path.join(sessionChunksDir, `chunk_${i}`);
+      if (!fs.existsSync(chunkPath)) {
+        throw CreateError(400, `Không tìm thấy chunk index ${i} tại ${chunkPath}`);
+      }
+
+      await new Promise((resolve, reject) => {
+        const readStream = fs.createReadStream(chunkPath);
+        readStream.on("error", reject);
+        writeStream.on("error", reject);
+
+        readStream.on("end", async () => {
+          try {
+            await safeUnlink(chunkPath);
+            resolve();
+          } catch (unlinkErr) {
+            reject(unlinkErr);
+          }
+        });
+
+        readStream.pipe(writeStream, { end: false });
+      });
+    }
+
+    await new Promise((resolve, reject) => {
+      writeStream.end((err) => {
+        if (err) reject(err);
+        else resolve();
+      });
+    });
+
+    // Remove empty session chunks directory
+    await safeUnlink(sessionChunksDir);
+
+    const stat = await fs.promises.stat(targetFilePath);
+    return {
+      filePath: targetFilePath,
+      size: stat.size,
+    };
+  } catch (error) {
+    writeStream.destroy();
+    await safeUnlink(targetFilePath);
+    throw error;
+  }
+}
+
 export default {
   getTempDir,
+  getChunksDir,
   checkFreeDiskSpace,
   safeUnlink,
   createZipDiskStorageEngine,
@@ -440,4 +524,5 @@ export default {
   extractZipArchive,
   findCsvInDirectory,
   cleanupOrMoveProcessedZip,
+  mergeChunksSequentially,
 };

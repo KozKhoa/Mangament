@@ -2,6 +2,7 @@ import path from "path";
 import { CreateError } from "../../utils/ErrorHandle.js";
 
 import * as storyService from "../../services/story.service.js";
+import * as chunkUploadService from "../../services/chunk-upload.service.js";
 
 import { isUUID, throwErrorIfInvalidGenres, throwErrorIfInvalidStoryStatus, throwErrorIfInvalidStoryType } from "../../utils/Validators.js";
 import { generateStoryImportTemplate } from "../../utils/spreadsheet.parser.js";
@@ -134,6 +135,104 @@ export async function downloadBatchZipStory(req, res, next) {
     return res.status(200).json({
       success: true,
       message: "File zip đã được tải về diskStorage thành công và đang được đưa vào worker giải nén, xử lý",
+      data: result,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
+ * POST /admin/stories/upload-zip/chunk/init
+ * Khởi tạo phiên tải lên theo chunk hoặc khôi phục phiên nếu cùng fileHash
+ */
+export async function initChunkUpload(req, res, next) {
+  try {
+    const userId = req.user?.id;
+    const { fileName, fileSize, totalChunks, chunkSize, fileHash, cleanupAfterProcessing } = req.body || {};
+
+    const result = await chunkUploadService.initChunkSession({
+      fileName,
+      fileSize,
+      totalChunks,
+      chunkSize,
+      fileHash,
+      userId,
+      cleanupAfterProcessing,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: result.isResumed ? "Khôi phục phiên tải lên thành công" : "Khởi tạo phiên tải lên thành công",
+      data: result,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
+ * GET /admin/stories/upload-zip/chunk/status
+ * Lấy trạng thái phiên tải lên và danh sách các chunk đã tải
+ */
+export async function getChunkStatus(req, res, next) {
+  try {
+    const { sessionId } = req.query || {};
+
+    const result = await chunkUploadService.getChunkStatus({ sessionId });
+
+    return res.status(200).json({
+      success: true,
+      data: result,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
+ * POST /admin/stories/upload-zip/chunk/upload
+ * Nhận một chunk nhị phân và lưu trữ trên đĩa
+ */
+export async function uploadChunk(req, res, next) {
+  try {
+    const { sessionId, chunkIndex } = req.body || {};
+    const file = req.file;
+
+    const result = await chunkUploadService.saveChunk({
+      sessionId,
+      chunkIndex,
+      file,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: `Đã tải lên chunk ${result.chunkIndex} thành công`,
+      data: result,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
+ * POST /admin/stories/upload-zip/chunk/complete
+ * Ghép các chunk lại thành file ZIP hoàn chỉnh và đẩy vào worker xử lý
+ */
+export async function completeChunkUpload(req, res, next) {
+  try {
+    const userId = req.user?.id;
+    const { sessionId, cleanupAfterProcessing } = req.body || {};
+
+    const result = await chunkUploadService.completeChunkUpload({
+      sessionId,
+      userId,
+      cleanupAfterProcessing,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Ghép các chunk thành file zip thành công và đã đưa vào worker giải nén, xử lý",
       data: result,
     });
   } catch (error) {
