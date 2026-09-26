@@ -6,6 +6,7 @@ import * as chunkUploadService from "../../services/chunk-upload.service.js";
 
 import { isUUID, throwErrorIfInvalidGenres, throwErrorIfInvalidStoryStatus, throwErrorIfInvalidStoryType } from "../../utils/Validators.js";
 import { generateStoryImportTemplate } from "../../utils/spreadsheet.parser.js";
+import { ZIP_CLEANUP_AFTER_PROCESSING } from "../../constants/Story.js";
 
 // GET /admin/stories/:id
 export async function getStory(req, res, next) {
@@ -98,8 +99,7 @@ export async function uploadBatchZipStory(req, res, next) {
     const userId = req.user?.id;
     const file = req.file;
 
-    const cleanupAfterProcessing =
-      req.body?.cleanupAfterProcessing !== undefined ? req.body.cleanupAfterProcessing === "true" || req.body.cleanupAfterProcessing === true : undefined;
+    const cleanupAfterProcessing = ZIP_CLEANUP_AFTER_PROCESSING;
 
     const result = await storyService.ProcessUploadBatchZip({
       file,
@@ -124,12 +124,12 @@ export async function uploadBatchZipStory(req, res, next) {
 export async function downloadBatchZipStory(req, res, next) {
   try {
     const userId = req.user?.id;
-    const { url, cleanupAfterProcessing } = req.body || {};
+    const { url } = req.body || {};
 
     const result = await storyService.ProcessDownloadBatchZip({
       url,
       userId,
-      cleanupAfterProcessing,
+      cleanupAfterProcessing: ZIP_CLEANUP_AFTER_PROCESSING,
     });
 
     return res.status(200).json({
@@ -149,7 +149,7 @@ export async function downloadBatchZipStory(req, res, next) {
 export async function initChunkUpload(req, res, next) {
   try {
     const userId = req.user?.id;
-    const { fileName, fileSize, totalChunks, chunkSize, fileHash, cleanupAfterProcessing } = req.body || {};
+    const { fileName, fileSize, totalChunks, chunkSize, fileHash } = req.body || {};
 
     const result = await chunkUploadService.initChunkSession({
       fileName,
@@ -158,7 +158,7 @@ export async function initChunkUpload(req, res, next) {
       chunkSize,
       fileHash,
       userId,
-      cleanupAfterProcessing,
+      cleanupAfterProcessing: ZIP_CLEANUP_AFTER_PROCESSING,
     });
 
     return res.status(200).json({
@@ -222,12 +222,12 @@ export async function uploadChunk(req, res, next) {
 export async function completeChunkUpload(req, res, next) {
   try {
     const userId = req.user?.id;
-    const { sessionId, cleanupAfterProcessing } = req.body || {};
+    const { sessionId } = req.body || {};
 
     const result = await chunkUploadService.completeChunkUpload({
       sessionId,
       userId,
-      cleanupAfterProcessing,
+      cleanupAfterProcessing: ZIP_CLEANUP_AFTER_PROCESSING,
     });
 
     return res.status(200).json({
@@ -258,8 +258,7 @@ export async function postNewStory(req, res, next) {
 
       // Nếu file là zip (được lưu vào diskStorage)
       if (ext === ".zip" || req.file.path) {
-        const cleanupAfterProcessing =
-          req.body?.cleanupAfterProcessing !== undefined ? req.body.cleanupAfterProcessing === "true" || req.body.cleanupAfterProcessing === true : undefined;
+        const cleanupAfterProcessing = ZIP_CLEANUP_AFTER_PROCESSING;
 
         const result = await storyService.ProcessUploadBatchZip({
           file: req.file,

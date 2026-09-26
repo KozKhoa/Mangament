@@ -70,12 +70,35 @@ vi.mock("../../worker/queues/story.queue.js", () => ({
   },
 }));
 
+// Mock story service
+vi.mock("../../src/services/story.service.js", () => ({
+  SyncStoryChildren: vi.fn().mockResolvedValue([]),
+}));
+
 // Mock redis utils
+export const mockClearStoriesCache = vi.fn().mockResolvedValue();
+export const mockStoriesIncr = vi.fn().mockResolvedValue(1);
+export const mockStoryNodesIncr = vi.fn().mockResolvedValue(1);
+
 vi.mock("../../src/utils/Redis.js", () => ({
   default: {
     stories: vi.fn(() => ({
-      incr: vi.fn().mockResolvedValue(1),
+      incr: mockStoriesIncr,
+      get: vi.fn().mockResolvedValue(1),
     })),
+    storyNodes: vi.fn(() => ({
+      incr: mockStoryNodesIncr,
+      get: vi.fn().mockResolvedValue(1),
+    })),
+    genres: vi.fn(() => ({
+      incr: vi.fn().mockResolvedValue(1),
+      get: vi.fn().mockResolvedValue(1),
+    })),
+    authors: vi.fn(() => ({
+      incr: vi.fn().mockResolvedValue(1),
+      get: vi.fn().mockResolvedValue(1),
+    })),
+    clearStoriesCache: mockClearStoriesCache,
   },
 }));
 

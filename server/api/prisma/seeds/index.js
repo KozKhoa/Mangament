@@ -1,5 +1,4 @@
 // server/api/prisma/seeds/index.js
-import path from "path";
 
 // Lấy tham số truyền vào sau dấu --
 const target = process.argv[2];

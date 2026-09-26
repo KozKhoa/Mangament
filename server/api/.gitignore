@@ -11,5 +11,6 @@ uploads/
 api-key/
 
 
+temp_pack_stage_*
 
 venv/

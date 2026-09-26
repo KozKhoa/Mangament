@@ -1,4 +1,4 @@
-version: "3.8"
+name: mangament-server
 
 services:
   redis:
@@ -16,7 +16,7 @@ services:
     restart: always
     command: tunnel --no-autoupdate run
     env_file:
-      - ./api/.env.production
+      - .env
     depends_on:
       - api
 
@@ -25,7 +25,7 @@ services:
     # THAY build BẰNG image TRÊN DOCKER HUB
     image: kozkhoa/mangament-server-ml-service:latest
     build:
-      context: ./ml-service
+      context: ../ml-service
       dockerfile: Dockerfile
     restart: unless-stopped
     ports:
@@ -36,7 +36,7 @@ services:
     image: pgvector/pgvector:pg16
     restart: always
     env_file:
-      - ./api/.env.production
+      - .env
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
@@ -56,13 +56,13 @@ services:
     # THAY build BẰNG image TRÊN DOCKER HUB
     image: kozkhoa/mangament-server-api:latest
     build:
-      context: ./api
+      context: ../api
       dockerfile: Dockerfile
     restart: always
     ports:
       - "5000:5000"
     env_file:
-      - ./api/.env.production
+      - .env
     environment:
       - REDIS_URL=redis://redis:6379
       - ML_SERVICE_URL=http://ml-service:8000
@@ -70,26 +70,28 @@ services:
       - DATABASE_URL=postgresql://postgres:postgres@db:5432/mangament_db?schema=public
       - DIRECT_URL=postgresql://postgres:postgres@db:5432/mangament_db?schema=public
       - PUBLIC_DIR=/app/public
+      - TEMP_DIR=/app/temp
     depends_on:
       redis:
         condition: service_started
       db:
         condition: service_healthy
     volumes:
-      - ${PUBLIC_DIR:-./public}:/app/public
-      - ./api/.env.production:/app/.env.production:ro
-      - ./api/.env.production:/app/.env:ro
+      - ${PUBLIC_DIR:-/mnt/hdd1/public}:/app/public
+      - ${TEMP_DIR:-/mnt/hdd1/temp}:/app/temp
+      - ./.env:/app/.env.production:ro
+      - ./.env:/app/.env:ro
 
   worker:
     container_name: mangament_worker # Đã sửa dấu : thành _
     # THAY build BẰNG image TRÊN DOCKER HUB
     image: kozkhoa/mangament-server-worker:latest
     build:
-      context: ./api
+      context: ../api
       dockerfile: worker/Dockerfile
     restart: always
     env_file:
-      - ./api/.env.production
+      - .env
     environment:
       - REDIS_URL=redis://redis:6379
       - ML_SERVICE_URL=http://ml-service:8000
@@ -97,10 +99,12 @@ services:
       - DATABASE_URL=postgresql://postgres:postgres@db:5432/mangament_db?schema=public
       - DIRECT_URL=postgresql://postgres:postgres@db:5432/mangament_db?schema=public
       - PUBLIC_DIR=/app/public
+      - TEMP_DIR=/app/temp
     volumes:
-      - ${PUBLIC_DIR:-./public}:/app/public
-      - ./api/.env.production:/app/.env.production:ro
-      - ./api/.env.production:/app/.env:ro
+      - ${PUBLIC_DIR:-/mnt/hdd1/public}:/app/public
+      - ${TEMP_DIR:-/mnt/hdd1/temp}:/app/temp
+      - ./.env:/app/.env.production:ro
+      - ./.env:/app/.env:ro
     depends_on:
       redis:
         condition: service_started
@@ -116,7 +120,7 @@ services:
     ports:
       - "27016:27017"
     env_file:
-      - ./api/.env.production
+      - .env
     environment:
       MONGO_INITDB_ROOT_USERNAME: admin
       MONGO_INITDB_ROOT_PASSWORD: password

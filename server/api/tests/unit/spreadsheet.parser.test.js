@@ -393,6 +393,14 @@ describe("Spreadsheet Parser", () => {
     expect(result[0].story.author_ids).toEqual(["33333333-3333-4333-8333-333333333333"]);
   });
 
+  it("should parse poster_id correctly from column", () => {
+    const csvContent = `title,poster_id\nBleach,44444444-4444-4444-8444-444444444444`;
+    const result = parseStoriesSpreadsheet(Buffer.from(csvContent));
+    expect(result).toHaveLength(1);
+    expect(result[0].story.title).toBe("Bleach");
+    expect(result[0].story.poster_id).toBe("44444444-4444-4444-8444-444444444444");
+  });
+
   it("should throw an error for empty buffer or empty spreadsheet", () => {
     expect(() => parseStoriesSpreadsheet(Buffer.from(""))).toThrow(/File tải lên rỗng/);
   });

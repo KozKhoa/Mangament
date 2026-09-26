@@ -34,10 +34,6 @@ import fs from "fs";
 import path from "path";
 import crypto from "crypto";
 import { spawn } from "child_process";
-import { fileURLToPath } from "url";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 // Danh sách định dạng ảnh được hỗ trợ
 export const SUPPORTED_IMAGE_EXTS = new Set([".jpg", ".jpeg", ".png", ".webp", ".avif"]);
@@ -139,18 +135,19 @@ Ví dụ:
 
 /**
  * Phân tích tên thư mục node: <story_node_type> <story_node_order_index>
+ * Quy ước mọi tiền tố chapter, chap, ch, chương, chuong,... về kiểu "chapter" và title "Chapter X"
  */
 export function parseNodeFolderName(folderName) {
   const trimmed = folderName.trim();
 
-  // Pattern 1: <type> <order> (ví dụ: "chapter 01", "Volume 2", "chương 10")
-  const m = trimmed.match(/^(chapter|chap|ch|volume|vol|arc|tập|hồi|chương)\s*([0-9]+(?:\.[0-9]+)?)/i);
+  // Pattern 1: <type> <order> (ví dụ: "chapter 01", "Volume 2", "chương 10", "Chuong 1", "Chương_02", "Chap-3", "c1")
+  const m = trimmed.match(/^(chapter|chap|ch|c|chương|chuong|volume|vol|tập|tap|arc|hồi|hoi)[\s_.:-]*([0-9]+(?:\.[0-9]+)?)/i);
   if (m) {
     const rawType = m[1].toLowerCase();
     let type = "chapter";
-    if (["volume", "vol", "tập"].includes(rawType)) {
+    if (["volume", "vol", "tập", "tap"].includes(rawType)) {
       type = "volume";
-    } else if (["arc", "hồi"].includes(rawType)) {
+    } else if (["arc", "hồi", "hoi"].includes(rawType)) {
       type = "arc";
     }
 
@@ -166,7 +163,28 @@ export function parseNodeFolderName(folderName) {
     };
   }
 
-  // Pattern 2: Chỉ là số (ví dụ: "01", "1", "10")
+  // Pattern 2: Chỉ là tên type đơn thuần không có số (ví dụ: "chapter", "Chương", "Chuong", "chap")
+  const bareTypeM = trimmed.match(/^(chapter|chap|ch|chương|chuong|volume|vol|tập|tap|arc|hồi|hoi)$/i);
+  if (bareTypeM) {
+    const rawType = bareTypeM[1].toLowerCase();
+    let type = "chapter";
+    if (["volume", "vol", "tập", "tap"].includes(rawType)) {
+      type = "volume";
+    } else if (["arc", "hồi", "hoi"].includes(rawType)) {
+      type = "arc";
+    }
+
+    const typeLabel = type.charAt(0).toUpperCase() + type.slice(1);
+    return {
+      isValid: true,
+      type,
+      orderIndex: 1,
+      title: `${typeLabel} 1`,
+      folderName: trimmed,
+    };
+  }
+
+  // Pattern 3: Chỉ là số (ví dụ: "01", "1", "10", "1.5")
   const numM = trimmed.match(/^([0-9]+(?:\.[0-9]+)?)$/);
   if (numM) {
     const orderIndex = parseFloat(numM[1]);
@@ -228,26 +246,124 @@ export async function scanStoryFolders(sourceDir, options = {}) {
 }
 
 /**
+ * Đọc file info.json trong thư mục truyện nếu có
+ *
+ * @param {string} storyDir - Đường dẫn thư mục truyện
+ * @returns {Promise<Object|null>}
+ */
+export async function readStoryInfoJson(storyDir) {
+  const infoPath = path.join(storyDir, "info.json");
+  if (!fs.existsSync(infoPath)) {
+    return null;
+  }
+
+  try {
+    const rawContent = await fs.promises.readFile(infoPath, "utf-8");
+    const data = JSON.parse(rawContent);
+    if (!data || typeof data !== "object") return null;
+
+    // 1. Title
+    const title = data.title && typeof data.title === "string" ? data.title.trim() : "";
+
+    // 2. Summary / Description
+    const summary = data.description || data.summary || "";
+
+    // 3. Genres (mảng các string hoặc chuỗi phân tách bởi dấu phẩy)
+    let genres = [];
+    const rawGenres = data.genres || data.genre;
+    if (Array.isArray(rawGenres)) {
+      genres = rawGenres.map((g) => String(g).trim()).filter(Boolean);
+    } else if (typeof rawGenres === "string") {
+      genres = rawGenres
+        .split(/[,;\n|]+/)
+        .map((g) => g.trim())
+        .filter(Boolean);
+    }
+
+    // 4. Authors / Author (mảng các string/uuid hoặc chuỗi phân tách bởi dấu phẩy)
+    let authors = [];
+    const rawAuthors = data.author || data.authors || data.author_ids || data.authorIds;
+    if (Array.isArray(rawAuthors)) {
+      authors = rawAuthors.map((a) => String(a).trim()).filter(Boolean);
+    } else if (typeof rawAuthors === "string") {
+      authors = rawAuthors
+        .split(/[,;\n|]+/)
+        .map((a) => a.trim())
+        .filter(Boolean);
+    }
+
+    // 5. Other titles
+    let otherTitles = [];
+    const rawOtherTitles = data.other_titles || data.other_title || data.otherTitles;
+    if (Array.isArray(rawOtherTitles)) {
+      otherTitles = rawOtherTitles.map((t) => String(t).trim()).filter(Boolean);
+    } else if (typeof rawOtherTitles === "string") {
+      otherTitles = rawOtherTitles
+        .split(/[,;\n|]+/)
+        .map((t) => t.trim())
+        .filter(Boolean);
+    }
+
+    // 6. Nation & Nation ID
+    const nation = data.nation && typeof data.nation === "string" ? data.nation.trim() : "";
+    const nationId = data.nation_id || data.nationId || "";
+
+    // 7. Poster ID
+    const posterId = data.poster_id || data.posterId || "";
+
+    // 8. Story Type & Status
+    const type = data.type || data.story_type || "manga";
+    const status = data.status || data.story_status || "ongoing";
+
+    return {
+      title,
+      summary,
+      description: summary,
+      genres,
+      authors,
+      author: authors,
+      other_titles: otherTitles,
+      otherTitles,
+      nation,
+      nation_id: nationId,
+      poster_id: posterId,
+      type,
+      status,
+      raw: data,
+    };
+  } catch (err) {
+    console.warn(`[Warning] Không thể đọc hoặc parse file info.json tại ${infoPath}: ${err.message}`);
+    return null;
+  }
+}
+
+/**
  * Quét chi tiết nội dung của 1 truyện
  */
 export async function inspectStory(storyDir, options = {}) {
   const items = await fs.promises.readdir(storyDir, { withFileTypes: true });
 
-  // 1. Tìm ảnh bìa cover art nếu có
+  // 1. Đọc file info.json nếu có
+  const info = await readStoryInfoJson(storyDir);
+  const infoFile = fs.existsSync(path.join(storyDir, "info.json")) ? "info.json" : null;
+
+  // 2. Tìm ảnh bìa cover art nếu có
   let coverArtFile = null;
   const coverFiles = items.filter((i) => i.isFile() && /^(cover_art|cover|poster)\.(jpe?g|png|webp)$/i.test(i.name));
   if (coverFiles.length > 0) {
     coverArtFile = coverFiles[0].name;
+  } else if (info?.raw?.cover_art && typeof info.raw.cover_art === "string") {
+    if (fs.existsSync(path.join(storyDir, info.raw.cover_art))) {
+      coverArtFile = info.raw.cover_art;
+    }
   }
 
-  // 2. Tìm các thư mục node / chapter
+  // 3. Tìm các thư mục node / chapter
   const rawSubdirs = items.filter((i) => i.isDirectory() && !i.name.startsWith("."));
   const parsedNodes = [];
 
   for (const dir of rawSubdirs) {
     const parsed = parseNodeFolderName(dir.name);
-    if (!parsed.isValid) continue;
-
     const nodePath = path.join(storyDir, dir.name);
     const nodeFiles = await fs.promises.readdir(nodePath, { withFileTypes: true });
 
@@ -258,12 +374,37 @@ export async function inspectStory(storyDir, options = {}) {
       .sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: "base" }));
 
     if (imageFiles.length > 0) {
-      parsedNodes.push({
-        ...parsed,
-        folderName: dir.name,
-        nodePath,
-        imageFiles,
-      });
+      if (parsed.isValid) {
+        parsedNodes.push({
+          ...parsed,
+          folderName: dir.name,
+          nodePath,
+          imageFiles,
+        });
+      }
+    } else {
+      // Trường hợp thư mục dạng nhóm/container: ví dụ Manga/chapter/01/, Manga/Chương/1/, Manga/Chuong/chap 1/
+      const subSubdirs = nodeFiles.filter((f) => f.isDirectory() && !f.name.startsWith("."));
+      for (const subDir of subSubdirs) {
+        const subParsed = parseNodeFolderName(subDir.name);
+        if (!subParsed.isValid) continue;
+
+        const subNodePath = path.join(nodePath, subDir.name);
+        const subFiles = await fs.promises.readdir(subNodePath, { withFileTypes: true });
+        const subImageFiles = subFiles
+          .filter((f) => f.isFile() && SUPPORTED_IMAGE_EXTS.has(path.extname(f.name).toLowerCase()))
+          .map((f) => f.name)
+          .sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: "base" }));
+
+        if (subImageFiles.length > 0) {
+          parsedNodes.push({
+            ...subParsed,
+            folderName: `${dir.name}/${subDir.name}`,
+            nodePath: subNodePath,
+            imageFiles: subImageFiles,
+          });
+        }
+      }
     }
   }
 
@@ -276,6 +417,8 @@ export async function inspectStory(storyDir, options = {}) {
   return {
     coverArtFile,
     nodes: selectedNodes,
+    info,
+    infoFile,
   };
 }
 
@@ -285,9 +428,13 @@ export async function inspectStory(storyDir, options = {}) {
 export function buildCsvContent(storiesData) {
   const headers = [
     "title",
+    "other_titles",
     "story_type",
     "story_status",
     "nation",
+    "nation_id",
+    "poster_id",
+    "author",
     "genres",
     "summary",
     "cover_art_path",
@@ -301,11 +448,40 @@ export function buildCsvContent(storiesData) {
   const rows = [headers.join(",")];
 
   for (const story of storiesData) {
-    const coverArtRelPath = story.coverArtFile ? `${story.storyTitle}/${story.coverArtFile}` : "";
+    const dirPrefix = story.dirName || story.storyTitle;
+    const coverArtRelPath = story.coverArtFile ? `${dirPrefix}/${story.coverArtFile}` : "";
+
+    const storyTitle = story.info?.title || story.storyTitle;
+    const otherTitles = story.info?.other_titles?.length ? story.info.other_titles.join(", ") : "";
+    const storyType = story.info?.type || "manga";
+    const storyStatus = story.info?.status || "ongoing";
+    const nation = story.info?.nation || "";
+    const nationId = story.info?.nation_id || "";
+    const posterId = story.info?.poster_id || "";
+    const authors = story.info?.authors?.length ? story.info.authors.join(", ") : "";
+    const genres = story.info?.genres?.length ? story.info.genres.join(", ") : "";
+    const summary = story.info?.summary || "";
 
     if (story.nodes.length === 0) {
       // Truyện không có chapter nào
-      const row = [escapeCsvCell(story.storyTitle), "manga", "ongoing", "", "", "", escapeCsvCell(coverArtRelPath), "", "", "", "", ""];
+      const row = [
+        escapeCsvCell(storyTitle),
+        escapeCsvCell(otherTitles),
+        escapeCsvCell(storyType),
+        escapeCsvCell(storyStatus),
+        escapeCsvCell(nation),
+        escapeCsvCell(nationId),
+        escapeCsvCell(posterId),
+        escapeCsvCell(authors),
+        escapeCsvCell(genres),
+        escapeCsvCell(summary),
+        escapeCsvCell(coverArtRelPath),
+        "",
+        "",
+        "",
+        "",
+        "",
+      ];
       rows.push(row.join(","));
       continue;
     }
@@ -314,12 +490,16 @@ export function buildCsvContent(storiesData) {
       if (node.imageFiles.length === 0) {
         // Node không có ảnh
         const row = [
-          escapeCsvCell(story.storyTitle),
-          "manga",
-          "ongoing",
-          "",
-          "",
-          "",
+          escapeCsvCell(storyTitle),
+          escapeCsvCell(otherTitles),
+          escapeCsvCell(storyType),
+          escapeCsvCell(storyStatus),
+          escapeCsvCell(nation),
+          escapeCsvCell(nationId),
+          escapeCsvCell(posterId),
+          escapeCsvCell(authors),
+          escapeCsvCell(genres),
+          escapeCsvCell(summary),
           escapeCsvCell(coverArtRelPath),
           escapeCsvCell(node.title),
           escapeCsvCell(node.type),
@@ -334,15 +514,19 @@ export function buildCsvContent(storiesData) {
       // Mỗi trang ảnh là 1 dòng
       for (let i = 0; i < node.imageFiles.length; i++) {
         const imgName = node.imageFiles[i];
-        const imgRelPath = `${story.storyTitle}/${node.folderName}/${imgName}`;
+        const imgRelPath = `${dirPrefix}/${node.folderName}/${imgName}`;
 
         const row = [
-          escapeCsvCell(story.storyTitle),
-          "manga",
-          "ongoing",
-          "",
-          "",
-          "",
+          escapeCsvCell(storyTitle),
+          escapeCsvCell(otherTitles),
+          escapeCsvCell(storyType),
+          escapeCsvCell(storyStatus),
+          escapeCsvCell(nation),
+          escapeCsvCell(nationId),
+          escapeCsvCell(posterId),
+          escapeCsvCell(authors),
+          escapeCsvCell(genres),
+          escapeCsvCell(summary),
           escapeCsvCell(coverArtRelPath),
           escapeCsvCell(node.title),
           escapeCsvCell(node.type),
@@ -374,7 +558,8 @@ export async function packStoriesToZip({ storiesData, csvContent, outputPath, co
 
     // 2. Tạo cây thư mục tương ứng trong staging và liên kết symlink đến ảnh thật
     for (const story of storiesData) {
-      const storyStageDir = path.join(stagingDir, story.storyTitle);
+      const folderNameInStage = story.dirName || story.storyTitle;
+      const storyStageDir = path.join(stagingDir, folderNameInStage);
       await fs.promises.mkdir(storyStageDir, { recursive: true });
 
       // Liên kết ảnh bìa nếu có
@@ -384,6 +569,19 @@ export async function packStoriesToZip({ storiesData, csvContent, outputPath, co
           await fs.promises.symlink(story.coverArtAbsPath, destCover);
         } catch {
           await fs.promises.copyFile(story.coverArtAbsPath, destCover);
+        }
+      }
+
+      // Sao chép file info.json nếu có
+      if (story.infoFile && story.storyDir) {
+        const srcInfo = path.join(story.storyDir, story.infoFile);
+        const destInfo = path.join(storyStageDir, story.infoFile);
+        if (fs.existsSync(srcInfo)) {
+          try {
+            await fs.promises.copyFile(srcInfo, destInfo);
+          } catch {
+            // ignore
+          }
         }
       }
 
@@ -497,11 +695,16 @@ export async function main() {
     const coverArtAbsPath = inspected.coverArtFile ? path.join(storyDir, inspected.coverArtFile) : null;
     const storyImageCount = inspected.nodes.reduce((acc, n) => acc + n.imageFiles.length, 0);
 
+    const finalTitle = inspected.info?.title || name;
+
     storiesData.push({
-      storyTitle: name,
+      dirName: name,
+      storyTitle: finalTitle,
       storyDir,
       coverArtFile: inspected.coverArtFile,
       coverArtAbsPath,
+      info: inspected.info,
+      infoFile: inspected.infoFile,
       nodes: inspected.nodes,
       imageCount: storyImageCount,
     });
@@ -509,7 +712,10 @@ export async function main() {
     totalNodes += inspected.nodes.length;
     totalImages += storyImageCount;
 
-    console.log(`  📖 [${name}] - ${inspected.coverArtFile ? "Có ảnh bìa" : "Không bìa"} | ${inspected.nodes.length} chapters | ${storyImageCount} ảnh`);
+    const titleDisplay = inspected.info?.title && inspected.info.title !== name ? ` (${inspected.info.title})` : "";
+    console.log(
+      `  📖 [${name}]${titleDisplay} - ${inspected.coverArtFile ? "Có ảnh bìa" : "Không bìa"} | ${inspected.nodes.length} chapters | ${storyImageCount} ảnh`,
+    );
   }
 
   console.log("\n--------------------------------------------------------------------------------");

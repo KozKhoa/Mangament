@@ -191,9 +191,10 @@ Tam Quốc Diễn Nghĩa,Hồi 1-10,arc,1,Quyển 1,volume,1,Hồi 2,chapter,2,t
    - Worker đọc từng dòng dữ liệu, lấy ảnh từ đường dẫn tương đối (tính từ vị trí file CSV), sao chép vào `PUBLIC_DIR/images/stories`, chèn vào bảng `Image` với `provider = "local"`, và gắn `cover_art_id` / `image_id` cho các trang truyện.
 4. **Dọn dẹp thư mục sau khi hoàn thành**:
    - Thư mục giải nén `processing/<sessionId>` luôn được xóa sạch sau khi xử lý xong để giải phóng dung lượng đĩa.
-   - File gốc `.zip` được xử lý dựa trên cấu hình `CLEANUP_ZIP_AFTER_PROCESSING` (hoặc tham số request `cleanupAfterProcessing`):
-     - Nếu `true`: Xóa hoàn toàn file zip.
+   - File gốc `.zip` được xử lý dựa trên hằng số cấu hình máy chủ `ZIP_CLEANUP_AFTER_PROCESSING` (hoặc biến môi trường `CLEANUP_ZIP_AFTER_PROCESSING`):
+     - Nếu `true` (mặc định): Tự động xóa hoàn toàn file zip để tiết kiệm dung lượng đĩa.
      - Nếu `false`: Chuyển file zip sang thư mục lưu trữ `TEMP_DIR/completed/<sessionId>/`.
+     - _Lưu ý: Quyết định xóa hay giữ file zip được thống nhất cố định ở phía server, không để client/FE tự ý quyết định qua request param._
 
 ---
 
@@ -254,7 +255,6 @@ Naruto,manga,finished,Japan,"Action,Ninja","Hành trình trở thành Hokage c�
 - **Content-Type**: `multipart/form-data`
 - **Form Fields**:
   - `file`: File `.zip` (bắt buộc).
-  - `cleanupAfterProcessing`: `true` hoặc `false` (tùy chọn, ghi đè biến môi trường).
 - **Phản hồi mẫu**:
   ```json
   {
@@ -276,8 +276,7 @@ Naruto,manga,finished,Japan,"Action,Ninja","Hành trình trở thành Hokage c�
 - **Request Body**:
   ```json
   {
-    "url": "https://storage.googleapis.com/my-bucket/manga_batch_50gb.zip",
-    "cleanupAfterProcessing": false
+    "url": "https://storage.googleapis.com/my-bucket/manga_batch_50gb.zip"
   }
   ```
 - **Phản hồi mẫu**:

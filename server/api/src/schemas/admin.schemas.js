@@ -125,7 +125,6 @@ export class AdminSchemas {
   downloadBatchZipStory = z.object({
     body: z.object({
       url: z.string().url("URL không hợp lệ"),
-      cleanupAfterProcessing: z.boolean().optional(),
     }),
   });
 
@@ -136,7 +135,6 @@ export class AdminSchemas {
       totalChunks: z.number().int().positive("Tổng số chunk phải lớn hơn 0"),
       chunkSize: z.number().int().positive().optional(),
       fileHash: z.string().optional(),
-      cleanupAfterProcessing: z.boolean().optional(),
     }),
   });
 
@@ -156,7 +154,6 @@ export class AdminSchemas {
   completeChunkUpload = z.object({
     body: z.object({
       sessionId: z.string().min(1, "sessionId không được để trống"),
-      cleanupAfterProcessing: z.boolean().optional(),
     }),
   });
 

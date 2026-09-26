@@ -8,7 +8,7 @@ on:
       # Cập nhật chính xác các path cần theo dõi để kích hoạt workflow
       - "server/api/**"
       - "server/ml-service/**"
-      - "server/docker-compose.yml"
+      - "server/deploy/**"
       - ".github/workflows/**"
 
 permissions:
@@ -153,15 +153,15 @@ jobs:
           audience: ${{ secrets.TS_AUDIENCE }}
           tags: ${{ vars.TS_TAGS || secrets.TS_TAGS || 'tag:ci' }}
 
-      - name: Sync .env file to VM
+      - name: Sync server/.env file to VM
         env:
-          SERVER_ENV: ${{ secrets.API_ENV || secrets.SERVER_API_ENV || secrets.SERVER_ENV || secrets.ENV_FILE }}
+          SERVER_ENV: ${{ secrets.SERVER_ENV || secrets.API_ENV || secrets.SERVER_API_ENV || secrets.ENV_FILE }}
         run: |
           if [ -n "$SERVER_ENV" ]; then
-            echo "Syncing .env file to /home/khoa/Mangament/server/api/.env.production..."
-            printf '%s\n' "$SERVER_ENV" | ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} 'mkdir -p /home/khoa/Mangament/server/api && cat > /home/khoa/Mangament/server/api/.env.production && chmod 600 /home/khoa/Mangament/server/api/.env.production'
+            echo "Syncing environment file to /home/khoa/Mangament/server/deploy/.env..."
+            printf '%s\n' "$SERVER_ENV" | ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} 'mkdir -p /home/khoa/Mangament/server/deploy && cat > /home/khoa/Mangament/server/deploy/.env && chmod 600 /home/khoa/Mangament/server/deploy/.env'
           else
-            echo "Notice: No .env secret provided (API_ENV / SERVER_API_ENV / SERVER_ENV). Retaining existing .env.production on VM."
+            echo "Notice: No SERVER_ENV secret provided. Retaining existing server/deploy/.env on VM."
           fi
 
       - name: Deploy via Tailscale SSH
@@ -170,6 +170,7 @@ jobs:
             set -e
             cd /home/khoa/Mangament/server
             git pull origin main
+            cd deploy
             docker compose pull
             docker compose up -d
           EOF

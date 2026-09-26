@@ -444,6 +444,18 @@ export async function restoreManyTrashStoryNodes(ids: string[]): Promise<Service
   }
 }
 
+export * from "./story-import";
+import {
+  importStoriesSpreadsheet,
+  downloadStoryImportTemplate,
+  initStoryZipChunk,
+  getStoryZipChunkStatus,
+  uploadStoryZipChunk,
+  completeStoryZipChunk,
+  downloadStoryZipFromUrl,
+  uploadStoryZipResumable,
+} from "./story-import";
+
 const adminService = {
   getOverview,
   getStatsView,
@@ -460,6 +472,16 @@ const adminService = {
   updateStory,
   activeStory,
   deleteStory,
+
+  // Story Import & Chunked Upload
+  importStoriesSpreadsheet,
+  downloadStoryImportTemplate,
+  initStoryZipChunk,
+  getStoryZipChunkStatus,
+  uploadStoryZipChunk,
+  completeStoryZipChunk,
+  downloadStoryZipFromUrl,
+  uploadStoryZipResumable,
 
   getTrashImages,
   getAllTrashStories,

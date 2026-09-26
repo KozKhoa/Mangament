@@ -70,9 +70,23 @@ vi.mock("../../src/services/story.service.js", () => ({
 
 vi.mock("../../src/utils/Redis.js", () => ({
   default: {
-    stories: () => ({
+    stories: vi.fn(() => ({
       incr: vi.fn().mockResolvedValue(1),
-    }),
+      get: vi.fn().mockResolvedValue(1),
+    })),
+    storyNodes: vi.fn(() => ({
+      incr: vi.fn().mockResolvedValue(1),
+      get: vi.fn().mockResolvedValue(1),
+    })),
+    genres: vi.fn(() => ({
+      incr: vi.fn().mockResolvedValue(1),
+      get: vi.fn().mockResolvedValue(1),
+    })),
+    authors: vi.fn(() => ({
+      incr: vi.fn().mockResolvedValue(1),
+      get: vi.fn().mockResolvedValue(1),
+    })),
+    clearStoriesCache: vi.fn().mockResolvedValue(),
   },
 }));
 
@@ -144,7 +158,9 @@ describe("Batch Import Zip Worker & Image Handling", () => {
     try {
       fs.rmSync(testTempDir, { recursive: true, force: true });
       fs.rmSync(testPublicDir, { recursive: true, force: true });
-    } catch {}
+    } catch {
+      // ignore cleanup errors
+    }
   });
 
   it("should register batch-import-zip worker in BullMQ", () => {

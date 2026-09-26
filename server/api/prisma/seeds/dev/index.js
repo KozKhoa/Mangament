@@ -35,7 +35,7 @@ async function main() {
     const stories = await seedStories(users, genres, nations, authors, imagePool);
 
     // 7. Seeding bình luận (Comments)
-    const comments = await seedComments(users, stories);
+    await seedComments(users, stories);
 
     // 8. Seeding danh sách yêu thích (Favourites)
     await seedFavourites(users, stories);
