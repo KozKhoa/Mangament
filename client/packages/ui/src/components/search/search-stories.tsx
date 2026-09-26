@@ -37,7 +37,15 @@ export default function SearchStories({ className, delay = 500 }: { className?: 
       return;
     }
 
-    router.push(`/search?keyword=${keyword}`);
+    const webUrl = process.env.NEXT_PUBLIC_WEB_URL || "http://localhost:3000";
+    try {
+      if (typeof window !== "undefined" && new URL(webUrl, window.location.origin).origin !== window.location.origin) {
+        window.location.href = `${webUrl}/search?keyword=${encodeURIComponent(keyword)}`;
+        return;
+      }
+    } catch {}
+
+    router.push(`/search?keyword=${encodeURIComponent(keyword)}`);
   }
 
   useEffect(() => {

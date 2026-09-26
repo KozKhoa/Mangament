@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { useSearchParams } from "next/navigation";
 
 import Link from "@/components/link/Link";
 
@@ -16,6 +17,8 @@ import { loadingBar } from "@/components/loadings/loading-bar/top-loading-bar.st
 
 function RegisterPage() {
   const auth = useAuth();
+  const searchParams = useSearchParams();
+  const redirectUrl = searchParams.get("redirect") || searchParams.get("callbackUrl") || undefined;
 
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
@@ -55,7 +58,7 @@ function RegisterPage() {
 
     setIsProcessing(true);
 
-    await auth?.register(username, email, password);
+    await auth?.register(username, email, password, redirectUrl);
 
     setIsProcessing(false);
   }
@@ -116,7 +119,7 @@ function RegisterPage() {
 
         <div className="flex items-center gap-5">
           <p>Đã có tài khoản? </p>
-          <Link href={"/login"} tabIndex={6}>
+          <Link href={redirectUrl ? `/login?redirect=${encodeURIComponent(redirectUrl)}` : "/login"} tabIndex={6}>
             <p className=" underline">Đăng nhập</p>
           </Link>
         </div>

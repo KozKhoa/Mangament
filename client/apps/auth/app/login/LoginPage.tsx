@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { toast } from "sonner";
+import { useSearchParams } from "next/navigation";
 
 import Link from "@/components/link/Link";
 
@@ -47,6 +48,8 @@ function GoogleSvg() {
 export default function LoginPage() {
   const auth = useAuth();
   const { data: session } = useSession();
+  const searchParams = useSearchParams();
+  const redirectUrl = searchParams.get("redirect") || searchParams.get("callbackUrl") || undefined;
 
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
@@ -78,7 +81,7 @@ export default function LoginPage() {
 
     setIsProcessing(true);
 
-    await auth?.login(email, password);
+    await auth?.login(email, password, redirectUrl);
 
     if (remember) rememberMe.turnOn();
     else rememberMe.turnOff();
@@ -93,7 +96,7 @@ export default function LoginPage() {
     if (remember) rememberMe.turnOn();
     else rememberMe.turnOff();
 
-    await signIn("google");
+    await signIn("google", { callbackUrl: redirectUrl || "/" });
   }
 
   useEffect(() => {
@@ -106,9 +109,9 @@ export default function LoginPage() {
     const idToken = (session as SessionWithIdToken | null)?.idToken;
     if (session && idToken && !auth?.user && processedToken.current !== idToken) {
       processedToken.current = idToken;
-      auth?.loginWithGoogle(idToken);
+      auth?.loginWithGoogle(idToken, redirectUrl);
     }
-  }, [session, auth]);
+  }, [session, auth, redirectUrl]);
 
   return (
     <div className="w-full min-h-[80vh] flex justify-center items-center">
@@ -164,12 +167,12 @@ export default function LoginPage() {
         </Checkbox>
 
         <div className="flex flex-col gap-5">
-          <Link href={"/forgot-password"} className="w-fit" tabIndex={7}>
+          <Link href={redirectUrl ? `/forgot-password?redirect=${encodeURIComponent(redirectUrl)}` : "/forgot-password"} className="w-fit" tabIndex={7}>
             <p className="w-fit underline">Quên mât khẩu</p>
           </Link>
           <div className="flex items-center gap-5">
             <p>Chưa có tài khoản? </p>
-            <Link href={"/register"} tabIndex={8}>
+            <Link href={redirectUrl ? `/register?redirect=${encodeURIComponent(redirectUrl)}` : "/register"} tabIndex={8}>
               <p className=" underline">Đăng ký</p>
             </Link>
           </div>

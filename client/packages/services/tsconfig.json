@@ -9,5 +9,5 @@
       "@/services/*": ["./src/*"]
     }
   },
-  "include": ["src/**/*", "../types/src/**/*"]
+  "include": ["src/**/*"]
 }

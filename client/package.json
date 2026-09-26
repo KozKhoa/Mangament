@@ -12,10 +12,12 @@
     "dev:web": "pnpm --filter web dev",
     "dev:admin": "pnpm --filter admin dev",
     "dev:author": "pnpm --filter author dev",
+    "dev:auth": "pnpm --filter auth dev",
     "build": "turbo build",
     "build:web": "pnpm --filter web build",
     "build:admin": "pnpm --filter admin build",
     "build:author": "pnpm --filter author build",
+    "build:auth": "pnpm --filter auth build",
     "lint": "turbo lint",
     "test": "pnpm --filter @mangament/ui test"
   },

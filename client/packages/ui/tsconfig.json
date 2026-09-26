@@ -15,5 +15,5 @@
       "@/public/*": ["./public/*"]
     }
   },
-  "include": ["src/**/*", "../services/src/**/*", "../types/src/**/*"]
+  "include": ["src/**/*"]
 }

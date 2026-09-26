@@ -254,6 +254,106 @@ importers:
         specifier: ^5
         version: 5.9.3
 
+  apps/auth:
+    dependencies:
+      '@floating-ui/react':
+        specifier: ^0.27.16
+        version: 0.27.20(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
+      '@mangament/services':
+        specifier: workspace:*
+        version: link:../../packages/services
+      '@mangament/types':
+        specifier: workspace:*
+        version: link:../../packages/types
+      '@mangament/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
+      '@tailwindcss/container-queries':
+        specifier: ^0.1.1
+        version: 0.1.1(tailwindcss@4.3.3)
+      axios:
+        specifier: ^1.13.2
+        version: 1.20.0(debug@4.4.3(supports-color@7.2.0))(supports-color@7.2.0)
+      date-fns:
+        specifier: ^4.1.0
+        version: 4.4.0
+      focus-trap-react:
+        specifier: ^11.0.4
+        version: 11.0.6(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
+      framer-motion:
+        specifier: ^12.23.24
+        version: 12.43.0(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
+      lodash:
+        specifier: ^4.17.23
+        version: 4.18.1
+      next:
+        specifier: ^16.1.6
+        version: 16.3.6(@babel/core@7.29.7(supports-color@7.2.0))(@types/node@20.19.43)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
+      next-auth:
+        specifier: ^4.24.14
+        version: 4.24.15(next@16.3.6(@babel/core@7.29.7(supports-color@7.2.0))(@types/node@20.19.43)(react-dom@19.2.0(react@19.2.0))(react@19.2.0))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
+      next-themes:
+        specifier: ^0.4.6
+        version: 0.4.6(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
+      nprogress:
+        specifier: ^0.2.0
+        version: 0.2.0
+      qs:
+        specifier: ^6.14.0
+        version: 6.16.0
+      react:
+        specifier: 19.2.0
+        version: 19.2.0
+      react-dom:
+        specifier: 19.2.0
+        version: 19.2.0(react@19.2.0)
+      sonner:
+        specifier: ^2.0.7
+        version: 2.0.8(@types/react@19.3.0)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
+      tailwind-scrollbar-hide:
+        specifier: ^4.0.0
+        version: 4.0.0(tailwindcss@4.3.3)
+    devDependencies:
+      '@mangament/config-typescript':
+        specifier: workspace:*
+        version: link:../../packages/config-typescript
+      '@svgr/webpack':
+        specifier: ^8.1.0
+        version: 8.1.0(supports-color@7.2.0)(typescript@5.9.3)
+      '@tailwindcss/postcss':
+        specifier: ^4
+        version: 4.3.3
+      '@types/lodash':
+        specifier: ^4.17.24
+        version: 4.17.25
+      '@types/node':
+        specifier: ^20
+        version: 20.19.43
+      '@types/nprogress':
+        specifier: ^0.2.3
+        version: 0.2.3
+      '@types/qs':
+        specifier: ^6.14.0
+        version: 6.15.1
+      '@types/react':
+        specifier: ^19
+        version: 19.3.0
+      '@types/react-dom':
+        specifier: ^19
+        version: 19.3.0(@types/react@19.3.0)
+      eslint:
+        specifier: ^9
+        version: 9.39.5(jiti@2.7.0)(supports-color@7.2.0)
+      eslint-config-next:
+        specifier: 16.0.1
+        version: 16.0.1(@typescript-eslint/parser@8.70.1(eslint@9.39.5(jiti@2.7.0)(supports-color@7.2.0))(supports-color@7.2.0)(typescript@5.9.3))(eslint@9.39.5(jiti@2.7.0)(supports-color@7.2.0))(supports-color@7.2.0)(typescript@5.9.3)
+      tailwindcss:
+        specifier: ^4
+        version: 4.3.3
+      typescript:
+        specifier: ^5
+        version: 5.9.3
+
   apps/author:
     dependencies:
       '@floating-ui/react':

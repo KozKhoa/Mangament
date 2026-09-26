@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import Link from "@/components/link/Link";
 
 import Story from "@/types/story";
@@ -11,9 +12,23 @@ import Image from "next/image";
 import imageUrlResole from "@/utils/imageUrlResole";
 
 export default function StorySearchCard({ story, className }: { story: Story; className?: string }) {
+  const webUrl = process.env.NEXT_PUBLIC_WEB_URL || "http://localhost:3000";
+  const [href, setHref] = useState(`/stories/${story.type}/${story.id}`);
+
+  useEffect(() => {
+    try {
+      if (typeof window !== "undefined") {
+        const isWeb = new URL(webUrl, window.location.origin).origin === window.location.origin;
+        if (!isWeb) {
+          setHref(`${webUrl}/stories/${story.type}/${story.id}`);
+        }
+      }
+    } catch {}
+  }, [webUrl, story.type, story.id]);
+
   return (
     <Link
-      href={`/stories/${story.type}/${story.id}`}
+      href={href}
       className={`flex flex-row justify-start items-center bg-background text-foreground gap-2 p-1 rounded-sm
         border-transparent border transition-all duration-50 ease-linear  h-24
         hover:bg-hover-background w-full cursor-pointer

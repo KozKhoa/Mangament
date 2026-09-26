@@ -23,9 +23,9 @@ interface AuthContextProps {
   updateBirthday: (date: Date) => Promise<string | number | void>;
   updateAvatar: (avatar: File) => Promise<string | number | void>;
 
-  login: (email: string, password: string) => Promise<string | number | void>;
-  loginWithGoogle: (idToken: string) => Promise<string | number | void>;
-  register: (name: string, email: string, password: string) => Promise<string | number | void>;
+  login: (email: string, password: string, redirectUrl?: string) => Promise<string | number | void>;
+  loginWithGoogle: (idToken: string, redirectUrl?: string) => Promise<string | number | void>;
+  register: (name: string, email: string, password: string, redirectUrl?: string) => Promise<string | number | void>;
 
   changePassword: (oldPassword: string, newPassword: string) => Promise<string | number | void>;
   logout: () => Promise<string | number | void>;
@@ -134,7 +134,33 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }
 
-  async function login(email: string, password: string): Promise<string | number | void> {
+  function handleAuthSuccess(accessToken: string, redirectUrl?: string) {
+    if (redirectUrl) {
+      if (redirectUrl.startsWith("http://") || redirectUrl.startsWith("https://")) {
+        try {
+          const urlObj = new URL(redirectUrl);
+          if (typeof window !== "undefined" && urlObj.origin !== window.location.origin && !urlObj.pathname.includes("/auth/callback")) {
+            const callbackUrl = new URL("/auth/callback", urlObj.origin);
+            callbackUrl.searchParams.set("token", accessToken);
+            callbackUrl.searchParams.set("redirect", redirectUrl);
+            window.location.href = callbackUrl.toString();
+            return;
+          }
+        } catch (e) {
+          console.error("Invalid redirectUrl:", e);
+        }
+
+        const separator = redirectUrl.includes("?") ? "&" : "?";
+        window.location.href = `${redirectUrl}${separator}token=${encodeURIComponent(accessToken)}`;
+        return;
+      }
+      router.replace(redirectUrl);
+      return;
+    }
+    router.replace("/");
+  }
+
+  async function login(email: string, password: string, redirectUrl?: string): Promise<string | number | void> {
     if (!validateEmailFormat(email)) return toast.error("Invalid Email");
     if (!validatePasswordFormat(password)) return toast.error("Password must have at least six character");
 
@@ -148,24 +174,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const accessToken = res.data?.accessToken;
 
     if (user && accessToken) {
-      setUser(user); // Save user
-      token.setAccessToken(accessToken); // Save access token
+      setUser(user);
+      token.setAccessToken(accessToken);
 
       toast.message(res.message);
-
-      // navigate to home page
-      router.replace("/");
+      handleAuthSuccess(accessToken, redirectUrl);
     }
   }
 
-  async function loginWithGoogle(idToken: string): Promise<string | number | void> {
+  async function loginWithGoogle(idToken: string, redirectUrl?: string): Promise<string | number | void> {
     setLoading(true);
     const res = await authService.loginWithGoogle(idToken);
     setLoading(false);
 
     if (!res.success) return toast.warning(res.message);
-
-    console.log(res);
 
     const user = res.data?.user;
     const accessToken = res.data?.accessToken;
@@ -175,12 +197,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       token.setAccessToken(accessToken);
 
       toast.message(res.message);
-
-      router.replace("/");
+      handleAuthSuccess(accessToken, redirectUrl);
     }
   }
 
-  async function register(name: string, email: string, password: string) {
+  async function register(name: string, email: string, password: string, redirectUrl?: string) {
     if (!validateEmailFormat(email)) return toast.error("Invalid Email");
     if (!validatePasswordFormat(password)) return toast.error("Password must have at least six character");
 
@@ -198,9 +219,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       token.setAccessToken(accessToken);
 
       toast.message("Đăng ký thành công!");
-
-      // navigate to home page
-      router.replace("/");
+      handleAuthSuccess(accessToken, redirectUrl);
     }
   }
 
@@ -232,9 +251,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }
 
   useEffect(function () {
-    console.log("Xin chào");
-    const rememer = rememberMe.getStatus();
-    if (rememer && token.getAccessToken()) {
+    if (token.getAccessToken()) {
       me();
     }
   }, []);

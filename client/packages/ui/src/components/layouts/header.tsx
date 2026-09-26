@@ -46,9 +46,60 @@ const className = {
   buttonNavBar: `flex flex-col relative justify-center items-start p-px text-foreground bg-background-items h-fit w-full`,
 };
 
+function useCrossAppHref() {
+  const webUrl = process.env.NEXT_PUBLIC_WEB_URL || "http://localhost:3000";
+  const authUrl = process.env.NEXT_PUBLIC_AUTH_URL || "http://localhost:3003";
+  const adminUrl = process.env.NEXT_PUBLIC_ADMIN_URL || "http://localhost:3001";
+
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const getWebUrl = (path: string) => {
+    if (!mounted || typeof window === "undefined") return path;
+    try {
+      const isWeb = new URL(webUrl, window.location.origin).origin === window.location.origin;
+      return isWeb ? path : `${webUrl}${path}`;
+    } catch {
+      return path;
+    }
+  };
+
+  const getAuthUrl = (path: string, withRedirect = false) => {
+    const base = authUrl;
+    if (!mounted || typeof window === "undefined") return `${base}${path}`;
+    try {
+      const isAuth = new URL(authUrl, window.location.origin).origin === window.location.origin;
+      if (isAuth) return path;
+      if (withRedirect) {
+        return `${base}${path}?redirect=${encodeURIComponent(window.location.href)}`;
+      }
+      return `${base}${path}`;
+    } catch {
+      return `${base}${path}`;
+    }
+  };
+
+  const getAdminUrl = (path: string) => {
+    const base = adminUrl;
+    if (!mounted || typeof window === "undefined") return `${base}${path}`;
+    try {
+      const isAdmin = new URL(adminUrl, window.location.origin).origin === window.location.origin;
+      return isAdmin ? path : `${base}${path}`;
+    } catch {
+      return `${base}${path}`;
+    }
+  };
+
+  return { getWebUrl, getAuthUrl, getAdminUrl, mounted };
+}
+
 function ProfileButton() {
+  const { getAuthUrl } = useCrossAppHref();
   return (
-    <Link href={"/me"} className={className.buttonDropdown}>
+    <Link href={getAuthUrl("/me")} className={className.buttonDropdown}>
       <ProfileIcon className="w-5 h-5" />
       Thông tin tài khoản
     </Link>
@@ -56,16 +107,17 @@ function ProfileButton() {
 }
 
 function RankingButton({ isMobile = false }: { isMobile?: boolean }) {
+  const { getWebUrl } = useCrossAppHref();
   if (isMobile) {
     return (
-      <Link href="/ranking" className={className.buttonDropdown}>
+      <Link href={getWebUrl("/ranking")} className={className.buttonDropdown}>
         <RankingIcon className="w-5 h-5" />
         Xếp hạng
       </Link>
     );
   } else {
     return (
-      <Link href="/ranking" className={className.buttonNavBar}>
+      <Link href={getWebUrl("/ranking")} className={className.buttonNavBar}>
         Xếp hạng
       </Link>
     );
@@ -73,16 +125,17 @@ function RankingButton({ isMobile = false }: { isMobile?: boolean }) {
 }
 
 function RandomStoryButton({ isMobile = false }: { isMobile?: boolean }) {
+  const { getWebUrl } = useCrossAppHref();
   if (isMobile) {
     return (
-      <Link href="/stories/random" className={className.buttonDropdown}>
+      <Link href={getWebUrl("/stories/random")} className={className.buttonDropdown}>
         <RandomIcom className="w-5 h-5" />
         Random
       </Link>
     );
   } else {
     return (
-      <Link href="/stories/random" className={className.buttonNavBar}>
+      <Link href={getWebUrl("/stories/random")} className={className.buttonNavBar}>
         Random
       </Link>
     );
@@ -90,8 +143,9 @@ function RandomStoryButton({ isMobile = false }: { isMobile?: boolean }) {
 }
 
 function FavouriteStoryButton() {
+  const { getWebUrl } = useCrossAppHref();
   return (
-    <Link href="/favourites" className={className.buttonDropdown}>
+    <Link href={getWebUrl("/favourites")} className={className.buttonDropdown}>
       <FavouriteIcon className="w-5 h-5" />
       Truyện yêu thích
     </Link>
@@ -99,8 +153,9 @@ function FavouriteStoryButton() {
 }
 
 function HistoryButton() {
+  const { getWebUrl } = useCrossAppHref();
   return (
-    <Link href="/histories" className={className.buttonDropdown}>
+    <Link href={getWebUrl("/histories")} className={className.buttonDropdown}>
       <HistoryIcon className="w-5 h-5" />
       Lịch sử đọc
     </Link>
@@ -108,8 +163,9 @@ function HistoryButton() {
 }
 
 function WebManagementButton() {
+  const { getAdminUrl } = useCrossAppHref();
   return (
-    <Link href={"/admin/dashboard"} className={className.buttonDropdown}>
+    <Link href={getAdminUrl("/dashboard")} className={className.buttonDropdown}>
       <ManageIcon className="w-5 h-5" />
       Quản lý Web
     </Link>
@@ -117,8 +173,9 @@ function WebManagementButton() {
 }
 
 function LoginButton() {
+  const { getAuthUrl } = useCrossAppHref();
   return (
-    <Link href="/login" className={className.buttonDropdown}>
+    <Link href={getAuthUrl("/login", true)} className={className.buttonDropdown}>
       <LoginIcon className="w-5 h-5" />
       Đăng nhập
     </Link>
@@ -126,8 +183,9 @@ function LoginButton() {
 }
 
 function RegisterButton() {
+  const { getAuthUrl } = useCrossAppHref();
   return (
-    <Link href="/register" className={className.buttonDropdown}>
+    <Link href={getAuthUrl("/register", true)} className={className.buttonDropdown}>
       <SignUpIcon className="w-5 h-5" />
       Đăng ký
     </Link>
@@ -136,13 +194,12 @@ function RegisterButton() {
 
 function LogoutButton() {
   const auth = useAuth();
-  const router = useRouter();
   return (
     <button
       className={`${className.buttonDropdown} cursor-pointer`}
-      onClick={() => {
-        auth?.logout();
-        router.refresh();
+      onClick={async () => {
+        await auth?.logout();
+        window.location.reload();
       }}
     >
       <LogoutIcon className="w-5 h-5" />
@@ -152,8 +209,9 @@ function LogoutButton() {
 }
 
 function ChangePasswordButton() {
+  const { getAuthUrl } = useCrossAppHref();
   return (
-    <Link href="/change-password" className={className.buttonDropdown}>
+    <Link href={getAuthUrl("/change-password")} className={className.buttonDropdown}>
       <PasswordIcon className="w-5 h-5" />
       Đổi mật khẩu
     </Link>
@@ -163,7 +221,17 @@ function ChangePasswordButton() {
 function GenreButton({ isMobile = false }: { isMobile?: boolean }) {
   const router = useRouter();
   const app = useApp();
+  const { getWebUrl } = useCrossAppHref();
   const genres = app?.genres ?? [];
+
+  const handleGenreClick = (path: string) => {
+    const target = getWebUrl(path);
+    if (target.startsWith("http")) {
+      window.location.href = target;
+    } else {
+      router.push(target);
+    }
+  };
 
   if (isMobile) {
     return (
@@ -174,7 +242,7 @@ function GenreButton({ isMobile = false }: { isMobile?: boolean }) {
             <GenreIcon className="w-5 h-5" /> Thể loại
           </div>
         }
-        onClick={() => router.push(routes.genre())}
+        onClick={() => handleGenreClick(routes.genre())}
       >
         <div className="flex flex-col gap-2 w-full">
           {genres &&
@@ -183,7 +251,7 @@ function GenreButton({ isMobile = false }: { isMobile?: boolean }) {
               return (
                 <Link
                   key={i}
-                  href={routes.genre({ genre: genre.name })}
+                  href={getWebUrl(routes.genre({ genre: genre.name }))}
                   className={`w-full text-start p-2 px-5 ${i !== genres.length - 1 ? "border-b" : ""} hover:bg-foreground/30 cursor-pointer`}
                 >
                   {genre.name}
@@ -195,14 +263,14 @@ function GenreButton({ isMobile = false }: { isMobile?: boolean }) {
     );
   } else {
     return (
-      <ButtonDropdown className="w-full h-full" label="Thể loại" onClick={() => router.push("/genre")}>
+      <ButtonDropdown className="w-full h-full" label="Thể loại" onClick={() => handleGenreClick("/genre")}>
         <div className="grid grid-cols-2 gap-x-5 gap-y-1 w-[300px] sm:w-[400px] lg:grid-cols-3 lg:w-[600px]">
           {genres &&
             genres.length > 0 &&
             genres.map((genre, i) => (
               <Link
                 key={i}
-                href={routes.genre({ genre: genre.name })}
+                href={getWebUrl(routes.genre({ genre: genre.name }))}
                 className="w-full text-start p-2 border-b hover:bg-foreground/20 rounded-t-sm cursor-pointer"
               >
                 {genre.name}
@@ -216,6 +284,7 @@ function GenreButton({ isMobile = false }: { isMobile?: boolean }) {
 
 function HeaderBar({ duration = 100, autoHide = true, className }: NavBarProps) {
   const pathName = usePathname();
+  const { getWebUrl } = useCrossAppHref();
 
   const auth = useAuth();
 
@@ -273,7 +342,7 @@ function HeaderBar({ duration = 100, autoHide = true, className }: NavBarProps) 
        `}
       >
         <div className={`flex flex-row justify-center items-center gap-5 h-10`}>
-          <Link href={"/"}>
+          <Link href={getWebUrl("/")}>
             <p className={`text-5xl font-holtwood`}>Mangament</p>
           </Link>
 
