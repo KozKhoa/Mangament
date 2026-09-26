@@ -1,0 +1,19 @@
+{
+  "extends": "@mangament/config-typescript/nextjs.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "paths": {
+      "@/components/*": ["./src/components/*"],
+      "@/contexts/*": ["./src/contexts/*"],
+      "@/hooks/*": ["./src/hooks/*"],
+      "@/constants/*": ["./src/constants/*"],
+      "@/utils/*": ["./src/utils/*"],
+      "@/hoc/*": ["./src/hoc/*"],
+      "@/lib/*": ["../services/src/lib/*"],
+      "@/services/*": ["../services/src/*"],
+      "@/types/*": ["../types/src/*"],
+      "@/public/*": ["./public/*"]
+    }
+  },
+  "include": ["src/**/*", "../services/src/**/*", "../types/src/**/*"]
+}

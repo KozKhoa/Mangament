@@ -1,0 +1,21 @@
+{
+  "extends": "../../packages/config-typescript/nextjs.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./*", "../../packages/ui/src/*"],
+      "@/components/*": ["../../packages/ui/src/components/*"],
+      "@/contexts/*": ["../../packages/ui/src/contexts/*"],
+      "@/hooks/*": ["../../packages/ui/src/hooks/*"],
+      "@/constants/*": ["../../packages/ui/src/constants/*"],
+      "@/hoc/*": ["../../packages/ui/src/hoc/*"],
+      "@/utils/*": ["../../packages/ui/src/utils/*"],
+      "@/services/*": ["../../packages/services/src/*"],
+      "@/lib/*": ["../../packages/services/src/lib/*"],
+      "@/types/*": ["../../packages/types/src/*"],
+      "@/public/*": ["./public/*", "../../packages/ui/public/*"]
+    }
+  },
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "../../packages/*/src/**/*", "../../packages/ui/src/types/svg.d.ts"],
+  "exclude": ["node_modules"]
+}

@@ -1,25 +1,17 @@
 {
-  "name": "client",
+  "name": "admin",
   "version": "0.1.0",
   "private": true,
-  "packageManager": "pnpm@11.22.0",
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ],
   "scripts": {
-    "dev": "turbo dev",
-    "dev:web": "pnpm --filter web dev",
-    "dev:admin": "pnpm --filter admin dev",
-    "dev:author": "pnpm --filter author dev",
-    "build": "turbo build",
-    "build:web": "pnpm --filter web build",
-    "build:admin": "pnpm --filter admin build",
-    "build:author": "pnpm --filter author build",
-    "lint": "turbo lint",
-    "test": "pnpm --filter @mangament/ui test"
+    "dev": "next dev -p 3001",
+    "build": "next build",
+    "start": "next start -p 3001",
+    "lint": "eslint"
   },
   "dependencies": {
+    "@mangament/ui": "workspace:*",
+    "@mangament/services": "workspace:*",
+    "@mangament/types": "workspace:*",
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
@@ -40,7 +32,6 @@
     "react-dropzone": "^15.0.0",
     "react-easy-crop": "^5.5.6",
     "react-json-pretty": "^2.2.0",
-    "react-masonry-css": "^1.0.16",
     "reactflow": "^11.11.4",
     "sonner": "^2.0.7",
     "tailwind-scrollbar-hide": "^4.0.0"
@@ -48,21 +39,15 @@
   "devDependencies": {
     "@svgr/webpack": "^8.1.0",
     "@tailwindcss/postcss": "^4",
-    "@testing-library/jest-dom": "^6.0.0",
-    "@testing-library/react": "^16.0.0",
     "@types/lodash": "^4.17.24",
     "@types/node": "^20",
     "@types/nprogress": "^0.2.3",
     "@types/qs": "^6.14.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "@vitejs/plugin-react": "^4.3.0",
-    "baseline-browser-mapping": "^2.10.0",
     "eslint": "^9",
     "eslint-config-next": "16.0.1",
-    "jsdom": "^25.0.0",
     "tailwindcss": "^4",
-    "typescript": "^5",
-    "vitest": "^3.0.0"
+    "typescript": "^5"
   }
 }

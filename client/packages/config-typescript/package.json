@@ -1,0 +1,9 @@
+{
+  "name": "@mangament/config-typescript",
+  "version": "0.0.1",
+  "private": true,
+  "files": [
+    "tsconfig.base.json",
+    "nextjs.json"
+  ]
+}
