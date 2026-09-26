@@ -155,6 +155,7 @@ export function parseStoriesSpreadsheet(buffer) {
   let coverArtPathCol;
   let genresCol;
   let authorIdsCol;
+  let posterIdCol;
   const nodeConfigs = [];
 
   if (hasHeader) {
@@ -171,6 +172,7 @@ export function parseStoriesSpreadsheet(buffer) {
     coverArtPathCol = getCol([], ["story_cover_art_path", "cover_art_path", "cover_path"]);
     genresCol = getCol([], ["story_genres", "genres", "genre", "story_genre"]);
     authorIdsCol = getCol([], ["story_author_ids", "author_ids", "author_id", "story_author_id", "authorids", "authorid", "authors", "author"]);
+    posterIdCol = getCol([], ["story_poster_id", "poster_id", "poster"]);
 
     // Determine how many node levels exist
     let maxNumberedLevel = 0;
@@ -458,6 +460,7 @@ export function parseStoriesSpreadsheet(buffer) {
       status: cleanStoryStatus(getVal(row, storyStatusCol)),
       nation_id: cleanUUID(getVal(row, nationIdCol)),
       nation: cleanString(getVal(row, nationCol)),
+      poster_id: cleanUUID(getVal(row, posterIdCol)),
       deleted_status: cleanDeletedStatus(getVal(row, storyDeletedStatusCol)),
       is_actived: cleanBoolean(getVal(row, isActivedCol), true),
       summary: cleanString(getVal(row, summaryCol)),

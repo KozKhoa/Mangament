@@ -32,6 +32,9 @@ import crypto from "crypto";
 import { fileURLToPath } from "url";
 import dotenvFlow from "dotenv-flow";
 import sharp from "sharp";
+import { readStoryInfoJson } from "../pack-stories-zip/index.js";
+
+export { readStoryInfoJson };
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -64,6 +67,126 @@ async function getSyncStoryChildren() {
 
 // Danh sách đuôi file ảnh được hỗ trợ
 const SUPPORTED_IMAGE_EXTS = new Set([".jpg", ".jpeg", ".png", ".webp", ".avif"]);
+
+/**
+ * Kiểm tra chuỗi có phải UUID hợp lệ không
+ */
+export function isUUID(str) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(str));
+}
+
+/**
+ * Tìm hoặc tạo bản ghi Nation từ ID hoặc tên quốc gia
+ */
+export async function resolveNation(prisma, nationId, nationName) {
+  if (nationId && isUUID(nationId)) {
+    const nation = await prisma.nation.findUnique({ where: { id: nationId } });
+    if (nation) return nation.id;
+  }
+  if (nationName && typeof nationName === "string" && nationName.trim()) {
+    const cleanName = nationName.trim();
+    let nation = await prisma.nation.findFirst({
+      where: { name: { equals: cleanName, mode: "insensitive" } },
+    });
+    if (!nation) {
+      try {
+        nation = await prisma.nation.create({
+          data: { name: cleanName },
+        });
+      } catch {
+        nation = await prisma.nation.findFirst({
+          where: { name: { equals: cleanName, mode: "insensitive" } },
+        });
+      }
+    }
+    if (nation) return nation.id;
+  }
+  return null;
+}
+
+/**
+ * Xác thực poster_id có tồn tại trong hệ thống User không
+ */
+export async function resolvePoster(prisma, posterId) {
+  if (!posterId || !isUUID(posterId)) return null;
+  const user = await prisma.user.findUnique({ where: { id: posterId } });
+  return user ? user.id : null;
+}
+
+/**
+ * Tìm hoặc tạo các Genre và trả về danh sách genre_id
+ */
+export async function resolveGenres(prisma, genresList) {
+  if (!Array.isArray(genresList) || genresList.length === 0) return [];
+  const genreIds = [];
+
+  for (const rawGenre of genresList) {
+    if (!rawGenre || typeof rawGenre !== "string") continue;
+    const cleanName = rawGenre.trim();
+    if (!cleanName) continue;
+
+    let genre = await prisma.genre.findFirst({
+      where: { name: { equals: cleanName, mode: "insensitive" } },
+    });
+    if (!genre) {
+      try {
+        genre = await prisma.genre.create({
+          data: { name: cleanName },
+        });
+      } catch {
+        genre = await prisma.genre.findFirst({
+          where: { name: { equals: cleanName, mode: "insensitive" } },
+        });
+      }
+    }
+    if (genre && !genreIds.includes(genre.id)) {
+      genreIds.push(genre.id);
+    }
+  }
+
+  return genreIds;
+}
+
+/**
+ * Tìm hoặc tạo các Author và trả về danh sách author_id
+ */
+export async function resolveAuthors(prisma, authorsList) {
+  if (!Array.isArray(authorsList) || authorsList.length === 0) return [];
+  const authorIds = [];
+
+  for (const rawAuthor of authorsList) {
+    if (!rawAuthor || typeof rawAuthor !== "string") continue;
+    const cleanAuthor = rawAuthor.trim();
+    if (!cleanAuthor) continue;
+
+    if (isUUID(cleanAuthor)) {
+      const author = await prisma.author.findUnique({ where: { id: cleanAuthor } });
+      if (author && !authorIds.includes(author.id)) {
+        authorIds.push(author.id);
+      }
+    } else {
+      let author = await prisma.author.findFirst({
+        where: { name: { equals: cleanAuthor, mode: "insensitive" } },
+      });
+      if (!author) {
+        try {
+          author = await prisma.author.create({
+            data: { name: cleanAuthor },
+          });
+        } catch {
+          author = await prisma.author.findFirst({
+            where: { name: { equals: cleanAuthor, mode: "insensitive" } },
+          });
+        }
+      }
+      if (author && !authorIds.includes(author.id)) {
+        authorIds.push(author.id);
+      }
+    }
+  }
+
+  return authorIds;
+}
 
 /**
  * Phân tích tham số dòng lệnh (CLI Arguments)
@@ -168,14 +291,14 @@ function getMimeType(ext) {
 function parseNodeFolderName(folderName) {
   const trimmed = folderName.trim();
 
-  // Pattern 1: <type> <order> (ví dụ: "chapter 01", "Volume 2", "chương 10")
-  const m = trimmed.match(/^(chapter|chap|ch|volume|vol|arc|tập|hồi|chương)\s*([0-9]+(?:\.[0-9]+)?)/i);
+  // Pattern 1: <type> <order> (ví dụ: "chapter 01", "Volume 2", "chương 10", "Chuong 1", "Chương_02", "Chap-3", "c1")
+  const m = trimmed.match(/^(chapter|chap|ch|c|chương|chuong|volume|vol|tập|tap|arc|hồi|hoi)[\s_.:-]*([0-9]+(?:\.[0-9]+)?)/i);
   if (m) {
     const rawType = m[1].toLowerCase();
     let type = "chapter";
-    if (["volume", "vol", "tập"].includes(rawType)) {
+    if (["volume", "vol", "tập", "tap"].includes(rawType)) {
       type = "volume";
-    } else if (["arc", "hồi"].includes(rawType)) {
+    } else if (["arc", "hồi", "hoi"].includes(rawType)) {
       type = "arc";
     }
 
@@ -191,7 +314,28 @@ function parseNodeFolderName(folderName) {
     };
   }
 
-  // Pattern 2: Chỉ là số (ví dụ: "01", "1", "10")
+  // Pattern 2: Chỉ là tên type đơn thuần không có số (ví dụ: "chapter", "Chương", "Chuong", "chap")
+  const bareTypeM = trimmed.match(/^(chapter|chap|ch|chương|chuong|volume|vol|tập|tap|arc|hồi|hoi)$/i);
+  if (bareTypeM) {
+    const rawType = bareTypeM[1].toLowerCase();
+    let type = "chapter";
+    if (["volume", "vol", "tập", "tap"].includes(rawType)) {
+      type = "volume";
+    } else if (["arc", "hồi", "hoi"].includes(rawType)) {
+      type = "arc";
+    }
+
+    const typeLabel = type.charAt(0).toUpperCase() + type.slice(1);
+    return {
+      isValid: true,
+      type,
+      orderIndex: 1,
+      title: `${typeLabel} 1`,
+      folderName: trimmed,
+    };
+  }
+
+  // Pattern 3: Chỉ là số (ví dụ: "01", "1", "10")
   const numM = trimmed.match(/^([0-9]+(?:\.[0-9]+)?)$/);
   if (numM) {
     const orderIndex = parseFloat(numM[1]);
@@ -260,17 +404,25 @@ async function scanStoryFolders(sourceDir, options) {
 /**
  * Quét nội dung chi tiết của một truyện (các node và ảnh)
  */
-async function inspectStory(storyDir) {
+export async function inspectStory(storyDir) {
   const items = await fs.promises.readdir(storyDir, { withFileTypes: true });
 
-  // 1. Tìm ảnh bìa cover art nếu có
+  // 1. Đọc file info.json nếu có
+  const info = await readStoryInfoJson(storyDir);
+
+  // 2. Tìm ảnh bìa cover art nếu có
   let coverArtFile = null;
   const coverFiles = items.filter((i) => i.isFile() && /^(cover_art|cover|poster)\.(jpe?g|png|webp)$/i.test(i.name));
   if (coverFiles.length > 0) {
     coverArtFile = path.join(storyDir, coverFiles[0].name);
+  } else if (info?.raw?.cover_art && typeof info.raw.cover_art === "string") {
+    const customCover = path.join(storyDir, info.raw.cover_art);
+    if (fs.existsSync(customCover)) {
+      coverArtFile = customCover;
+    }
   }
 
-  // 2. Tìm các thư mục node / chapter
+  // 3. Tìm các thư mục node / chapter
   const rawSubdirs = items.filter((i) => i.isDirectory() && !i.name.startsWith("."));
   const parsedNodes = [];
 
@@ -305,6 +457,7 @@ async function inspectStory(storyDir) {
   return {
     coverArtFile,
     nodes: parsedNodes,
+    info,
   };
 }
 
@@ -367,16 +520,21 @@ async function main() {
     imagesCreated: 0,
   };
 
+  const processedStories = new Map();
+
   // 2. Lặp qua từng truyện
   for (let sIdx = 0; sIdx < storyFolderNames.length; sIdx++) {
-    const storyTitle = storyFolderNames[sIdx];
-    const storyDir = path.join(options.sourceDir, storyTitle);
+    const folderName = storyFolderNames[sIdx];
+    const storyDir = path.join(options.sourceDir, folderName);
     const storyProgress = `[${sIdx + 1}/${storyFolderNames.length}]`;
-
-    console.log(`${storyProgress} 📚 Đang xử lý truyện: "${storyTitle}"`);
 
     // Quét chi tiết các node và ảnh của truyện
     const storyData = await inspectStory(storyDir);
+    const finalTitle = storyData.info?.title || folderName;
+
+    const titleLog = storyData.info?.title && storyData.info.title !== folderName ? `"${finalTitle}" (thư mục: ${folderName})` : `"${finalTitle}"`;
+    console.log(`${storyProgress} 📚 Đang xử lý truyện: ${titleLog}`);
+
     let nodesToProcess = storyData.nodes;
 
     if (options.chapterLimit && options.chapterLimit > 0) {
@@ -385,6 +543,18 @@ async function main() {
 
     const totalImagesInStory = nodesToProcess.reduce((sum, n) => sum + n.imageFiles.length, 0);
     console.log(`   └── Tìm thấy: ${storyData.coverArtFile ? "1 ảnh bìa, " : ""}${nodesToProcess.length} chapters, tổng ${totalImagesInStory} ảnh.`);
+
+    if (storyData.info) {
+      const infoDetails = [];
+      if (storyData.info.summary) infoDetails.push(`tóm tắt (${storyData.info.summary.length} ký tự)`);
+      if (storyData.info.genres.length > 0) infoDetails.push(`${storyData.info.genres.length} thể loại: [${storyData.info.genres.join(", ")}]`);
+      if (storyData.info.authors.length > 0) infoDetails.push(`tác giả: [${storyData.info.authors.join(", ")}]`);
+      if (storyData.info.other_titles.length > 0) infoDetails.push(`${storyData.info.other_titles.length} tên khác`);
+      if (storyData.info.nation || storyData.info.nation_id) infoDetails.push(`quốc gia: ${storyData.info.nation || storyData.info.nation_id}`);
+      if (infoDetails.length > 0) {
+        console.log(`   📋 Metadata info.json: ${infoDetails.join(" | ")}`);
+      }
+    }
 
     if (options.dryRun) {
       // Chế độ Dry Run: Chỉ in cấu trúc mô phỏng
@@ -402,17 +572,31 @@ async function main() {
     // Chế độ Thực thi: Tạo và lưu vào Database
     stats.storiesProcessed++;
 
+    // Resolve nation & poster từ info.json
+    const resolvedNationId = await resolveNation(prisma, storyData.info?.nation_id, storyData.info?.nation);
+    const resolvedPosterId = await resolvePoster(prisma, storyData.info?.poster_id);
+
     // 2.1 Tạo hoặc lấy Story đã có
     let story = await prisma.story.findFirst({
-      where: { title: storyTitle },
+      where: {
+        OR: [{ title: finalTitle }, { title: folderName }],
+      },
     });
 
     if (!story) {
+      const storyType = storyData.info?.type?.toLowerCase().includes("novel") ? "light_novel" : "manga";
+      const validStatuses = ["ongoing", "finished", "postpone", "upcoming"];
+      const storyStatus = validStatuses.includes(storyData.info?.status?.toLowerCase()) ? storyData.info.status.toLowerCase() : "ongoing";
+
       story = await prisma.story.create({
         data: {
-          title: storyTitle,
-          type: "manga",
-          status: "ongoing",
+          title: finalTitle,
+          other_titles: storyData.info?.other_titles || [],
+          type: storyType,
+          status: storyStatus,
+          summary: storyData.info?.summary || null,
+          nation_id: resolvedNationId,
+          poster_id: resolvedPosterId,
           deleted_status: "not_deleted",
           is_actived: true,
         },
@@ -421,7 +605,29 @@ async function main() {
       console.log(`   ✨ Đã tạo bản ghi Story mới (ID: ${story.id})`);
     } else {
       console.log(`   ℹ️ Sử dụng Story hiện có (ID: ${story.id})`);
+      const updateData = {};
+      if (storyData.info?.summary && !story.summary) {
+        updateData.summary = storyData.info.summary;
+      }
+      if (storyData.info?.other_titles?.length > 0 && (!story.other_titles || story.other_titles.length === 0)) {
+        updateData.other_titles = storyData.info.other_titles;
+      }
+      if (resolvedNationId && !story.nation_id) {
+        updateData.nation_id = resolvedNationId;
+      }
+      if (resolvedPosterId && !story.poster_id) {
+        updateData.poster_id = resolvedPosterId;
+      }
+      if (Object.keys(updateData).length > 0) {
+        story = await prisma.story.update({
+          where: { id: story.id },
+          data: updateData,
+        });
+        console.log(`   📝 Đã cập nhật metadata cho Story từ info.json`);
+      }
     }
+
+    processedStories.set(story.id, story);
 
     // 2.2 Xử lý Cover Art nếu có và truyện chưa có bìa
     if (storyData.coverArtFile && !story.cover_art_id) {
@@ -460,7 +666,45 @@ async function main() {
       }
     }
 
-    // 2.3 Xử lý từng Chapter / Node
+    // 2.3 Liên kết thể loại (Genres) nếu có từ info.json
+    if (storyData.info?.genres?.length > 0) {
+      try {
+        const genreIds = await resolveGenres(prisma, storyData.info.genres);
+        if (genreIds.length > 0) {
+          await prisma.story_Genre.createMany({
+            data: genreIds.map((genre_id) => ({
+              story_id: story.id,
+              genre_id,
+            })),
+            skipDuplicates: true,
+          });
+          console.log(`   🏷️ Đã liên kết ${genreIds.length} thể loại cho truyện.`);
+        }
+      } catch (genreErr) {
+        console.warn(`   ⚠️ Lỗi liên kết thể loại: ${genreErr.message}`);
+      }
+    }
+
+    // 2.4 Liên kết tác giả (Authors) nếu có từ info.json
+    if (storyData.info?.authors?.length > 0) {
+      try {
+        const authorIds = await resolveAuthors(prisma, storyData.info.authors);
+        if (authorIds.length > 0) {
+          await prisma.story_Author.createMany({
+            data: authorIds.map((author_id) => ({
+              story_id: story.id,
+              author_id,
+            })),
+            skipDuplicates: true,
+          });
+          console.log(`   ✍️ Đã liên kết ${authorIds.length} tác giả cho truyện.`);
+        }
+      } catch (authorErr) {
+        console.warn(`   ⚠️ Lỗi liên kết tác giả: ${authorErr.message}`);
+      }
+    }
+
+    // 2.5 Xử lý từng Chapter / Node
     let newNodesCount = 0;
 
     for (const nodeData of nodesToProcess) {
@@ -579,7 +823,31 @@ async function main() {
     console.log("");
   }
 
-  // 3. In báo cáo tổng kết
+  // 3. Nâng version story trong Redis và reset cache
+  if (!options.dryRun && processedStories.size > 0) {
+    try {
+      const { default: redisUtils } = await import("../../src/utils/Redis.js");
+      const ids = Array.from(processedStories.keys());
+      const titles = Array.from(processedStories.values())
+        .map((s) => s.title)
+        .filter(Boolean);
+      if (typeof redisUtils.clearStoriesCache === "function") {
+        await redisUtils.clearStoriesCache(ids, titles);
+      } else {
+        await redisUtils.stories().incr();
+        await redisUtils.storyNodes().incr();
+        for (const id of ids) {
+          await redisUtils.stories(id).incr();
+          await redisUtils.storyNodes(id).incr();
+        }
+      }
+      console.log("🔄 Đã nâng version và reset cache story trong Redis thành công.\n");
+    } catch {
+      // Bỏ qua lỗi kết nối redis khi chạy standalone script
+    }
+  }
+
+  // 4. In báo cáo tổng kết
   const durationSec = ((Date.now() - startTime) / 1000).toFixed(2);
   console.log("================================================================================");
   console.log(" 📊 BÁO CÁO TỔNG KẾT QUÁ TRÌNH UPLOAD");
@@ -599,7 +867,9 @@ process.stdout.on("error", (err) => {
   if (err.code === "EPIPE") process.exit(0);
 });
 
-main().catch((err) => {
-  console.error("\n❌ LỖI TRONG QUÁ TRÌNH THỰC THI:", err);
-  process.exit(1);
-});
+if (process.argv[1] && (process.argv[1].endsWith("upload-stories/index.js") || process.argv[1].endsWith("upload-stories"))) {
+  main().catch((err) => {
+    console.error("\n❌ LỖI TRONG QUÁ TRÌNH THỰC THI:", err);
+    process.exit(1);
+  });
+}

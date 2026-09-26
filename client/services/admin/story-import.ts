@@ -83,14 +83,12 @@ export async function initStoryZipChunk({
   totalChunks,
   chunkSize,
   fileHash,
-  cleanupAfterProcessing = true,
 }: {
   fileName: string;
   fileSize: number;
   totalChunks: number;
   chunkSize?: number;
   fileHash?: string;
-  cleanupAfterProcessing?: boolean;
 }): Promise<
   ServiceResult<{
     sessionId: string;
@@ -109,7 +107,6 @@ export async function initStoryZipChunk({
       totalChunks,
       chunkSize,
       fileHash,
-      cleanupAfterProcessing,
     });
     return res.data;
   } catch (error: unknown) {
@@ -193,7 +190,7 @@ export async function uploadStoryZipChunk({
 /**
  * Yêu cầu server ghép các chunk thành file ZIP hoàn chỉnh và đẩy vào worker
  */
-export async function completeStoryZipChunk({ sessionId, cleanupAfterProcessing = true }: { sessionId: string; cleanupAfterProcessing?: boolean }): Promise<
+export async function completeStoryZipChunk({ sessionId }: { sessionId: string }): Promise<
   ServiceResult<{
     sessionId: string;
     fileName: string;
@@ -206,7 +203,6 @@ export async function completeStoryZipChunk({ sessionId, cleanupAfterProcessing 
       "/admin/stories/upload-zip/chunk/complete",
       {
         sessionId,
-        cleanupAfterProcessing,
       },
       {
         timeout: 300000, // 5 minutes cho việc ghép file lớn
@@ -221,7 +217,7 @@ export async function completeStoryZipChunk({ sessionId, cleanupAfterProcessing 
 /**
  * Tải file zip từ một đường dẫn URL bên ngoài
  */
-export async function downloadStoryZipFromUrl({ url, cleanupAfterProcessing = true }: { url: string; cleanupAfterProcessing?: boolean }): Promise<
+export async function downloadStoryZipFromUrl({ url }: { url: string }): Promise<
   ServiceResult<{
     url: string;
     fileName: string;
@@ -231,7 +227,6 @@ export async function downloadStoryZipFromUrl({ url, cleanupAfterProcessing = tr
   try {
     const res = await api.post("/admin/stories/download-zip", {
       url,
-      cleanupAfterProcessing,
     });
     return res.data;
   } catch (error: unknown) {
@@ -250,14 +245,12 @@ export async function downloadStoryZipFromUrl({ url, cleanupAfterProcessing = tr
 export async function uploadStoryZipResumable({
   file,
   chunkSize = 10 * 1024 * 1024, // 10MB mặc định
-  cleanupAfterProcessing = true,
   abortController,
   onProgress,
   onStatusChange,
 }: {
   file: File;
   chunkSize?: number;
-  cleanupAfterProcessing?: boolean;
   abortController?: AbortController;
   onProgress?: (progress: ChunkUploadProgress) => void;
   onStatusChange?: (status: ChunkUploadStatus, message?: string) => void;
@@ -297,7 +290,6 @@ export async function uploadStoryZipResumable({
       totalChunks,
       chunkSize,
       fileHash: fileId,
-      cleanupAfterProcessing,
     });
 
     if (!initRes.success || !initRes.data) {
@@ -419,7 +411,6 @@ export async function uploadStoryZipResumable({
 
   const completeRes = await completeStoryZipChunk({
     sessionId,
-    cleanupAfterProcessing,
   });
 
   if (!completeRes.success) {

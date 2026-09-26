@@ -28,7 +28,6 @@ export default function ZipImportTab() {
 
   // State cho Chunked Upload từ máy
   const [file, setFile] = useState<File | null>(null);
-  const [cleanupAfterProcessing, setCleanupAfterProcessing] = useState(true);
   const [uploadStatus, setUploadStatus] = useState<ChunkUploadStatus>("idle");
   const [statusMessage, setStatusMessage] = useState<string>("");
   const [progress, setProgress] = useState<ChunkUploadProgress>({
@@ -105,7 +104,6 @@ export default function ZipImportTab() {
     const res = await adminService.uploadStoryZipResumable({
       file,
       chunkSize: 10 * 1024 * 1024, // 10MB
-      cleanupAfterProcessing,
       abortController: controller,
       onProgress: (p) => {
         setProgress(p);
@@ -176,7 +174,6 @@ export default function ZipImportTab() {
     setIsDownloadingUrl(true);
     const res = await adminService.downloadStoryZipFromUrl({
       url: remoteUrl.trim(),
-      cleanupAfterProcessing,
     });
     setIsDownloadingUrl(false);
 
@@ -338,19 +335,6 @@ export default function ZipImportTab() {
                 </div>
               )}
 
-              {/* Tùy chọn cleanup */}
-              {uploadStatus === "idle" && (
-                <label className="flex items-center gap-2 text-xs opacity-80 cursor-pointer pt-2">
-                  <input
-                    type="checkbox"
-                    checked={cleanupAfterProcessing}
-                    onChange={(e) => setCleanupAfterProcessing(e.target.checked)}
-                    className="rounded text-blue-600 focus:ring-blue-500"
-                  />
-                  <span>Tự động xóa file ZIP trên server sau khi worker hoàn tất giải nén và import</span>
-                </label>
-              )}
-
               {/* Nhóm nút điều khiển */}
               <div className="flex flex-wrap items-center gap-3 pt-3 border-t border-foreground/10">
                 {uploadStatus === "idle" && (
@@ -422,15 +406,9 @@ export default function ZipImportTab() {
             />
           </div>
 
-          <label className="flex items-center gap-2 text-xs opacity-80 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={cleanupAfterProcessing}
-              onChange={(e) => setCleanupAfterProcessing(e.target.checked)}
-              className="rounded text-blue-600 focus:ring-blue-500"
-            />
-            <span>Tự động xóa file ZIP sau khi xử lý giải nén xong</span>
-          </label>
+          <div className="flex items-center gap-2 text-xs opacity-75">
+            <span>ℹ️ File ZIP sau khi tải về và xử lý import sẽ được tự động dọn dẹp theo chính sách máy chủ.</span>
+          </div>
 
           <div className="pt-2">
             <Button

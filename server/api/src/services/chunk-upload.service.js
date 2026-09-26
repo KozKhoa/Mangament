@@ -6,6 +6,7 @@ import { redis } from "../../configs/redis.js";
 import { CreateError } from "../utils/ErrorHandle.js";
 import storyQueue from "../../worker/queues/story.queue.js";
 import { getTempDir, getChunksDir, checkFreeDiskSpace, safeUnlink, mergeChunksSequentially } from "../utils/zip/zipStorage.js";
+import { ZIP_CLEANUP_AFTER_PROCESSING } from "../constants/Story.js";
 
 export const CHUNK_SESSION_TTL = 86400; // 24 hours
 
@@ -71,7 +72,7 @@ export async function initChunkSession({ fileName, fileSize, totalChunks, chunkS
     chunkSize: effectiveChunkSize,
     fileHash: fileHash || null,
     userId: userId || null,
-    cleanupAfterProcessing: cleanupAfterProcessing ?? true,
+    cleanupAfterProcessing: cleanupAfterProcessing !== undefined ? cleanupAfterProcessing : ZIP_CLEANUP_AFTER_PROCESSING,
     createdAt: Date.now(),
   };
 
@@ -264,7 +265,12 @@ export async function completeChunkUpload({ sessionId, userId, cleanupAfterProce
     await redis.del(`chunk_upload:hash:${session.fileHash}`);
   }
 
-  const shouldCleanup = cleanupAfterProcessing !== undefined ? cleanupAfterProcessing : session.cleanupAfterProcessing;
+  const shouldCleanup =
+    cleanupAfterProcessing !== undefined
+      ? cleanupAfterProcessing
+      : session.cleanupAfterProcessing !== undefined
+        ? session.cleanupAfterProcessing
+        : ZIP_CLEANUP_AFTER_PROCESSING;
 
   // Enqueue BullMQ worker job
   await storyQueue.addJob_BatchImportZip({

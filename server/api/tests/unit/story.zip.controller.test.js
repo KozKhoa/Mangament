@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { ZIP_CLEANUP_AFTER_PROCESSING } from "../../src/constants/Story.js";
 
 // Mock story queue
 const mockStoryQueue = {
@@ -48,7 +49,7 @@ describe("Admin Story Zip Controller", () => {
           size: 5242880,
           sessionId: "session_123",
         },
-        body: { cleanupAfterProcessing: "true" },
+        body: {},
       };
 
       const res = {
@@ -65,7 +66,7 @@ describe("Admin Story Zip Controller", () => {
           originalName: "manga.zip",
           userId: "user-uuid",
           sessionId: "session_123",
-          cleanupAfterProcessing: true,
+          cleanupAfterProcessing: ZIP_CLEANUP_AFTER_PROCESSING,
         }),
       );
 
@@ -104,7 +105,6 @@ describe("Admin Story Zip Controller", () => {
         user: { id: "user-uuid" },
         body: {
           url: "https://example.com/stories.zip",
-          cleanupAfterProcessing: false,
         },
       };
 
@@ -121,7 +121,7 @@ describe("Admin Story Zip Controller", () => {
           zipFilePath: "/tmp/fake/uploads/downloaded.zip",
           originalName: "stories.zip",
           userId: "user-uuid",
-          cleanupAfterProcessing: false,
+          cleanupAfterProcessing: ZIP_CLEANUP_AFTER_PROCESSING,
         }),
       );
 

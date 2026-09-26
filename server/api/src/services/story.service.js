@@ -616,7 +616,7 @@ export async function AddStory({ title, otherTitles, type, nation, genres, autho
         throw new Error(error);
       });
 
-    redisUtils.stories().incr();
+    await redisUtils.stories().incr();
 
     return { success: true, data: newStory };
   });
@@ -639,8 +639,8 @@ export async function ToggleSoftDeleteStory(id, deletedStatus = "not_deleted") {
       throw new Error(error);
     });
 
-  redisUtils.stories().incr();
-  redisUtils.stories(softDelete.id).incr();
+  await redisUtils.stories().incr();
+  await redisUtils.stories(softDelete.id).incr();
 
   return { success: true, data: softDelete };
 }
@@ -667,8 +667,8 @@ export async function ToggleSoftDeleteManyStories(ids = [], deletedStatus = "not
       throw new Error(error);
     });
 
-  redisUtils.stories().incr();
-  Promise.all(ids.map((id) => redisUtils.stories(id).incr()));
+  await redisUtils.stories().incr();
+  await Promise.all(ids.map((id) => redisUtils.stories(id).incr()));
 
   return { success: true, data: toggle };
 }
@@ -690,8 +690,8 @@ export async function HardDeleteStory(id) {
 
   storyQueue.addJob_HardDeleteStory(id);
 
-  redisUtils.stories().incr();
-  redisUtils.stories(id).incr();
+  await redisUtils.stories().incr();
+  await redisUtils.stories(id).incr();
 
   return { success: true, message: "Story is being permanently deleted" };
 }
@@ -725,9 +725,9 @@ export async function ActiveStory(id, isActived = true) {
       throw new Error(error);
     });
 
-  redisUtils.stories().incr();
-  redisUtils.stories(active.id).incr();
-  redisUtils.stories(active.title).incr();
+  await redisUtils.stories().incr();
+  await redisUtils.stories(active.id).incr();
+  await redisUtils.stories(active.title).incr();
 
   return { success: true, data: active };
 }
@@ -844,7 +844,7 @@ export async function AddOneViewForStory(id) {
 export async function GetRecommendStories({ storyId, userId, page = 1, limit = 10 }) {
   if (!storyId) throw CreateError(400, "Require at least 'storyId'");
 
-  const storiesVer = redisUtils.stories().get();
+  const storiesVer = await redisUtils.stories().get();
 
   const REDIS_KEY = ["GetRecommendStories", "storiesVer=" + storiesVer, "storyId=" + storyId, "userId=" + userId, "page=" + page, "limit=" + limit].join(":");
 
