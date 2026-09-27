@@ -257,52 +257,47 @@ jobs:
           tags: ${{ vars.TS_TAGS || secrets.TS_TAGS || 'tag:ci' }}
 
       - name: Sync deploy configuration (docker-compose.yml, Caddyfile) to Server
-        env:
-          CUSTOM_DEPLOY_DIR: ${{ vars.DEPLOY_DIR || secrets.DEPLOY_DIR }}
         run: |
           echo "Syncing docker-compose.yml and Caddyfile to target server..."
-          tar -czf - -C deploy docker-compose.yml Caddyfile | ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "
+          tar -czf - -C deploy docker-compose.yml Caddyfile | ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "CUSTOM_DEPLOY_DIR='${{ vars.DEPLOY_DIR || secrets.DEPLOY_DIR }}'"'
             set -e
-            TARGET_DIR=\"\${CUSTOM_DEPLOY_DIR:-$HOME/Mangament/deploy}\"
-            mkdir -p \"\$TARGET_DIR\"
-            echo \"Unpacking deploy files into \$TARGET_DIR...\"
-            tar -xzf - -C \"\$TARGET_DIR\"
-          "
+            TARGET_DIR="${CUSTOM_DEPLOY_DIR:-$HOME/Mangament/deploy}"
+            mkdir -p "$TARGET_DIR"
+            echo "Unpacking deploy files into $TARGET_DIR..."
+            tar -xzf - -C "$TARGET_DIR"
+          '
 
       - name: Sync deploy/.env file to Server
         env:
           SERVER_ENV: ${{ secrets.SERVER_ENV || secrets.API_ENV || secrets.SERVER_API_ENV || secrets.ENV_FILE }}
-          CUSTOM_DEPLOY_DIR: ${{ vars.DEPLOY_DIR || secrets.DEPLOY_DIR }}
         run: |
           if [ -n "$SERVER_ENV" ]; then
             echo "Syncing environment file to target server deploy/.env..."
-            printf '%s\n' "$SERVER_ENV" | ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "
+            printf '%s\n' "$SERVER_ENV" | ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "CUSTOM_DEPLOY_DIR='${{ vars.DEPLOY_DIR || secrets.DEPLOY_DIR }}'"'
               set -e
-              TARGET_DIR=\"\${CUSTOM_DEPLOY_DIR:-$HOME/Mangament/deploy}\"
-              mkdir -p \"\$TARGET_DIR\"
-              cat > \"\$TARGET_DIR/.env\" && chmod 600 \"\$TARGET_DIR/.env\"
-              echo \"Synced .env to \$TARGET_DIR/.env\"
-            "
+              TARGET_DIR="${CUSTOM_DEPLOY_DIR:-$HOME/Mangament/deploy}"
+              mkdir -p "$TARGET_DIR"
+              cat > "$TARGET_DIR/.env" && chmod 600 "$TARGET_DIR/.env"
+              echo "Synced .env to $TARGET_DIR/.env"
+            '
           else
             echo "Notice: No SERVER_ENV secret provided. Retaining existing deploy/.env on Server."
           fi
 
       - name: Pull and Restart Fullstack Containers via Tailscale SSH
-        env:
-          CUSTOM_DEPLOY_DIR: ${{ vars.DEPLOY_DIR || secrets.DEPLOY_DIR }}
         run: |
-          ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << EOF
+          ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "CUSTOM_DEPLOY_DIR='${{ vars.DEPLOY_DIR || secrets.DEPLOY_DIR }}'"'
             set -e
 
-            TARGET_DIR="\${CUSTOM_DEPLOY_DIR:-$HOME/Mangament/deploy}"
-            mkdir -p "\$TARGET_DIR"
+            TARGET_DIR="${CUSTOM_DEPLOY_DIR:-$HOME/Mangament/deploy}"
+            mkdir -p "$TARGET_DIR"
 
-            echo "Target deploy directory: \$TARGET_DIR"
-            cd "\$TARGET_DIR"
+            echo "Target deploy directory: $TARGET_DIR"
+            cd "$TARGET_DIR"
 
             # Gracefully check if git repo exists in parent or current directory before pulling
             if [ -d ".git" ]; then
-              echo "Git repo detected in \$TARGET_DIR. Pulling latest code..."
+              echo "Git repo detected in $TARGET_DIR. Pulling latest code..."
               git pull origin main || echo "Notice: git pull skipped or failed, continuing..."
             elif [ -d "../.git" ]; then
               echo "Git repo detected in parent directory. Pulling latest code..."
@@ -319,4 +314,4 @@ jobs:
 
             echo "Cleaning unused dangling images..."
             docker image prune -f
-          EOF
+          '
