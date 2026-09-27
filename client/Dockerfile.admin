@@ -23,6 +23,8 @@ RUN pnpm install
 # 3. Build admin Next.js standalone application
 COPY --from=builder /app/out/full/ .
 COPY --from=builder /app/packages/config-typescript ./packages/config-typescript
+COPY --from=builder /app/packages/ui/public ./packages/ui/public
+COPY --from=builder /app/apps/admin/public ./apps/admin/public
 
 ARG NEXT_PUBLIC_API_URL=https://api.mangament.io.vn
 ARG NEXT_PUBLIC_ADMIN_URL=https://admin.mangament.io.vn
