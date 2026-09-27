@@ -11,6 +11,9 @@
     "./hooks/*": "./src/hooks/*",
     "./utils/*": "./src/utils/*"
   },
+  "scripts": {
+    "test": "vitest run"
+  },
   "dependencies": {
     "@mangament/types": "workspace:*",
     "@mangament/services": "workspace:*",
