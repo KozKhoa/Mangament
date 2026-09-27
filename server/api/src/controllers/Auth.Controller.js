@@ -19,6 +19,8 @@ function clearRefreshTokenFromCookie(res) {
     httpOnly: true,
     secure: true,
     sameSite: "none",
+    path: "/",
+    domain: process.env.NODE_ENV === "production" ? process.env.COOKIES_DOMAIN : "localhost",
   });
 }
 

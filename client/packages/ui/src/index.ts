@@ -12,3 +12,4 @@ export { default as useResize } from "./hooks/useResize";
 
 // Components
 export * from "./components/modal/modal-root";
+export * from "./components/icons";
