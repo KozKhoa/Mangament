@@ -278,6 +278,7 @@ jobs:
         build-and-push-ml-service,
         build-and-push-client-web,
         build-and-push-client-admin,
+        build-and-push-client-auth,
       ]
     runs-on: ubuntu-latest
     permissions:
