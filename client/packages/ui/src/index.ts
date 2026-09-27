@@ -1,8 +1,8 @@
-// Contexts (Re-exported from @mangament/contexts)
+// Re-export Contexts & Utils for backwards compatibility if needed
 export * from "@mangament/contexts";
+export * from "@mangament/utils";
 
-// Shared Utilities & Hooks
-export * from "./utils/error";
+// UI Hooks
 export { default as useInView } from "./hooks/useInView";
 export { default as usePaperClip } from "./hooks/usePaperClip";
 export { default as useResize } from "./hooks/useResize";
