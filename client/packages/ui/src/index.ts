@@ -1,8 +1,5 @@
-// Contexts
-export * from "./contexts/AuthContext";
-export * from "./contexts/AppContext";
-export * from "./contexts/AdminContext";
-export * from "./contexts/NextAuthProvider";
+// Contexts (Re-exported from @mangament/contexts)
+export * from "@mangament/contexts";
 
 // Shared Utilities & Hooks
 export * from "./utils/error";

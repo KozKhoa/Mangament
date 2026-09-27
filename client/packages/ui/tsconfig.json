@@ -3,8 +3,12 @@
   "compilerOptions": {
     "outDir": "./dist",
     "paths": {
+      "@mangament/contexts": ["../contexts/src"],
+      "@mangament/contexts/*": ["../contexts/src/*"],
+      "@mangament/utils": ["../utils/src"],
+      "@mangament/utils/*": ["../utils/src/*"],
       "@/components/*": ["./src/components/*"],
-      "@/contexts/*": ["./src/contexts/*"],
+      "@/contexts/*": ["../contexts/src/*"],
       "@/hooks/*": ["./src/hooks/*"],
       "@/constants/*": ["./src/constants/*"],
       "@/utils/*": ["./src/utils/*"],

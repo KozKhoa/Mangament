@@ -5,7 +5,6 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { NextAuthProvider } from "@/contexts/NextAuthProvider";
 import { AppProvider } from "@/contexts/AppContext";
 import { AdminProvider } from "@/contexts/AdminContext";
-import HeaderBar from "@/components/layouts/header";
 import AdminSidebar from "@/components/layouts/sidebar/sidebar-admin";
 import { ModalRoot } from "@/components/modal/modal-root";
 import TopLoadingRoot from "@/components/loadings/loading-bar/top-loading-bar";
@@ -27,10 +26,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="vi" suppressHydrationWarning>
       <body
         className={`${Geist.variable} ${Geist_Mono.variable} ${Afacad.variable} ${Holtwood_One_SC.variable} ${Roboto.variable} ${Aclonica.variable} antialiased
-          text-size-default font-afacad bg-background relative
+          text-size-default font-afacad bg-background text-foreground relative min-h-screen
         `}
       >
         <AppProvider>
@@ -40,13 +39,9 @@ export default function RootLayout({
                 <TopLoadingRoot />
                 <Suspense>
                   <AdminProvider>
-                    <div className="flex flex-row w-full h-fit">
-                      <HeaderBar className="fixed left-2.5 right-2.5 z-40" autoHide={false} />
+                    <div className="flex flex-col md:flex-row min-h-screen w-full bg-background">
                       <AdminSidebar />
-                      <div className="max-w-[2000px] m-auto mt-16 px-2 md:px-10 w-full bg-background">
-                        {children}
-                        <div className="w-full h-24"></div>
-                      </div>
+                      <main className="flex-1 p-4 md:p-8 max-w-[1800px] w-full mx-auto overflow-x-hidden">{children}</main>
                     </div>
                   </AdminProvider>
                 </Suspense>

@@ -1,0 +1,14 @@
+{
+  "extends": "@mangament/config-typescript/nextjs.json",
+  "compilerOptions": {
+    "paths": {
+      "@/types/*": ["../types/src/*"],
+      "@/services/*": ["../services/src/*"],
+      "@/constants/*": ["../ui/src/constants/*"],
+      "@/utils/*": ["../ui/src/utils/*"],
+      "@/components/*": ["../ui/src/components/*"],
+      "@/lib/*": ["../services/src/lib/*"]
+    }
+  },
+  "include": ["src/**/*"]
+}

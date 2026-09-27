@@ -6,7 +6,6 @@ import { AppProvider } from "@/contexts/AppContext";
 import { ModalRoot } from "@/components/modal/modal-root";
 import TopLoadingRoot from "@/components/loadings/loading-bar/top-loading-bar";
 import { Toaster } from "sonner";
-import HeaderBar from "@/components/layouts/header";
 import { Afacad, Holtwood_One_SC, Geist_Mono, Geist, Roboto, Aclonica } from "./font";
 import "./globals.css";
 
@@ -36,8 +35,7 @@ export default function RootLayout({
               <AuthProvider>
                 <TopLoadingRoot />
                 <div className="flex flex-col min-h-screen">
-                  <HeaderBar className="fixed left-2.5 right-2.5 z-40" autoHide={false} />
-                  <main className="flex-1 max-w-[2000px] m-auto mt-20 px-4 sm:px-8 w-full">{children}</main>
+                  <main className="flex-1 flex flex-col justify-center items-center px-4 py-8 w-full max-w-[2000px] m-auto">{children}</main>
                 </div>
                 <Toaster position="top-center" />
                 <ModalRoot />

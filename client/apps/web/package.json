@@ -12,6 +12,7 @@
     "@mangament/ui": "workspace:*",
     "@mangament/services": "workspace:*",
     "@mangament/types": "workspace:*",
+    "@mangament/contexts": "workspace:*",
     "@floating-ui/react": "^0.27.16",
     "@tailwindcss/container-queries": "^0.1.1",
     "axios": "^1.13.2",

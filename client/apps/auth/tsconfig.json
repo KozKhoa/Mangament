@@ -2,9 +2,12 @@
   "extends": "../../packages/config-typescript/nextjs.json",
   "compilerOptions": {
     "paths": {
-      "@/*": ["./*", "../../packages/ui/src/*"],
+      "@mangament/contexts": ["../../packages/contexts/src"],
+      "@mangament/contexts/*": ["../../packages/contexts/src/*"],
+      "@mangament/utils": ["../../packages/utils/src"],
+      "@mangament/utils/*": ["../../packages/utils/src/*"],
       "@/components/*": ["../../packages/ui/src/components/*"],
-      "@/contexts/*": ["../../packages/ui/src/contexts/*"],
+      "@/contexts/*": ["../../packages/contexts/src/*"],
       "@/hooks/*": ["../../packages/ui/src/hooks/*"],
       "@/constants/*": ["../../packages/ui/src/constants/*"],
       "@/hoc/*": ["../../packages/ui/src/hoc/*"],

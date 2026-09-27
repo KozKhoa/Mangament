@@ -26,11 +26,11 @@ export function TrashPage() {
 
   return (
     <div className="flex flex-col gap-5 py-5">
-      <Link href={"/admin/trash/images"}>
+      <Link href={"/trash/images"}>
         <Navigate>Ảnh</Navigate>
       </Link>
 
-      <Link href={"/admin/trash/stories"}>
+      <Link href={"/trash/stories"}>
         <Navigate>Story</Navigate>
       </Link>
     </div>

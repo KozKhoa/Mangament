@@ -1,0 +1,23 @@
+{
+  "name": "@mangament/utils",
+  "version": "1.0.0",
+  "private": true,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "lint": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@mangament/types": "workspace:*",
+    "axios": "^1.13.2",
+    "date-fns": "^4.1.0"
+  },
+  "devDependencies": {
+    "@mangament/config-typescript": "workspace:*",
+    "@types/node": "^20",
+    "typescript": "^5"
+  }
+}

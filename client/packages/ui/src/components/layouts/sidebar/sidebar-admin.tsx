@@ -2,31 +2,26 @@
 
 import ButtonExpandable from "@/components/buttons/expandable/btn-expandable";
 import useAuth from "@/contexts/AuthContext";
-import ArrowDownIcon from "@/public/arrows/down-v.svg";
 import { Ref, useEffect, useState } from "react";
 import useResize from "@/hooks/useResize";
-
 import Link from "@/components/link/Link";
-
 import { usePathname } from "next/navigation";
 
 interface AdminSidebarProps {
   className?: string;
 }
 
-// const ROUTES = {
-//   dashboard: "/admin/dashboard",
-//   usersManagement: "/admin/users",
-//   mangaManagement: "/admin/stories/manga",
-//   lightNovelManagement: "/admin/stories/light_novel",
-// };
-
-export function ArrowToggleSidebar({ className, toggleSidebar }: { className?: string; toggleSidebar?: () => void }) {
+function ArrowDownIcon({ className }: { className?: string }) {
   return (
-    <div
-      className={`absolute transition-transform duration-200 flex justify-center w-13 h-13        
-          ${className} `}
-    >
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+    </svg>
+  );
+}
+
+export function ArrowToggleSidebar({ className = "", toggleSidebar }: { className?: string; toggleSidebar?: () => void }) {
+  return (
+    <div className={`absolute transition-transform duration-200 flex justify-center w-13 h-13 ${className}`}>
       <div
         className="relative cursor-pointer aspect-square w-full h-full
                   bg-foreground [clip-path:polygon(50%_50%,0_0,100%_0)] transition-transform duration-200  
@@ -36,31 +31,25 @@ export function ArrowToggleSidebar({ className, toggleSidebar }: { className?: s
       >
         <div
           className="absolute bg-background-items aspect-square w-13
-                  [clip-path:polygon(50%_50%,0_0,100%_0)] left-1/2 -translate-x-1/2 -translate-y-0.5"
+                  [clip-path:polygon(50%_50%,0_0,100%_0)] left-1/2 -translate-x-1/2 -translate-y-0.5 flex items-center justify-center"
         >
-          <ArrowDownIcon className="w-4.5 h-4.5 m-auto"></ArrowDownIcon>
+          <ArrowDownIcon className="w-4.5 h-4.5 text-foreground"></ArrowDownIcon>
         </div>
       </div>
     </div>
   );
 }
 
-export default function AdminSidebar({ className }: AdminSidebarProps) {
+export default function AdminSidebar({ className = "" }: AdminSidebarProps) {
   const auth = useAuth();
-
   const pathname = usePathname();
-
   const resizeRef = useResize({ resizeRight: true, minWidth: 200 });
-
   const [open, setOpen] = useState(true);
-
-  useEffect(() => {}, [auth?.user, auth?.loading]);
 
   // Không cho scroll màn hình khi sidebar đang mở ở mobile
   useEffect(() => {
     if (!open) return;
 
-    // md = 768px
     if (window.innerWidth < 768) {
       document.body.style.overflow = open ? "hidden" : "";
     }
@@ -93,7 +82,7 @@ export default function AdminSidebar({ className }: AdminSidebarProps) {
             bottom-0 left-1/2 -translate-x-1/2 w-[90vw]
 
             /* ===== Desktop ===== */
-            md:relative md:left-0 md:top-16 md:bottom-auto md:w-[280px] md:h-full
+            md:relative md:left-0 md:top-0 md:bottom-auto md:w-[280px] md:h-full
 
             drop-shadow-[0px_4px_10px_rgba(0,0,0,0.1)]
             md:drop-shadow-[4px_0px_15px_rgba(0,0,0,0.1)]
@@ -113,22 +102,32 @@ export default function AdminSidebar({ className }: AdminSidebarProps) {
         
               ${className}`}
           >
-            <div onClick={toggleSidebar} className="flex w-full justify-end px-2 cursor-pointer">
-              <ArrowDownIcon className="w-5 h-5 md:rotate-90"></ArrowDownIcon>
+            {/* Top Logo & App Branding */}
+            <div className="flex items-center justify-between px-2.5 py-2 border-b border-foreground/20 mb-2 pb-3">
+              <Link href="/dashboard" className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded bg-foreground text-background-items font-bold flex items-center justify-center text-lg shadow-sm">M</div>
+                <span className="font-bold text-lg text-foreground tracking-wide">Mangament Admin</span>
+              </Link>
+
+              <div onClick={toggleSidebar} className="cursor-pointer p-1 text-foreground hover:opacity-75">
+                <ArrowDownIcon className="w-5 h-5 md:rotate-90"></ArrowDownIcon>
+              </div>
             </div>
 
             <div className="overflow-y-auto custom-scrollbar">
               <div className="flex flex-col gap-2.5 h-fit">
-                <Link href={"/admin/dashboard"}>
+                <Link href={"/dashboard"}>
                   <ButtonExpandable
                     className={
-                      pathname.includes("dashboard") ? "bg-foreground/95 text-background-items hover:bg-foreground/95 hover:text-background-items" : ""
+                      pathname === "/dashboard" || pathname.includes("dashboard")
+                        ? "bg-foreground/95 text-background-items hover:bg-foreground/95 hover:text-background-items"
+                        : ""
                     }
                     label="Dashboard"
                   ></ButtonExpandable>
                 </Link>
 
-                <Link href={"/admin/user-management"}>
+                <Link href={"/user-management"}>
                   <ButtonExpandable
                     className={
                       pathname.includes("user-management") ? "bg-foreground/95 text-background-items hover:bg-foreground/95 hover:text-background-items" : ""
@@ -137,7 +136,7 @@ export default function AdminSidebar({ className }: AdminSidebarProps) {
                   ></ButtonExpandable>
                 </Link>
 
-                <Link href={"/admin/stories-management"}>
+                <Link href={"/stories-management"}>
                   <ButtonExpandable
                     className={
                       pathname.includes("stories-management") ? "bg-foreground/95 text-background-items hover:bg-foreground/95 hover:text-background-items" : ""
@@ -146,7 +145,7 @@ export default function AdminSidebar({ className }: AdminSidebarProps) {
                   ></ButtonExpandable>
                 </Link>
 
-                <Link href={"/admin/trash"}>
+                <Link href={"/trash"}>
                   <ButtonExpandable
                     className={pathname.includes("trash") ? "bg-foreground/95 text-background-items hover:bg-foreground/95 hover:text-background-items" : ""}
                     label="Thùng rác"
@@ -158,7 +157,7 @@ export default function AdminSidebar({ className }: AdminSidebarProps) {
             </div>
           </div>
 
-          {/* Mobile */}
+          {/* Mobile Toggle Button */}
           <ArrowToggleSidebar
             className={`
               /* ===== Mobile ===== */
@@ -169,7 +168,7 @@ export default function AdminSidebar({ className }: AdminSidebarProps) {
             toggleSidebar={toggleSidebar}
           ></ArrowToggleSidebar>
 
-          {/* Desktop */}
+          {/* Desktop Toggle Button */}
           <ArrowToggleSidebar
             className={`
               /* ===== Desktop ===== */
