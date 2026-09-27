@@ -23,6 +23,8 @@ RUN pnpm install
 # 3. Build web Next.js standalone application
 COPY --from=builder /app/out/full/ .
 COPY --from=builder /app/packages/config-typescript ./packages/config-typescript
+COPY --from=builder /app/packages/ui/public ./packages/ui/public
+COPY --from=builder /app/apps/web/public ./apps/web/public
 
 ARG NEXT_PUBLIC_API_URL=https://api.mangament.io.vn
 ARG NEXT_PUBLIC_WEB_URL=https://mangament.io.vn
