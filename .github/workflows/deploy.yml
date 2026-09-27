@@ -246,6 +246,9 @@ jobs:
       id-token: write
       contents: read
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Connect to Tailscale (OIDC Workload Identity Federation)
         uses: tailscale/github-action@v4
         with:
@@ -253,50 +256,60 @@ jobs:
           audience: ${{ secrets.TS_AUDIENCE }}
           tags: ${{ vars.TS_TAGS || secrets.TS_TAGS || 'tag:ci' }}
 
+      - name: Sync deploy configuration (docker-compose.yml, Caddyfile) to Server
+        env:
+          CUSTOM_DEPLOY_DIR: ${{ vars.DEPLOY_DIR || secrets.DEPLOY_DIR }}
+        run: |
+          echo "Syncing docker-compose.yml and Caddyfile to target server..."
+          tar -czf - -C deploy docker-compose.yml Caddyfile | ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "
+            set -e
+            TARGET_DIR=\"\${CUSTOM_DEPLOY_DIR:-$HOME/Mangament/deploy}\"
+            mkdir -p \"\$TARGET_DIR\"
+            echo \"Unpacking deploy files into \$TARGET_DIR...\"
+            tar -xzf - -C \"\$TARGET_DIR\"
+          "
+
       - name: Sync deploy/.env file to Server
         env:
           SERVER_ENV: ${{ secrets.SERVER_ENV || secrets.API_ENV || secrets.SERVER_API_ENV || secrets.ENV_FILE }}
+          CUSTOM_DEPLOY_DIR: ${{ vars.DEPLOY_DIR || secrets.DEPLOY_DIR }}
         run: |
           if [ -n "$SERVER_ENV" ]; then
             echo "Syncing environment file to target server deploy/.env..."
-            printf '%s\n' "$SERVER_ENV" | ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} '
-              TARGET_DIR=""
-              if [ -d "/home/khoa/Code/Project/Mangament/deploy" ]; then
-                TARGET_DIR="/home/khoa/Code/Project/Mangament/deploy"
-              elif [ -d "/home/khoa/Mangament/deploy" ]; then
-                TARGET_DIR="/home/khoa/Mangament/deploy"
-              elif [ -d "$HOME/Mangament/deploy" ]; then
-                TARGET_DIR="$HOME/Mangament/deploy"
-              fi
-
-              if [ -n "$TARGET_DIR" ]; then
-                cat > "$TARGET_DIR/.env" && chmod 600 "$TARGET_DIR/.env"
-                echo "Synced .env to $TARGET_DIR/.env"
-              fi
-            '
+            printf '%s\n' "$SERVER_ENV" | ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "
+              set -e
+              TARGET_DIR=\"\${CUSTOM_DEPLOY_DIR:-$HOME/Mangament/deploy}\"
+              mkdir -p \"\$TARGET_DIR\"
+              cat > \"\$TARGET_DIR/.env\" && chmod 600 \"\$TARGET_DIR/.env\"
+              echo \"Synced .env to \$TARGET_DIR/.env\"
+            "
           else
             echo "Notice: No SERVER_ENV secret provided. Retaining existing deploy/.env on Server."
           fi
 
       - name: Pull and Restart Fullstack Containers via Tailscale SSH
+        env:
+          CUSTOM_DEPLOY_DIR: ${{ vars.DEPLOY_DIR || secrets.DEPLOY_DIR }}
         run: |
-          ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
+          ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << EOF
             set -e
-            if [ -d "/home/khoa/Code/Project/Mangament" ]; then
-              cd /home/khoa/Code/Project/Mangament
-            elif [ -d "/home/khoa/Mangament" ]; then
-              cd /home/khoa/Mangament
-            elif [ -d "$HOME/Mangament" ]; then
-              cd "$HOME/Mangament"
+
+            TARGET_DIR="\${CUSTOM_DEPLOY_DIR:-$HOME/Mangament/deploy}"
+            mkdir -p "\$TARGET_DIR"
+
+            echo "Target deploy directory: \$TARGET_DIR"
+            cd "\$TARGET_DIR"
+
+            # Gracefully check if git repo exists in parent or current directory before pulling
+            if [ -d ".git" ]; then
+              echo "Git repo detected in \$TARGET_DIR. Pulling latest code..."
+              git pull origin main || echo "Notice: git pull skipped or failed, continuing..."
+            elif [ -d "../.git" ]; then
+              echo "Git repo detected in parent directory. Pulling latest code..."
+              (cd .. && git pull origin main) || echo "Notice: git pull skipped or failed, continuing..."
             else
-              echo "Error: Mangament repository directory not found on host."
-              exit 1
+              echo "Notice: No .git directory detected on host. Using directly synced deploy configurations."
             fi
-
-            echo "Pulling latest code from origin/main..."
-            git pull origin main
-
-            cd deploy
 
             echo "Pulling latest Docker images..."
             docker compose pull
