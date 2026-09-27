@@ -12,7 +12,12 @@ admin.mangament.io.vn {
     reverse_proxy client-admin:3001
 }
 
-# 3. Backend Express API
+# 3. Frontend Auth (Trang đăng nhập truyện)
+auth.mangament.io.vn {
+    reverse_proxy client-auth:3003
+}
+
+# 4. Backend Express API
 api.mangament.io.vn {
     # Cho phép upload file lớn lên tới 10GB không bị giới hạn
     request_body {

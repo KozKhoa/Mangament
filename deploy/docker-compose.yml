@@ -32,13 +32,45 @@ services:
       - ./.env
     environment:
       - CLOUDFLARE_API_TOKEN=${CLOUDFLARE_API_TOKEN:-}
-      - DOMAINS=mangament.io.vn,www.mangament.io.vn,admin.mangament.io.vn,api.mangament.io.vn
+      - DOMAINS=mangament.io.vn,www.mangament.io.vn,admin.mangament.io.vn,api.mangament.io.vn,auth.mangament.io.vn
       - PROXIED=false # Giữ DNS Only (đám mây xám) để đạt tốc độ upload tối đa
       - IP6_PROVIDER=none
 
   # ==========================================
   # FRONTEND CLIENTS (NEXT.JS STANDALONE)
   # ==========================================
+  client-auth:
+    container_name: mangament_client_auth
+    image: kozkhoa/mangament-client-auth:latest
+    build:
+      context: ../client
+      dockerfile: Dockerfile.auth
+      args:
+        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-}
+        - NEXT_PUBLIC_AUTH_URL=${NEXT_PUBLIC_AUTH_URL:-}
+        - NEXT_PUBLIC_WEB_URL=${NEXT_PUBLIC_WEB_URL:-}
+        - NEXT_PUBLIC_ADMIN_URL=${NEXT_PUBLIC_ADMIN_URL:-}
+        - NEXT_PUBLIC_CDN_URL=${NEXT_PUBLIC_CDN_URL:-}
+        - NEXT_PUBLIC_LOCAL_CDN_URL=${NEXT_PUBLIC_LOCAL_CDN_URL:-}
+        - NEXT_PUBLIC_R2_CDN_URL=${NEXT_PUBLIC_R2_CDN_URL:-}
+        - NEXT_PUBLIC_API_KEY=${NEXT_PUBLIC_API_KEY:-}
+        - NEXT_PUBLIC_COOKIE_DOMAIN=${NEXT_PUBLIC_COOKIE_DOMAIN:-}
+        - NEXT_PUBLIC_GOOGLE_CLIENT_ID=${NEXT_PUBLIC_GOOGLE_CLIENT_ID:-}
+        - NEXT_PUBLIC_GOOGLE_CLIENT_SECRET=${NEXT_PUBLIC_GOOGLE_CLIENT_SECRET:-}
+        - AUTH_SECRET=${AUTH_SECRET:-}
+        - NEXTAUTH_SECRET=${NEXTAUTH_SECRET:-}
+    restart: always
+    ports:
+      - "3003:3003"
+    env_file:
+      - ./.env
+    environment:
+      - NODE_ENV=production
+      - PORT=3003
+      - NEXTAUTH_URL=https://auth.mangament.io.vn
+    depends_on:
+      - api
+
   client-web:
     container_name: mangament_client_web
     image: kozkhoa/mangament-client-web:latest
@@ -46,15 +78,15 @@ services:
       context: ../client
       dockerfile: Dockerfile.web
       args:
-        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-https://api.mangament.io.vn}
-        - NEXT_PUBLIC_WEB_URL=${NEXT_PUBLIC_WEB_URL:-https://mangament.io.vn}
-        - NEXT_PUBLIC_ADMIN_URL=${NEXT_PUBLIC_ADMIN_URL:-https://admin.mangament.io.vn}
-        - NEXT_PUBLIC_AUTH_URL=${NEXT_PUBLIC_AUTH_URL:-https://mangament.io.vn}
-        - NEXT_PUBLIC_CDN_URL=${NEXT_PUBLIC_CDN_URL:-https://api.mangament.io.vn}
-        - NEXT_PUBLIC_LOCAL_CDN_URL=${NEXT_PUBLIC_LOCAL_CDN_URL:-https://api.mangament.io.vn}
-        - NEXT_PUBLIC_R2_CDN_URL=${NEXT_PUBLIC_R2_CDN_URL:-https://pub-626aeddeabe146fb92f0e8ca1377235a.r2.dev}
-        - NEXT_PUBLIC_API_KEY=${NEXT_PUBLIC_API_KEY:-mangamentj4KvFLZVM2950whgoRDTYiy9EwYm7KlVi6Oyph42bMXTM3AnVRXBhiSF57ww91sx}
-        - NEXT_PUBLIC_COOKIE_DOMAIN=${NEXT_PUBLIC_COOKIE_DOMAIN:-.mangament.io.vn}
+        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-}
+        - NEXT_PUBLIC_WEB_URL=${NEXT_PUBLIC_WEB_URL:-}
+        - NEXT_PUBLIC_ADMIN_URL=${NEXT_PUBLIC_ADMIN_URL:-}
+        - NEXT_PUBLIC_AUTH_URL=${NEXT_PUBLIC_AUTH_URL:-}
+        - NEXT_PUBLIC_CDN_URL=${NEXT_PUBLIC_CDN_URL:-}
+        - NEXT_PUBLIC_LOCAL_CDN_URL=${NEXT_PUBLIC_LOCAL_CDN_URL:-}
+        - NEXT_PUBLIC_R2_CDN_URL=${NEXT_PUBLIC_R2_CDN_URL:-}
+        - NEXT_PUBLIC_API_KEY=${NEXT_PUBLIC_API_KEY:-}
+        - NEXT_PUBLIC_COOKIE_DOMAIN=${NEXT_PUBLIC_COOKIE_DOMAIN:-}
         - NEXT_PUBLIC_GOOGLE_CLIENT_ID=${NEXT_PUBLIC_GOOGLE_CLIENT_ID:-}
         - NEXT_PUBLIC_GOOGLE_CLIENT_SECRET=${NEXT_PUBLIC_GOOGLE_CLIENT_SECRET:-}
         - AUTH_SECRET=${AUTH_SECRET:-}
@@ -78,15 +110,15 @@ services:
       context: ../client
       dockerfile: Dockerfile.admin
       args:
-        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-https://api.mangament.io.vn}
-        - NEXT_PUBLIC_ADMIN_URL=${NEXT_PUBLIC_ADMIN_URL:-https://admin.mangament.io.vn}
-        - NEXT_PUBLIC_WEB_URL=${NEXT_PUBLIC_WEB_URL:-https://mangament.io.vn}
-        - NEXT_PUBLIC_AUTH_URL=${NEXT_PUBLIC_AUTH_URL:-https://admin.mangament.io.vn}
-        - NEXT_PUBLIC_CDN_URL=${NEXT_PUBLIC_CDN_URL:-https://api.mangament.io.vn}
-        - NEXT_PUBLIC_LOCAL_CDN_URL=${NEXT_PUBLIC_LOCAL_CDN_URL:-https://api.mangament.io.vn}
-        - NEXT_PUBLIC_R2_CDN_URL=${NEXT_PUBLIC_R2_CDN_URL:-https://pub-626aeddeabe146fb92f0e8ca1377235a.r2.dev}
-        - NEXT_PUBLIC_API_KEY=${NEXT_PUBLIC_API_KEY:-mangamentj4KvFLZVM2950whgoRDTYiy9EwYm7KlVi6Oyph42bMXTM3AnVRXBhiSF57ww91sx}
-        - NEXT_PUBLIC_COOKIE_DOMAIN=${NEXT_PUBLIC_COOKIE_DOMAIN:-.mangament.io.vn}
+        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-}
+        - NEXT_PUBLIC_ADMIN_URL=${NEXT_PUBLIC_ADMIN_URL:-}
+        - NEXT_PUBLIC_WEB_URL=${NEXT_PUBLIC_WEB_URL:-}
+        - NEXT_PUBLIC_AUTH_URL=${NEXT_PUBLIC_AUTH_URL:-}
+        - NEXT_PUBLIC_CDN_URL=${NEXT_PUBLIC_CDN_URL:-}
+        - NEXT_PUBLIC_LOCAL_CDN_URL=${NEXT_PUBLIC_LOCAL_CDN_URL:-}
+        - NEXT_PUBLIC_R2_CDN_URL=${NEXT_PUBLIC_R2_CDN_URL:-}
+        - NEXT_PUBLIC_API_KEY=${NEXT_PUBLIC_API_KEY:-}
+        - NEXT_PUBLIC_COOKIE_DOMAIN=${NEXT_PUBLIC_COOKIE_DOMAIN:-}
         - NEXT_PUBLIC_GOOGLE_CLIENT_ID=${NEXT_PUBLIC_GOOGLE_CLIENT_ID:-}
         - NEXT_PUBLIC_GOOGLE_CLIENT_SECRET=${NEXT_PUBLIC_GOOGLE_CLIENT_SECRET:-}
         - AUTH_SECRET=${AUTH_SECRET:-}
