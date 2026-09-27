@@ -23,18 +23,19 @@ RUN pnpm install
 # 3. Build web Next.js standalone application
 COPY --from=builder /app/out/full/ .
 COPY --from=builder /app/packages/config-typescript ./packages/config-typescript
-COPY --from=builder /app/packages/ui/public ./packages/ui/public
-COPY --from=builder /app/apps/web/public ./apps/web/public
+COPY --from=builder /app/packages/assets ./packages/assets
+COPY --from=builder /app/scripts ./scripts
+RUN node scripts/copy-assets.mjs
 
-ARG NEXT_PUBLIC_API_URL=https://api.mangament.io.vn
-ARG NEXT_PUBLIC_WEB_URL=https://mangament.io.vn
-ARG NEXT_PUBLIC_ADMIN_URL=https://admin.mangament.io.vn
-ARG NEXT_PUBLIC_AUTH_URL=https://mangament.io.vn
-ARG NEXT_PUBLIC_CDN_URL=https://api.mangament.io.vn
-ARG NEXT_PUBLIC_LOCAL_CDN_URL=https://api.mangament.io.vn
-ARG NEXT_PUBLIC_R2_CDN_URL=https://pub-626aeddeabe146fb92f0e8ca1377235a.r2.dev
-ARG NEXT_PUBLIC_API_KEY=mangamentj4KvFLZVM2950whgoRDTYiy9EwYm7KlVi6Oyph42bMXTM3AnVRXBhiSF57ww91sx
-ARG NEXT_PUBLIC_COOKIE_DOMAIN=.mangament.io.vn
+ARG NEXT_PUBLIC_API_URL
+ARG NEXT_PUBLIC_WEB_URL
+ARG NEXT_PUBLIC_ADMIN_URL
+ARG NEXT_PUBLIC_AUTH_URL
+ARG NEXT_PUBLIC_CDN_URL
+ARG NEXT_PUBLIC_LOCAL_CDN_URL
+ARG NEXT_PUBLIC_R2_CDN_URL
+ARG NEXT_PUBLIC_API_KEY
+ARG NEXT_PUBLIC_COOKIE_DOMAIN
 ARG NEXT_PUBLIC_GOOGLE_CLIENT_ID
 ARG NEXT_PUBLIC_GOOGLE_CLIENT_SECRET
 ARG AUTH_SECRET
