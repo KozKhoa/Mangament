@@ -1,5 +1,3 @@
-version: "3.8"
-
 name: mangament-fullstack
 
 services:
@@ -27,48 +25,81 @@ services:
   # DYNAMIC DNS (CLOUDFLARE)
   # ==========================================
   cloudflare-ddns:
-    image: favonia/cloudflare-ddns:latest
+    image: favonia/cloudflare-ddns:1
     container_name: mangament_ddns
     restart: always
+    env_file:
+      - ./.env
     environment:
       - CLOUDFLARE_API_TOKEN=${CLOUDFLARE_API_TOKEN:-}
       - DOMAINS=mangament.io.vn,www.mangament.io.vn,admin.mangament.io.vn,api.mangament.io.vn
       - PROXIED=false # Giữ DNS Only (đám mây xám) để đạt tốc độ upload tối đa
+      - IP6_PROVIDER=none
 
   # ==========================================
   # FRONTEND CLIENTS (NEXT.JS STANDALONE)
   # ==========================================
   client-web:
     container_name: mangament_client_web
+    image: kozkhoa/mangament-client-web:latest
     build:
-      context: ./client
+      context: ../client
       dockerfile: Dockerfile.web
+      args:
+        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-https://api.mangament.io.vn}
+        - NEXT_PUBLIC_WEB_URL=${NEXT_PUBLIC_WEB_URL:-https://mangament.io.vn}
+        - NEXT_PUBLIC_ADMIN_URL=${NEXT_PUBLIC_ADMIN_URL:-https://admin.mangament.io.vn}
+        - NEXT_PUBLIC_AUTH_URL=${NEXT_PUBLIC_AUTH_URL:-https://mangament.io.vn}
+        - NEXT_PUBLIC_CDN_URL=${NEXT_PUBLIC_CDN_URL:-https://api.mangament.io.vn}
+        - NEXT_PUBLIC_LOCAL_CDN_URL=${NEXT_PUBLIC_LOCAL_CDN_URL:-https://api.mangament.io.vn}
+        - NEXT_PUBLIC_R2_CDN_URL=${NEXT_PUBLIC_R2_CDN_URL:-https://pub-626aeddeabe146fb92f0e8ca1377235a.r2.dev}
+        - NEXT_PUBLIC_API_KEY=${NEXT_PUBLIC_API_KEY:-mangamentj4KvFLZVM2950whgoRDTYiy9EwYm7KlVi6Oyph42bMXTM3AnVRXBhiSF57ww91sx}
+        - NEXT_PUBLIC_COOKIE_DOMAIN=${NEXT_PUBLIC_COOKIE_DOMAIN:-.mangament.io.vn}
+        - NEXT_PUBLIC_GOOGLE_CLIENT_ID=${NEXT_PUBLIC_GOOGLE_CLIENT_ID:-}
+        - NEXT_PUBLIC_GOOGLE_CLIENT_SECRET=${NEXT_PUBLIC_GOOGLE_CLIENT_SECRET:-}
+        - AUTH_SECRET=${AUTH_SECRET:-}
+        - NEXTAUTH_SECRET=${NEXTAUTH_SECRET:-}
     restart: always
     ports:
       - "3000:3000"
+    env_file:
+      - ./.env
     environment:
       - NODE_ENV=production
       - PORT=3000
-      - NEXT_PUBLIC_API_URL=https://api.mangament.io.vn
-      - NEXT_PUBLIC_WEB_URL=https://mangament.io.vn
-      - NEXT_PUBLIC_ADMIN_URL=https://admin.mangament.io.vn
+      - NEXTAUTH_URL=https://mangament.io.vn
     depends_on:
       - api
 
   client-admin:
     container_name: mangament_client_admin
+    image: kozkhoa/mangament-client-admin:latest
     build:
-      context: ./client
+      context: ../client
       dockerfile: Dockerfile.admin
+      args:
+        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-https://api.mangament.io.vn}
+        - NEXT_PUBLIC_ADMIN_URL=${NEXT_PUBLIC_ADMIN_URL:-https://admin.mangament.io.vn}
+        - NEXT_PUBLIC_WEB_URL=${NEXT_PUBLIC_WEB_URL:-https://mangament.io.vn}
+        - NEXT_PUBLIC_AUTH_URL=${NEXT_PUBLIC_AUTH_URL:-https://admin.mangament.io.vn}
+        - NEXT_PUBLIC_CDN_URL=${NEXT_PUBLIC_CDN_URL:-https://api.mangament.io.vn}
+        - NEXT_PUBLIC_LOCAL_CDN_URL=${NEXT_PUBLIC_LOCAL_CDN_URL:-https://api.mangament.io.vn}
+        - NEXT_PUBLIC_R2_CDN_URL=${NEXT_PUBLIC_R2_CDN_URL:-https://pub-626aeddeabe146fb92f0e8ca1377235a.r2.dev}
+        - NEXT_PUBLIC_API_KEY=${NEXT_PUBLIC_API_KEY:-mangamentj4KvFLZVM2950whgoRDTYiy9EwYm7KlVi6Oyph42bMXTM3AnVRXBhiSF57ww91sx}
+        - NEXT_PUBLIC_COOKIE_DOMAIN=${NEXT_PUBLIC_COOKIE_DOMAIN:-.mangament.io.vn}
+        - NEXT_PUBLIC_GOOGLE_CLIENT_ID=${NEXT_PUBLIC_GOOGLE_CLIENT_ID:-}
+        - NEXT_PUBLIC_GOOGLE_CLIENT_SECRET=${NEXT_PUBLIC_GOOGLE_CLIENT_SECRET:-}
+        - AUTH_SECRET=${AUTH_SECRET:-}
+        - NEXTAUTH_SECRET=${NEXTAUTH_SECRET:-}
     restart: always
     ports:
       - "3001:3001"
+    env_file:
+      - ./.env
     environment:
       - NODE_ENV=production
       - PORT=3001
-      - NEXT_PUBLIC_API_URL=https://api.mangament.io.vn
-      - NEXT_PUBLIC_ADMIN_URL=https://admin.mangament.io.vn
-      - NEXT_PUBLIC_WEB_URL=https://mangament.io.vn
+      - NEXTAUTH_URL=https://admin.mangament.io.vn
     depends_on:
       - api
 
@@ -79,17 +110,17 @@ services:
     container_name: mangament_api
     image: kozkhoa/mangament-server-api:latest
     build:
-      context: ./server/api
+      context: ../server/api
       dockerfile: Dockerfile
     restart: always
     ports:
-      - "5000:5000"
+      - "${APP_PORT:-5000}:5000"
     env_file:
-      - ./server/api/.env.production
+      - ./.env
     environment:
       - REDIS_URL=redis://redis:6379
       - ML_SERVICE_URL=http://ml-service:8000
-      - MONGODB_CONNECTION_STRING=mongodb://admin:password@logs-db:27017/management_logs?authSource=admin
+      - MONGODB_CONNECTION_STRING=mongodb://${MONGO_USERNAME:-admin}:${MONGO_PASSWORD:-password}@logs-db:27017/management_logs?authSource=admin
       - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-mangament_postgres_db}?schema=public
       - DIRECT_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-mangament_postgres_db}?schema=public
       - PUBLIC_DIR=/app/public
@@ -97,6 +128,8 @@ services:
     volumes:
       - ${PUBLIC_DIR:-/mnt/hdd1/public}:/app/public
       - ${TEMP_DIR:-/mnt/hdd1/temp}:/app/temp
+      - ./.env:/app/.env.production:ro
+      - ./.env:/app/.env:ro
     depends_on:
       redis:
         condition: service_started
@@ -107,15 +140,15 @@ services:
     container_name: mangament_worker
     image: kozkhoa/mangament-server-worker:latest
     build:
-      context: ./server/api
+      context: ../server/api
       dockerfile: worker/Dockerfile
     restart: always
     env_file:
-      - ./server/api/.env.production
+      - ./.env
     environment:
       - REDIS_URL=redis://redis:6379
       - ML_SERVICE_URL=http://ml-service:8000
-      - MONGODB_CONNECTION_STRING=mongodb://admin:password@logs-db:27017/management_logs?authSource=admin
+      - MONGODB_CONNECTION_STRING=mongodb://${MONGO_USERNAME:-admin}:${MONGO_PASSWORD:-password}@logs-db:27017/management_logs?authSource=admin
       - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-mangament_postgres_db}?schema=public
       - DIRECT_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-mangament_postgres_db}?schema=public
       - PUBLIC_DIR=/app/public
@@ -123,6 +156,8 @@ services:
     volumes:
       - ${PUBLIC_DIR:-/mnt/hdd1/public}:/app/public
       - ${TEMP_DIR:-/mnt/hdd1/temp}:/app/temp
+      - ./.env:/app/.env.production:ro
+      - ./.env:/app/.env:ro
     depends_on:
       redis:
         condition: service_started
@@ -135,7 +170,7 @@ services:
     container_name: mangament_ml_service
     image: kozkhoa/mangament-server-ml-service:latest
     build:
-      context: ./server/ml-service
+      context: ../server/ml-service
       dockerfile: Dockerfile
     restart: unless-stopped
     ports:
@@ -153,6 +188,8 @@ services:
     container_name: mangament_db
     image: pgvector/pgvector:pg16
     restart: always
+    env_file:
+      - ./.env
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
@@ -162,7 +199,11 @@ services:
     volumes:
       - mangament_db_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d mangament_db"]
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U postgres -d ${POSTGRES_DB:-mangament_postgres_db}",
+        ]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -182,9 +223,11 @@ services:
     restart: always
     ports:
       - "27016:27017"
+    env_file:
+      - ./.env
     environment:
-      MONGO_INITDB_ROOT_USERNAME: admin
-      MONGO_INITDB_ROOT_PASSWORD: password
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USERNAME:-admin}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:-password}
     volumes:
       - mangament_logs_db_data:/data/db
 

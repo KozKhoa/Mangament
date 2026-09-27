@@ -5,10 +5,11 @@ on:
     branches:
       - main
     paths:
-      # Cập nhật chính xác các path cần theo dõi để kích hoạt workflow
+      # Theo dõi toàn bộ các module: Server, Client, Cấu hình Deploy và Workflows
       - "server/api/**"
       - "server/ml-service/**"
-      - "server/deploy/**"
+      - "client/**"
+      - "deploy/**"
       - ".github/workflows/**"
 
 permissions:
@@ -16,6 +17,9 @@ permissions:
   contents: read
 
 jobs:
+  # ==========================================
+  # 1. BUILD & PUSH BACKEND API
+  # ==========================================
   build-and-push-api:
     runs-on: ubuntu-latest
     steps:
@@ -27,7 +31,6 @@ jobs:
         with:
           files: server/api/**
 
-      # Các bước cài đặt môi trường ĐỨNG TRONG JOB để máy ảo này có hiệu lực
       - name: Set up QEMU
         if: steps.changed-files.outputs.any_changed == 'true'
         uses: docker/setup-qemu-action@v3
@@ -54,6 +57,9 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/mangament-server-api:latest
 
+  # ==========================================
+  # 2. BUILD & PUSH WORKER
+  # ==========================================
   build-and-push-worker:
     runs-on: ubuntu-latest
     steps:
@@ -97,6 +103,9 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/mangament-server-worker:latest
 
+  # ==========================================
+  # 3. BUILD & PUSH ML SERVICE
+  # ==========================================
   build-and-push-ml-service:
     runs-on: ubuntu-latest
     steps:
@@ -134,13 +143,104 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/mangament-server-ml-service:latest
 
+  # ==========================================
+  # 4. BUILD & PUSH CLIENT WEB (READER)
+  # ==========================================
+  build-and-push-client-web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check for client-web changes
+        id: changed-files
+        uses: tj-actions/changed-files@v44
+        with:
+          files: |
+            client/**
+
+      - name: Set up QEMU
+        if: steps.changed-files.outputs.any_changed == 'true'
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        if: steps.changed-files.outputs.any_changed == 'true'
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        if: steps.changed-files.outputs.any_changed == 'true'
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build & Push Client Web
+        if: steps.changed-files.outputs.any_changed == 'true'
+        uses: docker/build-push-action@v5
+        with:
+          context: ./client
+          file: ./client/Dockerfile.web
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/mangament-client-web:latest
+
+  # ==========================================
+  # 5. BUILD & PUSH CLIENT ADMIN (DASHBOARD)
+  # ==========================================
+  build-and-push-client-admin:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check for client-admin changes
+        id: changed-files
+        uses: tj-actions/changed-files@v44
+        with:
+          files: |
+            client/**
+
+      - name: Set up QEMU
+        if: steps.changed-files.outputs.any_changed == 'true'
+        uses: docker/setup-buildx-action@v3
+
+      - name: Set up Docker Buildx
+        if: steps.changed-files.outputs.any_changed == 'true'
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        if: steps.changed-files.outputs.any_changed == 'true'
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build & Push Client Admin
+        if: steps.changed-files.outputs.any_changed == 'true'
+        uses: docker/build-push-action@v5
+        with:
+          context: ./client
+          file: ./client/Dockerfile.admin
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/mangament-client-admin:latest
+
+  # ==========================================
+  # 6. DEPLOY TO SERVER VIA TAILSCALE SSH
+  # ==========================================
   deploy:
     if: |
       always() &&
       !contains(needs.*.result, 'failure') &&
       !contains(needs.*.result, 'cancelled')
     needs:
-      [build-and-push-api, build-and-push-worker, build-and-push-ml-service]
+      [
+        build-and-push-api,
+        build-and-push-worker,
+        build-and-push-ml-service,
+        build-and-push-client-web,
+        build-and-push-client-admin,
+      ]
     runs-on: ubuntu-latest
     permissions:
       id-token: write
@@ -153,24 +253,57 @@ jobs:
           audience: ${{ secrets.TS_AUDIENCE }}
           tags: ${{ vars.TS_TAGS || secrets.TS_TAGS || 'tag:ci' }}
 
-      - name: Sync server/.env file to VM
+      - name: Sync deploy/.env file to Server
         env:
           SERVER_ENV: ${{ secrets.SERVER_ENV || secrets.API_ENV || secrets.SERVER_API_ENV || secrets.ENV_FILE }}
         run: |
           if [ -n "$SERVER_ENV" ]; then
-            echo "Syncing environment file to /home/khoa/Mangament/server/deploy/.env..."
-            printf '%s\n' "$SERVER_ENV" | ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} 'mkdir -p /home/khoa/Mangament/server/deploy && cat > /home/khoa/Mangament/server/deploy/.env && chmod 600 /home/khoa/Mangament/server/deploy/.env'
+            echo "Syncing environment file to target server deploy/.env..."
+            printf '%s\n' "$SERVER_ENV" | ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} '
+              TARGET_DIR=""
+              if [ -d "/home/khoa/Code/Project/Mangament/deploy" ]; then
+                TARGET_DIR="/home/khoa/Code/Project/Mangament/deploy"
+              elif [ -d "/home/khoa/Mangament/deploy" ]; then
+                TARGET_DIR="/home/khoa/Mangament/deploy"
+              elif [ -d "$HOME/Mangament/deploy" ]; then
+                TARGET_DIR="$HOME/Mangament/deploy"
+              fi
+
+              if [ -n "$TARGET_DIR" ]; then
+                cat > "$TARGET_DIR/.env" && chmod 600 "$TARGET_DIR/.env"
+                echo "Synced .env to $TARGET_DIR/.env"
+              fi
+            '
           else
-            echo "Notice: No SERVER_ENV secret provided. Retaining existing server/deploy/.env on VM."
+            echo "Notice: No SERVER_ENV secret provided. Retaining existing deploy/.env on Server."
           fi
 
-      - name: Deploy via Tailscale SSH
+      - name: Pull and Restart Fullstack Containers via Tailscale SSH
         run: |
           ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
             set -e
-            cd /home/khoa/Mangament/server
+            if [ -d "/home/khoa/Code/Project/Mangament" ]; then
+              cd /home/khoa/Code/Project/Mangament
+            elif [ -d "/home/khoa/Mangament" ]; then
+              cd /home/khoa/Mangament
+            elif [ -d "$HOME/Mangament" ]; then
+              cd "$HOME/Mangament"
+            else
+              echo "Error: Mangament repository directory not found on host."
+              exit 1
+            fi
+
+            echo "Pulling latest code from origin/main..."
             git pull origin main
+
             cd deploy
+
+            echo "Pulling latest Docker images..."
             docker compose pull
-            docker compose up -d
+
+            echo "Starting up all containers..."
+            docker compose up -d --remove-orphans
+
+            echo "Cleaning unused dangling images..."
+            docker image prune -f
           EOF

@@ -245,12 +245,14 @@ export async function downloadStoryZipFromUrl({ url }: { url: string }): Promise
 export async function uploadStoryZipResumable({
   file,
   chunkSize = 10 * 1024 * 1024, // 10MB mặc định
+  concurrency = 3, // Mặc định tải song song 3 chunks cùng lúc
   abortController,
   onProgress,
   onStatusChange,
 }: {
   file: File;
   chunkSize?: number;
+  concurrency?: number;
   abortController?: AbortController;
   onProgress?: (progress: ChunkUploadProgress) => void;
   onStatusChange?: (status: ChunkUploadStatus, message?: string) => void;
@@ -313,96 +315,158 @@ export async function uploadStoryZipResumable({
     }
   }
 
-  onStatusChange?.("uploading", `Đang tải lên các phần (${uploadedChunks.size}/${totalChunks})...`);
+  // Chunks còn thiếu cần upload
+  const chunksToUpload: number[] = [];
+  for (let i = 0; i < totalChunks; i++) {
+    if (!uploadedChunks.has(i)) {
+      chunksToUpload.push(i);
+    }
+  }
 
-  // Tính toán dung lượng đã tải ban đầu
-  let totalUploadedBytes = 0;
+  // Tính toán dung lượng đã có sẵn từ trước
+  let initialUploadedBytes = 0;
   for (let i = 0; i < totalChunks; i++) {
     if (uploadedChunks.has(i)) {
       const start = i * chunkSize;
       const end = Math.min(start + chunkSize, file.size);
-      totalUploadedBytes += end - start;
+      initialUploadedBytes += end - start;
     }
   }
 
   const startTime = Date.now();
-  let bytesUploadedInSession = 0;
+  let sessionUploadedCompletedBytes = 0;
+  const inFlightBytes = new Map<number, number>();
+  const activeWorkerIndices = new Set<number>();
 
-  // 3. Vòng lặp tải từng chunk
-  for (let i = 0; i < totalChunks; i++) {
-    if (uploadedChunks.has(i)) continue;
+  const updateProgress = () => {
+    let currentInFlight = 0;
+    for (const b of inFlightBytes.values()) {
+      currentInFlight += b;
+    }
+    const currentUploaded = Math.min(file.size, initialUploadedBytes + sessionUploadedCompletedBytes + currentInFlight);
+    const sessionBytes = sessionUploadedCompletedBytes + currentInFlight;
+    const elapsedSec = (Date.now() - startTime) / 1000 || 0.1;
+    const speedBytesPerSec = sessionBytes / elapsedSec;
+    const speedMBs = (speedBytesPerSec / (1024 * 1024)).toFixed(1);
+    const remainingBytes = Math.max(0, file.size - currentUploaded);
+    const etaSeconds = speedBytesPerSec > 0 ? Math.round(remainingBytes / speedBytesPerSec) : 0;
+    const percent = Math.min(100, Math.round((currentUploaded / file.size) * 100));
 
-    if (abortController?.signal?.aborted) {
+    onProgress?.({
+      percent,
+      uploadedBytes: currentUploaded,
+      totalBytes: file.size,
+      speed: `${speedMBs} MB/s`,
+      currentChunk: uploadedChunks.size,
+      totalChunks,
+      etaSeconds,
+    });
+  };
+
+  // 3. Tiến hành tải song song các chunk (nếu còn chunk cần tải)
+  if (chunksToUpload.length > 0) {
+    const workerCount = Math.min(Math.max(1, concurrency), chunksToUpload.length);
+
+    onStatusChange?.("uploading", `Đang tải lên (${uploadedChunks.size}/${totalChunks} phần) [${workerCount} luồng song song]...`);
+
+    let nextQueuePtr = 0;
+    let hasAborted = false;
+    let isPaused = false;
+    let fatalError: string | null = null;
+
+    const runWorker = async () => {
+      while (nextQueuePtr < chunksToUpload.length && !hasAborted && !fatalError) {
+        if (abortController?.signal?.aborted) {
+          isPaused = true;
+          hasAborted = true;
+          break;
+        }
+
+        const chunkIndex = chunksToUpload[nextQueuePtr++];
+        activeWorkerIndices.add(chunkIndex);
+
+        const start = chunkIndex * chunkSize;
+        const end = Math.min(start + chunkSize, file.size);
+        const chunkLength = end - start;
+        const chunkBlob = file.slice(start, end);
+
+        let chunkDone = false;
+        let retries = 0;
+        const maxRetries = 5;
+
+        while (!chunkDone && !hasAborted && !fatalError) {
+          if (abortController?.signal?.aborted) {
+            isPaused = true;
+            hasAborted = true;
+            break;
+          }
+
+          try {
+            const uploadRes = await uploadStoryZipChunk({
+              sessionId,
+              chunkIndex,
+              chunk: chunkBlob,
+              signal: abortController?.signal,
+              onProgress: (loadedBytes) => {
+                inFlightBytes.set(chunkIndex, loadedBytes);
+                updateProgress();
+              },
+            });
+
+            if (!uploadRes.success) {
+              throw new Error(uploadRes.message || `Lỗi tải chunk ${chunkIndex}`);
+            }
+
+            chunkDone = true;
+            inFlightBytes.delete(chunkIndex);
+            uploadedChunks.add(chunkIndex);
+            sessionUploadedCompletedBytes += chunkLength;
+            activeWorkerIndices.delete(chunkIndex);
+
+            const activeThreads = activeWorkerIndices.size;
+            onStatusChange?.(
+              "uploading",
+              `Đang tải lên (${uploadedChunks.size}/${totalChunks} phần)${activeThreads > 0 ? ` [${activeThreads} luồng]` : ""}...`,
+            );
+            updateProgress();
+          } catch (err: unknown) {
+            inFlightBytes.delete(chunkIndex);
+            updateProgress();
+
+            if (axios.isCancel(err) || abortController?.signal?.aborted) {
+              isPaused = true;
+              hasAborted = true;
+              break;
+            }
+
+            retries++;
+            const errorMsg = err instanceof Error ? err.message : String(err);
+            if (retries > maxRetries) {
+              fatalError = `Không thể tải phần ${chunkIndex + 1} sau ${maxRetries} lần thử: ${errorMsg}`;
+              hasAborted = true;
+              break;
+            }
+
+            onStatusChange?.("retrying", `Mất kết nối tại phần ${chunkIndex + 1}/${totalChunks}. Đang thử lại lần ${retries}...`);
+            await new Promise((resolve) => setTimeout(resolve, 3000));
+          }
+        }
+
+        activeWorkerIndices.delete(chunkIndex);
+      }
+    };
+
+    const workers = Array.from({ length: workerCount }, () => runWorker());
+    await Promise.all(workers);
+
+    if (isPaused || abortController?.signal?.aborted) {
       onStatusChange?.("paused", "Đã tạm dừng tải lên");
       return { success: false, message: "Đã tạm dừng tải lên" };
     }
 
-    const start = i * chunkSize;
-    const end = Math.min(start + chunkSize, file.size);
-    const chunkLength = end - start;
-    const chunkBlob = file.slice(start, end);
-
-    let chunkUploaded = false;
-    let retries = 0;
-    const maxRetries = 5;
-
-    while (!chunkUploaded) {
-      if (abortController?.signal?.aborted) {
-        onStatusChange?.("paused", "Đã tạm dừng tải lên");
-        return { success: false, message: "Đã tạm dừng tải lên" };
-      }
-
-      try {
-        const uploadRes = await uploadStoryZipChunk({
-          sessionId,
-          chunkIndex: i,
-          chunk: chunkBlob,
-          signal: abortController?.signal,
-        });
-
-        if (!uploadRes.success) {
-          throw new Error(uploadRes.message || `Lỗi tải chunk ${i}`);
-        }
-
-        chunkUploaded = true;
-        uploadedChunks.add(i);
-        totalUploadedBytes += chunkLength;
-        bytesUploadedInSession += chunkLength;
-
-        // Tính tốc độ và ETA
-        const elapsedSec = (Date.now() - startTime) / 1000 || 0.1;
-        const speedBytesPerSec = bytesUploadedInSession / elapsedSec;
-        const speedMBs = (speedBytesPerSec / (1024 * 1024)).toFixed(1);
-        const remainingBytes = Math.max(0, file.size - totalUploadedBytes);
-        const etaSeconds = speedBytesPerSec > 0 ? Math.round(remainingBytes / speedBytesPerSec) : 0;
-        const percent = Math.min(100, Math.round((totalUploadedBytes / file.size) * 100));
-
-        onProgress?.({
-          percent,
-          uploadedBytes: totalUploadedBytes,
-          totalBytes: file.size,
-          speed: `${speedMBs} MB/s`,
-          currentChunk: i + 1,
-          totalChunks,
-          etaSeconds,
-        });
-      } catch (err: unknown) {
-        const errorMsg = err instanceof Error ? err.message : String(err);
-        if (axios.isCancel(err) || abortController?.signal?.aborted) {
-          onStatusChange?.("paused", "Đã tạm dừng tải lên");
-          return { success: false, message: "Đã tạm dừng tải lên" };
-        }
-
-        retries++;
-        if (retries > maxRetries) {
-          onStatusChange?.("error", `Không thể tải phần ${i + 1} sau ${maxRetries} lần thử: ${errorMsg}`);
-          return { success: false, message: `Lỗi kết nối khi tải phần ${i + 1}` };
-        }
-
-        onStatusChange?.("retrying", `Mất kết nối tại phần ${i + 1}/${totalChunks}. Đang thử lại lần ${retries}...`);
-        await new Promise((resolve) => setTimeout(resolve, 3000));
-        onStatusChange?.("uploading", `Đang tải lại phần ${i + 1}/${totalChunks}...`);
-      }
+    if (fatalError) {
+      onStatusChange?.("error", fatalError);
+      return { success: false, message: fatalError };
     }
   }
 

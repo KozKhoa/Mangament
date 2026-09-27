@@ -105,8 +105,12 @@ export function parseStoriesSpreadsheet(buffer) {
     throw new Error("File bảng tính không có dòng dữ liệu nào");
   }
 
-  // Identify whether row 0 is header
-  const firstRow = rawRows[0].map((cell) => String(cell || "").trim());
+  // Identify whether row 0 is header (stripping potential UTF-8 BOM from Excel)
+  const firstRow = rawRows[0].map((cell) =>
+    String(cell || "")
+      .replace(/^\uFEFF/, "")
+      .trim(),
+  );
   const hasHeader = firstRow.some((col) => {
     const norm = col.toLowerCase().replace(/[\s\t_-]+/g, "");
     return norm.includes("title") || norm.includes("story") || norm.includes("node") || norm.includes("nation") || norm.includes("chapter");
@@ -115,7 +119,10 @@ export function parseStoriesSpreadsheet(buffer) {
   const headerMap = new Map();
   if (hasHeader) {
     firstRow.forEach((col, idx) => {
-      const norm = col.toLowerCase().replace(/[\s\t-]+/g, "_");
+      const norm = col
+        .replace(/^\uFEFF/, "")
+        .toLowerCase()
+        .replace(/[\s\t-]+/g, "_");
       if (!norm) return;
       if (!headerMap.has(norm)) headerMap.set(norm, []);
       headerMap.get(norm).push(idx);

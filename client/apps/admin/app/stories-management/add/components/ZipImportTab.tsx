@@ -28,6 +28,7 @@ export default function ZipImportTab() {
 
   // State cho Chunked Upload từ máy
   const [file, setFile] = useState<File | null>(null);
+  const [concurrency, setConcurrency] = useState<number>(3);
   const [uploadStatus, setUploadStatus] = useState<ChunkUploadStatus>("idle");
   const [statusMessage, setStatusMessage] = useState<string>("");
   const [progress, setProgress] = useState<ChunkUploadProgress>({
@@ -104,6 +105,7 @@ export default function ZipImportTab() {
     const res = await adminService.uploadStoryZipResumable({
       file,
       chunkSize: 10 * 1024 * 1024, // 10MB
+      concurrency,
       abortController: controller,
       onProgress: (p) => {
         setProgress(p);
@@ -234,10 +236,10 @@ export default function ZipImportTab() {
         <div className="flex flex-col gap-5">
           {/* Thông tin tính năng */}
           <div className="bg-background-items border border-foreground/10 rounded-lg p-4 text-sm space-y-1.5 opacity-90 leading-relaxed">
-            <p className="font-semibold text-base">Cơ chế Chunked & Resumable Upload</p>
+            <p className="font-semibold text-base">Cơ chế Chunked & Resumable Upload (Đa luồng song song)</p>
             <p className="text-xs opacity-75">
-              File ZIP được tự động cắt thành các phần 10MB để tải lên. Nếu mạng bị ngắt hoặc bạn tải lại trang (F5), hệ thống sẽ tự động khôi phục và tiếp tục
-              từ phần còn thiếu mà không phải tải lại từ đầu.
+              File ZIP được tự động cắt thành các phần 10MB và tải lên song song đa luồng ({concurrency} chunks cùng lúc). Nếu mạng bị ngắt hoặc bạn tải lại
+              trang (F5), hệ thống sẽ tự động khôi phục và tiếp tục từ phần còn thiếu mà không phải tải lại từ đầu.
             </p>
           </div>
 
@@ -284,13 +286,29 @@ export default function ZipImportTab() {
                 </div>
 
                 {uploadStatus === "idle" && (
-                  <button
-                    type="button"
-                    className="text-xs font-semibold px-3 py-1.5 rounded border border-foreground/20 hover:bg-red-500 hover:text-white hover:border-red-500 transition-colors shrink-0"
-                    onClick={handleCancelUpload}
-                  >
-                    Đổi file khác
-                  </button>
+                  <div className="flex items-center gap-3 shrink-0">
+                    <div className="flex items-center gap-2 text-xs">
+                      <span className="opacity-70">Tải song song:</span>
+                      <select
+                        value={concurrency}
+                        onChange={(e) => setConcurrency(Number(e.target.value))}
+                        className="bg-background-items border border-foreground/20 rounded px-2 py-1 text-xs font-semibold focus:outline-none focus:border-blue-500 cursor-pointer"
+                      >
+                        <option value={1}>1 luồng (tuần tự)</option>
+                        <option value={2}>2 luồng song song</option>
+                        <option value={3}>3 luồng song song (khuyên dùng)</option>
+                        <option value={4}>4 luồng song song (tối đa)</option>
+                      </select>
+                    </div>
+
+                    <button
+                      type="button"
+                      className="text-xs font-semibold px-3 py-1.5 rounded border border-foreground/20 hover:bg-red-500 hover:text-white hover:border-red-500 transition-colors shrink-0"
+                      onClick={handleCancelUpload}
+                    >
+                      Đổi file khác
+                    </button>
+                  </div>
                 )}
               </div>
 

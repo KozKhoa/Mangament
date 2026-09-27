@@ -14,6 +14,7 @@
     "qs": "^6.14.0"
   },
   "devDependencies": {
+    "@mangament/config-typescript": "workspace:*",
     "@types/node": "^20",
     "@types/qs": "^6.14.0",
     "typescript": "^5"
