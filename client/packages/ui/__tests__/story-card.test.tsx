@@ -1,6 +1,6 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import StoryCard from "../components/cards/stories/story-card";
+import StoryCard from "@/components/cards/stories/story-card";
 import useAuth from "@/contexts/AuthContext";
 import favouriteService from "@/services/favourite";
 import { toast } from "sonner";

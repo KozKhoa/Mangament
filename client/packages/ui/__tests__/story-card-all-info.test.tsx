@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
-import StoryCardAllInfo from "../components/cards/stories/story-card-all-info";
+import StoryCardAllInfo from "@/components/cards/stories/story-card-all-info";
 import Story from "@/types/story";
 
 // Mocking dependencies

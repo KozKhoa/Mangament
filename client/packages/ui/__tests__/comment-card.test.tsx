@@ -32,9 +32,9 @@ Dependencies to mock:
 
 import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import CommentCard from "../components/cards/comment-card";
+import CommentCard from "@/components/cards/comment-card";
 import Comment from "@/types/comment";
-import { modal } from "../components/modal/modal.store";
+import { modal } from "@/components/modal/modal.store";
 
 // Mock dependencies
 vi.mock("@/utils/convert", () => ({

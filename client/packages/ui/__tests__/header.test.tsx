@@ -40,7 +40,7 @@ Dependencies to mock:
 import { render, screen, fireEvent, act } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import React from "react";
-import HeaderBar from "../components/layouts/header";
+import HeaderBar from "@/components/layouts/header";
 import { useRouter, usePathname } from "next/navigation";
 import useAuth from "@/contexts/AuthContext";
 import useApp from "@/contexts/AppContext";
