@@ -1,8 +1,9 @@
 {
   "files": [],
   "references": [
-    { "path": "./packages/config-typescript" },
     { "path": "./packages/types" },
+    { "path": "./packages/utils" },
+    { "path": "./packages/contexts" },
     { "path": "./packages/services" },
     { "path": "./packages/ui" },
     { "path": "./apps/web" },

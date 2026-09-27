@@ -1,13 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { loadingBar, LoadingBarItem } from "./top-loading-bar.store";
 import { AnimatePresence, motion } from "framer-motion";
 
-export default function TopLoadingRoot() {
-  const [stack, setStack] = useState<LoadingBarItem | null>(null);
-  const [process, setProcess] = useState<number>(0);
+function TopLoadingBarSearchParamsHandler() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
@@ -15,6 +13,13 @@ export default function TopLoadingRoot() {
   useEffect(() => {
     loadingBar.close();
   }, [pathname, searchParams]);
+
+  return null;
+}
+
+export default function TopLoadingRoot() {
+  const [stack, setStack] = useState<LoadingBarItem | null>(null);
+  const [process, setProcess] = useState<number>(0);
 
   useEffect(() => loadingBar.subscribe(setStack), []);
 
@@ -42,28 +47,33 @@ export default function TopLoadingRoot() {
     };
   }, [stack]);
 
-  if (!stack) return null;
-
   return (
-    <AnimatePresence>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 0.1, ease: "linear" }}
-        className="fixed top-0 left-0 w-full z-[9999] pointer-events-none"
-      >
-        <div className="w-full">
-          <div
-            className="rounded-r-full transition-all duration-150 ease-out"
-            style={{
-              width: process + "%",
-              backgroundColor: stack.color ?? "#6366f1",
-              height: (stack.height ?? 3) + "px",
-            }}
-          />
-        </div>
-      </motion.div>
-    </AnimatePresence>
+    <>
+      <Suspense fallback={null}>
+        <TopLoadingBarSearchParamsHandler />
+      </Suspense>
+      {stack && (
+        <AnimatePresence>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.1, ease: "linear" }}
+            className="fixed top-0 left-0 w-full z-[9999] pointer-events-none"
+          >
+            <div className="w-full">
+              <div
+                className="rounded-r-full transition-all duration-150 ease-out"
+                style={{
+                  width: process + "%",
+                  backgroundColor: stack.color ?? "#6366f1",
+                  height: (stack.height ?? 3) + "px",
+                }}
+              />
+            </div>
+          </motion.div>
+        </AnimatePresence>
+      )}
+    </>
   );
 }
