@@ -10,6 +10,7 @@ function putRefreshTokenToCookie(res, refreshToken) {
     sameSite: "none",
     path: "/",
     maxAge: 7 * 24 * 60 * 60 * 1000,
+    domain: process.env.NODE_ENV === "production" ? process.env.COOKIES_DOMAIN : "localhost",
   });
 }
 

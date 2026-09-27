@@ -10,15 +10,29 @@ services:
     volumes:
       - mangament_redis_data:/data
 
-  cloudflare-tunnel:
-    container_name: mangament_cloudflared_tunnel
-    image: cloudflare/cloudflared:latest
+  caddy:
+    container_name: mangament_caddy
+    image: caddy:2-alpine
     restart: always
-    command: tunnel --no-autoupdate run
-    env_file:
-      - .env
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - mangament_caddy_data:/data
+      - mangament_caddy_config:/config
     depends_on:
       - api
+
+  cloudflare-ddns:
+    image: favonia/cloudflare-ddns:latest
+    container_name: mangament_ddns
+    restart: always
+    environment:
+      - CLOUDFLARE_API_TOKEN=${CLOUDFLARE_API_TOKEN:-}
+      - DOMAINS=admin.mangament.io.vn,api.mangament.io.vn
+      - PROXIED=false
 
   ml-service:
     container_name: mangament_ml_service
@@ -131,3 +145,5 @@ volumes:
   mangament_logs_db_data:
   mangament_db_data:
   mangament_redis_data:
+  mangament_caddy_data:
+  mangament_caddy_config:

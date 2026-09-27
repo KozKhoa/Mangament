@@ -1,0 +1,33 @@
+# ==========================================
+# Caddy Configuration for Mangament Fullstack
+# ==========================================
+
+# 1. Frontend Web (Độc giả đọc truyện)
+mangament.io.vn, www.mangament.io.vn {
+    reverse_proxy client-web:3000
+}
+
+# 2. Frontend Admin (Trang quản trị & Upload truyện)
+admin.mangament.io.vn {
+    reverse_proxy client-admin:3001
+}
+
+# 3. Backend Express API
+api.mangament.io.vn {
+    # Cho phép upload file lớn lên tới 10GB không bị giới hạn
+    request_body {
+        max_size 10GB
+    }
+
+    # Reverse proxy tới container Express API
+    reverse_proxy api:5000 {
+        header_up Host {host}
+        header_up X-Real-IP {remote_host}
+        header_up X-Forwarded-For {remote_host}
+        header_up X-Forwarded-Proto {scheme}
+
+        # Tắt đệm để upload streaming trực tiếp đạt tốc độ tối đa
+        flush_interval -1
+    }
+}
+

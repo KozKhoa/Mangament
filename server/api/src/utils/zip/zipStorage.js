@@ -322,7 +322,69 @@ export async function downloadZipFromUrl(url, options = {}) {
 }
 
 /**
- * Extracts a zip archive to a target processing directory using 7z or unzip.
+ * Tự động phát hiện và sửa lỗi Mojibake (UTF-8 bị giải mã nhầm thành CP437/Latin1)
+ * Thường xảy ra khi người dùng nén zip trên Windows không bật cờ UTF-8.
+ *
+ * @param {string} str
+ * @returns {string}
+ */
+export function fixMojibake(str) {
+  if (!str) return str;
+  try {
+    const decoded = Buffer.from(str, "latin1").toString("utf8");
+    // Nếu giải mã thành công không có ký tự lỗi \ufffd và chuỗi khác chuỗi gốc
+    if (decoded && !decoded.includes("\ufffd") && decoded !== str) {
+      return decoded;
+    }
+  } catch {
+    // Giữ nguyên chuỗi nếu decode lỗi
+  }
+  return str;
+}
+
+/**
+ * Đệ quy chuẩn hóa toàn bộ cây thư mục và tên file sau khi giải nén:
+ * 1. Khắc phục tên bị lỗi font ký tự lạ (Mojibake: ChÆ°Æ¡ng -> Chương)
+ * 2. Chuẩn hóa chuỗi Unicode sang chuẩn NFC (tránh lỗi lệch chuẩn NFD từ macOS)
+ *
+ * @param {string} dirPath - Thư mục đã giải nén
+ */
+export async function normalizeExtractedDirectory(dirPath) {
+  if (!fs.existsSync(dirPath)) return;
+
+  async function walkAndRename(currentDir) {
+    const entries = await fs.promises.readdir(currentDir, { withFileTypes: true });
+    for (const entry of entries) {
+      const oldPath = path.join(currentDir, entry.name);
+
+      // Đệ quy xử lý các thư mục con trước (depth-first)
+      if (entry.isDirectory()) {
+        await walkAndRename(oldPath);
+      }
+
+      let newName = fixMojibake(entry.name);
+      newName = newName.normalize("NFC");
+
+      if (newName !== entry.name) {
+        const newPath = path.join(currentDir, newName);
+        if (!fs.existsSync(newPath)) {
+          try {
+            await fs.promises.rename(oldPath, newPath);
+            console.log(`[ZipStorage] ✅ Đã sửa tên file/thư mục tiếng Việt: "${entry.name}" -> "${newName}"`);
+          } catch (renameErr) {
+            console.warn(`[ZipStorage] Không thể đổi tên "${entry.name}": ${renameErr.message}`);
+          }
+        }
+      }
+    }
+  }
+
+  await walkAndRename(dirPath);
+}
+
+/**
+ * Extracts a zip archive to a target processing directory using 7z or unzip
+ * with strict UTF-8 preservation and post-extraction Vietnamese name repair.
  *
  * @param {string} zipFilePath - Path to zip archive
  * @param {string} destinationDir - Target extraction folder
@@ -340,21 +402,51 @@ export async function extractZipArchive(zipFilePath, destinationDir) {
     throw CreateError(507, "Dung lượng ổ đĩa không đủ để giải nén file zip");
   }
 
-  // Attempt extraction via 7z first, then unzip as fallback
+  let extracted = false;
+
+  // 1. Thử giải nén bằng 7z kèm cờ ép chuẩn UTF-8 (-mcu=on)
   try {
-    // 7z x -y -o<outDir> <zipPath>
-    await execFileAsync("7z", ["x", "-y", `-o${destinationDir}`, zipFilePath]);
-    console.log(`[ZipStorage] Giải nén thành công bằng 7z: ${zipFilePath} -> ${destinationDir}`);
-  } catch (err7z) {
-    console.warn(`[ZipStorage] 7z thất bại (${err7z.message}), chuyển sang dùng unzip...`);
+    // 7z x -y -mcu=on -o<outDir> <zipPath>
+    await execFileAsync("7z", ["x", "-y", "-mcu=on", `-o${destinationDir}`, zipFilePath]);
+    console.log(`[ZipStorage] Giải nén thành công bằng 7z (-mcu=on): ${zipFilePath} -> ${destinationDir}`);
+    extracted = true;
+  } catch (err7zMcu) {
+    console.warn(`[ZipStorage] 7z (-mcu=on) không khả dụng (${err7zMcu.message}), thử 7z mặc định...`);
     try {
-      // unzip -q -o <zipPath> -d <outDir>
-      await execFileAsync("unzip", ["-q", "-o", zipFilePath, "-d", destinationDir]);
-      console.log(`[ZipStorage] Giải nén thành công bằng unzip: ${zipFilePath} -> ${destinationDir}`);
-    } catch (errUnzip) {
-      await safeUnlink(destinationDir);
-      throw new Error(`Không thể giải nén file zip: ${errUnzip.message || err7z.message}`, { cause: errUnzip });
+      await execFileAsync("7z", ["x", "-y", `-o${destinationDir}`, zipFilePath]);
+      console.log(`[ZipStorage] Giải nén thành công bằng 7z: ${zipFilePath} -> ${destinationDir}`);
+      extracted = true;
+    } catch (err7z) {
+      console.warn(`[ZipStorage] 7z thất bại (${err7z.message}), chuyển sang dùng unzip...`);
     }
+  }
+
+  // 2. Fallback sang lệnh unzip (thử -O UTF-8 trước để giải mã tên file tiếng Việt đúng chuẩn)
+  if (!extracted) {
+    try {
+      // unzip -q -o -O UTF-8 <zipPath> -d <outDir>
+      await execFileAsync("unzip", ["-q", "-o", "-O", "UTF-8", zipFilePath, "-d", destinationDir]);
+      console.log(`[ZipStorage] Giải nén thành công bằng unzip (-O UTF-8): ${zipFilePath} -> ${destinationDir}`);
+      extracted = true;
+    } catch (errUnzipUtf8) {
+      console.warn(`[ZipStorage] unzip (-O UTF-8) thất bại (${errUnzipUtf8.message}), thử unzip mặc định...`);
+      try {
+        // unzip -q -o <zipPath> -d <outDir>
+        await execFileAsync("unzip", ["-q", "-o", zipFilePath, "-d", destinationDir]);
+        console.log(`[ZipStorage] Giải nén thành công bằng unzip mặc định: ${zipFilePath} -> ${destinationDir}`);
+        extracted = true;
+      } catch (errUnzip) {
+        await safeUnlink(destinationDir);
+        throw new Error(`Không thể giải nén file zip: ${errUnzip.message || errUnzipUtf8.message}`, { cause: errUnzip });
+      }
+    }
+  }
+
+  // 3. Tự động kiểm tra và sửa lỗi tên file/thư mục tiếng Việt (Mojibake / NFC)
+  try {
+    await normalizeExtractedDirectory(destinationDir);
+  } catch (normErr) {
+    console.warn(`[ZipStorage] Cảnh báo khi chuẩn hóa tên tiếng Việt sau giải nén: ${normErr.message}`);
   }
 
   return { success: true, destinationDir };
@@ -526,6 +618,8 @@ export default {
   createZipDiskStorageEngine,
   downloadZipFromUrl,
   extractZipArchive,
+  normalizeExtractedDirectory,
+  fixMojibake,
   findCsvInDirectory,
   cleanupOrMoveProcessedZip,
   mergeChunksSequentially,

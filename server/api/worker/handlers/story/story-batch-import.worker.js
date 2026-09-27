@@ -176,15 +176,75 @@ function resolvePublicStoriesDir() {
   return storiesDir;
 }
 
+function removeVietnameseTones(str) {
+  if (!str) return "";
+  return str
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/đ/g, "d")
+    .replace(/Đ/g, "D")
+    .toLowerCase()
+    .trim();
+}
+
+async function resolveImageFile(baseDir, relPath) {
+  if (!baseDir || !relPath) return null;
+  const normalizedRel = String(relPath).replace(/\\/g, "/").replace(/^\/+/, "");
+
+  // 1. Kiểm tra trực tiếp đường dẫn gốc, NFC và NFD
+  const candidates = [
+    path.resolve(baseDir, normalizedRel),
+    path.resolve(baseDir, normalizedRel.normalize("NFC")),
+    path.resolve(baseDir, normalizedRel.normalize("NFD")),
+  ];
+  for (const c of candidates) {
+    if (fs.existsSync(c)) return c;
+  }
+
+  // 2. Tìm kiếm từng cấp thư mục mềm dẻo (hỗ trợ lệch chữ hoa/thường, dấu cách, dấu tiếng Việt hoặc NFD/NFC)
+  const segments = normalizedRel.split("/").filter(Boolean);
+  let currentDir = baseDir;
+
+  for (let i = 0; i < segments.length; i++) {
+    const targetSegment = segments[i];
+
+    let entries;
+    try {
+      entries = await fs.promises.readdir(currentDir);
+    } catch {
+      return null;
+    }
+
+    const targetNfc = targetSegment.normalize("NFC");
+    const targetLower = targetNfc.toLowerCase();
+    const targetTrimmed = targetLower.trim();
+    const targetSlug = removeVietnameseTones(targetNfc);
+
+    let matchedEntry = entries.find((e) => e.normalize("NFC") === targetNfc);
+    if (!matchedEntry) {
+      matchedEntry = entries.find((e) => e.normalize("NFC").toLowerCase() === targetLower);
+    }
+    if (!matchedEntry) {
+      matchedEntry = entries.find((e) => e.normalize("NFC").toLowerCase().trim() === targetTrimmed);
+    }
+    if (!matchedEntry) {
+      matchedEntry = entries.find((e) => removeVietnameseTones(e) === targetSlug);
+    }
+
+    if (!matchedEntry) return null;
+    currentDir = path.join(currentDir, matchedEntry);
+  }
+
+  return fs.existsSync(currentDir) ? currentDir : null;
+}
+
 async function importImageFromRelativePath(relPath, csvDir, prefix = "img") {
   if (!relPath || !csvDir) return null;
 
-  const normalizedRel = String(relPath).replace(/\\/g, "/");
-  const fullSrcPath = path.resolve(csvDir, normalizedRel);
-
   try {
-    if (!fs.existsSync(fullSrcPath)) {
-      console.warn(`[BatchImport] Ảnh không tồn tại tại: ${fullSrcPath} (từ đường dẫn: ${relPath})`);
+    const fullSrcPath = await resolveImageFile(csvDir, relPath);
+    if (!fullSrcPath) {
+      console.warn(`[BatchImport] Ảnh không tồn tại tại: ${path.resolve(csvDir, relPath)} (từ đường dẫn: ${relPath})`);
       return null;
     }
 
