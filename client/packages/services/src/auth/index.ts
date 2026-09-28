@@ -45,8 +45,9 @@ export async function logout(): Promise<ServiceResult<void>> {
 
 export async function refresh(): Promise<ServiceResult<{ token: string; user: User }>> {
   try {
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api.mangament.io.vn";
     const res = await axios.post(
-      `${process.env.NEXT_PUBLIC_API_URL}/auth/refresh`,
+      `${API_URL}/auth/refresh`,
       {},
       { withCredentials: true }, // gửi cookie refresh token
     );

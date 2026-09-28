@@ -2,9 +2,11 @@ import axios from "axios";
 
 import * as token from "@/lib/token";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
 // Create instance
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL,
+  baseURL: API_URL,
   timeout: 30000,
 });
 
@@ -61,7 +63,7 @@ api.interceptors.response.use(
       try {
         // Call api refresh token
         const res = await axios.post(
-          `${process.env.NEXT_PUBLIC_API_URL}/auth/refresh`,
+          `${API_URL}/auth/refresh`,
           {},
           {
             withCredentials: true,
