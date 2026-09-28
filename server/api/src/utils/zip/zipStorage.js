@@ -552,7 +552,7 @@ export async function cleanupOrMoveProcessedZip({ zipFilePath, processingDir, se
  * @param {string} params.targetFilePath
  * @returns {Promise<{ filePath: string, size: number }>}
  */
-export async function mergeChunksSequentially({ sessionId, totalChunks, targetFilePath }) {
+export async function mergeChunksSequentially({ sessionId, totalChunks, targetFilePath, onProgress }) {
   const sessionChunksDir = getChunksDir(sessionId);
 
   if (!fs.existsSync(sessionChunksDir)) {
@@ -578,6 +578,11 @@ export async function mergeChunksSequentially({ sessionId, totalChunks, targetFi
         readStream.on("end", async () => {
           try {
             await safeUnlink(chunkPath);
+            if (typeof onProgress === "function") {
+              try {
+                onProgress(i + 1, totalChunks);
+              } catch {}
+            }
             resolve();
           } catch (unlinkErr) {
             reject(unlinkErr);

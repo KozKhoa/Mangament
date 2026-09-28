@@ -35,8 +35,12 @@ class StoryQueue {
     return this.#batchImportStoriesQueue.add("batchImportStories", { rows, userId, fileName, csvDir }, ADD_JOB_OPTION);
   }
 
-  addJob_BatchImportZip({ zipFilePath, originalName, userId, sessionId, cleanupAfterProcessing }) {
-    return this.#batchImportZipQueue.add("batchImportZip", { zipFilePath, originalName, userId, sessionId, cleanupAfterProcessing }, ADD_JOB_OPTION);
+  addJob_BatchImportZip({ zipFilePath, originalName, userId, sessionId, totalChunks, fileSize, cleanupAfterProcessing }) {
+    return this.#batchImportZipQueue.add(
+      "batchImportZip",
+      { zipFilePath, originalName, userId, sessionId, totalChunks, fileSize, cleanupAfterProcessing },
+      ADD_JOB_OPTION,
+    );
   }
 
   addJob_EmbeddingStory(storyId) {

@@ -7,7 +7,14 @@ import db from "../../../configs/db.js";
 import redisUtils from "../../../src/utils/Redis.js";
 import storyQueue from "../../queues/story.queue.js";
 import { isUUID } from "../../../src/utils/Validators.js";
-import { getTempDir, extractZipArchive, findCsvInDirectory, cleanupOrMoveProcessedZip, safeUnlink } from "../../../src/utils/zip/zipStorage.js";
+import {
+  getTempDir,
+  extractZipArchive,
+  findCsvInDirectory,
+  cleanupOrMoveProcessedZip,
+  safeUnlink,
+  mergeChunksSequentially,
+} from "../../../src/utils/zip/zipStorage.js";
 import { parseStoriesSpreadsheet } from "../../../src/utils/spreadsheet.parser.js";
 import { SyncStoryChildren } from "../../../src/services/story.service.js";
 import { connection } from "./connection.js";
@@ -281,7 +288,7 @@ async function importImageFromRelativePath(relPath, csvDir, prefix = "img") {
   }
 }
 
-export async function executeBatchImportRows({ rows = [], userId, fileName, csvDir }) {
+export async function executeBatchImportRows({ rows = [], userId, fileName, csvDir, job }) {
   console.log(`[BatchImport] Bắt đầu import ${rows.length} dòng từ file ${fileName || "bảng tính"}${csvDir ? ` (Thư mục CSV: ${csvDir})` : ""}`);
 
   const storiesCache = new Map();
@@ -301,9 +308,16 @@ export async function executeBatchImportRows({ rows = [], userId, fileName, csvD
   const validPosterId = await resolveUserId(userId, usersCache);
 
   try {
-    for (const item of rows) {
+    for (let rowIndex = 0; rowIndex < rows.length; rowIndex++) {
+      const item = rows[rowIndex];
+      const rowNum = rowIndex + 1;
       const { story: sData } = item;
       if (!sData || !sData.title) continue;
+
+      console.log(`[BatchImport] ⏳ [Dòng ${rowNum}/${rows.length}] Đang xử lý truyện: "${sData.title}"`);
+      if (job && typeof job.updateProgress === "function") {
+        await job.updateProgress({ step: "importing_rows", current: rowNum, total: rows.length, currentStory: sData.title });
+      }
 
       const storyTitleKey = sData.title.toLowerCase().trim();
       let story = storiesCache.get(storyTitleKey);
@@ -319,6 +333,9 @@ export async function executeBatchImportRows({ rows = [], userId, fileName, csvD
 
           if (!resolvedCoverArtId && sData.cover_art_path && csvDir) {
             resolvedCoverArtId = await importImageFromRelativePath(sData.cover_art_path, csvDir, `cover_${storyTitleKey.replace(/[^a-z0-9]/gi, "_")}`);
+            if (resolvedCoverArtId) {
+              console.log(`[BatchImport] 🖼️ [Dòng ${rowNum}/${rows.length}] Đã import ảnh bìa cho truyện mới "${sData.title}"`);
+            }
           }
 
           let resolvedStoryPosterId = validPosterId;
@@ -342,14 +359,19 @@ export async function executeBatchImportRows({ rows = [], userId, fileName, csvD
             },
           });
           importedStoriesCount++;
-        } else if (!story.cover_art_id && sData.cover_art_path && csvDir) {
-          const newCoverId = await importImageFromRelativePath(sData.cover_art_path, csvDir, `cover_${story.id}`);
-          if (newCoverId) {
-            await db.story.update({
-              where: { id: story.id },
-              data: { cover_art_id: newCoverId },
-            });
-            story.cover_art_id = newCoverId;
+          console.log(`[BatchImport] ➕ [Dòng ${rowNum}/${rows.length}] Tạo thành công truyện mới: "${story.title}" (ID: ${story.id})`);
+        } else {
+          console.log(`[BatchImport] ℹ️ [Dòng ${rowNum}/${rows.length}] Truyện "${story.title}" đã tồn tại (ID: ${story.id})`);
+          if (!story.cover_art_id && sData.cover_art_path && csvDir) {
+            const newCoverId = await importImageFromRelativePath(sData.cover_art_path, csvDir, `cover_${story.id}`);
+            if (newCoverId) {
+              await db.story.update({
+                where: { id: story.id },
+                data: { cover_art_id: newCoverId },
+              });
+              story.cover_art_id = newCoverId;
+              console.log(`[BatchImport] 🖼️ [Dòng ${rowNum}/${rows.length}] Đã bổ sung ảnh bìa cho truyện "${story.title}"`);
+            }
           }
         }
 
@@ -437,6 +459,9 @@ export async function executeBatchImportRows({ rows = [], userId, fileName, csvD
               });
             }
             importedNodesCount++;
+            console.log(
+              `[BatchImport] ➕ [Dòng ${rowNum}/${rows.length}] Tạo node mới: "${currentNode.title || "Node #" + nodeOrder}" (Order: ${nodeOrder}, Type: ${currentNode.type}) cho truyện "${story.title}"`,
+            );
           }
 
           nodesCache.set(nodeKey, currentNode);
@@ -518,7 +543,7 @@ export const batchImportStoriesWorker = new Worker(
   "batch-import-stories",
   async (job) => {
     const { rows = [], userId, fileName, csvDir } = job.data;
-    return await executeBatchImportRows({ rows, userId, fileName, csvDir });
+    return await executeBatchImportRows({ rows, userId, fileName, csvDir, job });
   },
   { connection, concurrency: 1 },
 );
@@ -530,25 +555,57 @@ batchImportStoriesWorker.on("failed", (job, err) => {
 export const batchImportZipWorker = new Worker(
   "batch-import-zip",
   async (job) => {
-    const { zipFilePath, originalName, userId, sessionId, cleanupAfterProcessing } = job.data;
-    console.log(`[BatchImportZip] Bắt đầu xử lý file zip ${originalName || zipFilePath} (Session: ${sessionId})`);
+    const { zipFilePath: initialZipFilePath, originalName, userId, sessionId, totalChunks, fileSize, cleanupAfterProcessing } = job.data;
+    console.log(`[BatchImportZip] Bắt đầu xử lý import ZIP (Session: ${sessionId})`);
 
-    const { processingDir: rootProcessingDir } = getTempDir();
+    const { uploadsDir, processingDir: rootProcessingDir } = getTempDir();
+    let zipFilePath = initialZipFilePath;
+
+    if (!zipFilePath && sessionId) {
+      zipFilePath = path.join(uploadsDir, `${sessionId}.zip`);
+    }
+
     const processingDir = path.join(rootProcessingDir, sessionId);
 
     try {
-      // 1. Giải nén vào thư mục processing
-      await extractZipArchive(zipFilePath, processingDir);
+      // 1. Ghép các chunks thành file zip duy nhất nếu chưa có file zip hoàn chỉnh
+      if ((!zipFilePath || !fs.existsSync(zipFilePath)) && sessionId && totalChunks) {
+        console.log(`[BatchImportZip] 🧩 [Bước 1/5] Bắt đầu ghép ${totalChunks} chunks cho session ${sessionId}...`);
+        if (job && typeof job.updateProgress === "function") {
+          await job.updateProgress({ step: "merging_chunks", current: 0, total: totalChunks });
+        }
 
-      // 2. Tìm file CSV hoặc bảng tính bên trong thư mục giải nén
+        await mergeChunksSequentially({
+          sessionId,
+          totalChunks,
+          targetFilePath: zipFilePath,
+          onProgress: async (current, total) => {
+            console.log(`[BatchImportZip] 🧩 [Bước 1/5] Đã ghép chunk ${current}/${total}`);
+            if (job && typeof job.updateProgress === "function") {
+              await job.updateProgress({ step: "merging_chunks", current, total });
+            }
+          },
+        });
+
+        console.log(`[BatchImportZip] 🧩 [Bước 1/5] Ghép chunk hoàn tất: ${zipFilePath}`);
+      } else {
+        console.log(`[BatchImportZip] 🧩 [Bước 1/5] Đã có sẵn file ZIP tại: ${zipFilePath}`);
+      }
+
+      // 2. Giải nén vào thư mục processing
+      console.log(`[BatchImportZip] 📦 [Bước 2/5] Đang giải nén file zip vào thư mục tạm...`);
+      await extractZipArchive(zipFilePath, processingDir);
+      console.log(`[BatchImportZip] 📦 [Bước 2/5] Giải nén thành công.`);
+
+      // 3. Tìm file CSV hoặc bảng tính bên trong thư mục giải nén
+      console.log(`[BatchImportZip] 📄 [Bước 3/5] Đang tìm và đọc file bảng tính trong thư mục giải nén...`);
       const csvPath = await findCsvInDirectory(processingDir);
       if (!csvPath) {
         throw new Error("Không tìm thấy file .csv hoặc bảng tính hợp lệ trong file zip đã giải nén");
       }
 
-      console.log(`[BatchImportZip] Đã tìm thấy file bảng tính: ${csvPath}`);
+      console.log(`[BatchImportZip] 📄 [Bước 3/5] Đã tìm thấy file bảng tính: ${csvPath}`);
 
-      // 3. Đọc và parse dữ liệu bảng tính
       const csvBuffer = await fs.promises.readFile(csvPath);
       const rows = parseStoriesSpreadsheet(csvBuffer);
 
@@ -556,16 +613,21 @@ export const batchImportZipWorker = new Worker(
         throw new Error("File bảng tính trong file zip không có dòng dữ liệu truyện hợp lệ nào");
       }
 
+      console.log(`[BatchImportZip] 📄 [Bước 3/5] Đọc xong file bảng tính: tìm thấy ${rows.length} dòng dữ liệu.`);
+
       // 4. Thực thi import dữ liệu với đường dẫn thư mục CSV để resolve ảnh tương đối
+      console.log(`[BatchImportZip] ⚙️ [Bước 4/5] Bắt đầu import dữ liệu (${rows.length} dòng)...`);
       const csvDir = path.dirname(csvPath);
       await executeBatchImportRows({
         rows,
         userId,
         fileName: originalName || path.basename(zipFilePath),
         csvDir,
+        job,
       });
 
       // 5. Dọn dẹp hoặc chuyển file zip vào thư mục completed
+      console.log(`[BatchImportZip] 🧹 [Bước 5/5] Đang dọn dẹp file tạm...`);
       await cleanupOrMoveProcessedZip({
         zipFilePath,
         processingDir,
@@ -577,7 +639,7 @@ export const batchImportZipWorker = new Worker(
       await redisUtils.stories().incr();
       await redisUtils.storyNodes().incr();
 
-      console.log(`[BatchImportZip] ✅ Hoàn tất xử lý file zip (Session: ${sessionId})`);
+      console.log(`[BatchImportZip] ✅ [Bước 5/5] Hoàn tất xử lý file zip (Session: ${sessionId})`);
     } catch (error) {
       console.error(`[BatchImportZip] ❌ Lỗi xử lý file zip (Session: ${sessionId}):`, error);
       if (processingDir && fs.existsSync(processingDir)) {

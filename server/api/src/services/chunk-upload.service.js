@@ -31,7 +31,7 @@ export async function initChunkSession({ fileName, fileSize, totalChunks, chunkS
   const { uploadsDir } = getTempDir();
 
   // Ensure disk has enough space: file size + safety buffer
-  const space = await checkFreeDiskSpace(uploadsDir, Math.round(fileSize * 1.5));
+  const space = await checkFreeDiskSpace(uploadsDir, Math.round(fileSize * 2));
   if (!space.hasSpace) {
     throw CreateError(507, "Dung lượng ổ đĩa không đủ để bắt đầu tải file zip");
   }
@@ -247,17 +247,6 @@ export async function completeChunkUpload({ sessionId, userId, cleanupAfterProce
     throw err;
   }
 
-  const { uploadsDir } = getTempDir();
-  const safeFilename = `${sessionId}.zip`;
-  const targetZipPath = path.join(uploadsDir, safeFilename);
-
-  // Merge chunks sequentially
-  const mergedResult = await mergeChunksSequentially({
-    sessionId,
-    totalChunks: session.totalChunks,
-    targetFilePath: targetZipPath,
-  });
-
   // Cleanup Redis session keys
   await redis.del(`chunk_upload:session:${sessionId}`);
   await redis.del(`chunk_upload:chunks:${sessionId}`);
@@ -272,20 +261,22 @@ export async function completeChunkUpload({ sessionId, userId, cleanupAfterProce
         ? session.cleanupAfterProcessing
         : ZIP_CLEANUP_AFTER_PROCESSING;
 
-  // Enqueue BullMQ worker job
+  // Enqueue BullMQ worker job to merge chunks and import zip asynchronously
   await storyQueue.addJob_BatchImportZip({
-    zipFilePath: mergedResult.filePath,
     originalName: session.fileName,
     userId: userId || session.userId,
     sessionId,
+    totalChunks: session.totalChunks,
+    fileSize: session.fileSize,
     cleanupAfterProcessing: shouldCleanup,
   });
 
   return {
+    success: true,
     sessionId,
     fileName: session.fileName,
-    fileSize: mergedResult.size,
-    zipPath: mergedResult.filePath,
+    fileSize: session.fileSize,
+    message: "Đã nhận đủ tất cả các chunk. Hệ thống đang tiến hành ghép file và xử lý nhập dữ liệu ngầm.",
   };
 }
 

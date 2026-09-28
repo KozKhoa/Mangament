@@ -20,7 +20,7 @@ jobs:
   # ==========================================
   # 1. BUILD & PUSH BACKEND API
   # ==========================================
-  build-and-push-api:
+  build-and-push-server-api:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -60,7 +60,7 @@ jobs:
   # ==========================================
   # 2. BUILD & PUSH WORKER
   # ==========================================
-  build-and-push-worker:
+  build-and-push-server-worker:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -106,7 +106,7 @@ jobs:
   # ==========================================
   # 3. BUILD & PUSH ML SERVICE
   # ==========================================
-  build-and-push-ml-service:
+  build-and-push-server-ml-service:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -247,6 +247,9 @@ jobs:
             NEXT_PUBLIC_COOKIE_DOMAIN=${{ vars.NEXT_PUBLIC_COOKIE_DOMAIN || secrets.NEXT_PUBLIC_COOKIE_DOMAIN }}
             NEXT_PUBLIC_GOOGLE_CLIENT_ID=${{ vars.NEXT_PUBLIC_GOOGLE_CLIENT_ID || secrets.NEXT_PUBLIC_GOOGLE_CLIENT_ID }}
 
+  # ==========================================
+  # 6. BUILD & PUSH CLIENT AUTH (AUTHENTICATION)
+  # ==========================================
   build-and-push-client-auth:
     runs-on: ubuntu-latest
     steps:
@@ -297,7 +300,7 @@ jobs:
             NEXT_PUBLIC_GOOGLE_CLIENT_ID=${{ vars.NEXT_PUBLIC_GOOGLE_CLIENT_ID || secrets.NEXT_PUBLIC_GOOGLE_CLIENT_ID }}
 
   # ==========================================
-  # 6. DEPLOY TO SERVER VIA TAILSCALE SSH
+  # 7. DEPLOY TO SERVER VIA TAILSCALE SSH
   # ==========================================
   deploy:
     if: |
@@ -306,9 +309,9 @@ jobs:
       !contains(needs.*.result, 'cancelled')
     needs:
       [
-        build-and-push-api,
-        build-and-push-worker,
-        build-and-push-ml-service,
+        build-and-push-server-api,
+        build-and-push-server-worker,
+        build-and-push-server-ml-service,
         build-and-push-client-web,
         build-and-push-client-admin,
         build-and-push-client-auth,
