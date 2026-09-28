@@ -4,6 +4,7 @@ import adminUserRoute from "./user.route.js";
 import adminStoryRoute from "./story.route.js";
 import adminDashboardRoute from "./dashboard.route.js";
 import adminImageRoute from "./image.route.js";
+import adminImportRoute from "./import.route.js";
 
 import { AuthenticationToken, AuthorizationRole, SetAuditRequest } from "../../middlewares/Auth.Middleware.js";
 
@@ -1163,5 +1164,8 @@ adminRoute.use("/stories", adminStoryRoute);
 adminRoute.use("/dashboard", adminDashboardRoute);
 
 adminRoute.use("/images", adminImageRoute);
+
+adminRoute.use("/import", adminImportRoute);
+adminRoute.use("/imports", adminImportRoute);
 
 export default adminRoute;

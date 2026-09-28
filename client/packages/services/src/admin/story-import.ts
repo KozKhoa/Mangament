@@ -25,6 +25,55 @@ export interface StoryImportTemplateResult {
   message?: string;
 }
 
+export interface StoryImportItem {
+  id: string;
+  story_title: string;
+  action: "created" | "updated" | "skipped" | "failed";
+  new_nodes_count: number;
+  new_contents_count: number;
+  is_cover_updated: boolean;
+  status: string;
+  error_message?: string | null;
+  created_at: string;
+  story?: {
+    id: string;
+    title: string;
+    type: string;
+    status: string;
+  };
+}
+
+export interface StoryImportSession {
+  id: string;
+  session_id?: string | null;
+  user_id?: string | null;
+  source_type: "zip_upload" | "zip_url" | "csv_upload";
+  status: "pending" | "merging" | "extracting" | "processing" | "completed" | "failed" | "cancelled";
+  file_name?: string | null;
+  file_size?: number | null;
+  source_url?: string | null;
+  total_stories?: number;
+  processed_stories?: number;
+  total_rows?: number;
+  processed_rows?: number;
+  progress?: number;
+  created_stories_count?: number;
+  updated_stories_count?: number;
+  imported_nodes_count?: number;
+  imported_contents_count?: number;
+  error_message?: string | null;
+  metadata?: Record<string, any>;
+  started_at?: string | null;
+  completed_at?: string | null;
+  created_at: string;
+  updated_at: string;
+  items?: StoryImportItem[];
+  itemsCount?: number;
+}
+
+/**
+ * Tải file bảng tính (.csv, .xlsx, .xls) lên server để import truyện hàng loạt
+ */
 /**
  * Tải file bảng tính (.csv, .xlsx, .xls) lên server để import truyện hàng loạt
  */
@@ -33,7 +82,7 @@ export async function importStoriesSpreadsheet(file: File): Promise<ServiceResul
     const formData = new FormData();
     formData.append("file", file);
 
-    const res = await api.post("/admin/stories", formData, {
+    const res = await api.post("/admin/import/stories/spreadsheet", formData, {
       headers: {
         "Content-Type": "multipart/form-data",
       },
@@ -51,7 +100,7 @@ export async function importStoriesSpreadsheet(file: File): Promise<ServiceResul
  */
 export async function downloadStoryImportTemplate(): Promise<StoryImportTemplateResult> {
   try {
-    const res = await api.get("/admin/stories/template/import-template", {
+    const res = await api.get("/admin/import/stories/template", {
       responseType: "blob",
     });
 
@@ -101,7 +150,7 @@ export async function initStoryZipChunk({
   }>
 > {
   try {
-    const res = await api.post("/admin/stories/import/upload-zip/chunk/init", {
+    const res = await api.post("/admin/import/stories/chunk/init", {
       fileName,
       fileSize,
       totalChunks,
@@ -131,7 +180,7 @@ export async function getStoryZipChunkStatus(sessionId: string): Promise<
   }>
 > {
   try {
-    const res = await api.get("/admin/stories/import/upload-zip/chunk/status", {
+    const res = await api.get("/admin/import/stories/chunk/status", {
       params: { sessionId },
     });
     return res.data;
@@ -168,7 +217,7 @@ export async function uploadStoryZipChunk({
     formData.append("chunkIndex", chunkIndex.toString());
     formData.append("chunk", chunk);
 
-    const res = await api.post("/admin/stories/import/upload-zip/chunk/upload", formData, {
+    const res = await api.post("/admin/import/stories/chunk/upload", formData, {
       headers: {
         "Content-Type": "multipart/form-data",
       },
@@ -200,7 +249,7 @@ export async function completeStoryZipChunk({ sessionId }: { sessionId: string }
 > {
   try {
     const res = await api.post(
-      "/admin/stories/import/upload-zip/chunk/complete",
+      "/admin/import/stories/chunk/complete",
       {
         sessionId,
       },
@@ -208,6 +257,33 @@ export async function completeStoryZipChunk({ sessionId }: { sessionId: string }
         timeout: 300000, // 5 minutes cho việc ghép file lớn
       },
     );
+    return res.data;
+  } catch (error: unknown) {
+    return handleAxiosError(error);
+  }
+}
+
+/**
+ * Tải file zip trực tiếp (<100MB) lên server
+ */
+export async function uploadStoryZipDirect(file: File): Promise<
+  ServiceResult<{
+    sessionId: string;
+    fileName: string;
+    fileSize: number;
+    zipPath: string;
+  }>
+> {
+  try {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const res = await api.post("/admin/import/stories/upload-zip", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+      timeout: 300000,
+    });
     return res.data;
   } catch (error: unknown) {
     return handleAxiosError(error);
@@ -225,9 +301,57 @@ export async function downloadStoryZipFromUrl({ url }: { url: string }): Promise
   }>
 > {
   try {
-    const res = await api.post("/admin/stories/import/download-zip", {
+    const res = await api.post("/admin/import/stories/download-zip", {
       url,
     });
+    return res.data;
+  } catch (error: unknown) {
+    return handleAxiosError(error);
+  }
+}
+
+/**
+ * Hủy một phiên tải lên hoặc dọn dẹp phiên import
+ */
+export async function cancelStoryImportSession(sessionId: string): Promise<
+  ServiceResult<{
+    sessionId: string;
+    message: string;
+  }>
+> {
+  try {
+    const res = await api.delete(`/admin/import/sessions/${sessionId}`);
+    return res.data;
+  } catch (error: unknown) {
+    return handleAxiosError(error);
+  }
+}
+
+/**
+ * Lấy danh sách lịch sử các phiên import
+ */
+export async function getStoryImportSessions(params?: {
+  page?: number;
+  limit?: number;
+  status?: string;
+  sourceType?: string;
+}): Promise<ServiceResult<StoryImportSession[]>> {
+  try {
+    const res = await api.get("/admin/import/sessions", {
+      params,
+    });
+    return res.data;
+  } catch (error: unknown) {
+    return handleAxiosError(error);
+  }
+}
+
+/**
+ * Lấy chi tiết một phiên import và danh sách item
+ */
+export async function getStoryImportSessionDetail(sessionId: string): Promise<ServiceResult<StoryImportSession>> {
+  try {
+    const res = await api.get(`/admin/import/sessions/${sessionId}`);
     return res.data;
   } catch (error: unknown) {
     return handleAxiosError(error);
@@ -507,8 +631,12 @@ const storyImportService = {
   getStoryZipChunkStatus,
   uploadStoryZipChunk,
   completeStoryZipChunk,
+  uploadStoryZipDirect,
   downloadStoryZipFromUrl,
   uploadStoryZipResumable,
+  cancelStoryImportSession,
+  getStoryImportSessions,
+  getStoryImportSessionDetail,
 };
 
 export default storyImportService;

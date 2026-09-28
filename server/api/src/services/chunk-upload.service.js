@@ -534,10 +534,97 @@ export async function cancelImportSession({ sessionId, userId } = {}) {
   };
 }
 
+/**
+ * Lấy danh sách lịch sử các phiên import (phân trang, lọc theo status, source_type).
+ */
+export async function getImportSessions({ page = 1, limit = 20, status, sourceType } = {}) {
+  const pageNum = Math.max(1, Number(page) || 1);
+  const limitNum = Math.min(100, Math.max(1, Number(limit) || 20));
+  const skip = (pageNum - 1) * limitNum;
+
+  const where = {};
+  if (status) where.status = status;
+  if (sourceType) where.source_type = sourceType;
+
+  const [totalItems, sessions] = await Promise.all([
+    db.storyImportSession.count({ where }),
+    db.storyImportSession.findMany({
+      where,
+      skip,
+      take: limitNum,
+      orderBy: { created_at: "desc" },
+      include: {
+        _count: {
+          select: { items: true },
+        },
+      },
+    }),
+  ]);
+
+  const totalPages = Math.ceil(totalItems / limitNum);
+
+  return {
+    sessions: sessions.map((s) => ({
+      ...s,
+      file_size: s.file_size ? Number(s.file_size) : null,
+      itemsCount: s._count?.items || 0,
+    })),
+    pagination: {
+      page: pageNum,
+      limit: limitNum,
+      totalPages,
+      totalItems,
+    },
+  };
+}
+
+/**
+ * Lấy chi tiết phiên import và các item liên quan.
+ */
+export async function getImportSessionDetail({ sessionId }) {
+  if (!sessionId) {
+    throw CreateError(400, "Vui lòng cung cấp sessionId");
+  }
+
+  const session = await db.storyImportSession.findFirst({
+    where: {
+      OR: [{ session_id: sessionId }, { id: sessionId }],
+    },
+    include: {
+      items: {
+        take: 100,
+        orderBy: { created_at: "desc" },
+        include: {
+          story: {
+            select: {
+              id: true,
+              title: true,
+              type: true,
+              status: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (!session) {
+    throw CreateError(404, "Không tìm thấy phiên import");
+  }
+
+  return {
+    ...session,
+    file_size: session.file_size ? Number(session.file_size) : null,
+  };
+}
+
 export default {
   initChunkSession,
   getChunkStatus,
   saveChunk,
   completeChunkUpload,
   cancelImportSession,
+  getImportSessions,
+  getImportSessionDetail,
+  cleanupStaleStagingAndSessions,
 };

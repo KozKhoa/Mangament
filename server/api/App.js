@@ -237,7 +237,7 @@ const specs = swaggerJsdoc({
       },
     ],
   },
-  apis: ["./src/routes/*.js"],
+  apis: ["./src/routes/*.js", "./src/routes/admin/*.js"],
 });
 
 app.get("/openapi.json", (req, res) => {

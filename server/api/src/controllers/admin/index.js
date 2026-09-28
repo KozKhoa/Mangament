@@ -3,7 +3,8 @@ import * as story from "./story.controller.js";
 import * as image from "./image.controller.js";
 import * as storyNode from "./story-node.controller.js";
 import * as dashboard from "./dashboard.controller.js";
+import * as storyImport from "./import.controller.js";
 
-const adminController = { dashboard, user, story, image, storyNode };
+const adminController = { dashboard, user, story, image, storyNode, storyImport, import: storyImport };
 
 export default adminController;
