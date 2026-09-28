@@ -17,8 +17,25 @@ const mockParseStoriesSpreadsheet = vi.fn().mockReturnValue([
   { title: "Story 2", storyNodes: [] },
 ]);
 
+const mockDb = {
+  storyImportSession: {
+    create: vi.fn().mockImplementation(async ({ data }) => ({ id: "mock-session-id", ...data })),
+    findUnique: vi.fn().mockResolvedValue(null),
+    update: vi.fn().mockImplementation(async ({ data }) => ({ id: "mock-session-id", ...data })),
+  },
+};
+
 vi.mock("../../configs/db.js", () => ({
-  default: {},
+  default: mockDb,
+}));
+
+vi.mock("../../worker/queues/mail.queue.js", () => ({
+  default: {
+    addJob_SendOtp: vi.fn(),
+    addJob_SendNewPassword: vi.fn(),
+    addJob_SendUpdateStoryStatus: vi.fn(),
+    addJob_SendNotificationWhenStoryUpdated: vi.fn(),
+  },
 }));
 
 vi.mock("../../configs/redis.js", () => ({
@@ -149,9 +166,11 @@ describe("Story Service - Batch & Zip Processing", () => {
         ],
         userId: "user-uuid-3",
         fileName: "stories.xlsx",
+        sessionId: expect.any(String),
       });
 
       expect(result).toEqual({
+        sessionId: expect.any(String),
         totalRows: 2,
         fileName: "stories.xlsx",
       });

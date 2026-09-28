@@ -23,13 +23,14 @@ const spreadsheetFileFilter = (req, file, cb) => {
 const uploadSpreadsheet = multer({
   storage: multer.memoryStorage(),
   limits: {
-    fileSize: 20 * 1024 * 1024, // 20MB
+    fileSize: 50 * 1024 * 1024, // 50MB
     files: 1,
   },
   fileFilter: spreadsheetFileFilter,
 });
 
-import { createZipDiskStorageEngine, getTempDir } from "../../utils/zip/zipStorage.js";
+import fs from "fs";
+import { createZipDiskStorageEngine, getTempDir, safeUnlink } from "../../utils/zip/zipStorage.js";
 
 const zipFileFilter = (req, file, cb) => {
   const ext = path.extname(file.originalname || "").toLowerCase();
@@ -75,7 +76,11 @@ const uploadChunk = multer({
     },
     filename: (req, file, cb) => {
       const ext = path.extname(file.originalname || "") || ".chunk";
-      cb(null, `tmp_${Date.now()}_${crypto.randomUUID().slice(0, 8)}${ext}`);
+      const filename = `tmp_${Date.now()}_${crypto.randomUUID().slice(0, 8)}${ext}`;
+      const { stagingDir } = getTempDir();
+      req._uploadedChunkPaths = req._uploadedChunkPaths || [];
+      req._uploadedChunkPaths.push(path.join(stagingDir, filename));
+      cb(null, filename);
     },
   }),
   limits: {
@@ -85,13 +90,41 @@ const uploadChunk = multer({
 });
 
 const chunkUploadMiddleware = (req, res, next) => {
+  // Lắng nghe sự kiện ngắt kết nối giữa chừng (aborted / network drop) để xóa file chunk dở dang
+  req.on("close", () => {
+    if (!req.complete && req._uploadedChunkPaths?.length) {
+      for (const p of req._uploadedChunkPaths) {
+        if (fs.existsSync(p)) {
+          safeUnlink(p).catch(() => {});
+        }
+      }
+    }
+  });
+
   uploadChunk.fields([
     { name: "chunk", maxCount: 1 },
     { name: "file", maxCount: 1 },
   ])(req, res, (err) => {
-    if (err) return next(err);
+    if (err) {
+      if (req._uploadedChunkPaths?.length) {
+        for (const p of req._uploadedChunkPaths) {
+          if (fs.existsSync(p)) safeUnlink(p).catch(() => {});
+        }
+      }
+      return next(err);
+    }
+
     if (req.files) {
-      req.file = req.files.chunk?.[0] || req.files.file?.[0];
+      const chosenFile = req.files.chunk?.[0] || req.files.file?.[0];
+      req.file = chosenFile;
+
+      // Nếu client gửi cả 2 trường chunk và file, dọn dẹp các file thừa không được chọn
+      const allFiles = [...(req.files.chunk || []), ...(req.files.file || [])];
+      for (const f of allFiles) {
+        if (f !== chosenFile && f?.path && fs.existsSync(f.path)) {
+          safeUnlink(f.path).catch(() => {});
+        }
+      }
     }
     next();
   });
@@ -110,22 +143,9 @@ adminStoryRoute.get("/", ValidateData(adminSchemas.getAllStories), adminControll
 
 adminStoryRoute.get("/trash", ValidateData(adminSchemas.getAllTrashStories), adminController.story.getAllTrashStories);
 
-adminStoryRoute.get("/import-template", adminController.story.getStoryImportTemplate);
+adminStoryRoute.get("/template/import-template", adminController.story.getStoryImportTemplate);
 
 adminStoryRoute.get("/:id", ValidateData(adminSchemas.getStory), adminController.story.getStory);
-
-// Chunked / Resumable zip upload endpoints
-adminStoryRoute.post("/upload-zip/chunk/init", ValidateData(adminSchemas.initChunkUpload), adminController.story.initChunkUpload);
-
-adminStoryRoute.get("/upload-zip/chunk/status", ValidateData(adminSchemas.getChunkStatus), adminController.story.getChunkStatus);
-
-adminStoryRoute.post("/upload-zip/chunk/upload", chunkUploadMiddleware, ValidateData(adminSchemas.uploadChunk), adminController.story.uploadChunk);
-
-adminStoryRoute.post("/upload-zip/chunk/complete", ValidateData(adminSchemas.completeChunkUpload), adminController.story.completeChunkUpload);
-
-adminStoryRoute.post("/upload-zip", uploadZipMiddleware, adminController.story.uploadBatchZipStory);
-
-adminStoryRoute.post("/download-zip", ValidateData(adminSchemas.downloadBatchZipStory), adminController.story.downloadBatchZipStory);
 
 adminStoryRoute.post("/", uploadSpreadsheet.single("file"), validatePostStory, adminController.story.postNewStory);
 
@@ -144,5 +164,20 @@ adminStoryRoute.delete("/trash/:id", ValidateData(adminSchemas.deleteTrashStory)
 adminStoryRoute.patch("/trash/restore", ValidateData(adminSchemas.restoreManyTrashStories), adminController.story.restoreManyTrashStories);
 
 adminStoryRoute.patch("/trash/:id/restore", ValidateData(adminSchemas.restoreTrashStory), adminController.story.restoreTrashStory);
+
+// Chunked / Resumable zip upload endpoints
+adminStoryRoute.post("/import/upload-zip/chunk/init", ValidateData(adminSchemas.initChunkUpload), adminController.story.initChunkUpload);
+
+adminStoryRoute.get("/import/upload-zip/chunk/status", ValidateData(adminSchemas.getChunkStatus), adminController.story.getChunkStatus);
+
+adminStoryRoute.post("/import/upload-zip/chunk/upload", chunkUploadMiddleware, ValidateData(adminSchemas.uploadChunk), adminController.story.uploadChunk);
+
+adminStoryRoute.post("/import/upload-zip/chunk/complete", ValidateData(adminSchemas.completeChunkUpload), adminController.story.completeChunkUpload);
+
+adminStoryRoute.post("/import/upload-zip", uploadZipMiddleware, adminController.story.uploadBatchZipStory);
+
+adminStoryRoute.post("/import/download-zip", ValidateData(adminSchemas.downloadBatchZipStory), adminController.story.downloadBatchZipStory);
+
+adminStoryRoute.delete("/import/:sessionId", ValidateData(adminSchemas.cancelImportSession), adminController.story.cancelImportSession);
 
 export default adminStoryRoute;

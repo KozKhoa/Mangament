@@ -39,8 +39,34 @@ vi.mock("../../configs/redis.js", () => ({
   connectToRedis: vi.fn(),
 }));
 
+const mockDb = {
+  storyImportSession: {
+    findUnique: vi.fn().mockResolvedValue(null),
+    findMany: vi.fn().mockResolvedValue([]),
+    create: vi.fn().mockImplementation(async ({ data }) => ({ id: "mock-session-id", ...data })),
+    update: vi.fn().mockImplementation(async ({ data }) => ({ id: "mock-session-id", ...data })),
+    updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+  },
+  storyImportItem: {
+    create: vi.fn().mockImplementation(async ({ data }) => ({ id: "mock-item-id", ...data })),
+  },
+};
+
+vi.mock("../../configs/db.js", () => ({
+  default: mockDb,
+}));
+
 vi.mock("../../worker/queues/story.queue.js", () => ({
   default: mockStoryQueue,
+}));
+
+vi.mock("../../worker/queues/mail.queue.js", () => ({
+  default: {
+    addJob_SendOtp: vi.fn(),
+    addJob_SendNewPassword: vi.fn(),
+    addJob_SendUpdateStoryStatus: vi.fn(),
+    addJob_SendNotificationWhenStoryUpdated: vi.fn(),
+  },
 }));
 
 // Mock zipStorage
@@ -78,7 +104,8 @@ vi.mock("fs", async () => {
         rename: vi.fn().mockResolvedValue(),
         copyFile: vi.fn().mockResolvedValue(),
         unlink: vi.fn().mockResolvedValue(),
-        stat: vi.fn().mockResolvedValue({ size: 1048576, isFile: () => true }),
+        stat: vi.fn().mockResolvedValue({ size: 1048576, mtimeMs: Date.now(), isFile: () => true }),
+        readdir: vi.fn().mockResolvedValue([]),
       },
     },
   };
@@ -270,24 +297,20 @@ describe("Chunk Upload Service & Controller", () => {
         cleanupAfterProcessing: true,
       });
 
-      expect(mockZipStorage.mergeChunksSequentially).toHaveBeenCalledWith({
-        sessionId: init.sessionId,
-        totalChunks: 2,
-        targetFilePath: `/tmp/fake/uploads/${init.sessionId}.zip`,
-      });
-
       expect(mockStoryQueue.addJob_BatchImportZip).toHaveBeenCalledWith(
         expect.objectContaining({
-          zipFilePath: "/tmp/fake/uploads/session_chunk_1.zip",
           originalName: "stories.zip",
           sessionId: init.sessionId,
           userId: "user_owner",
+          totalChunks: 2,
+          fileSize: 2000,
           cleanupAfterProcessing: true,
         }),
       );
 
       expect(result.fileName).toBe("stories.zip");
-      expect(result.fileSize).toBe(20971520);
+      expect(result.fileSize).toBe(2000);
+      expect(result.success).toBe(true);
     });
   });
 
@@ -391,6 +414,57 @@ describe("Chunk Upload Service & Controller", () => {
         expect.objectContaining({
           success: true,
           message: expect.stringContaining("Ghép các chunk thành file zip thành công"),
+        }),
+      );
+    });
+  });
+
+  describe("cleanupStaleStagingAndSessions", () => {
+    it("should delete staging files older than 24h and mark stuck sessions older than 48h as failed", async () => {
+      const fs = (await import("fs")).default;
+      fs.promises.readdir.mockResolvedValueOnce(["tmp_old.chunk", "tmp_new.chunk"]);
+      fs.promises.stat
+        .mockResolvedValueOnce({ mtimeMs: Date.now() - 25 * 60 * 60 * 1000 }) // > 24h
+        .mockResolvedValueOnce({ mtimeMs: Date.now() - 1 * 60 * 60 * 1000 }); // < 24h
+
+      mockDb.storyImportSession.findMany.mockResolvedValueOnce([
+        {
+          id: "session-stuck-merging",
+          session_id: "sess_merging_123",
+          status: "merging",
+          created_at: new Date(Date.now() - 49 * 60 * 60 * 1000), // > 48h
+        },
+        {
+          id: "session-stuck-pending",
+          session_id: "sess_pending_456",
+          status: "pending",
+          created_at: new Date(Date.now() - 50 * 60 * 60 * 1000), // > 48h
+        },
+      ]);
+
+      await chunkUploadService.cleanupStaleStagingAndSessions();
+
+      // Verify safeUnlink called for old staging file
+      expect(mockZipStorage.safeUnlink).toHaveBeenCalledWith(expect.stringContaining("tmp_old.chunk"));
+
+      // Verify DB updates
+      expect(mockDb.storyImportSession.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: "session-stuck-merging" },
+          data: expect.objectContaining({
+            status: "failed",
+            error_message: expect.stringContaining("48 giờ"),
+          }),
+        }),
+      );
+
+      expect(mockDb.storyImportSession.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: "session-stuck-pending" },
+          data: expect.objectContaining({
+            status: "cancelled",
+            error_message: expect.stringContaining("48 giờ"),
+          }),
         }),
       );
     });

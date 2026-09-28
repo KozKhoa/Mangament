@@ -51,7 +51,7 @@ export async function importStoriesSpreadsheet(file: File): Promise<ServiceResul
  */
 export async function downloadStoryImportTemplate(): Promise<StoryImportTemplateResult> {
   try {
-    const res = await api.get("/admin/stories/import-template", {
+    const res = await api.get("/admin/stories/template/import-template", {
       responseType: "blob",
     });
 
@@ -101,7 +101,7 @@ export async function initStoryZipChunk({
   }>
 > {
   try {
-    const res = await api.post("/admin/stories/upload-zip/chunk/init", {
+    const res = await api.post("/admin/stories/import/upload-zip/chunk/init", {
       fileName,
       fileSize,
       totalChunks,
@@ -131,7 +131,7 @@ export async function getStoryZipChunkStatus(sessionId: string): Promise<
   }>
 > {
   try {
-    const res = await api.get("/admin/stories/upload-zip/chunk/status", {
+    const res = await api.get("/admin/stories/import/upload-zip/chunk/status", {
       params: { sessionId },
     });
     return res.data;
@@ -168,7 +168,7 @@ export async function uploadStoryZipChunk({
     formData.append("chunkIndex", chunkIndex.toString());
     formData.append("chunk", chunk);
 
-    const res = await api.post("/admin/stories/upload-zip/chunk/upload", formData, {
+    const res = await api.post("/admin/stories/import/upload-zip/chunk/upload", formData, {
       headers: {
         "Content-Type": "multipart/form-data",
       },
@@ -200,7 +200,7 @@ export async function completeStoryZipChunk({ sessionId }: { sessionId: string }
 > {
   try {
     const res = await api.post(
-      "/admin/stories/upload-zip/chunk/complete",
+      "/admin/stories/import/upload-zip/chunk/complete",
       {
         sessionId,
       },
@@ -225,7 +225,7 @@ export async function downloadStoryZipFromUrl({ url }: { url: string }): Promise
   }>
 > {
   try {
-    const res = await api.post("/admin/stories/download-zip", {
+    const res = await api.post("/admin/stories/import/download-zip", {
       url,
     });
     return res.data;
@@ -244,7 +244,7 @@ export async function downloadStoryZipFromUrl({ url }: { url: string }): Promise
  */
 export async function uploadStoryZipResumable({
   file,
-  chunkSize = 10 * 1024 * 1024, // 10MB mặc định
+  chunkSize = 20 * 1024 * 1024, // 20MB mặc định
   concurrency = 3, // Mặc định tải song song 3 chunks cùng lúc
   abortController,
   onProgress,

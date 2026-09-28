@@ -16,6 +16,27 @@ vi.mock("../../configs/redis.js", () => ({
   connectToRedis: vi.fn(),
 }));
 
+const mockDb = {
+  storyImportSession: {
+    create: vi.fn().mockImplementation(async ({ data }) => ({ id: "mock-session-id", ...data })),
+    findUnique: vi.fn().mockResolvedValue(null),
+    update: vi.fn().mockImplementation(async ({ data }) => ({ id: "mock-session-id", ...data })),
+  },
+};
+
+vi.mock("../../configs/db.js", () => ({
+  default: mockDb,
+}));
+
+vi.mock("../../worker/queues/mail.queue.js", () => ({
+  default: {
+    addJob_SendOtp: vi.fn(),
+    addJob_SendNewPassword: vi.fn(),
+    addJob_SendUpdateStoryStatus: vi.fn(),
+    addJob_SendNotificationWhenStoryUpdated: vi.fn(),
+  },
+}));
+
 vi.mock("../../worker/queues/story.queue.js", () => ({
   default: mockStoryQueue,
 }));

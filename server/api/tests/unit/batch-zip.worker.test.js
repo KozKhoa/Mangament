@@ -58,6 +58,14 @@ const mockDb = {
   story_Author: {
     createMany: vi.fn(),
   },
+  storyImportSession: {
+    findUnique: vi.fn().mockResolvedValue(null),
+    create: vi.fn().mockImplementation(async ({ data }) => ({ id: "mock-session-id", ...data })),
+    update: vi.fn().mockImplementation(async ({ data }) => ({ id: "mock-session-id", ...data })),
+  },
+  storyImportItem: {
+    create: vi.fn().mockImplementation(async ({ data }) => ({ id: "mock-item-id", ...data })),
+  },
 };
 
 vi.mock("../../configs/db.js", () => ({

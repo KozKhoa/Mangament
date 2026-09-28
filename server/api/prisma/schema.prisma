@@ -43,6 +43,7 @@ model User {
   avatar            Image?           @relation(fields: [avatar_id], references: [id])
   nation            Nation?          @relation(fields: [nation_id], references: [id])
   accounts          Account[]
+  import_sessions   StoryImportSession[]
 }
 
 model Story {
@@ -79,6 +80,7 @@ model Story {
   story_nodes        StoryNode[]
   authors            Story_Author[]
   genres             Story_Genre[]
+  import_items       StoryImportItem[]
 
   @@index([deleted_status, is_actived, created_at(sort: Desc)])
   @@index([deleted_status, is_actived, star(sort: Desc)])
@@ -269,6 +271,71 @@ model RefreshToken {
   @@id([user_id, token])
 }
 
+
+model StoryImportSession {
+  id                      String              @id @default(uuid()) @db.Uuid
+  user_id                 String?             @db.Uuid
+  source_type             ImportSourceType    @default(zip_upload)
+  status                  ImportSessionStatus @default(pending)
+
+  session_id              String?             @unique
+  file_name               String?
+  file_size               BigInt?
+  source_url              String?
+
+  total_stories           Int                 @default(0)
+  processed_stories       Int                 @default(0)
+  total_rows              Int                 @default(0)
+  processed_rows          Int                 @default(0)
+  progress                Int                 @default(0)
+
+  created_stories_count   Int                 @default(0)
+  updated_stories_count   Int                 @default(0)
+  imported_nodes_count    Int                 @default(0)
+  imported_contents_count Int                 @default(0)
+
+  error_message           String?
+  metadata                Json?               @default("{}") @db.JsonB
+
+  started_at              DateTime?
+  completed_at            DateTime?
+  created_at              DateTime            @default(now())
+  updated_at              DateTime            @default(now()) @updatedAt
+
+  user                    User?               @relation(fields: [user_id], references: [id], onDelete: SetNull)
+  items                   StoryImportItem[]
+
+  @@index([status, created_at(sort: Desc)])
+  @@index([user_id, created_at(sort: Desc)])
+}
+
+model StoryImportItem {
+  id                 String             @id @default(uuid()) @db.Uuid
+  session_id         String             @db.Uuid
+  story_id           String?            @db.Uuid
+
+  story_title        String
+  action             ImportStoryAction  @default(created)
+
+  new_nodes_count    Int                @default(0)
+  new_contents_count Int                @default(0)
+  is_cover_updated   Boolean            @default(false)
+
+  status             String             @default("success")
+  error_message      String?
+
+  created_at         DateTime           @default(now())
+
+  session            StoryImportSession @relation(fields: [session_id], references: [id], onDelete: Cascade)
+  story              Story?             @relation(fields: [story_id], references: [id], onDelete: SetNull)
+
+  @@index([session_id])
+  @@index([story_id])
+  @@index([action])
+}
+
+
+
 enum StoryNodeContentType {
   image
   text
@@ -316,4 +383,28 @@ enum DeletedStatus {
   soft_deleted
   soft_deleted_by_parent // This mean this is delete by its parent being soft deleted, and it will be un-deleted when the parent is un-deleted
   pending_permanent_deletion
+}
+
+enum ImportSourceType {
+  zip_upload
+  zip_remote_download
+  csv_upload
+  manual_input
+}
+
+enum ImportSessionStatus {
+  pending
+  merging
+  extracting
+  processing
+  completed
+  failed
+  cancelled
+}
+
+enum ImportStoryAction {
+  created
+  updated
+  skipped
+  failed
 }

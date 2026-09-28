@@ -157,6 +157,12 @@ export class AdminSchemas {
     }),
   });
 
+  cancelImportSession = z.object({
+    params: z.object({
+      sessionId: z.string().min(1, "sessionId không được để trống"),
+    }),
+  });
+
   updateStoryCoverArt = z.object({
     params: uuidParamSchema,
     body: z.object({

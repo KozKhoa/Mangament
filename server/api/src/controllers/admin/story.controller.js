@@ -241,6 +241,27 @@ export async function completeChunkUpload(req, res, next) {
 }
 
 /**
+ * DELETE /admin/stories/import/:sessionId
+ * Hủy phiên tải lên / import và dọn dẹp các file chunk, file zip tạm trên máy chủ.
+ */
+export async function cancelImportSession(req, res, next) {
+  try {
+    const { sessionId } = req.params;
+    const userId = req.user?.id;
+
+    const result = await chunkUploadService.cancelImportSession({ sessionId, userId });
+
+    return res.status(200).json({
+      success: true,
+      message: "Đã hủy phiên tải lên và dọn dẹp toàn bộ dữ liệu tạm trên server thành công",
+      data: result,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
  * POST /admin/stories
  * Tạo truyện đơn lẻ hoặc import truyện hàng loạt từ file (.csv, .xlsx, .xls) hoặc .zip.
  *
