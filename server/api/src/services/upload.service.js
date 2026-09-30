@@ -1,7 +1,9 @@
 import crypto from "crypto";
+import sharp from "sharp";
 
 import imageQueue from "../../worker/queues/image.queue.js";
 import { getStorageProvider } from "../storage/index.js";
+import * as imageService from "./image.service.js";
 
 const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
 const MAX_STORY_IMAGES_COUNT = 50; // 50 images per batch
@@ -45,6 +47,83 @@ class UploadService {
         original_name: file?.originalname,
         originalName: file?.originalname,
         provider: storage.name,
+      },
+    };
+  }
+
+  async uploadStoryImage(file) {
+    if (!file) {
+      const error = new Error("Vui lòng tải lên file hình ảnh");
+      error.status = 400;
+      throw error;
+    }
+
+    if (file.size && file.size > MAX_FILE_SIZE) {
+      const error = new Error("Dung lượng ảnh vượt quá giới hạn tối đa 20MB");
+      error.status = 413;
+      throw error;
+    }
+
+    const storage = getStorageProvider();
+    const id = crypto.randomUUID();
+    const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    let randomStr = "";
+    for (let i = 0; i < 8; i++) {
+      randomStr += chars[crypto.randomInt(0, chars.length)];
+    }
+    const timestamp = Date.now();
+    const filename = `${timestamp}_${file.size || 0}_${randomStr}.jpg`;
+    const path = storage.generatePath("stories", filename);
+    const url = storage.getUrl(path);
+
+    const buffer = file.buffer ? (Buffer.isBuffer(file.buffer) ? file.buffer : Buffer.from(file.buffer)) : null;
+    if (!buffer) {
+      const error = new Error("File buffer không hợp lệ");
+      error.status = 400;
+      throw error;
+    }
+
+    const imageSharp = sharp(buffer);
+    const metadata = await imageSharp.metadata();
+
+    const optimizedBuffer = await sharp(buffer)
+      .jpeg({
+        quality: 80,
+        mozjpeg: true,
+      })
+      .toBuffer();
+
+    await storage.upload(path, optimizedBuffer, "image/jpeg");
+
+    const image = (
+      await imageService.UpsertImage({
+        id,
+        provider: storage.name,
+        mine_type: "image/jpeg",
+        size: optimizedBuffer.length,
+        path,
+        width: metadata.width || null,
+        height: metadata.height || null,
+        metadata: {
+          original_name: file.originalname,
+        },
+      })
+    ).data;
+
+    return {
+      success: true,
+      data: {
+        id: image.id,
+        path: image.path,
+        key: image.path,
+        url: url,
+        provider: image.provider,
+        mine_type: image.mine_type,
+        width: image.width,
+        height: image.height,
+        size: image.size,
+        original_name: file.originalname,
+        originalName: file.originalname,
       },
     };
   }

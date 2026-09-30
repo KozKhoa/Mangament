@@ -163,13 +163,6 @@ export class AdminSchemas {
     }),
   });
 
-  updateStoryCoverArt = z.object({
-    params: uuidParamSchema,
-    body: z.object({
-      coverArt: z.any().optional(),
-    }),
-  });
-
   updateStory = z.object({
     params: uuidParamSchema,
     body: z.object({
@@ -180,9 +173,16 @@ export class AdminSchemas {
       status: z.string().optional(),
       genre: z.any().optional(),
       authorIds: z.any().optional(),
-      children: z.any().optional(),
       coverArt: z.any().optional(),
       other_titles: z.any().optional(),
+      next_chapter_in: z.any().optional(),
+    }),
+  });
+
+  updateStoryChildren = z.object({
+    params: uuidParamSchema,
+    body: z.object({
+      children: z.any().refine((v) => v !== undefined, { message: "children is required" }),
     }),
   });
 

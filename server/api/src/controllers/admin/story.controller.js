@@ -174,66 +174,60 @@ export async function postNewStory(req, res, next) {
   }
 }
 
-// PATCH /admin/stories/:id/cover-art
-export async function updateStoryCoverArt(req, res, next) {
-  try {
-    const storyId = req?.params?.id;
-    const coverArt = req.body?.coverArt; // {url, key, id, public_id}
-
-    if (!storyId) throw CreateError(400, "'id' for story is required");
-
-    const update = await storyService.UpdateStoryCoverArt(storyId, coverArt);
-    if (!update) throw CreateError();
-
-    return res.json({ success: true, message: "Update story cover art successfully", data: update.data });
-  } catch (error) {
-    next(error);
-  }
-}
 // PUT /admin/stories/:id
 export async function updateStory(req, res, next) {
   try {
-    const user = req.user;
-
     const storyId = req?.params?.id;
-
     const body = req?.body;
+
+    console.log(body);
 
     const title = body?.title;
     const otherTitles = body?.other_titles ?? [];
-    const nation = body?.nation?.name;
+    const nation = body?.nation?.name ?? body?.nation;
     const type = body?.type;
     const status = body?.status;
     const genre = body?.genre;
     const authorIds = body?.authorIds;
     const summary = body?.summary ?? undefined;
-
-    const coverArt = req.body?.coverArt ?? undefined; // {url, key, ...}
-
-    const children = body.children;
+    const coverArt = req.body?.coverArt ?? undefined;
+    const nextChapterIn = body?.next_chapter_in;
 
     await throwErrorIfInvalidGenres(genre);
     throwErrorIfInvalidStoryStatus(status);
     throwErrorIfInvalidStoryType(type);
 
-    const update = await storyService.UpdateStory(
-      storyId,
-      {
-        title: title,
-        otherTitles: otherTitles,
-        type: type,
-        summary: summary,
-        nation: nation,
-        status: status,
-        genres: genre,
-        authorIds: authorIds,
-        coverArt: coverArt,
-        children: children,
-      },
-      user.email,
-    );
+    const update = await storyService.UpdateStory(storyId, {
+      title,
+      otherTitles,
+      type,
+      summary,
+      nation,
+      status,
+      genres: genre,
+      authorIds,
+      coverArt,
+      nextChapterIn,
+    });
 
     return res.json({ success: true, message: "Update story successfully", data: update.data });
+  } catch (error) {
+    next(error);
+  }
+}
+
+// PUT /admin/stories/:id/children
+export async function updateStoryChildren(req, res, next) {
+  try {
+    const user = req.user;
+    const storyId = req?.params?.id;
+    const children = req.body?.children;
+
+    if (!children) throw CreateError(400, "'children' is required");
+
+    const result = await storyService.UpdateStoryChildren(storyId, children, user?.email);
+
+    return res.json({ success: true, message: result.message });
   } catch (error) {
     next(error);
   }

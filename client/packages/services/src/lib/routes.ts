@@ -20,6 +20,11 @@ export const routes = {
     return dir.join("/");
   },
 
+  edit_story: (storyId?: string) => {
+    const adminUrl = typeof process !== "undefined" ? process.env?.NEXT_PUBLIC_ADMIN_URL || "" : "";
+    return `${adminUrl}/story/edit/${storyId ?? ""}`;
+  },
+
   genre: (params?: { genre?: string }) => {
     // Format: genres/genre
     const dir: string[] = ["/genre"];

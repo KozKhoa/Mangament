@@ -2,6 +2,7 @@
   "extends": "@mangament/config-typescript/tsconfig.base.json",
   "compilerOptions": {
     "outDir": "./dist",
+    "types": ["node"],
     "paths": {
       "@/lib/*": ["./src/lib/*"],
       "@/types/*": ["../types/src/*"],

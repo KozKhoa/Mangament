@@ -2,6 +2,31 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import uploadService from "../../src/services/upload.service.js";
 import imageQueue from "../../worker/queues/image.queue.js";
 
+vi.mock("sharp", () => {
+  return {
+    default: vi.fn(() => ({
+      metadata: vi.fn().mockResolvedValue({ width: 800, height: 1200, format: "jpeg" }),
+      jpeg: vi.fn().mockReturnThis(),
+      toBuffer: vi.fn().mockResolvedValue(Buffer.from("optimized-image-buffer")),
+    })),
+  };
+});
+
+vi.mock("../../src/services/image.service.js", () => ({
+  UpsertImage: vi.fn().mockImplementation(async (data) => ({
+    success: true,
+    data: {
+      id: data.id || "mock-img-id",
+      path: data.path,
+      provider: data.provider,
+      mine_type: data.mine_type,
+      width: data.width,
+      height: data.height,
+      size: data.size,
+    },
+  })),
+}));
+
 vi.mock("../../worker/queues/image.queue.js", () => {
   return {
     default: {
@@ -171,6 +196,46 @@ describe("Upload Service", () => {
       };
 
       await expect(uploadService.uploadAvatar("user-123", hugeAvatar)).rejects.toThrow(/vượt quá giới hạn tối đa 20MB/);
+    });
+  });
+
+  describe("uploadStoryImage (synchronous single image upload)", () => {
+    it("should upload single story image synchronously and not enqueue any queue jobs", async () => {
+      const mockFile = {
+        originalname: "cover_solo.png",
+        mimetype: "image/png",
+        buffer: Buffer.from("cover-data"),
+        size: 1024,
+      };
+
+      const res = await uploadService.uploadStoryImage(mockFile);
+
+      expect(res.success).toBe(true);
+      expect(res.data.id).toBeDefined();
+      expect(res.data.path).toContain("/public/images/stories/");
+      expect(res.data.original_name).toBe("cover_solo.png");
+      expect(res.data.width).toBe(800);
+      expect(res.data.height).toBe(1200);
+
+      // Verify no BullMQ jobs are enqueued
+      expect(imageQueue.addJob_addStoryImages).not.toHaveBeenCalled();
+      expect(imageQueue.addJob_AddNewImage).not.toHaveBeenCalled();
+      expect(imageQueue.addJob_addManyNewImages).not.toHaveBeenCalled();
+    });
+
+    it("should reject when file is missing", async () => {
+      await expect(uploadService.uploadStoryImage(null)).rejects.toThrow(/Vui lòng tải lên file hình ảnh/);
+    });
+
+    it("should reject when file exceeds 20MB", async () => {
+      const hugeFile = {
+        originalname: "huge_cover.jpg",
+        mimetype: "image/jpeg",
+        buffer: Buffer.from("huge"),
+        size: 21 * 1024 * 1024,
+      };
+
+      await expect(uploadService.uploadStoryImage(hugeFile)).rejects.toThrow(/vượt quá giới hạn tối đa 20MB/);
     });
   });
 });

@@ -49,9 +49,9 @@ adminStoryRoute.get("/:id", ValidateData(adminSchemas.getStory), adminController
 
 adminStoryRoute.post("/", uploadSpreadsheet.single("file"), validatePostStory, adminController.story.postNewStory);
 
-adminStoryRoute.patch("/:id/cover-art", ValidateData(adminSchemas.updateStoryCoverArt), adminController.story.updateStoryCoverArt);
-
 adminStoryRoute.put("/:id", ValidateData(adminSchemas.updateStory), adminController.story.updateStory);
+
+adminStoryRoute.put("/:id/children", ValidateData(adminSchemas.updateStoryChildren), adminController.story.updateStoryChildren);
 
 adminStoryRoute.patch("/:id/active", ValidateData(adminSchemas.toggleActiveStory), adminController.story.toggleActiveStory);
 

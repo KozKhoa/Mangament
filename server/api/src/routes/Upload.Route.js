@@ -100,6 +100,31 @@ const uploadRoute = express.Router();
  *       '413':
  *         description: Payload Too Large (File vượt quá 20MB)
  *
+ * /uploads/story/image:
+ *   post:
+ *     tags: [Uploads]
+ *     security:
+ *       - bearerAuth: []
+ *     summary: Upload single image for story cover art (admin, tối đa 20MB, xử lý tức thì không qua queue)
+ *     requestBody:
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               image:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       '200':
+ *         description: Uploaded
+ *       '400':
+ *         description: Bad Request (Định dạng file không hợp lệ hoặc thiếu file)
+ *       '401':
+ *         $ref: '#/components/responses/Unauthorized'
+ *       '413':
+ *         description: Payload Too Large (File vượt quá 20MB)
+ *
  * /uploads/story/images:
  *   post:
  *     tags: [Uploads]
@@ -128,9 +153,27 @@ const uploadRoute = express.Router();
  *         description: Payload Too Large (File vượt quá 20MB)
  */
 
+const uploadSingleStoryImage = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: MAX_FILE_SIZE,
+    files: 1,
+  },
+  fileFilter,
+});
+
 // Upload Avatar
 uploadRoute.post("/user/me/avatar", AuthenticationToken, uploadAvatar.single("image"), uploadController.UploadAvatar);
 uploadRoute.post("/user/:userId/avatar", AuthenticationToken, AuthorizationRole, uploadAvatar.single("image"), uploadController.UploadAvatar);
+
+// Upload Single Story Image (Synchronous)
+uploadRoute.post(
+  "/story/image",
+  AuthenticationToken,
+  AuthorizationRole,
+  uploadSingleStoryImage.single("image"),
+  uploadController.UploadStoryImage,
+);
 
 // Upload Story Images
 uploadRoute.post(

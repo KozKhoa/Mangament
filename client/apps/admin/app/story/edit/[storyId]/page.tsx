@@ -112,15 +112,38 @@ export function EditStory() {
         if (!editedStory) return toast.message("Vui lòng đợi trong giây lát");
 
         setIsUpdating(true);
-        const res = await adminService.updateStory(editedStory, coverArtFile, change);
+        // 1. Update basic info
+        const resBasic = await adminService.updateStory(editedStory, coverArtFile);
+        if (!resBasic.success) {
+          setIsUpdating(false);
+          return toast.warning(resBasic.message);
+        }
+
+        // 2. Update children if changes exist
+        const hasChildrenChanges =
+          (change.delete?.story_node?.length ?? 0) > 0 ||
+          (change.delete?.content?.length ?? 0) > 0 ||
+          (change.add?.story_node?.length ?? 0) > 0 ||
+          (change.add?.content?.length ?? 0) > 0 ||
+          (change.edit?.story_node?.length ?? 0) > 0 ||
+          (change.edit?.content?.length ?? 0) > 0 ||
+          (change.restore?.story_node?.length ?? 0) > 0 ||
+          (change.restore?.content?.length ?? 0) > 0 ||
+          (change.permanently_delete?.story_node?.length ?? 0) > 0 ||
+          (change.permanently_delete?.content?.length ?? 0) > 0;
+
+        if (hasChildrenChanges) {
+          const resChildren = await adminService.updateStoryChildren(editedStory.id, change);
+          if (!resChildren.success) {
+            setIsUpdating(false);
+            return toast.warning(resChildren.message);
+          }
+        }
+
         setIsUpdating(false);
-
-        if (!res.success) return toast.warning(res.message);
-
-        toast.message("Đang cập nhật thông tin truyện, sẽ mail cho bạn khi hoàn thành");
+        toast.success("Cập nhật thông tin truyện thành công!");
 
         router.back();
-
         modal.close();
       },
       onCancel: modal.close,

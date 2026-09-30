@@ -67,6 +67,15 @@ class StoryQueue {
       ADD_JOB_OPTION,
     );
   }
+
+  addJob_UpdateStoryChildren(storyId, children, editorEmail) {
+    console.log(`Already add story ${storyId} children to updated queue`);
+    return this.#updateStory.add(
+      "updateStoryChildren",
+      { storyId, children, editorEmail },
+      ADD_JOB_OPTION,
+    );
+  }
 }
 
 const storyQueue = new StoryQueue();

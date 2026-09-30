@@ -18,6 +18,40 @@ import { downloadZipFromUrl } from "../utils/zip/zipStorage.js";
 
 const REDIS_TTL = 60 * 30; // 30 minutes
 
+export async function ResolveOrCreateImage(coverArt, client = db) {
+  if (!coverArt) return null;
+  const imgPath = coverArt.path || coverArt.key || coverArt.url;
+  let existingImage = null;
+
+  if (coverArt.id) {
+    existingImage = await client.image.findUnique({ where: { id: coverArt.id } });
+  }
+  if (!existingImage && imgPath) {
+    existingImage = await client.image.findUnique({ where: { path: imgPath } });
+  }
+
+  if (existingImage) {
+    return existingImage.id;
+  }
+
+  if (imgPath || coverArt.id) {
+    const created = await client.image.create({
+      data: {
+        ...(coverArt.id && { id: coverArt.id }),
+        path: imgPath || null,
+        provider: coverArt.provider || "local",
+        mine_type: coverArt.mine_type || "image/jpeg",
+        width: coverArt.width ? Number(coverArt.width) : null,
+        height: coverArt.height ? Number(coverArt.height) : null,
+        size: coverArt.size ? Number(coverArt.size) : 0,
+      },
+    });
+    return created.id;
+  }
+
+  return null;
+}
+
 export async function BuildStoryChildrenTree(storyId, client = db) {
   if (!storyId) return [];
 
@@ -741,37 +775,7 @@ export async function EmbeddingStory(id) {
   return { success: true, message: "Story is being embedded" };
 }
 
-export async function UpdateStory(
-  id,
-  {
-    title,
-    otherTitles,
-    type,
-    view,
-    summary,
-    posterId,
-    nation,
-    status,
-    genres,
-    coverArt,
-    nextChapterIn,
-    authorIds,
-
-    children,
-    // children = {
-    //   delete: { story_node: [{ id }], content: [{ id }] },
-    //   add: {
-    //     story_node: [{ id, story_id, parent_id, order_index, type }],
-    //     content: [{ id, type, story_node_id, order_index, image: { id, url, public_id, key } }],
-    //   },
-    //   edit: {
-    //     story_node: [{ id, order_index, story_id, title, type, content: [{ id, order_index, type }] }],
-    //     content: [{ id, order_index, type, image: { id, url, key, public_id } }],
-    //   },
-    // },
-  },
-  editorEmail,
-) {
+export async function UpdateStory(id, { title, otherTitles, type, view, summary, posterId, nation, status, genres, coverArt, nextChapterIn, authorIds }) {
   if (authorIds && authorIds.length > 0) {
     for (const authorId of authorIds) {
       if (!isUUID(authorId)) throw CreateError(400, "authorIds must be uuid[]");
@@ -779,21 +783,113 @@ export async function UpdateStory(
   }
 
   if (otherTitles && otherTitles.length > 0) {
-    otherTitles = [...new Set(otherTitles.map((title) => title.trim()))];
+    otherTitles = [...new Set(otherTitles.map((t) => t.trim()))];
   }
 
+  const story = await db.story.findUnique({ where: { id: id }, select: { id: true } });
+  if (!story) throw CreateError(400, "Story not found");
+
+  const updatedStory = await db.$transaction(async (tx) => {
+    if (genres !== undefined) {
+      await tx.story_Genre.deleteMany({ where: { story_id: id } });
+
+      const genresId = (await tx.genre.findMany({ where: { name: { in: genres } }, select: { id: true } })).map((genre) => genre.id);
+
+      if (genresId.length > 0) {
+        await tx.story_Genre.createMany({
+          data: genresId.map((genreId) => ({
+            story_id: id,
+            genre_id: genreId,
+          })),
+          skipDuplicates: true,
+        });
+      }
+    }
+
+    if (authorIds !== undefined) {
+      await tx.story_Author.deleteMany({ where: { story_id: id } });
+
+      if (authorIds.length > 0) {
+        await tx.story_Author.createMany({
+          data: authorIds.map((authorId) => ({
+            story_id: id,
+            author_id: authorId,
+          })),
+          skipDuplicates: true,
+        });
+      }
+    }
+
+    const select = {
+      id: true,
+      ...(title && { title: true }),
+      ...(otherTitles && { other_titles: true }),
+      ...(type && { type: true }),
+      ...(view && { view: true }),
+      ...(summary && { summary: true }),
+      ...(status && { status: true }),
+      ...(nextChapterIn && { next_chapter_in: true }),
+      ...(nation && { nation: { select: { id: true, name: true, flag_icon: true } } }),
+      ...(coverArt && { cover_art: { select: { id: true, path: true, provider: true, height: true, width: true, size: true } } }),
+      ...(posterId && { poster_id: true }),
+      ...(genres && { genres: { select: { genre: { select: { id: true, name: true } } } } }),
+      ...(authorIds && { authors: { select: { author: { select: { id: true, name: true } } } } }),
+    };
+
+    let imageConnectId = null;
+    if (coverArt) {
+      imageConnectId = await ResolveOrCreateImage(coverArt, tx);
+    }
+
+    const updated = await tx.story
+      .update({
+        where: { id: id },
+        data: {
+          ...(title && { title: title }),
+          ...(otherTitles && { other_titles: otherTitles }),
+          ...(type && { type: type }),
+          ...(view && { view: view }),
+          ...(summary && { summary: summary }),
+          ...(status && { status: status }),
+          ...(nextChapterIn && { next_chapter_in: nextChapterIn }),
+          ...(nation && { nation: { connect: { name: nation } } }),
+          ...(imageConnectId && { cover_art: { connect: { id: imageConnectId } } }),
+          ...(posterId && { poster: { connect: { id: posterId } } }),
+        },
+        select,
+      })
+      .catch(async (error) => {
+        const uniqueTitle = title ? await db.story.findUnique({ where: { title: title } }) : undefined;
+        if (uniqueTitle && uniqueTitle.id !== id) throw CreateError(400, `'${title}' đã có người đăng ký`);
+
+        throw error;
+      });
+
+    if (updated.genres) {
+      updated.genres = updated.genres.map((g) => g.genre.name);
+    }
+    if (updated.authors) {
+      updated.authors = updated.authors.map((a) => a.author);
+    }
+
+    return updated;
+  });
+
+  await redisUtils.stories(id).incr();
+  await redisUtils.stories().incr();
+
+  mailService.sendNotificationToUsersWhenStoryUpdated(id);
+
+  return { success: true, message: "Update story successfully", data: updatedStory };
+}
+
+export async function UpdateStoryChildren(id, children, editorEmail) {
   const story = await db.story.findUnique({ where: { id: id } });
   if (!story) throw CreateError(400, "Story not found");
 
-  storyQueue.addJob_UpdateStory(
-    story.id,
-    { title, otherTitles, type, view, summary, posterId, nation, status, genres, coverArt, nextChapterIn, authorIds, children },
-    editorEmail,
-  );
+  storyQueue.addJob_UpdateStoryChildren(id, children, editorEmail);
 
-  mailService.sendNotificationToUsersWhenStoryUpdated(story.id);
-
-  return { success: true, message: "Story is being updated" };
+  return { success: true, message: "Story children is being updated" };
 }
 
 export async function UpdateStoryCoverArt(storyId, coverArt) {

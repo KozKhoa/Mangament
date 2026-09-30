@@ -27,6 +27,11 @@ export const updateStoryWorker = new Worker(
     try {
       result = await db.$transaction(
         async function (tx) {
+          let imageConnectId = null;
+          if (coverArt) {
+            imageConnectId = await storyService.ResolveOrCreateImage(coverArt, tx);
+          }
+
           const updateStory = await tx.story
             .update({
               where: { id: storyId },
@@ -38,26 +43,8 @@ export const updateStoryWorker = new Worker(
                 ...(summary && { summary: summary }),
                 ...(status && { status: status }),
                 ...(nextChapterIn && { next_chapter_in: nextChapterIn }),
-                ...(nation && nation.length > 0 && { nation: { connect: { name: nation } } }),
-
-                ...(coverArt && {
-                  cover_art: coverArt.id
-                    ? { connect: { id: coverArt.id } }
-                    : {
-                        connectOrCreate: {
-                          where: { path: coverArt?.path || coverArt?.key || coverArt?.url },
-                          create: {
-                            path: coverArt?.path || coverArt?.key || coverArt?.url,
-                            provider: coverArt?.provider || "r2",
-                            mine_type: coverArt?.mine_type || "image/jpeg",
-                            width: coverArt?.width ? Number(coverArt.width) : null,
-                            height: coverArt?.height ? Number(coverArt.height) : null,
-                            size: coverArt?.size ? Number(coverArt.size) : 0,
-                          },
-                        },
-                      },
-                }),
-
+                ...(nation && { nation: { connect: { name: nation } } }),
+                ...(imageConnectId && { cover_art: { connect: { id: imageConnectId } } }),
                 ...(posterId && { poster: { connect: { id: posterId } } }),
               },
 

@@ -1,12 +1,7 @@
 import api from "@/lib/axios";
 import axios from "axios";
 import { handleAxiosError } from "@/utils/error";
-
-export type ServiceResult<T> = {
-  success: boolean;
-  data?: T;
-  message?: string;
-};
+import { ServiceResult } from "./types";
 
 export interface ChunkUploadProgress {
   percent: number;

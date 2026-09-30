@@ -16,6 +16,19 @@ export async function UploadAvatar(req, res, next) {
   }
 }
 
+// POST /uploads/story/image
+export async function UploadStoryImage(req, res, next) {
+  try {
+    const file = req.file;
+
+    const image = (await uploadService.uploadStoryImage(file)).data;
+
+    res.json({ success: true, data: image });
+  } catch (err) {
+    next(err);
+  }
+}
+
 // POST /uploads/story/images
 export async function UploadStoryImages(req, res, next) {
   try {

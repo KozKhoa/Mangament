@@ -128,7 +128,7 @@ export default function StoryDetailPage() {
             {auth?.user && <ButtonOfFavouriteStory className="w-full h-full" story={story}></ButtonOfFavouriteStory>}
 
             {auth?.user?.role === "admin" && (
-              <Button onClick={() => router.push(`/admin/story/edit/${story?.id}`)} className="w-full font-semibold">
+              <Button onClick={() => router.push(routes.edit_story(story?.id))} className="w-full font-semibold">
                 <EditIcon className="w-5 h-5" />
                 Chỉnh sửa
               </Button>
