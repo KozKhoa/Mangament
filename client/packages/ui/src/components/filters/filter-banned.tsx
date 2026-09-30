@@ -55,7 +55,6 @@ export default function FilterBanned({ value, onChange }: FilterGendersProps) {
   return (
     <ButtonDropdown
       openOnLeft={true}
-      className={`border-foreground/30 border rounded-sm relative text-foreground`}
       closeButtonLabel="Reset"
       onClickCloseButton={resetAllField}
       icon={

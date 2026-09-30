@@ -79,7 +79,6 @@ export default function FilterGenders({ value, onChange }: FilterGendersProps) {
   return (
     <ButtonDropdown
       openOnLeft={true}
-      className={`border-foreground/30 border rounded-sm relative text-foreground`}
       acceptButtonLabel="Finish"
       onClickAcceptButton={handleFinish}
       closeButtonLabel="Reset"

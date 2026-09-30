@@ -26,8 +26,12 @@ import SwitchPageSmall from "@/components/switch-page/small";
 import withAdmin from "@/hoc/withAdmin";
 import { loadingBar } from "@/components/loadings/loading-bar/top-loading-bar.store";
 import NumberInput from "@/components/inputs/number-input";
+import ButtonDropdownRadio from "@/components/buttons/dropdown/btn-drop-down-radio";
 
 const LIMIT = 20;
+
+const PAGE_SIZE_OPTIONS = [10, 20, 50, 100, 250];
+const PAGE_SIZE_DEFAULT_INDEX = 2;
 
 export function UserManagement() {
   const admin = useAdmin();
@@ -50,7 +54,7 @@ export function UserManagement() {
 
   const handleResetSearchParams = useCallback(() => {
     loadingBar.open({});
-    router.push(`?page=1&sort=join_date:desc`, { scroll: false });
+    router.push(`?page=1&sort=join_date:desc&limit=${limit}`, { scroll: false });
   }, []);
 
   const handleNavigate = useCallback(
@@ -107,7 +111,12 @@ export function UserManagement() {
           </div>
 
           <div className="flex flex-col gap-4 justify-center items-center ">
-            <h2 className="w-full px-2">Users</h2>
+            <h2 className="w-full px-2">
+              Users
+              <span className="ml-2 text-md text-foreground/60">
+                ({users.length} / {usersPagination?.totalItems ?? 0})
+              </span>
+            </h2>
 
             <div className="flex flex-row flex-wrap gap-2 w-full justify-between">
               {/* Filter */}
@@ -117,9 +126,20 @@ export function UserManagement() {
                 <FilterRoles value={role ?? []} onChange={(roles) => handleNavigate("role", roles?.join(","))} />
                 <FilterBanned value={isBanned ?? null} onChange={(value) => handleNavigate("isBanned", value === null ? "" : value.toString())} />
 
-                <div className="flex flex-row gap-2 items-center mx-2">
-                  Page size
-                  <NumberInput value={limit} onChange={(value) => handleNavigate("limit", value.toString())} delay={500} />
+                <div className="flex flex-row gap-2 items-center">
+                  <ButtonDropdownRadio
+                    name="Page Size"
+                    label={
+                      <div className="flex flex-row flex-wrap gap-1.5 justify-center items-center w-fit h-fit">
+                        <p className="font-bold">Page size:</p>
+
+                        <span className="font-normal italic">{limit}</span>
+                      </div>
+                    }
+                    selectedIndex={PAGE_SIZE_OPTIONS.indexOf(limit) ?? PAGE_SIZE_DEFAULT_INDEX}
+                    onChange={(index) => handleNavigate("limit", PAGE_SIZE_OPTIONS[index].toString())}
+                    options={PAGE_SIZE_OPTIONS.map((v) => v.toString())}
+                  />
                 </div>
 
                 {searchParams.size > 3 && (
@@ -127,7 +147,7 @@ export function UserManagement() {
                     onClick={handleResetSearchParams}
                     className="h-full my-auto w-fit flex justify-center items-center font-semibold gap-1 text-error cursor-pointer"
                   >
-                    <XIcon className="w-5 h-5 text-error"></XIcon> Xóa bộ lọc
+                    <XIcon className="w-5 h-5 text-error" /> Xóa bộ lọc
                   </div>
                 )}
               </div>
@@ -147,18 +167,20 @@ export function UserManagement() {
                 ></SearchBar>
               </div>
             </div>
-            {loadingUsers ? (
-              <Loading className="h-64"></Loading>
-            ) : (
-              <>
-                <UserTable className="w-full shadow-md overflow-x-scroll custom-scrollbar" data={users} pagination={usersPagination} />
-                <SwitchPageBig
-                  maxPage={usersPagination?.totalPages ?? 0}
-                  page={page}
-                  onChange={(page) => handleNavigate("page", page.toString())}
-                ></SwitchPageBig>
-              </>
-            )}
+            <>
+              <UserTable
+                className="w-full shadow-md overflow-x-scroll custom-scrollbar"
+                isLoading={loadingUsers}
+                onResetFilter={handleResetSearchParams}
+                data={users}
+                pagination={usersPagination}
+              />
+              <SwitchPageBig
+                maxPage={usersPagination?.totalPages ?? 0}
+                page={page}
+                onChange={(page) => handleNavigate("page", page.toString())}
+              ></SwitchPageBig>
+            </>
           </div>
         </div>
       )}

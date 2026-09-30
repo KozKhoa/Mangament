@@ -1,7 +1,6 @@
 {
   "extends": "@mangament/config-typescript/nextjs.json",
   "compilerOptions": {
-    "outDir": "./dist",
     "paths": {
       "@mangament/contexts": ["../contexts/src"],
       "@mangament/contexts/*": ["../contexts/src/*"],

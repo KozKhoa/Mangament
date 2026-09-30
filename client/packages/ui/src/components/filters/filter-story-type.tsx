@@ -65,7 +65,6 @@ export default function FilterStoryType({ value, onChange }: FilterStoryTypeProp
   return (
     <ButtonDropdown
       openOnLeft={true}
-      className={`border-foreground/30 border rounded-sm relative text-foreground`}
       acceptButtonLabel="Finish"
       onClickAcceptButton={handleFinish}
       closeButtonLabel="Reset"

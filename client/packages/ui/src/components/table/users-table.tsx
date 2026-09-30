@@ -23,8 +23,12 @@ import { imageUrlResole } from "@/utils/imageUrlResole";
 export interface UserTableProps {
   className?: string;
 
+  isLoading?: boolean;
+
   data: User[];
   pagination?: Pagination;
+
+  onResetFilter?: () => void;
 }
 
 // This is tag <td/> of <table/> in html
@@ -36,7 +40,7 @@ function TD({ className, children, style }: { className?: string; children?: Rea
   );
 }
 
-export default function UserTable({ className, data }: UserTableProps) {
+export default function UserTable({ className, data, isLoading, onResetFilter }: UserTableProps) {
   // Use to prevent duplicate press when banning or deleting user
   const [processedBanningUsers, setPocessedBanningUsers] = useState(new Set<User>());
   const [processDeleteUsers, setProcessingDeleteUsers] = useState(new Set<User>());
@@ -140,100 +144,123 @@ export default function UserTable({ className, data }: UserTableProps) {
   }, [data]);
 
   return (
-    <div className={`bg-background-items rounded-lg border border-foreground/10 overflow-hidden ${className}`}>
-      {users.length > 0 ? (
-        <table className="w-full">
-          <colgroup className=" ">
-            <col className="border-r border-foreground/10" />
-            <col className="border-r border-l border-foreground/10" />
-            <col className="border-r border-l border-foreground/10" />
-            <col className="border-r border-l border-foreground/10" />
-            <col className="border-r border-l border-foreground/10" />
-            <col className="border-r border-l border-foreground/10" />
-            <col className="border-r border-l border-foreground/10" />
-            <col className="border-r border-l border-foreground/10" />
-            <col className="border-l border-foreground/10" />
-          </colgroup>
-          <thead className="bg-foreground/5 text-[1.1em] text-foreground/70 border-b border-foreground/10">
+    <div className={`bg-background-items rounded-sm border border-foreground/10 overflow-hidden ${className}`}>
+      <table className="w-full">
+        <colgroup className=" ">
+          <col className="border-r border-foreground/10" />
+          <col className="border-r border-l border-foreground/10" />
+          <col className="border-r border-l border-foreground/10" />
+          <col className="border-r border-l border-foreground/10" />
+          <col className="border-r border-l border-foreground/10" />
+          <col className="border-r border-l border-foreground/10" />
+          <col className="border-r border-l border-foreground/10" />
+          <col className="border-r border-l border-foreground/10" />
+          <col className="border-l border-foreground/10" />
+        </colgroup>
+        <thead className="bg-foreground/5 text-base font-semibold text-foreground/70 border-b border-foreground/10">
+          <tr>
+            <th>Avatar</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Gender</th>
+            <th>Join date</th>
+            <th>Birthday</th>
+            <th>Role</th>
+            <th>Banned</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {isLoading ? (
             <tr>
-              <th>Avatar</th>
-              <th>Name</th>
-              <th>Email</th>
-              <th>Gender</th>
-              <th>Join date</th>
-              <th>Birthday</th>
-              <th>Role</th>
-              <th>Banned</th>
-              <th>Action</th>
+              <td colSpan={10} className="text-center py-4 text-base">
+                <Loading spinnerClassName="w-6 border-2" className="m-auto my-2"></Loading>
+                <span>Loading...</span>
+              </td>
             </tr>
-          </thead>
-          <tbody>
-            {users.map((user, i) => (
-              <tr key={user.id} className={`hover:bg-foreground/10 ${i % 2 === 0 ? "" : "bg-foreground/2"}`}>
-                {/* Avatar */}
-                <TD>
-                  <div className="w-8 aspect-square m-auto">
-                    <Image src={imageUrlResole(user.avatar, { fallback: "/avatar.png" })} alt="Avatar" width={100} height={100} />
-                  </div>
-                </TD>
-                <TD>{user.name}</TD>
-                <TD>{user.email}</TD>
-                <TD>
-                  <GenderTag gender={user.gender ?? "other"}></GenderTag>
-                </TD>
-                <TD>{user.join_date && new Date(user.join_date ?? "").toLocaleDateString("vi")}</TD>
-                <TD>{user.birthday && new Date(user.birthday).toLocaleDateString("vi")}</TD>
-                <TD>
-                  <RoleTag role={user.role}></RoleTag>
-                </TD>
-                <TD>
-                  <div className="flex flex-row gap-2 justify-center items-center w-fit m-auto">
-                    <Switch // Toggle for banning user
-                      loading={processedBanningUsers.has(user)}
-                      disable={user.role === "admin"}
-                      borderWeight={0}
-                      roundHeight={22}
-                      width={40}
-                      height={18}
-                      bgColorOn={"#F06449"}
-                      duration={200}
-                      defaultValue={user.is_banned}
-                      onToggle={(isOn) => toggleBanUser(user, isOn)}
-                    ></Switch>
-                    <div className="p-0.5">
-                      {user.is_banned ? <LockIcon className="w-5 h-5 text-red-600"></LockIcon> : <UnlockIcon className="w-5 h-5 text-blue-500"></UnlockIcon>}
-                    </div>
-                  </div>
-                </TD>
-                <TD>
-                  <div className="flex flex-row gap-2 w-full justify-around items-center">
-                    {/* Adjust user info */}
-                    <button
-                      onClick={() => updateUserInfo(user)}
-                      disabled={user.role === "admin"} // Cannot ban, delete or adjust admin information
-                      className={`w-5.5 h-5.5 ${user.role === "admin" ? "opacity-60" : "cursor-pointer"}`}
-                    >
-                      <EditIcon className="w-full h-full text-foreground/90"></EditIcon>
-                    </button>
-                    {/* Delete user */}
-                    <div className={`w-6 h-6 ${user.role === "admin" ? "opacity-60" : "cursor-pointer"}`}>
-                      {processDeleteUsers.has(user) ? (
-                        <Loading className="w-full h-full"></Loading>
-                      ) : (
-                        <button disabled={user.role === "admin"} onClick={() => deleteUser(user)}>
-                          <DeleteIcon className="w-full h-full text-red-600"></DeleteIcon>
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                </TD>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      ) : (
-        <NoContent></NoContent>
-      )}
+          ) : (
+            <>
+              {users.length > 0 ? (
+                <>
+                  {users.map((user, i) => (
+                    <tr key={user.id} className={`hover:bg-foreground/10 ${i % 2 === 0 ? "" : "bg-foreground/2"}`}>
+                      {/* Avatar */}
+                      <TD>
+                        <div className="w-8 aspect-square m-auto">
+                          <Image src={imageUrlResole(user.avatar, { fallback: "/avatar.png" })} alt="Avatar" width={100} height={100} />
+                        </div>
+                      </TD>
+                      <TD>{user.name}</TD>
+                      <TD>{user.email}</TD>
+                      <TD>
+                        <GenderTag gender={user.gender ?? "other"}></GenderTag>
+                      </TD>
+                      <TD>{user.join_date && new Date(user.join_date ?? "").toLocaleDateString("vi")}</TD>
+                      <TD>{user.birthday && new Date(user.birthday).toLocaleDateString("vi")}</TD>
+                      <TD>
+                        <RoleTag role={user.role}></RoleTag>
+                      </TD>
+                      <TD>
+                        <div className="flex flex-row gap-2 justify-center items-center w-fit m-auto">
+                          <Switch // Toggle for banning user
+                            loading={processedBanningUsers.has(user)}
+                            disable={user.role === "admin"}
+                            borderWeight={0}
+                            roundHeight={22}
+                            width={40}
+                            height={18}
+                            bgColorOn={"#F06449"}
+                            duration={200}
+                            defaultValue={user.is_banned}
+                            onToggle={(isOn) => toggleBanUser(user, isOn)}
+                          ></Switch>
+                          <div className="p-0.5">
+                            {user.is_banned ? (
+                              <LockIcon className="w-5 h-5 text-red-600"></LockIcon>
+                            ) : (
+                              <UnlockIcon className="w-5 h-5 text-blue-500"></UnlockIcon>
+                            )}
+                          </div>
+                        </div>
+                      </TD>
+                      <TD>
+                        <div className="flex flex-row gap-2 w-full justify-around items-center">
+                          {/* Adjust user info */}
+                          <button
+                            onClick={() => updateUserInfo(user)}
+                            disabled={user.role === "admin"} // Cannot ban, delete or adjust admin information
+                            className={`w-5.5 h-5.5 ${user.role === "admin" ? "opacity-60" : "cursor-pointer"}`}
+                          >
+                            <EditIcon className="w-full h-full text-foreground/90"></EditIcon>
+                          </button>
+                          {/* Delete user */}
+                          <div className={`w-6 h-6 ${user.role === "admin" ? "opacity-60" : "cursor-pointer"}`}>
+                            {processDeleteUsers.has(user) ? (
+                              <Loading className="w-full h-full"></Loading>
+                            ) : (
+                              <button disabled={user.role === "admin"} onClick={() => deleteUser(user)}>
+                                <DeleteIcon className="w-full h-full text-red-600"></DeleteIcon>
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      </TD>
+                    </tr>
+                  ))}
+                </>
+              ) : (
+                <>
+                  <tr>
+                    <td colSpan={10} className="text-center py-4 text-sm">
+                      <NoContent buttonLabel="Reset Filter" onClickButton={onResetFilter}></NoContent>
+                    </td>
+                  </tr>
+                </>
+              )}
+            </>
+          )}
+        </tbody>
+      </table>
     </div>
   );
 }

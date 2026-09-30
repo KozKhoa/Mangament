@@ -36,6 +36,8 @@ import FilterStoryStatus from "@/components/filters/filter-story-status";
 import { loadingBar } from "@/components/loadings/loading-bar/top-loading-bar.store";
 
 import withAdmin from "@/hoc/withAdmin";
+import ButtonDropdownRadio from "@/components/buttons/dropdown/btn-drop-down-radio";
+import Tag from "@/components/tags/tag";
 
 const STORIES_PIE_CHART_COLORS = [
   "#6A4E42", // warm brown
@@ -66,6 +68,9 @@ const STORIES_PIE_CHART_COLORS = [
   "#E1DDD8",
 ];
 
+const PAGE_SIZE_OPTIONS = [10, 20, 50, 100, 250];
+const PAGE_SIZE_DEFAULT_INDEX = 2;
+
 const LIMIT = 20;
 
 export function StoriesManagementPage() {
@@ -77,7 +82,7 @@ export function StoriesManagementPage() {
 
   const [stories, setStoires] = useState<Story[]>([]);
   const [storiesPagination, setStoriesPagination] = useState<Pagination>();
-  const [loadingStoies, setLoadingStories] = useState(true);
+  const [loadingStories, setLoadingStories] = useState(true);
 
   const page = Number(searchParams.get("page") ?? 1);
   const limit = Number(searchParams.get("limit") ?? LIMIT);
@@ -94,6 +99,7 @@ export function StoriesManagementPage() {
   const handleNavigate = useCallback(
     (key: string, value: string) => {
       loadingBar.open({});
+      setLoadingStories(true);
       const params = new URLSearchParams(searchParams);
 
       params.set("page", "1");
@@ -110,8 +116,7 @@ export function StoriesManagementPage() {
   );
 
   const handleResetSearchParams = useCallback(() => {
-    loadingBar.open({});
-    router.push(`?page=1&sort=updated_at:desc`);
+    router.push(`?page=1&sort=updated_at:desc&limit=${limit}`);
   }, []);
 
   useEffect(() => {
@@ -146,7 +151,7 @@ export function StoriesManagementPage() {
   return (
     <div>
       <div className="w-full">
-        <Link href={"/stories-management/add"}>
+        <Link href={"/story/add"}>
           <Button buttonType="default" className="ml-auto">
             <p className="text-lg">Thêm mới</p>
             <AddIcon className="w-5 h-5"></AddIcon>
@@ -166,7 +171,12 @@ export function StoriesManagementPage() {
         ></PieChart>
 
         <div className="flex flex-col gap-4 justify-center items-center ">
-          <h2 className="w-full px-2">Users</h2>
+          <h2 className="w-full px-2">
+            Stories
+            <span className="ml-2 text-md text-foreground/60">
+              ({stories.length} / {storiesPagination?.totalItems ?? 0})
+            </span>
+          </h2>
 
           <div className="flex flex-row flex-wrap gap-2 w-full justify-between">
             <div className="flex flex-row flex-wrap gap-2 justify-start items-center h-full">
@@ -190,8 +200,19 @@ export function StoriesManagementPage() {
                   <SortStories value={sort} onSort={(sort) => handleNavigate("sort", sort)} />
 
                   <div className="flex flex-row gap-2 items-center">
-                    Page size
-                    <NumberInput value={limit} onChange={(value) => handleNavigate("limit", value.toString())} delay={500} />
+                    <ButtonDropdownRadio
+                      name="Page Size"
+                      label={
+                        <div className="flex flex-row flex-wrap gap-1.5 justify-center items-center w-fit h-fit">
+                          <p className="font-bold">Page size:</p>
+
+                          <span className="font-normal italic">{limit}</span>
+                        </div>
+                      }
+                      selectedIndex={PAGE_SIZE_OPTIONS.indexOf(limit) ?? PAGE_SIZE_DEFAULT_INDEX}
+                      onChange={(index) => handleNavigate("limit", PAGE_SIZE_OPTIONS[index].toString())}
+                      options={PAGE_SIZE_OPTIONS.map((v) => v.toString())}
+                    />
                   </div>
 
                   {searchParams.size > 3 && (
@@ -221,18 +242,15 @@ export function StoriesManagementPage() {
               ></SearchBar>
             </div>
           </div>
-          {loadingStoies ? (
-            <Loading className="h-64"></Loading>
-          ) : (
-            <>
-              <StoriesTable className="w-full shadow-md  overflow-x-scroll custom-scrollbar" data={stories} pagination={storiesPagination}></StoriesTable>
-              <SwitchPageBig
-                maxPage={storiesPagination?.totalPages ?? 0}
-                page={page}
-                onChange={(page) => handleNavigate("page", page.toString())}
-              ></SwitchPageBig>
-            </>
-          )}
+
+          <StoriesTable
+            className={`w-full shadow-md overflow-x-scroll custom-scrollbar duration-200`}
+            isLoading={loadingStories}
+            onResetFilter={handleResetSearchParams}
+            data={stories}
+            pagination={storiesPagination}
+          ></StoriesTable>
+          <SwitchPageBig maxPage={storiesPagination?.totalPages ?? 0} page={page} onChange={(page) => handleNavigate("page", page.toString())}></SwitchPageBig>
         </div>
       </div>
     </div>

@@ -45,7 +45,7 @@ export default function ManualStoryForm() {
     modal.open("confirm", {
       title: "Xác nhận thêm truyện mới",
       content: (
-        <div className="max-w-[80vw] min-w-[60vw] relative text-sm space-y-2">
+        <div className="max-w-[80vw] min-w-[60vw] relative space-y-2">
           <p>
             <span className="font-semibold">Tiêu đề : </span>
             {story?.title}
@@ -122,7 +122,7 @@ export default function ManualStoryForm() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {/* Cover art */}
           <div className="col-span-1 flex flex-col gap-2">
-            <label className="text-sm font-semibold">Ảnh bìa truyện</label>
+            <label className="font-semibold">Ảnh bìa truyện</label>
             <ImagePicker
               className="w-full"
               onChange={(file) => setCoverArtFile(file as File)}
@@ -146,7 +146,7 @@ export default function ManualStoryForm() {
         </div>
 
         <div className="pt-4 border-t border-border">
-          <Button buttonType="default" className="font-semibold text-lg w-full py-2.5" onClick={onConfirmAddNew}>
+          <Button buttonType="default" className="font-semibold w-full py-2.5" onClick={onConfirmAddNew}>
             Thêm truyện mới
           </Button>
         </div>

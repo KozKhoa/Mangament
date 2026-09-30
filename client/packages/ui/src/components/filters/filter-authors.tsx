@@ -103,7 +103,6 @@ const FilterAuthors = React.memo(({ value, onChange }: FilterAuthorProps) => {
 
   return (
     <ButtonDropdown
-      className={`border-foreground/30 border rounded-sm relative text-foreground`}
       acceptButtonLabel="Finish"
       onClickAcceptButton={handleFinish}
       closeButtonLabel="Reset"

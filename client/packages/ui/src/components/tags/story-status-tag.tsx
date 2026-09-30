@@ -14,5 +14,5 @@ function mapStatus(status: string) {
 }
 
 export default function StoryStatusTag({ children, status, className }: StatusTagProps) {
-  return <Tag className={`${mapStatus(status ?? "")} ${className ?? ""}`}>{children}</Tag>;
+  return <Tag className={`${mapStatus(status ?? "")} ${""} ${className}`}>{children}</Tag>;
 }

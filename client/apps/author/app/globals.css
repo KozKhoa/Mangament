@@ -14,19 +14,19 @@
   /* ==========================================================================
      Typography & Font Sizes (Hệ thống cỡ chữ chuẩn dùng chung cho toàn bộ app)
      ========================================================================== */
-  --text-3xs: 0.5625rem; /* 9px  - Nhãn siêu nhỏ, phụ chú */
-  --text-2xs: 0.625rem; /* 10px - Chú thích rất nhỏ, badge mini */
-  --text-xs: 0.75rem; /* 12px - Ghi chú, timestamp, badge, metadata */
-  --text-sm: 0.875rem; /* 14px - Phụ đề, mô tả, nội dung thẻ nhỏ */
-  --text-base: 1rem; /* 16px - Cỡ chữ chuẩn mặc định của app */
-  --text-md: 1.125rem; /* 18px - Chữ nhấn mạnh, tiêu đề phụ */
-  --text-lg: 1.25rem; /* 20px - Tiêu đề card, sub-header */
-  --text-xl: 1.5rem; /* 24px - Tiêu đề nhóm, H4 */
-  --text-2xl: 1.75rem; /* 28px - Tiêu đề mục lớn, H3 */
-  --text-3xl: 2rem; /* 32px - Tiêu đề chính trang, H2 */
-  --text-4xl: 2.25rem; /* 36px - Tiêu đề lớn đặc biệt, H1 */
-  --text-5xl: 3rem; /* 48px - Banner, Display text */
-  --text-6xl: 3.75rem; /* 60px - Hero, số thứ tự xếp hạng lớn */
+  --text-3xs: 0.5rem; /* 8px  */
+  --text-2xs: 0.5625rem; /* 9px  */
+  --text-xs: 0.75rem; /* 11px */
+  --text-sm: 0.875rem; /* 12px */
+  --text-base: 1rem; /* 14px */
+  --text-md: 1rem; /* 16px */
+  --text-lg: 1.125rem; /* 18px */
+  --text-xl: 1.25rem; /* 20px */
+  --text-2xl: 1.5rem; /* 24px */
+  --text-3xl: 1.875rem; /* 30px */
+  --text-4xl: 2.25rem; /* 36px */
+  --text-5xl: 3rem; /* 48px */
+  --text-6xl: 3.75rem; /* 60px */
 
   /* Line Heights chuẩn */
   --leading-none: 1;
@@ -49,7 +49,7 @@ html.dark {
   --foreground: #ffffff;
 }
 
-@theme inline {
+@theme {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-background-items: var(--background-items);
@@ -64,36 +64,22 @@ html.dark {
   --font-holtwood: var(--font-holtwood);
   --font-aclonica: var(--font-aclonica);
 
-  --text-size-default: var(--text-base);
+  --text-size-default: 0.875rem;
 
-  /* Tokens cỡ chữ cho Tailwind utilities (text-3xs, text-2xs, text-xs, text-sm, etc.) */
-  --font-size-3xs: var(--text-3xs);
-  --font-size-2xs: var(--text-2xs);
-  --font-size-xs: var(--text-xs);
-  --font-size-sm: var(--text-sm);
-  --font-size-base: var(--text-base);
-  --font-size-md: var(--text-md);
-  --font-size-lg: var(--text-lg);
-  --font-size-xl: var(--text-xl);
-  --font-size-2xl: var(--text-2xl);
-  --font-size-3xl: var(--text-3xl);
-  --font-size-4xl: var(--text-4xl);
-  --font-size-5xl: var(--text-5xl);
-  --font-size-6xl: var(--text-6xl);
-
-  --text-3xs: var(--text-3xs);
-  --text-2xs: var(--text-2xs);
-  --text-xs: var(--text-xs);
-  --text-sm: var(--text-sm);
-  --text-base: var(--text-base);
-  --text-md: var(--text-md);
-  --text-lg: var(--text-lg);
-  --text-xl: var(--text-xl);
-  --text-2xl: var(--text-2xl);
-  --text-3xl: var(--text-3xl);
-  --text-4xl: var(--text-4xl);
-  --text-5xl: var(--text-5xl);
-  --text-6xl: var(--text-6xl);
+  /* Theme tokens cho Tailwind utilities (text-3xs, text-2xs, text-xs, text-sm, text-base, text-md, etc.) */
+  --text-3xs: 0.5rem;
+  --text-2xs: 0.5625rem;
+  --text-xs: 0.6875rem;
+  --text-sm: 0.75rem;
+  --text-base: 0.875rem;
+  --text-md: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.375rem;
+  --text-2xl: 1.625rem;
+  --text-3xl: 1.875rem;
+  --text-4xl: 2.125rem;
+  --text-5xl: 2.875rem;
+  --text-6xl: 3.625rem;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -104,7 +90,7 @@ html.dark {
 }
 
 html {
-  font-size: var(--app-text-size);
+  font-size: 100%;
   -webkit-text-size-adjust: 100%;
 }
 

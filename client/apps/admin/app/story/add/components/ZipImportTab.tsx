@@ -213,7 +213,7 @@ export default function ZipImportTab() {
         <button
           type="button"
           onClick={() => setZipMethod("chunk")}
-          className={`px-4 py-2 text-sm font-semibold rounded-md transition-all ${
+          className={`px-4 py-2 font-semibold rounded-md transition-all ${
             zipMethod === "chunk" ? "bg-foreground text-background-items shadow-sm" : "opacity-70 hover:opacity-100"
           }`}
         >
@@ -223,7 +223,7 @@ export default function ZipImportTab() {
         <button
           type="button"
           onClick={() => setZipMethod("url")}
-          className={`px-4 py-2 text-sm font-semibold rounded-md transition-all ${
+          className={`px-4 py-2 font-semibold rounded-md transition-all ${
             zipMethod === "url" ? "bg-foreground text-background-items shadow-sm" : "opacity-70 hover:opacity-100"
           }`}
         >
@@ -235,8 +235,8 @@ export default function ZipImportTab() {
       {zipMethod === "chunk" && (
         <div className="flex flex-col gap-5">
           {/* Thông tin tính năng */}
-          <div className="bg-background-items border border-foreground/10 rounded-lg p-4 text-sm space-y-1.5 opacity-90 leading-relaxed">
-            <p className="font-semibold text-base">Cơ chế Chunked & Resumable Upload (Đa luồng song song)</p>
+          <div className="bg-background-items border border-foreground/10 rounded-lg p-4 space-y-1.5 opacity-90 leading-relaxed">
+            <p className="font-semibold">Cơ chế Chunked & Resumable Upload (Đa luồng song song)</p>
             <p className="text-xs opacity-75">
               File ZIP được tự động cắt thành các phần 10MB và tải lên song song đa luồng ({concurrency} chunks cùng lúc). Nếu mạng bị ngắt hoặc bạn tải lại
               trang (F5), hệ thống sẽ tự động khôi phục và tiếp tục từ phần còn thiếu mà không phải tải lại từ đầu.
@@ -255,10 +255,10 @@ export default function ZipImportTab() {
               <div className="w-16 h-16 rounded-full bg-foreground/5 flex items-center justify-center text-3xl">📦</div>
 
               {isDragActive ? (
-                <p className="text-blue-500 font-semibold text-base">Thả file ZIP vào đây...</p>
+                <p className="text-blue-500 font-semibold">Thả file ZIP vào đây...</p>
               ) : (
                 <div className="space-y-1">
-                  <p className="font-semibold text-base">Kéo & thả file ZIP truyện vào đây, hoặc click để chọn file</p>
+                  <p className="font-semibold">Kéo & thả file ZIP truyện vào đây, hoặc click để chọn file</p>
                   <p className="text-xs opacity-60">Hỗ trợ file nén .ZIP dung lượng lớn (100MB, 2GB, 5GB+)</p>
                 </div>
               )}
@@ -266,7 +266,7 @@ export default function ZipImportTab() {
           )}
 
           {fileRejections.length > 0 && (
-            <div className="p-3 rounded bg-red-500/10 border border-red-500/30 text-red-500 text-sm">⚠️ Chỉ chấp nhận file nén định dạng .zip</div>
+            <div className="p-3 rounded bg-red-500/10 border border-red-500/30 text-red-500">⚠️ Chỉ chấp nhận file nén định dạng .zip</div>
           )}
 
           {/* Dashboard tiến trình Upload khi có file */}
@@ -277,7 +277,7 @@ export default function ZipImportTab() {
                 <div className="flex items-center gap-3 overflow-hidden">
                   <span className="text-3xl shrink-0">📦</span>
                   <div className="overflow-hidden">
-                    <p className="font-semibold text-base truncate">{file.name}</p>
+                    <p className="font-semibold truncate">{file.name}</p>
                     <p className="text-xs opacity-60">
                       Tổng dung lượng: <span className="font-semibold">{formatBytes(file.size)}</span> • Khoảng{" "}
                       <span className="font-semibold">{Math.ceil(file.size / (10 * 1024 * 1024))} chunks</span> (10MB/chunk)
@@ -315,8 +315,8 @@ export default function ZipImportTab() {
               {/* Thanh Progress Bar */}
               {uploadStatus !== "idle" && (
                 <div className="space-y-2 pt-2">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="font-semibold text-base">{progress.percent}%</span>
+                  <div className="flex items-center justify-between">
+                    <span className="font-semibold">{progress.percent}%</span>
                     <span className="text-xs opacity-75">{statusMessage}</span>
                   </div>
 
@@ -328,24 +328,24 @@ export default function ZipImportTab() {
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 text-xs opacity-80 text-center sm:text-left">
                     <div className="bg-foreground/5 p-2 rounded">
                       <p className="opacity-60">Đã tải lên</p>
-                      <p className="font-semibold text-sm">
+                      <p className="font-semibold">
                         {formatBytes(progress.uploadedBytes)} / {formatBytes(file.size)}
                       </p>
                     </div>
 
                     <div className="bg-foreground/5 p-2 rounded">
                       <p className="opacity-60">Tốc độ</p>
-                      <p className="font-semibold text-sm">{progress.speed}</p>
+                      <p className="font-semibold">{progress.speed}</p>
                     </div>
 
                     <div className="bg-foreground/5 p-2 rounded">
                       <p className="opacity-60">Thời gian còn lại</p>
-                      <p className="font-semibold text-sm">{formatSeconds(progress.etaSeconds)}</p>
+                      <p className="font-semibold">{formatSeconds(progress.etaSeconds)}</p>
                     </div>
 
                     <div className="bg-foreground/5 p-2 rounded">
                       <p className="opacity-60">Tiến độ phần</p>
-                      <p className="font-semibold text-sm">
+                      <p className="font-semibold">
                         {progress.currentChunk} / {progress.totalChunks} chunks
                       </p>
                     </div>
@@ -356,17 +356,17 @@ export default function ZipImportTab() {
               {/* Nhóm nút điều khiển */}
               <div className="flex flex-wrap items-center gap-3 pt-3 border-t border-foreground/10">
                 {uploadStatus === "idle" && (
-                  <Button buttonType="default" className="flex-1 py-2.5 font-semibold text-sm" onClick={handleStartUpload}>
+                  <Button buttonType="default" className="flex-1 py-2.5 font-semibold" onClick={handleStartUpload}>
                     🚀 Bắt đầu Tải lên (Chunked Upload)
                   </Button>
                 )}
 
                 {uploadStatus === "uploading" && (
                   <>
-                    <Button buttonType="default" className="flex-1 py-2.5 font-semibold text-sm bg-amber-600 hover:bg-amber-700" onClick={handlePauseUpload}>
+                    <Button buttonType="default" className="flex-1 py-2.5 font-semibold bg-amber-600 hover:bg-amber-700" onClick={handlePauseUpload}>
                       ⏸️ Tạm dừng tải lên
                     </Button>
-                    <Button buttonType="delete" className="py-2.5 px-4 font-semibold text-sm" onClick={handleCancelUpload}>
+                    <Button buttonType="delete" className="py-2.5 px-4 font-semibold" onClick={handleCancelUpload}>
                       Hủy bỏ
                     </Button>
                   </>
@@ -374,10 +374,10 @@ export default function ZipImportTab() {
 
                 {uploadStatus === "paused" && (
                   <>
-                    <Button buttonType="default" className="flex-1 py-2.5 font-semibold text-sm" onClick={handleStartUpload}>
+                    <Button buttonType="default" className="flex-1 py-2.5 font-semibold" onClick={handleStartUpload}>
                       ▶️ Tiếp tục tải lên
                     </Button>
-                    <Button buttonType="delete" className="py-2.5 px-4 font-semibold text-sm" onClick={handleCancelUpload}>
+                    <Button buttonType="delete" className="py-2.5 px-4 font-semibold" onClick={handleCancelUpload}>
                       Hủy bỏ
                     </Button>
                   </>
@@ -386,7 +386,7 @@ export default function ZipImportTab() {
                 {uploadStatus === "completed" && (
                   <Button
                     buttonType="default"
-                    className="w-full py-2.5 font-semibold text-sm bg-green-600 hover:bg-green-700"
+                    className="w-full py-2.5 font-semibold bg-green-600 hover:bg-green-700"
                     onClick={() => {
                       setFile(null);
                       setUploadStatus("idle");
@@ -406,8 +406,8 @@ export default function ZipImportTab() {
       {zipMethod === "url" && (
         <div className="bg-background-items border border-foreground/10 rounded-lg p-6 flex flex-col gap-4">
           <div>
-            <h4 className="font-semibold text-base mb-1">Tải file ZIP trực tiếp từ URL bên ngoài</h4>
-            <p className="text-xs opacity-70 leading-relaxed">
+            <h4 className="font-semibold mb-1">Tải file ZIP trực tiếp từ URL bên ngoài</h4>
+            <p className="opacity-70 leading-relaxed text-sm">
               Dành cho các file ZIP dung lượng lớn lưu trên Google Drive, Cloudflare R2, MinIO, AWS S3 hoặc server riêng. Server sẽ tự động tải stream về trong
               nền mà không tốn băng thông máy của bạn.
             </p>
@@ -420,7 +420,7 @@ export default function ZipImportTab() {
               value={remoteUrl}
               onChange={(e) => setRemoteUrl(e.target.value)}
               placeholder="https://example.com/storage/stories_batch_2026.zip"
-              className="w-full px-3.5 py-2.5 rounded border border-foreground/20 bg-background text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3.5 py-2.5 rounded border border-foreground/20 bg-background focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
@@ -431,7 +431,7 @@ export default function ZipImportTab() {
           <div className="pt-2">
             <Button
               buttonType="default"
-              className="w-full py-2.5 font-semibold text-sm"
+              className="w-full py-2.5 font-semibold text-base"
               disable={!remoteUrl.trim() || isDownloadingUrl}
               isProcessing={isDownloadingUrl}
               onClick={handleDownloadFromUrl}

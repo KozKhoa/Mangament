@@ -7,7 +7,7 @@ import HeaderBar from "@/components/layouts/header";
 export default function UserLayout({ children }: { children: React.ReactNode }) {
   return (
     <div>
-      <HeaderBar className="fixed left-2.5 right-2.5" />
+      <HeaderBar className="fixed left-2.5 right-2.5 z-50" />
 
       <div className="max-w-[1400px] m-auto transition-all duration-300">
         <div className="max-w-[1300px] m-auto">{children}</div>

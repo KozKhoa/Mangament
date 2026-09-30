@@ -36,7 +36,12 @@ const AuthContext = createContext<AuthContextProps | null>(null);
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(() => {
+    if (typeof window !== "undefined") {
+      return !!token.getAccessToken();
+    }
+    return false;
+  });
 
   async function updateGender(newGender: string) {
     if (!user) return;
@@ -214,7 +219,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setUser(null);
     token.removeAccessToken();
     rememberMe.turnOff();
-    await signOut({ redirect: false });
+    try {
+      await signOut({ redirect: false });
+    } catch {
+      // Ignore NextAuth signOut errors if any
+    }
 
     toast.message("Đã đăng xuất thành công");
 
@@ -239,6 +248,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(function () {
     if (token.getAccessToken()) {
       me();
+    } else {
+      setLoading(false);
     }
   }, []);
 

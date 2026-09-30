@@ -228,7 +228,7 @@ export function StoriesTrashPage() {
           {/* View */}
           <div className="flex flex-row justify-star items-center gap-x-1 px-1 rounded-tl-md bg-background-items">
             <EyeIcon className="w-5 h-5"></EyeIcon>
-            <p className="italic font-semibold text-[0.8em]">{beautifulView(story?.view || 0)}</p>
+            <p className="italic font-semibold text-xs">{beautifulView(story?.view || 0)}</p>
           </div>
 
           {/* Rating */}

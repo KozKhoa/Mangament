@@ -5,7 +5,7 @@
       "@/types/*": ["../types/src/*"],
       "@/services/*": ["../services/src/*"],
       "@/constants/*": ["../ui/src/constants/*"],
-      "@/utils/*": ["../ui/src/utils/*"],
+      "@/utils/*": ["../utils/src/*"],
       "@/components/*": ["../ui/src/components/*"],
       "@/lib/*": ["../services/src/lib/*"]
     }

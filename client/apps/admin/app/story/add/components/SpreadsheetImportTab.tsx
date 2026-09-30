@@ -80,8 +80,8 @@ export default function SpreadsheetImportTab() {
       {/* Khối hướng dẫn và tải template */}
       <div className="bg-background-items border border-foreground/10 rounded-lg p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h3 className="font-semibold text-base mb-1">Cấu trúc bảng tính nhập truyện</h3>
-          <p className="text-sm opacity-80 leading-relaxed">
+          <h3 className="font-semibold  mb-1">Cấu trúc bảng tính nhập truyện</h3>
+          <p className=" opacity-80 leading-relaxed">
             Hỗ trợ định dạng <span className="font-mono font-medium">.csv, .xlsx, .xls</span> (tối đa 20MB). Bảng tính bao gồm các cột: Tiêu đề, Tóm tắt, Trạng
             thái, Thể loại, Tác giả và danh sách Chương.
           </p>
@@ -90,7 +90,7 @@ export default function SpreadsheetImportTab() {
         <Button
           type="button"
           buttonType="add"
-          className="whitespace-nowrap px-4 py-2 shrink-0 text-sm font-medium"
+          className="whitespace-nowrap px-4 py-2 shrink-0  font-medium"
           isProcessing={isDownloadingTemplate}
           onClick={handleDownloadTemplate}
         >
@@ -109,10 +109,10 @@ export default function SpreadsheetImportTab() {
         <div className="w-16 h-16 rounded-full bg-foreground/5 flex items-center justify-center text-3xl">📊</div>
 
         {isDragActive ? (
-          <p className="text-blue-500 font-semibold text-base">Thả file bảng tính vào đây...</p>
+          <p className="text-blue-500 font-semibold ">Thả file bảng tính vào đây...</p>
         ) : (
           <div className="space-y-1">
-            <p className="font-semibold text-base">Kéo & thả file bảng tính vào đây, hoặc click để chọn file</p>
+            <p className="font-semibold ">Kéo & thả file bảng tính vào đây, hoặc click để chọn file</p>
             <p className="text-xs opacity-60">Hỗ trợ .CSV, .XLSX, .XLS (Dung lượng tối đa 20MB)</p>
           </div>
         )}
@@ -120,7 +120,7 @@ export default function SpreadsheetImportTab() {
 
       {/* Báo lỗi nếu file vượt quá 20MB hoặc sai định dạng */}
       {fileRejections.length > 0 && (
-        <div className="p-3 rounded bg-red-500/10 border border-red-500/30 text-red-500 text-sm">
+        <div className="p-3 rounded bg-red-500/10 border border-red-500/30 text-red-500 ">
           ⚠️ File không hợp lệ: Vui lòng đảm bảo file có đuôi .csv, .xlsx, .xls và dung lượng dưới 20MB.
         </div>
       )}
@@ -131,7 +131,7 @@ export default function SpreadsheetImportTab() {
           <div className="flex items-center gap-3 overflow-hidden">
             <span className="text-2xl shrink-0">📄</span>
             <div className="overflow-hidden">
-              <p className="font-semibold text-sm truncate">{file.name}</p>
+              <p className="font-semibold  truncate">{file.name}</p>
               <p className="text-xs opacity-60">{formatBytes(file.size)}</p>
             </div>
           </div>
@@ -153,7 +153,7 @@ export default function SpreadsheetImportTab() {
       {/* Kết quả sau khi import */}
       {importResult && (
         <div className="p-4 rounded-lg bg-green-500/10 border border-green-500/30 text-green-700 dark:text-green-400 space-y-1">
-          <p className="font-semibold text-sm">✅ Tiếp nhận dữ liệu thành công!</p>
+          <p className="font-semibold">✅ Tiếp nhận dữ liệu thành công!</p>
           <p className="text-xs opacity-90">
             File <span className="font-semibold">{importResult.fileName}</span> ({importResult.totalRows} dòng truyện) đã được đưa vào hàng đợi worker để xử lý
             trong nền. Bạn có thể theo dõi danh sách truyện tại trang Quản lý truyện.
@@ -163,13 +163,7 @@ export default function SpreadsheetImportTab() {
 
       {/* Nút hành động */}
       <div className="pt-2">
-        <Button
-          buttonType="default"
-          className="w-full py-3 font-semibold text-base"
-          disable={!file || isImporting}
-          isProcessing={isImporting}
-          onClick={handleImport}
-        >
+        <Button buttonType="default" className="w-full py-3 font-semibold" disable={!file || isImporting} isProcessing={isImporting} onClick={handleImport}>
           {isImporting ? "Đang tải lên và xử lý..." : "Bắt đầu Import Bảng Tính"}
         </Button>
       </div>

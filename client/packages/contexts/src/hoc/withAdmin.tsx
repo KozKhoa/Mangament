@@ -7,30 +7,33 @@ import { toast } from "sonner";
 
 export default function withAdmin<T extends object>(WrappedComponent: React.ComponentType<T>) {
   return function AuthGuard(props: T) {
-    const router = useRouter();
     const auth = useAuth();
+
+    const authUrl = process.env.NEXT_PUBLIC_AUTH_URL || "http://localhost:3003";
 
     const isLoading = auth?.loading;
     const user = auth?.user;
 
     useEffect(() => {
-      if (!user && !isLoading) {
-        toast.warning("Yêu cầu đăng nhập để tiếp tục");
-        router.replace("/login");
-        return;
-      }
+      if (!isLoading) {
+        const currentUrl = typeof window !== "undefined" ? window.location.href : "";
+        const loginUrl = `${authUrl}/login?redirect=${encodeURIComponent(currentUrl)}`;
 
-      if (user && !isLoading) {
+        if (!user) {
+          toast.warning("Yêu cầu đăng nhập tài khoản quản trị viên để tiếp tục");
+          window.location.href = loginUrl;
+          return;
+        }
+
         if (user.role !== "admin") {
-          toast.warning("Bạn không có quyền truy cập vào trang này");
-          router.replace("/");
+          toast.warning("Tài khoản của bạn không có quyền truy cập trang quản trị");
+          window.location.href = loginUrl;
+          return;
         }
       }
-    }, [user, isLoading, router]);
+    }, [user, isLoading, authUrl]);
 
-    if (isLoading) return null;
-    if (!user) return null;
-    if (user.role !== "admin") return null;
+    if (isLoading || !user || user.role !== "admin") return null;
 
     return <WrappedComponent {...props} />;
   };

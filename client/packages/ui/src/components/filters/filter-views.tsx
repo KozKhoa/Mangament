@@ -97,7 +97,6 @@ const FilterViews = React.memo(({ value, onChange }: FilterViewProps) => {
   return (
     <ButtonDropdown
       openOnLeft={true}
-      className={`border-foreground/30 border rounded-sm relative text-foreground`}
       acceptButtonLabel="Finish"
       onClickAcceptButton={handleFinish}
       closeButtonLabel="Reset"

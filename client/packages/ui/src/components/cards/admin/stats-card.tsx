@@ -24,8 +24,8 @@ export default function StatsCard({ label, subLabel, value, icon, onClick, class
       {/* Content for stats card */}
       <div className="flex flex-col gap-1 justify-center items-start w-full">
         <div className="text-foreground/80">{label}</div>
-        <p className="text-[1.8em] text-foreground font-semibold ">{value}</p>
-        <p className="text-foreground/80">{subLabel}</p>
+        <p className="text-foreground font-semibold text-xl">{value}</p>
+        <p className="text-foreground/80 text-xs">{subLabel}</p>
       </div>
 
       {/* Icon for stats card */}

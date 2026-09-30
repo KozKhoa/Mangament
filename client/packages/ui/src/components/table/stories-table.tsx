@@ -24,8 +24,12 @@ import { imageUrlResole } from "@/utils/imageUrlResole";
 export interface StoriesTableProps {
   className?: string;
 
+  isLoading?: boolean;
+
   data: Story[];
   pagination?: Pagination;
+
+  onResetFilter?: () => void;
 }
 
 function TD({ className, children, style }: { className?: string; children?: React.ReactNode | React.ReactNode[]; style?: CSSProperties }) {
@@ -36,7 +40,7 @@ function TD({ className, children, style }: { className?: string; children?: Rea
   );
 }
 
-export default function StoriesTable({ className, data }: StoriesTableProps) {
+export default function StoriesTable({ className, data, isLoading, onResetFilter }: StoriesTableProps) {
   const [stories, setStories] = useState<Story[]>([]);
 
   const [processDeleteStory, setProcessingDeleteStory] = useState<Set<Story>>(new Set<Story>());
@@ -114,9 +118,9 @@ export default function StoriesTable({ className, data }: StoriesTableProps) {
   }, [data]);
 
   return (
-    <div className={`rounded-lg border border-foreground/10 bg-background-items ${className}`}>
-      {stories.length > 0 ? (
-        <table className="w-full rounded-lg ">
+    <div className="relative w-full h-full">
+      <div className={`rounded-sm border border-foreground/10 bg-background-items ${className}`}>
+        <table className="w-full ">
           <colgroup>
             <col className="border-r border-foreground/10 " />
             <col className="border-r border-l border-foreground/10" />
@@ -129,7 +133,7 @@ export default function StoriesTable({ className, data }: StoriesTableProps) {
             <col className="border-r border-l border-foreground/10" />
             <col className="border-l border-foreground/10" />
           </colgroup>
-          <thead className="bg-black/20 text-[1.1em] text-foreground/70 rounded-lg border-b border-foreground/10">
+          <thead className="bg-black/20 text-base font-semibold text-foreground/70 rounded-lg border-b border-foreground/10">
             <tr>
               <th>Cover art</th>
               <th>Title</th>
@@ -144,81 +148,104 @@ export default function StoriesTable({ className, data }: StoriesTableProps) {
             </tr>
           </thead>
           <tbody>
-            {stories.map((story, i) => (
-              <tr key={story.id} className={`hover:bg-foreground/10 ${i % 2 === 0 ? "" : "bg-foreground/2"}`}>
-                <TD>
-                  <Link href={`/stories/${story.type}/${story.id}`}>
-                    {story.cover_art?.path && (
-                      <Image
-                        className="w-24 m-auto my-1 hover:w-48 duration-200 rounded-sm min-w-[100px]"
-                        src={imageUrlResole(story.cover_art)}
-                        alt={story.title}
-                        width={200}
-                        height={300}
-                      />
-                    )}
-                  </Link>
-                </TD>
-                <TD>{story.title}</TD>
-                <TD>
-                  <div className="flex flex-row gap-1.5 justify-start items-center w-fit">
-                    <EyeIcon className="w-4.5 h-4.5 text-foreground"></EyeIcon>
-                    <p>{story.view}</p>
-                  </div>
-                </TD>
-                <TD>
-                  <div className="flex flex-row gap-1.5 justify-start items-center w-fit">
-                    <StarIcon className="w-4.5 h-4.5 text-yellow-500"></StarIcon>
-                    <p>{roundTo(story.star ?? 0, 1)}</p>
-                  </div>
-                </TD>
-                <TD>
-                  <StoryStatusTag status={story.status} className="text-center">
-                    {snakeCaseToCapitalizeWord(story.status)}
-                  </StoryStatusTag>
-                </TD>
-                <TD>{story.number_of_children}</TD>
-                <TD>
-                  <StoryTypeTag storyType={story.type}></StoryTypeTag>
-                </TD>
-
-                <TD>{[story.nation?.flag_icon, story.nation?.name].join(" ")}</TD>
-                <TD>
-                  <Switch
-                    defaultValue={story.is_actived}
-                    borderWeight={0}
-                    roundHeight={22}
-                    width={40}
-                    height={18}
-                    duration={200}
-                    loading={processActiveStory.has(story)}
-                    onToggle={(isOn) => toggleActiveStory(story, isOn)}
-                    className="m-auto"
-                  ></Switch>
-                </TD>
-                <TD>
-                  <div className="flex flex-row w-full gap-2 justify-around items-center">
-                    <Link href={`/admin/stories-management/edit/${story.id}`} className={`w-5.5 h-5.5 cursor-pointer`}>
-                      <EditIcon className="w-full h-full text-foreground/90"></EditIcon>
-                    </Link>
-                    <div className={`w-6 h-6`}>
-                      {processDeleteStory.has(story) ? (
-                        <Loading className="w-full h-full"></Loading>
-                      ) : (
-                        <button onClick={() => deleteStory(story)} className="cursor-pointer">
-                          <DeleteIcon className="w-full h-full text-red-600 "></DeleteIcon>
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                </TD>
+            {isLoading ? (
+              <tr>
+                <td colSpan={10} className="text-center py-4 text-base">
+                  <Loading spinnerClassName="w-6 border-2" className="m-auto my-2"></Loading>
+                  <span>Loading...</span>
+                </td>
               </tr>
-            ))}
+            ) : (
+              <>
+                {stories.length ? (
+                  <>
+                    {stories.map((story, i) => (
+                      <tr key={story.id} className={`hover:bg-foreground/5 duration-100 ${i % 2 === 0 ? "" : "bg-foreground/2"}`}>
+                        <TD>
+                          <Link href={`/story/edit/${story.id}`}>
+                            {story.cover_art?.path && (
+                              <Image
+                                className="w-24 m-auto my-1 rounded-sm min-w-[100px]"
+                                src={imageUrlResole(story.cover_art)}
+                                alt={story.title}
+                                width={200}
+                                height={300}
+                              />
+                            )}
+                          </Link>
+                        </TD>
+                        <TD>
+                          <p className="text-lg">{story.title}</p>
+                        </TD>
+                        <TD>
+                          <div className="flex flex-row gap-1.5 justify-start items-center w-fit">
+                            <EyeIcon className="w-4.5 h-4.5 text-foreground"></EyeIcon>
+                            <p>{story.view}</p>
+                          </div>
+                        </TD>
+                        <TD>
+                          <div className="flex flex-row gap-1.5 justify-start items-center w-fit">
+                            <StarIcon className="w-4.5 h-4.5 text-yellow-500"></StarIcon>
+                            <p>{roundTo(story.star ?? 0, 1)}</p>
+                          </div>
+                        </TD>
+                        <TD>
+                          <StoryStatusTag status={story.status} className="text-center">
+                            {snakeCaseToCapitalizeWord(story.status)}
+                          </StoryStatusTag>
+                        </TD>
+                        <TD>{story.number_of_children}</TD>
+                        <TD>
+                          <StoryTypeTag storyType={story.type}></StoryTypeTag>
+                        </TD>
+
+                        <TD>{[story.nation?.flag_icon, story.nation?.name].join(" ")}</TD>
+                        <TD>
+                          <Switch
+                            defaultValue={story.is_actived}
+                            borderWeight={0}
+                            roundHeight={22}
+                            width={40}
+                            height={18}
+                            duration={200}
+                            loading={processActiveStory.has(story)}
+                            onToggle={(isOn) => toggleActiveStory(story, isOn)}
+                            className="m-auto"
+                          ></Switch>
+                        </TD>
+                        <TD>
+                          <div className="flex flex-row w-full gap-2 justify-around items-center">
+                            <Link href={`/story/edit/${story.id}`} className={`w-5.5 h-5.5 cursor-pointer`}>
+                              <EditIcon className="w-full h-full text-foreground/90"></EditIcon>
+                            </Link>
+                            <div className={`w-6 h-6`}>
+                              {processDeleteStory.has(story) ? (
+                                <Loading className="w-full h-full"></Loading>
+                              ) : (
+                                <button onClick={() => deleteStory(story)} className="cursor-pointer">
+                                  <DeleteIcon className="w-full h-full text-red-600 "></DeleteIcon>
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        </TD>
+                      </tr>
+                    ))}
+                  </>
+                ) : (
+                  <>
+                    <tr>
+                      <td colSpan={10} className="text-center py-4 text-sm">
+                        <NoContent buttonLabel="Reset Filter" onClickButton={onResetFilter}></NoContent>
+                      </td>
+                    </tr>
+                  </>
+                )}
+              </>
+            )}
           </tbody>
         </table>
-      ) : (
-        <NoContent></NoContent>
-      )}
+      </div>
     </div>
   );
 }

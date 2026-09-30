@@ -7,6 +7,16 @@ import useResize from "@/hooks/useResize";
 import Link from "@/components/link/Link";
 import { usePathname } from "next/navigation";
 
+import Image from "next/image";
+import { imageUrlResole } from "@/utils/imageUrlResole";
+import LogoutIcon from "@/public/auth/logout.svg";
+import ProfileIcon from "@/public/people/people.svg";
+import PasswordIcon from "@/public/change-password.svg";
+import DashboardIcon from "@/public/dashboard.svg";
+import StoryIcon from "@/public/book.svg";
+import TrashIcon from "@/public/delete.svg";
+import { motion, AnimatePresence } from "framer-motion";
+
 interface AdminSidebarProps {
   className?: string;
 }
@@ -45,6 +55,17 @@ export default function AdminSidebar({ className = "" }: AdminSidebarProps) {
   const pathname = usePathname();
   const resizeRef = useResize({ resizeRight: true, minWidth: 200 });
   const [open, setOpen] = useState(true);
+  const [accountMenuOpen, setAccountMenuOpen] = useState(false);
+
+  const authUrl = process.env.NEXT_PUBLIC_AUTH_URL || "http://localhost:3003";
+  const adminUrl = process.env.NEXT_PUBLIC_ADMIN_URL || (typeof window !== "undefined" ? window.location.origin : "http://localhost:3001");
+
+  const getAuthUrl = (path: string) => `${authUrl}${path}`;
+
+  const handleLogout = async () => {
+    await auth?.logout();
+    window.location.href = `${authUrl}/login?redirect=${encodeURIComponent(adminUrl)}`;
+  };
 
   // Không cho scroll màn hình khi sidebar đang mở ở mobile
   useEffect(() => {
@@ -70,7 +91,7 @@ export default function AdminSidebar({ className = "" }: AdminSidebarProps) {
     <>
       <div
         className={`relative transition-transform duration-200 
-          md:sticky md:h-screen md:top-0 w-fit z-30
+          md:sticky md:h-screen md:top-0 w-fit
           ${open ? "md:w-fit" : "md:w-0"}`}
       >
         <div
@@ -79,7 +100,7 @@ export default function AdminSidebar({ className = "" }: AdminSidebarProps) {
             transition-transform duration-200 fixed 
 
             /* ===== Mobile ===== */
-            bottom-0 left-1/2 -translate-x-1/2 w-[90vw]
+            bottom-0 left-1/2 -translate-x-1/2 w-[90vw] z-50
 
             /* ===== Desktop ===== */
             md:relative md:left-0 md:top-0 md:bottom-auto md:w-[280px] md:h-full
@@ -114,46 +135,116 @@ export default function AdminSidebar({ className = "" }: AdminSidebarProps) {
               </div>
             </div>
 
-            <div className="overflow-y-auto custom-scrollbar">
-              <div className="flex flex-col gap-2.5 h-fit">
+            <div className="overflow-y-auto custom-scrollbar flex-1 min-h-0">
+              <div className="flex flex-col gap-2.5 h-fit pb-2">
                 <Link href={"/dashboard"}>
                   <ButtonExpandable
-                    className={
-                      pathname === "/dashboard" || pathname.includes("dashboard")
-                        ? "bg-foreground/95 text-background-items hover:bg-foreground/95 hover:text-background-items"
-                        : ""
-                    }
+                    className={`
+                      rounded-b-none
+                      ${
+                        pathname === "/dashboard" || pathname.includes("dashboard")
+                          ? "bg-foreground/95 text-background-items hover:bg-foreground/95 hover:text-background-items"
+                          : ""
+                      }`}
+                    icon={<DashboardIcon className="w-5 h-5 shrink-0" />}
                     label="Dashboard"
-                  ></ButtonExpandable>
+                  />
                 </Link>
 
-                <Link href={"/user-management"}>
+                <Link href={"/user"}>
                   <ButtonExpandable
-                    className={
-                      pathname.includes("user-management") ? "bg-foreground/95 text-background-items hover:bg-foreground/95 hover:text-background-items" : ""
-                    }
+                    className={`
+                      rounded-b-none
+                      ${pathname.includes("user") ? "bg-foreground/95 text-background-items hover:bg-foreground/95 hover:text-background-items" : ""}`}
+                    icon={<ProfileIcon className="w-5 h-5 shrink-0" />}
                     label="Quản lý User"
-                  ></ButtonExpandable>
+                  />
                 </Link>
 
-                <Link href={"/stories-management"}>
+                <Link href={"/story"}>
                   <ButtonExpandable
-                    className={
-                      pathname.includes("stories-management") ? "bg-foreground/95 text-background-items hover:bg-foreground/95 hover:text-background-items" : ""
-                    }
+                    className={`rounded-b-none 
+                      ${pathname.includes("story") ? "bg-foreground/95 text-background-items hover:bg-foreground/95 hover:text-background-items" : ""}`}
+                    icon={<StoryIcon className="w-5 h-5 shrink-0" />}
                     label="Quản lý Story"
-                  ></ButtonExpandable>
+                  />
                 </Link>
 
                 <Link href={"/trash"}>
                   <ButtonExpandable
-                    className={pathname.includes("trash") ? "bg-foreground/95 text-background-items hover:bg-foreground/95 hover:text-background-items" : ""}
+                    className={`rounded-b-none ${pathname.includes("trash") ? "bg-foreground/95 text-background-items hover:bg-foreground/95 hover:text-background-items" : ""}`}
+                    icon={<TrashIcon className="w-5 h-5 shrink-0" />}
                     label="Thùng rác"
-                  ></ButtonExpandable>
+                  />
                 </Link>
-
-                <div className="h-32"></div>
               </div>
+            </div>
+
+            {/* Bottom User Account Section */}
+            <div className="mt-auto pt-3 border-t border-foreground/20 flex flex-col gap-1 shrink-0">
+              <div
+                onClick={() => setAccountMenuOpen((prev) => !prev)}
+                className={`flex items-center justify-between p-2 rounded-lg border border-foreground/15 bg-foreground/5 hover:bg-foreground/10 transition-colors cursor-pointer select-none ${
+                  accountMenuOpen ? "border-foreground/30 bg-foreground/10" : ""
+                }`}
+              >
+                <div className="flex items-center gap-2.5 overflow-hidden min-w-0">
+                  <div className="w-9 h-9 rounded-full overflow-hidden shrink-0 border border-foreground/20 bg-background flex items-center justify-center">
+                    <Image
+                      src={imageUrlResole(auth.user?.avatar, { fallback: "/avatar.png" })}
+                      alt="Avatar"
+                      width={36}
+                      height={36}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div className="flex flex-col min-w-0 text-left">
+                    <span className="font-semibold text-foreground truncate leading-tight">{auth.user?.name || "Admin"}</span>
+                    <span className="text-xs text-foreground/60 truncate">Quản trị viên</span>
+                  </div>
+                </div>
+
+                <div className={`p-1 transition-transform duration-200 text-foreground/60 shrink-0 ${accountMenuOpen ? "rotate-180" : ""}`}>
+                  <ArrowDownIcon className="w-4 h-4" />
+                </div>
+              </div>
+
+              {/* Collapsible Account Menu */}
+              <AnimatePresence>
+                {accountMenuOpen && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.15, ease: "easeInOut" }}
+                    className="overflow-hidden flex flex-col gap-1 pt-1"
+                  >
+                    <a
+                      href={getAuthUrl("/me")}
+                      className="flex items-center gap-2.5 px-3 py-2 rounded-md text-foreground/80 hover:text-foreground hover:bg-foreground/10 transition-colors"
+                    >
+                      <ProfileIcon className="w-4 h-4 shrink-0" />
+                      <span className="truncate">Thông tin tài khoản</span>
+                    </a>
+
+                    <a
+                      href={getAuthUrl("/change-password")}
+                      className="flex items-center gap-2.5 px-3 py-2 rounded-md text-foreground/80 hover:text-foreground hover:bg-foreground/10 transition-colors"
+                    >
+                      <PasswordIcon className="w-4 h-4 shrink-0" />
+                      <span className="truncate">Đổi mật khẩu</span>
+                    </a>
+
+                    <button
+                      onClick={handleLogout}
+                      className="flex items-center gap-2.5 px-3 py-2 rounded-md text-red-500 hover:bg-red-500/10 transition-colors cursor-pointer w-full text-left"
+                    >
+                      <LogoutIcon className="w-4 h-4 shrink-0 fill-red-500 text-red-500" />
+                      <span className="font-medium">Đăng xuất</span>
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </div>
 

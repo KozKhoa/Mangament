@@ -176,8 +176,8 @@ export default function ContinueReadingCard({ history, onClickRemove, className 
         </h3>
 
         {/* Hàng 3: Chapter đang đọc dở */}
-        <div className="flex items-center gap-1.5 text-xs sm:text-sm text-foreground/80 font-medium truncate shrink-0">
-          <span className="text-accept-button shrink-0 text-sm">📖</span>
+        <div className="flex items-center gap-1.5 sm:text-sm text-foreground/60 font-medium truncate shrink-0 text-sm md:text-lg xl:text-xl">
+          <span className="text-accept-button shrink-0">📖</span>
           <span className="truncate font-semibold">{getChapterDisplayName(currentChapter)}</span>
         </div>
 
@@ -196,7 +196,7 @@ export default function ContinueReadingCard({ history, onClickRemove, className 
                   )}
                 </>
               ) : (
-                `Chương ${currentOrder}`
+                getChapterDisplayName(currentChapter)
               )}
             </span>
           </div>

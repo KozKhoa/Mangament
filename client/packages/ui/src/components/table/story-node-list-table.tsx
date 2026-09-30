@@ -163,7 +163,7 @@ export default function StoryNodeList({ storyNodes, onClickItem, className, targ
         <Loading className="w-full h-64"></Loading>
       ) : (
         <div className="w-full flex flex-col flex-1 min-h-0">
-          <div className="flex flex-row items-center justify-between px-2 pb-1.5 border-b border-foreground text-[1.1em] font-bold w-full shrink-0">
+          <div className="flex flex-row items-center justify-between px-2 pb-1.5 border-b border-foreground text-base font-bold w-full shrink-0">
             <div className="flex-1 text-left">Title</div>
             <div className="md:w-28 shrink-0 text-end pr-2">View</div>
             <div className="md:w-28 shrink-0 text-end">Date</div>

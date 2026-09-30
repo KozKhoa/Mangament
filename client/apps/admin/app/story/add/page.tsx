@@ -43,7 +43,7 @@ export function AddNewStoryPage() {
           <button
             type="button"
             onClick={() => setActiveTab("manual")}
-            className={`px-3.5 py-1.5 text-xs sm:text-sm font-semibold rounded-md transition-all cursor-pointer ${
+            className={`px-3.5 py-1.5 font-semibold rounded-md transition-all cursor-pointer ${
               activeTab === "manual" ? "bg-foreground text-background-items shadow-sm" : "opacity-70 hover:opacity-100"
             }`}
           >
@@ -53,7 +53,7 @@ export function AddNewStoryPage() {
           <button
             type="button"
             onClick={() => setActiveTab("spreadsheet")}
-            className={`px-3.5 py-1.5 text-xs sm:text-sm font-semibold rounded-md transition-all cursor-pointer ${
+            className={`px-3.5 py-1.5 font-semibold rounded-md transition-all cursor-pointer ${
               activeTab === "spreadsheet" ? "bg-foreground text-background-items shadow-sm" : "opacity-70 hover:opacity-100"
             }`}
           >
@@ -63,7 +63,7 @@ export function AddNewStoryPage() {
           <button
             type="button"
             onClick={() => setActiveTab("zip")}
-            className={`px-3.5 py-1.5 text-xs sm:text-sm font-semibold rounded-md transition-all cursor-pointer ${
+            className={`px-3.5 py-1.5 font-semibold rounded-md transition-all cursor-pointer ${
               activeTab === "zip" ? "bg-foreground text-background-items shadow-sm" : "opacity-70 hover:opacity-100"
             }`}
           >

@@ -7,6 +7,7 @@ import TriangleDownIcon from "@/public/triangle-down.svg";
 interface ButtonDropDownProps {
   onClick?: () => void;
   label?: string | React.ReactNode;
+  icon?: React.ReactNode;
   duration?: number;
   children?: React.ReactNode;
 
@@ -15,6 +16,7 @@ interface ButtonDropDownProps {
 
 function ButtonExpandable({
   label,
+  icon,
   onClick,
   duration = 100,
   children,
@@ -35,17 +37,27 @@ function ButtonExpandable({
     <div className={`overflow-hidden`}>
       {/* Main button*/}
       <div
-        className={`flex flex-row justify-between items-center gap-1 px-5 py-1.5 border-b border-foreground 
-          w-full rounded-t-md hover:bg-foreground/20 ${className}`}
+        className={`flex flex-row justify-between items-center gap-2.5 px-4 py-2 border-b border-foreground 
+          w-full ${!children ? "rounded-md" : "rounded-t-md"} transition-colors hover:bg-foreground/20 ${className}`}
       >
-        {typeof label === "string" && (
-          <button className="cursor-pointer w-full text-start" onClick={handleClick}>
-            {label}
+        {!children ? (
+          <button className="cursor-pointer w-full text-start flex items-center gap-2.5" onClick={handleClick}>
+            {icon && <span className="shrink-0 flex items-center justify-center">{icon}</span>}
+            {typeof label === "string" ? <span className="truncate">{label}</span> : label}
           </button>
-        )}
-        {children && (
+        ) : typeof label === "string" || icon ? (
+          <>
+            <button className="cursor-pointer w-full text-start flex items-center gap-2.5" onClick={handleClick}>
+              {icon && <span className="shrink-0 flex items-center justify-center">{icon}</span>}
+              {typeof label === "string" ? <span className="truncate">{label}</span> : label}
+            </button>
+            <button className="cursor-pointer h-full justify-center items-center pl-1 shrink-0" onClick={toggleOpenList}>
+              <TriangleDownIcon className="text-foreground w-4 h-4 shrink-0" />
+            </button>
+          </>
+        ) : (
           <button className="cursor-pointer h-full w-full justify-center items-center" onClick={toggleOpenList}>
-            {typeof label === "string" ? <TriangleDownIcon className="text-foreground w-4 h-4 shrink-0" /> : label}
+            {label}
           </button>
         )}
       </div>

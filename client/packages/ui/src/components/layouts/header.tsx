@@ -263,7 +263,14 @@ function GenreButton({ isMobile = false }: { isMobile?: boolean }) {
     );
   } else {
     return (
-      <ButtonDropdown className="w-full h-full" label="Thể loại" onClick={() => handleGenreClick("/genre")}>
+      <ButtonDropdown
+        className="w-full h-full"
+        label="Thể loại"
+        onClick={() => handleGenreClick("/genre")}
+        isBorderless={true}
+        isMainButtonMoveUp={false}
+        isCloseListOnClickInside={true}
+      >
         <div className="grid grid-cols-2 gap-x-5 gap-y-1 w-[300px] sm:w-[400px] lg:grid-cols-3 lg:w-[600px]">
           {genres &&
             genres.length > 0 &&
@@ -363,6 +370,9 @@ function HeaderBar({ duration = 100, autoHide = true, className }: NavBarProps) 
 
           <ButtonDropdown
             openOnLeft={false}
+            isBorderless={true}
+            isMainButtonMoveUp={false}
+            isCloseListOnClickInside={true}
             icon={
               <div className="flex gap-1.5 min-w-10 aspect-square rounded-full overflow-hidden shrink-0">
                 <Image src={imageUrlResole(user?.avatar, { fallback: "/avatar.png" })} className="rounded-full shrink-0 " alt="Avatar" width={40} height={40} />

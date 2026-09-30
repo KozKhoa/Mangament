@@ -18,6 +18,7 @@ import StoryStatusTag from "@/components/tags/story-status-tag";
 import GenreTag from "@/components/tags/genre-tag";
 import Loading from "@/components/loadings/loading";
 import Link from "@/components/link/Link";
+import Tag from "../tags/tag";
 
 interface CircleRankingShowcaseProps {
   label?: string;
@@ -243,7 +244,7 @@ export default function CircleRankingShowcase({
           {/* ======================================================== */}
           {/* THANH KIM NẰM Ở TRÊN CÙNG (12h) DÙNG ĐỂ XÁC ĐỊNH TRUYỆN  */}
           {/* ======================================================== */}
-          <div className="relative z-40 flex flex-col items-center pointer-events-none -mb-3 sm:-mb-4">
+          <div className="relative z-10 flex flex-col items-center pointer-events-none -mb-3 sm:-mb-2">
             {/* Nhãn tag hiển thị trên đầu kim */}
             <div className="px-3 py-0.5 rounded-full text-[11px] font-black tracking-wider uppercase bg-foreground text-background shadow-lg border border-background/20 flex items-center gap-1.5 mb-0.5">
               <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse inline-block" />
@@ -335,59 +336,88 @@ export default function CircleRankingShowcase({
                 <circle cx={cx} cy={cy} r={rIn} fill="none" stroke="currentColor" strokeWidth="2" className="text-foreground/30" />
               </svg>
 
-              {/* 2. CÁC COVER_ART VÀ CON SỐ THỨ TỰ RANKING LỚN TRÀN RA NGOÀI VÒNG TRÒN */}
+              {/* 2. CÁC COVER_ART VÀ CON SỐ THỨ TỰ RANKING TRÊN VIỀN NGOÀI HÌNH TRÒN */}
               {rankingStories.map((story, i) => {
                 const rank = i + 1;
                 const isActive = i === activeIndex;
                 const theme = getRankTheme(rank);
 
-                // Tính toạ độ tâm của ảnh trên lát cắt thứ i
+                // Tính toạ độ của lát cắt thứ i
                 const angleDeg = i * SLICE_ANGLE; // 0, 45, 90, 135...
                 const angleRad = angleDeg * (Math.PI / 180);
-                const posX = 50 + ((rMid * Math.sin(angleRad)) / svgSize) * 100;
-                const posY = 50 - ((rMid * Math.cos(angleRad)) / svgSize) * 100;
+
+                // Vị trí tâm của ảnh bìa trên lát cắt
+                const coverX = 50 + ((rMid * Math.sin(angleRad)) / svgSize) * 100;
+                const coverY = 50 - ((rMid * Math.cos(angleRad)) / svgSize) * 100;
+
+                // Vị trí con số thứ tự ranking nằm trên viền ngoài hình tròn theo hướng tia góc
+                const rRank = rOut + 10;
+                const rankX = 50 + ((rRank * Math.sin(angleRad)) / svgSize) * 100;
+                const rankY = 50 - ((rRank * Math.cos(angleRad)) / svgSize) * 100;
 
                 return (
-                  <div
-                    key={story.id}
-                    className="absolute pointer-events-auto cursor-pointer overflow-visible"
-                    style={{
-                      left: `${posX}%`,
-                      top: `${posY}%`,
-                      transformOrigin: "center center",
-                      // Xoay ảnh theo góc của lát cắt: Chân ảnh hướng vào tâm, đầu ảnh hướng ra viền ngoài
-                      transform: `translate(-50%, -50%) rotate(${angleDeg}deg)`,
-                      zIndex: isActive ? 30 : 10,
-                    }}
-                    onClick={() => rotateTo(i)}
-                  >
-                    {/* CON SỐ THỨ TỰ RANKING NHỎ GỌN TRÀN NHẸ RA NGOÀI VÒNG TRÒN */}
-                    <div
-                      className={`absolute -top-4 sm:-top-5 md:-top-6 left-1/2 -translate-x-1/2 font-aclonica text-xl sm:text-2xl md:text-3xl font-black select-none pointer-events-none transition-all duration-300 z-30 ${
-                        theme.textClass
-                      } ${
-                        isActive ? "scale-115 drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]" : "opacity-80 hover:opacity-100 drop-shadow-[0_1px_4px_rgba(0,0,0,0.7)]"
-                      }`}
+                  <div key={story.id}>
+                    {/* CON SỐ THỨ TỰ RANKING TRÊN VIỀN NGOÀI (HƯỚNG TÂM RA NGOÀI, LUÔN NẰM NGANG) */}
+                    <motion.div
+                      className="absolute pointer-events-auto cursor-pointer font-aclonica text-xl sm:text-2xl md:text-3xl font-black select-none z-35"
                       style={{
+                        left: `${rankX}%`,
+                        top: `${rankY}%`,
+                        x: "-50%",
+                        y: "-50%",
+                        transformOrigin: "center center",
                         WebkitTextStroke: "0.5px rgba(0,0,0,0.3)",
                       }}
+                      animate={{ rotate: -rotationAngle }}
+                      transition={{ type: "spring", stiffness: 65, damping: 15 }}
+                      onClick={() => rotateTo(i)}
                     >
-                      {rank}
-                    </div>
+                      <span
+                        className={`transition-all duration-300 block ${theme.textClass} ${
+                          isActive
+                            ? "scale-115 drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]"
+                            : "opacity-80 hover:opacity-100 drop-shadow-[0_1px_4px_rgba(0,0,0,0.7)]"
+                        }`}
+                      >
+                        {rank}
+                      </span>
+                    </motion.div>
 
-                    {/* Khung thẻ ảnh bìa đặt contain trong lát cắt */}
-                    <div
-                      className={`relative w-[58px] h-[82px] sm:w-[68px] sm:h-[98px] md:w-[74px] md:h-[106px] rounded-md overflow-hidden transition-all duration-300 ${
-                        isActive
-                          ? `${theme.ringClass} scale-110 shadow-2xl`
-                          : "opacity-75 hover:opacity-100 hover:scale-105 shadow-md border border-foreground/20"
-                      }`}
+                    {/* KHUNG THẺ ẢNH BÌA ĐẶT TRÊN LÁT CẮT (LUÔN NẰM NGANG) */}
+                    <motion.div
+                      className="absolute pointer-events-auto cursor-pointer overflow-visible"
+                      style={{
+                        left: `${coverX}%`,
+                        top: `${coverY}%`,
+                        x: "-50%",
+                        y: "-50%",
+                        transformOrigin: "center center",
+                        zIndex: isActive ? 30 : 10,
+                      }}
+                      animate={{ rotate: -rotationAngle }}
+                      transition={{ type: "spring", stiffness: 65, damping: 15 }}
+                      onClick={() => rotateTo(i)}
                     >
-                      <Image src={getCoverUrl(story)} alt={story.title} fill sizes="(max-width: 640px) 70px, 90px" className="object-cover" priority={i < 3} />
+                      <div
+                        className={`relative w-[58px] h-[82px] sm:w-[68px] sm:h-[98px] md:w-[74px] md:h-[106px] rounded-md overflow-hidden transition-all duration-300 ${
+                          isActive
+                            ? `${theme.ringClass} scale-110 shadow-2xl`
+                            : "opacity-75 hover:opacity-100 hover:scale-105 shadow-md border border-foreground/20"
+                        }`}
+                      >
+                        <Image
+                          src={getCoverUrl(story)}
+                          alt={story.title}
+                          fill
+                          sizes="(max-width: 640px) 70px, 90px"
+                          className="object-cover"
+                          priority={i < 3}
+                        />
 
-                      {/* Lớp phủ gradient làm nổi bật */}
-                      {isActive && <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none" />}
-                    </div>
+                        {/* Lớp phủ gradient làm nổi bật */}
+                        {isActive && <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none" />}
+                      </div>
+                    </motion.div>
                   </div>
                 );
               })}
@@ -397,14 +427,14 @@ export default function CircleRankingShowcase({
             {/* LÕI RỖNG MẤT TÂM Ở GIỮA (HUBLESS CENTER DISPLAY)         */}
             {/* ======================================================== */}
             <div
-              className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-28 h-28 sm:w-32 sm:h-32 rounded-full bg-background-items/90 backdrop-blur-md border-2 border-foreground/25 shadow-xl flex flex-col items-center justify-center z-20 pointer-events-none"
+              className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-28 h-28 sm:w-32 sm:h-32 rounded-full bg-background-items/90 backdrop-blur-md border-2 border-foreground/25 shadow-xl flex flex-col items-center justify-center z-10 pointer-events-none"
               style={{
                 boxShadow: `0 0 25px ${activeTheme.glowColor}`,
               }}
             >
               <span className="text-xl sm:text-2xl">{activeTheme.icon}</span>
               <span className={`font-aclonica text-xl sm:text-2xl font-black ${activeTheme.textClass}`}>#{activeRank}</span>
-              <span className="text-[10px] font-bold text-foreground/60 uppercase tracking-widest mt-0.5">XẾP HẠNG</span>
+              <span className="text-sm font-bold text-foreground/60 uppercase tracking-widest mt-0.5">XẾP HẠNG</span>
             </div>
           </div>
         </div>
@@ -422,33 +452,25 @@ export default function CircleRankingShowcase({
               transition={{ duration: 0.3, ease: "easeOut" }}
               className="relative w-full rounded-lg p-5 sm:p-7 overflow-hidden bg-background-items"
             >
-              {/* Ảnh nền mờ nghệ thuật lấy từ cover của truyện đang chọn */}
-              {/* <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-10 dark:opacity-20 z-0">
-                <Image src={getCoverUrl(activeStory)} alt="" fill className="object-cover blur-3xl scale-125" />
-              </div> */}
-
-              {/* Quầng sáng góc */}
-              {/* <div className="absolute top-0 right-0 w-48 h-48 rounded-full pointer-events-none blur-3xl" style={{ backgroundColor: activeTheme.glowColor }} /> */}
-
               <div className="relative z-10 flex flex-col gap-4 sm:gap-5 w-full ">
                 {/* 1. Thanh tiêu đề thứ hạng & thẻ trạng thái */}
                 <div className="flex flex-wrap items-center justify-between gap-2.5">
                   <div className="flex items-center gap-2 flex-wrap">
                     {/* Huy hiệu thứ hạng theo kim chỉ */}
-                    <div
-                      className={`flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-black tracking-wider uppercase shadow-md ${activeTheme.badgeClass}`}
-                    >
+                    <div className={`flex items-center gap-x-1.5 px-3 rounded-full font-black tracking-wider uppercase shadow-md ${activeTheme.badgeClass}`}>
                       <span>{activeTheme.icon}</span>
                       <span>{activeTheme.title}</span>
                     </div>
 
                     {/* Thẻ loại truyện [MANGA / LIGHT NOVEL] */}
-                    <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-foreground/10 text-foreground/80 border border-foreground/10">
-                      {snakeCaseToCapitalizeWord(activeStory.type || "manga")}
-                    </span>
+                    <Tag className="rounded-full! bg-foreground/10">{snakeCaseToCapitalizeWord(activeStory.type || "manga")}</Tag>
 
                     {/* Trạng thái phát hành */}
-                    {activeStory.status && <StoryStatusTag status={activeStory.status}>{capitalizeFirstChar(activeStory.status)}</StoryStatusTag>}
+                    {activeStory.status && (
+                      <StoryStatusTag className="rounded-full!" status={activeStory.status}>
+                        {capitalizeFirstChar(activeStory.status)}
+                      </StoryStatusTag>
+                    )}
                   </div>
 
                   {/* Cờ quốc gia */}

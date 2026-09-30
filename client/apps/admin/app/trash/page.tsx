@@ -13,7 +13,7 @@ function Navigate({ children }: { children?: any }) {
       className="w-full px-5 py-3 flex justify-between items-center  bg-background-items rounded-lg shadow-[0px_4px_10px_rgb(0,0,0,0.2)]
             cursor-pointer hover:shadow-[0px_10px_10px_rgb(0,0,0,0.2)] hover:-translate-y-1 duration-100"
     >
-      <div className="text-lg">{children}</div>
+      <div className="text-base font-semibold">{children}</div>
       <ArrowIcon className="w-4 h-4 text-foreground" />
     </div>
   );
