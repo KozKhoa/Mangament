@@ -125,17 +125,17 @@ export default function StoryCard({ data, className }: StoryCardProps) {
 
       <div className="flex flex-col justify-between gap-1 w-full h-full">
         {/* Tittle */}
-        <Link href={hrefStory} prefetch className="text-[1.2em] text-start font-bold leading-tight cursor-pointer line-clamp-3">
+        <Link href={hrefStory} prefetch className="text-start font-bold leading-tight cursor-pointer line-clamp-3 text-sm md:text-md xl:text-lg">
           {story.nation && (
             <span className="inline-block mr-1.5 align-middle">
               {story.nation.flag_image?.path ? (
                 <Image src={imageUrlResole(story.nation.flag_image)} alt={story.nation.name} width={20} height={14} className="object-contain inline-block" />
               ) : (
-                <span className="text-[1.2rem]">{story.nation.flag_icon}</span>
+                <span>{story.nation.flag_icon}</span>
               )}
             </span>
           )}
-          <span className="text-foreground/60 font-normal">{"[" + snakeCaseToCapitalizeWord(story?.type ?? "") + "] "}</span>
+          <span className="text-foreground/50 font-normal">{"[" + snakeCaseToCapitalizeWord(story?.type ?? "") + "] "}</span>
           {story?.title}
         </Link>
 
@@ -152,7 +152,7 @@ export default function StoryCard({ data, className }: StoryCardProps) {
 
           {/* Newest chapter */}
           {newestChapter && newestChapter.length > 0 && (
-            <div className="flex flex-col justify-center items-start gap-x-2.5-2.5 opacity-90">
+            <div className="flex flex-col justify-center items-start gap-x-2.5-2.5 opacity-90 text-foreground/80 text-sm">
               <p className="text-[0.8em] italic ">Chap mới nhất:</p>
 
               <Link href={hrefNewestChapter} className="flex flex-wrap items-center justify-between cursor-pointer gap-x-2 hover:underline">

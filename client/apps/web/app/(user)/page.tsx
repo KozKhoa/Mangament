@@ -205,21 +205,6 @@ export default function Home() {
         </InfinityScrollHorizontalList>
       </div>
 
-      {/* 3. Story type / Categories */}
-      {/* <div className="flex flex-col gap-5">
-        <h2 className="text-[2em] font-bold cursor-pointer border-b-2 w-fit m-auto">Danh mục truyện</h2>
-
-        <div className="flex flex-row flex-wrap justify-center items-center gap-x-20 gap-y-10 m-auto w-fit">
-          <CategoryCard className="hover:scale-110" imageSource="/manga.jpg" label="MANGA" onClick={() => router.push(routes.story({ storyType: "manga" }))} />
-          <CategoryCard
-            className="hover:scale-110"
-            imageSource="/light_novel.jpg"
-            label="LIGHT NOVEL"
-            onClick={() => router.push(routes.story({ storyType: "light_novel" }))}
-          />
-        </div>
-      </div> */}
-
       {/* 4. Genres list (Trending Tags) */}
       <InfinityScrollHorizontalList
         label="Tag nổi bật"

@@ -104,7 +104,7 @@ body {
 }
 
 /* Áp dụng kế thừa cỡ chữ và font cho toàn bộ form components & controls */
-button,
+/* button,
 input,
 optgroup,
 select,
@@ -112,7 +112,7 @@ textarea {
   font-family: inherit;
   font-size: inherit;
   line-height: inherit;
-}
+} */
 
 button {
   outline: none;

@@ -30,7 +30,7 @@ export default function RootLayout({
     <html lang="vi" suppressHydrationWarning>
       <body
         className={`${Geist.variable} ${Geist_Mono.variable} ${Afacad.variable} ${Holtwood_One_SC.variable} ${Roboto.variable} ${Aclonica.variable} antialiased
-          text-sm font-afacad bg-background text-foreground relative min-h-screen
+          text-sm sm:text-[15px] font-afacad bg-background text-foreground relative min-h-screen
         `}
       >
         <AppProvider>
