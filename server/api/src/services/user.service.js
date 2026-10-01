@@ -2,6 +2,7 @@ import db from "../../configs/db.js";
 import { RandomPassword } from "../utils/Password.js";
 
 import * as passwordService from "../utils/Password.js";
+import * as imageService from "./image.service.js";
 import { CreateError } from "../utils/ErrorHandle.js";
 import { redis } from "../../configs/redis.js";
 import { throwErrorIfInvalidGenders } from "../utils/Validators.js";
@@ -148,6 +149,11 @@ export async function UpdateUser(id, { name, birthday, gender, avatar, role }) {
 
   gender && throwErrorIfInvalidGenders(gender);
 
+  let avatarConnectId = null;
+  if (avatar) {
+    avatarConnectId = await imageService.ResolveOrCreateImage(avatar, db);
+  }
+
   const update = await db.user
     .update({
       where: {
@@ -158,23 +164,7 @@ export async function UpdateUser(id, { name, birthday, gender, avatar, role }) {
         ...(birthday && { birthday: new Date(birthday) }),
         ...(gender && { gender: gender }),
         ...(role && { role: role }),
-        ...(avatar && {
-          avatar: avatar.id
-            ? { connect: { id: avatar.id } }
-            : {
-                connectOrCreate: {
-                  where: { path: avatar.path || avatar.key || avatar.url },
-                  create: {
-                    path: avatar.path || avatar.key || avatar.url,
-                    provider: avatar.provider || "r2",
-                    mine_type: avatar.mine_type || "image/jpeg",
-                    size: avatar.size ? Number(avatar.size) : 0,
-                    width: avatar.width ? Number(avatar.width) : null,
-                    height: avatar.height ? Number(avatar.height) : null,
-                  },
-                },
-              },
-        }),
+        ...(avatarConnectId && { avatar: { connect: { id: avatarConnectId } } }),
       },
       select: {
         id: true,

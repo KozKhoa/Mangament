@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import { redis } from "../../configs/redis.js";
 import { Worker } from "bullmq";
 import db from "../../configs/db.js";
@@ -86,11 +87,12 @@ const addNewImageWorker = new Worker(
   "add-new-image",
   async (job) => {
     try {
-      const { id, key, file, resize, quality = 80, provider } = job.data;
+      const { id, key, file, resize, quality = 80, provider, hash: jobHash } = job.data;
 
       const buffer = getBuffer(file);
       if (!buffer) return;
 
+      const hash = jobHash || imageService.CalculateImageHash(buffer);
       const imageSharp = sharp(buffer);
       const metadata = await imageSharp.metadata();
 
@@ -115,6 +117,7 @@ const addNewImageWorker = new Worker(
         path: key,
         width: metadata.width,
         height: metadata.height,
+        hash,
         metadata: {
           original_name: file.originalname,
         },
@@ -132,7 +135,7 @@ const addManyNewImagesWorker = new Worker(
   "add-many-new-images",
   async (job) => {
     try {
-      const { ids = [], keys = [], files = [], quality = 80, resize, provider } = job.data;
+      const { ids = [], keys = [], files = [], hashes = [], quality = 80, resize, provider } = job.data;
 
       const limit = pLimit(10); // xử lý tối đa 10 ảnh cùng lúc
       const storage = getStorageProvider(provider);
@@ -143,6 +146,7 @@ const addManyNewImagesWorker = new Worker(
             const buffer = getBuffer(file);
             if (!buffer) return;
 
+            const hash = hashes[index] || imageService.CalculateImageHash(buffer);
             const imageSharp = sharp(buffer);
             const metadata = await imageSharp.metadata();
 
@@ -169,6 +173,7 @@ const addManyNewImagesWorker = new Worker(
               path: key,
               width: metadata.width,
               height: metadata.height,
+              hash,
               metadata: {
                 original_name: file.originalname,
               },
@@ -195,13 +200,14 @@ const addStoryImagesWorker = new Worker(
       await Promise.all(
         images.map((item) =>
           limit(async () => {
-            const { id, filename, path: relativePath, provider, file } = item;
+            const { id, filename, path: relativePath, provider, file, hash: itemHash } = item;
             const buffer = getBuffer(file);
             if (!buffer) {
               console.error(`Invalid buffer for story image ${id} (${filename})`);
               return;
             }
 
+            const hash = itemHash || imageService.CalculateImageHash(buffer);
             const imageSharp = sharp(buffer);
             const metadata = await imageSharp.metadata();
 
@@ -226,6 +232,7 @@ const addStoryImagesWorker = new Worker(
               path: relativePath,
               width: metadata.width,
               height: metadata.height,
+              hash,
               metadata: {
                 original_name: file.originalname,
               },

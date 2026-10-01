@@ -131,6 +131,7 @@ model Image {
   path       String?       @unique // This is 'key' in r2, 'path' in local disk
   width     Int?
   height    Int?
+  hash      String?       @unique // SHA-256 hash của nội dung file
   metadata  String? // Jsonb in postgresql
 
   created_at DateTime @default(now())

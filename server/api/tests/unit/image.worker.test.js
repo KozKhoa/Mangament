@@ -34,8 +34,10 @@ vi.mock("bullmq", () => {
 
 // Mock imageService
 const upsertImageMock = vi.fn().mockResolvedValue({ success: true });
-vi.mock("../../src/services/image.service.js", () => {
+vi.mock("../../src/services/image.service.js", async (importOriginal) => {
+  const actual = await importOriginal();
   return {
+    ...actual,
     UpsertImage: upsertImageMock,
   };
 });
@@ -101,6 +103,7 @@ describe("Image Worker Handlers", () => {
       path: "/public/images/stories/random1_123.jpg",
       width: 1000,
       height: 1500,
+      hash: expect.any(String),
       metadata: {
         original_name: "original_page_1.png",
       },

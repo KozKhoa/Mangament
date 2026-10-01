@@ -22,6 +22,28 @@ class UploadService {
       throw error;
     }
 
+    const buffer = file.buffer ? (Buffer.isBuffer(file.buffer) ? file.buffer : Buffer.from(file.buffer)) : null;
+    if (buffer) {
+      const existingImage = await imageService.FindExistingImageByBuffer(buffer);
+      if (existingImage) {
+        const storage = getStorageProvider(existingImage.provider);
+        const url = storage.getUrl(existingImage.path);
+        return {
+          success: true,
+          data: {
+            id: existingImage.id,
+            key: existingImage.path,
+            path: existingImage.path,
+            url,
+            hash: existingImage.hash,
+            original_name: file?.originalname,
+            originalName: file?.originalname,
+            provider: existingImage.provider,
+          },
+        };
+      }
+    }
+
     const storage = getStorageProvider();
     const id = crypto.randomUUID();
     const filename = `_avatar_${userId}_${id}.jpg`;
@@ -64,6 +86,38 @@ class UploadService {
       throw error;
     }
 
+    const buffer = file.buffer ? (Buffer.isBuffer(file.buffer) ? file.buffer : Buffer.from(file.buffer)) : null;
+    if (!buffer) {
+      const error = new Error("File buffer không hợp lệ");
+      error.status = 400;
+      throw error;
+    }
+
+    const hash = imageService.CalculateImageHash(buffer);
+    const existingImage = await imageService.FindExistingImageByHash(hash);
+
+    if (existingImage) {
+      const storage = getStorageProvider(existingImage.provider);
+      const url = storage.getUrl(existingImage.path);
+      return {
+        success: true,
+        data: {
+          id: existingImage.id,
+          path: existingImage.path,
+          key: existingImage.path,
+          url: url,
+          hash: existingImage.hash,
+          provider: existingImage.provider,
+          mine_type: existingImage.mine_type,
+          width: existingImage.width,
+          height: existingImage.height,
+          size: existingImage.size,
+          original_name: file.originalname,
+          originalName: file.originalname,
+        },
+      };
+    }
+
     const storage = getStorageProvider();
     const id = crypto.randomUUID();
     const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -75,13 +129,6 @@ class UploadService {
     const filename = `${timestamp}_${file.size || 0}_${randomStr}.jpg`;
     const path = storage.generatePath("stories", filename);
     const url = storage.getUrl(path);
-
-    const buffer = file.buffer ? (Buffer.isBuffer(file.buffer) ? file.buffer : Buffer.from(file.buffer)) : null;
-    if (!buffer) {
-      const error = new Error("File buffer không hợp lệ");
-      error.status = 400;
-      throw error;
-    }
 
     const imageSharp = sharp(buffer);
     const metadata = await imageSharp.metadata();
@@ -104,6 +151,7 @@ class UploadService {
         path,
         width: metadata.width || null,
         height: metadata.height || null,
+        hash,
         metadata: {
           original_name: file.originalname,
         },
@@ -117,6 +165,7 @@ class UploadService {
         path: image.path,
         key: image.path,
         url: url,
+        hash: image.hash,
         provider: image.provider,
         mine_type: image.mine_type,
         width: image.width,
@@ -153,6 +202,27 @@ class UploadService {
     const jobImages = [];
 
     for (const file of files) {
+      const buffer = file.buffer ? (Buffer.isBuffer(file.buffer) ? file.buffer : Buffer.from(file.buffer)) : null;
+      let hash = null;
+      if (buffer) {
+        hash = imageService.CalculateImageHash(buffer);
+        const existingImage = await imageService.FindExistingImageByHash(hash);
+        if (existingImage) {
+          const imgStorage = getStorageProvider(existingImage.provider);
+          result.push({
+            id: existingImage.id,
+            original_name: file.originalname,
+            originalName: file.originalname,
+            filename: existingImage.path,
+            path: existingImage.path,
+            url: imgStorage.getUrl(existingImage.path),
+            hash: existingImage.hash,
+            provider: existingImage.provider,
+          });
+          continue;
+        }
+      }
+
       const id = crypto.randomUUID();
       let randomStr = "";
       for (let i = 0; i < 8; i++) {
@@ -170,11 +240,13 @@ class UploadService {
         filename,
         path,
         url,
+        hash,
         provider: storage.name,
       });
 
       jobImages.push({
         id,
+        hash,
         filename,
         path,
         provider: storage.name,
@@ -187,7 +259,9 @@ class UploadService {
       });
     }
 
-    imageQueue.addJob_addStoryImages({ images: jobImages, quality: 80 });
+    if (jobImages.length > 0) {
+      imageQueue.addJob_addStoryImages({ images: jobImages, quality: 80 });
+    }
 
     return { success: true, data: result };
   }

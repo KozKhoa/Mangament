@@ -17,6 +17,7 @@ import {
 } from "../../../src/utils/zip/zipStorage.js";
 import { parseStoriesSpreadsheet } from "../../../src/utils/spreadsheet.parser.js";
 import { SyncStoryChildren } from "../../../src/services/story.service.js";
+import * as imageService from "../../../src/services/image.service.js";
 import { connection } from "./connection.js";
 
 async function resolveNationId(nationId, nationName, nationsCache) {
@@ -258,13 +259,20 @@ async function importImageFromRelativePath(relPath, csvDir, prefix = "img") {
     const stat = await fs.promises.stat(fullSrcPath);
     if (!stat.isFile()) return null;
 
+    const fileBuffer = await fs.promises.readFile(fullSrcPath);
+    const existingImage = await imageService.FindExistingImageByBuffer(fileBuffer);
+    if (existingImage) {
+      return existingImage.id;
+    }
+    const hash = imageService.CalculateImageHash(fileBuffer);
+
     const ext = path.extname(fullSrcPath).toLowerCase() || ".jpg";
     const publicStoriesDir = resolvePublicStoriesDir();
     const imageId = crypto.randomUUID();
     const destFilename = `${prefix}_${Date.now()}_${crypto.randomUUID().slice(0, 8)}${ext}`;
     const destPath = path.join(publicStoriesDir, destFilename);
 
-    await fs.promises.copyFile(fullSrcPath, destPath);
+    await fs.promises.writeFile(destPath, fileBuffer);
 
     const dims = await getImageDimensions(destPath);
     const relativeDbPath = `/public/images/stories/${destFilename}`;
@@ -278,6 +286,7 @@ async function importImageFromRelativePath(relPath, csvDir, prefix = "img") {
         path: relativeDbPath,
         width: dims.width,
         height: dims.height,
+        hash,
       },
     });
 

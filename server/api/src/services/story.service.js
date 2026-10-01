@@ -18,39 +18,8 @@ import { downloadZipFromUrl } from "../utils/zip/zipStorage.js";
 
 const REDIS_TTL = 60 * 30; // 30 minutes
 
-export async function ResolveOrCreateImage(coverArt, client = db) {
-  if (!coverArt) return null;
-  const imgPath = coverArt.path || coverArt.key || coverArt.url;
-  let existingImage = null;
-
-  if (coverArt.id) {
-    existingImage = await client.image.findUnique({ where: { id: coverArt.id } });
-  }
-  if (!existingImage && imgPath) {
-    existingImage = await client.image.findUnique({ where: { path: imgPath } });
-  }
-
-  if (existingImage) {
-    return existingImage.id;
-  }
-
-  if (imgPath || coverArt.id) {
-    const created = await client.image.create({
-      data: {
-        ...(coverArt.id && { id: coverArt.id }),
-        path: imgPath || null,
-        provider: coverArt.provider || "local",
-        mine_type: coverArt.mine_type || "image/jpeg",
-        width: coverArt.width ? Number(coverArt.width) : null,
-        height: coverArt.height ? Number(coverArt.height) : null,
-        size: coverArt.size ? Number(coverArt.size) : 0,
-      },
-    });
-    return created.id;
-  }
-
-  return null;
-}
+import { ResolveOrCreateImage } from "./image.service.js";
+export { ResolveOrCreateImage };
 
 export async function BuildStoryChildrenTree(storyId, client = db) {
   if (!storyId) return [];

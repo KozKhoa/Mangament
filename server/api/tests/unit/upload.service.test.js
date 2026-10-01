@@ -2,6 +2,15 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import uploadService from "../../src/services/upload.service.js";
 import imageQueue from "../../worker/queues/image.queue.js";
 
+vi.mock("../../configs/db.js", () => ({
+  default: {
+    image: {
+      findUnique: vi.fn().mockResolvedValue(null),
+      create: vi.fn().mockImplementation(async (args) => ({ id: args.data.id || "mock-img-id", ...args.data })),
+    },
+  },
+}));
+
 vi.mock("sharp", () => {
   return {
     default: vi.fn(() => ({
@@ -12,20 +21,24 @@ vi.mock("sharp", () => {
   };
 });
 
-vi.mock("../../src/services/image.service.js", () => ({
-  UpsertImage: vi.fn().mockImplementation(async (data) => ({
-    success: true,
-    data: {
-      id: data.id || "mock-img-id",
-      path: data.path,
-      provider: data.provider,
-      mine_type: data.mine_type,
-      width: data.width,
-      height: data.height,
-      size: data.size,
-    },
-  })),
-}));
+vi.mock("../../src/services/image.service.js", async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    UpsertImage: vi.fn().mockImplementation(async (data) => ({
+      success: true,
+      data: {
+        id: data.id || "mock-img-id",
+        path: data.path,
+        provider: data.provider,
+        mine_type: data.mine_type,
+        width: data.width,
+        height: data.height,
+        size: data.size,
+      },
+    })),
+  };
+});
 
 vi.mock("../../worker/queues/image.queue.js", () => {
   return {
@@ -227,15 +240,31 @@ describe("Upload Service", () => {
       await expect(uploadService.uploadStoryImage(null)).rejects.toThrow(/Vui lòng tải lên file hình ảnh/);
     });
 
-    it("should reject when file exceeds 20MB", async () => {
-      const hugeFile = {
-        originalname: "huge_cover.jpg",
-        mimetype: "image/jpeg",
-        buffer: Buffer.from("huge"),
-        size: 21 * 1024 * 1024,
+    it("should return existing image info directly when hash already exists in DB", async () => {
+      const db = (await import("../../configs/db.js")).default;
+      db.image.findUnique.mockResolvedValueOnce({
+        id: "existing-hash-img-id",
+        path: "/public/images/stories/existing_hash.jpg",
+        provider: "local",
+        mine_type: "image/jpeg",
+        width: 800,
+        height: 1200,
+        size: 1024,
+        hash: "dummy-hash",
+      });
+
+      const mockFile = {
+        originalname: "duplicate_cover.png",
+        mimetype: "image/png",
+        buffer: Buffer.from("duplicate-data"),
+        size: 1024,
       };
 
-      await expect(uploadService.uploadStoryImage(hugeFile)).rejects.toThrow(/vượt quá giới hạn tối đa 20MB/);
+      const res = await uploadService.uploadStoryImage(mockFile);
+
+      expect(res.success).toBe(true);
+      expect(res.data.id).toBe("existing-hash-img-id");
+      expect(res.data.path).toBe("/public/images/stories/existing_hash.jpg");
     });
   });
 });

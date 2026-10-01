@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import db from "../../configs/db.js";
 import { redis } from "../../configs/redis.js";
 import redisUtils from "../utils/Redis.js";
@@ -6,6 +7,23 @@ import { CreateError } from "../utils/ErrorHandle.js";
 import imageQueue from "../../worker/queues/image.queue.js";
 
 const REDIS_TTL = 60 * 30;
+
+export function CalculateImageHash(buffer) {
+  if (!buffer) return null;
+  const buf = Buffer.isBuffer(buffer) ? buffer : Buffer.from(buffer);
+  return crypto.createHash("sha256").update(buf).digest("hex");
+}
+
+export async function FindExistingImageByHash(hash, client = db) {
+  if (!hash) return null;
+  return await client.image.findUnique({ where: { hash } });
+}
+
+export async function FindExistingImageByBuffer(buffer, client = db) {
+  const hash = CalculateImageHash(buffer);
+  if (!hash) return null;
+  return await FindExistingImageByHash(hash, client);
+}
 
 export async function FindImage({ id, path, url }) {
   const imagePath = path || url;
@@ -30,12 +48,17 @@ export async function FindImage({ id, path, url }) {
   return { success: true, data: result };
 }
 
-export async function InsertImage({ provider = "local", mine_type = "image/jpeg", size = 0, path, key, url, width, height, metadata }) {
+export async function InsertImage({ provider = "local", mine_type = "image/jpeg", size = 0, path, key, url, width, height, hash, metadata }) {
   const resolvedPath = path || key || url;
 
   if (resolvedPath) {
     const existing = await db.image.findUnique({ where: { path: resolvedPath } });
     if (existing) throw CreateError(409, "Image already exists");
+  }
+
+  if (hash) {
+    const existingHash = await db.image.findUnique({ where: { hash } });
+    if (existingHash) return { success: true, data: existingHash };
   }
 
   const metaString = metadata ? (typeof metadata === "string" ? metadata : JSON.stringify(metadata)) : null;
@@ -47,6 +70,7 @@ export async function InsertImage({ provider = "local", mine_type = "image/jpeg"
     path: resolvedPath || null,
     width: width ? Number(width) : null,
     height: height ? Number(height) : null,
+    ...(hash && { hash }),
     metadata: metaString,
   };
 
@@ -54,7 +78,7 @@ export async function InsertImage({ provider = "local", mine_type = "image/jpeg"
   return { success: true, data: image };
 }
 
-export async function UpdateImage({ id, provider, mine_type, size, path, key, url, width, height, metadata, deleted_status }) {
+export async function UpdateImage({ id, provider, mine_type, size, path, key, url, width, height, hash, metadata, deleted_status }) {
   if (!id) throw CreateError(400, "Require 'id'");
 
   const existing = await db.image.findUnique({ where: { id } });
@@ -68,6 +92,7 @@ export async function UpdateImage({ id, provider, mine_type, size, path, key, ur
     ...(resolvedPath !== undefined && { path: resolvedPath }),
     ...(width !== undefined && { width: width ? Number(width) : null }),
     ...(height !== undefined && { height: height ? Number(height) : null }),
+    ...(hash !== undefined && { hash }),
     ...(metadata !== undefined && {
       metadata: typeof metadata === "string" ? metadata : metadata ? JSON.stringify(metadata) : null,
     }),
@@ -86,9 +111,14 @@ export async function UpdateImage({ id, provider, mine_type, size, path, key, ur
   return { success: true, data: updatedImage };
 }
 
-export async function UpsertImage({ id, provider = "local", mine_type = "image/jpeg", size = 0, path, key, url, width, height, metadata, deleted_status }) {
+export async function UpsertImage({ id, provider = "local", mine_type = "image/jpeg", size = 0, path, key, url, width, height, hash, metadata, deleted_status }) {
+  if (hash) {
+    const existingHash = await db.image.findUnique({ where: { hash } });
+    if (existingHash) return { success: true, data: existingHash };
+  }
+
   if (!id) {
-    return await InsertImage({ provider, mine_type, size, path, key, url, width, height, metadata });
+    return await InsertImage({ provider, mine_type, size, path, key, url, width, height, hash, metadata });
   }
 
   const existing = await db.image.findUnique({ where: { id } });
@@ -103,6 +133,7 @@ export async function UpsertImage({ id, provider = "local", mine_type = "image/j
       url,
       width,
       height,
+      hash,
       metadata,
       deleted_status,
     });
@@ -119,6 +150,7 @@ export async function UpsertImage({ id, provider = "local", mine_type = "image/j
     path: resolvedPath || null,
     width: width ? Number(width) : null,
     height: height ? Number(height) : null,
+    ...(hash && { hash }),
     metadata: metaString,
     ...(deleted_status !== undefined && { deleted_status }),
   };
@@ -224,4 +256,43 @@ export async function FindTrashImage({ page = 1, limit = 10 }) {
   redis.setex(REDIS_KEY, REDIS_TTL, JSON.stringify(result));
 
   return result;
+}
+
+export async function ResolveOrCreateImage(imageObj, client = db) {
+  if (!imageObj) return null;
+  const imgPath = imageObj.path || imageObj.key || imageObj.url;
+  const hash = imageObj.hash || null;
+  let existingImage = null;
+
+  if (hash) {
+    existingImage = await client.image.findUnique({ where: { hash } });
+  }
+  if (!existingImage && imageObj.id) {
+    existingImage = await client.image.findUnique({ where: { id: imageObj.id } });
+  }
+  if (!existingImage && imgPath) {
+    existingImage = await client.image.findUnique({ where: { path: imgPath } });
+  }
+
+  if (existingImage) {
+    return existingImage.id;
+  }
+
+  if (imgPath || imageObj.id || hash) {
+    const created = await client.image.create({
+      data: {
+        ...(imageObj.id && { id: imageObj.id }),
+        ...(hash && { hash }),
+        path: imgPath || null,
+        provider: imageObj.provider || "local",
+        mine_type: imageObj.mine_type || "image/jpeg",
+        width: imageObj.width ? Number(imageObj.width) : null,
+        height: imageObj.height ? Number(imageObj.height) : null,
+        size: imageObj.size ? Number(imageObj.size) : 0,
+      },
+    });
+    return created.id;
+  }
+
+  return null;
 }
