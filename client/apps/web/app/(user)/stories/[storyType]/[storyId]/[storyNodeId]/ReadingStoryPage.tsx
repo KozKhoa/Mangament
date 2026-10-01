@@ -109,12 +109,16 @@ function findNextChapter(tree: StoryNode[], targetNodeId: string): StoryNode | n
 
 const StoryNodesList = React.memo(
   ({
+    prevNode,
+    nextNode,
     goToPrevChapter,
     goToNextChapter,
     handleOpenStoryNodeList,
     storyNode,
     className,
   }: {
+    prevNode?: StoryNode;
+    nextNode?: StoryNode;
     goToPrevChapter: () => void;
     goToNextChapter: () => void;
     handleOpenStoryNodeList: () => void;
@@ -123,14 +127,18 @@ const StoryNodesList = React.memo(
     className?: string;
   }) => {
     return (
-      <div className={`flex flex-row gap-3 justify-center items-center text-xl ${className}`}>
-        <ArrowLeftIcon className="w-5 h-5 cursor-pointer shrink-0" onClick={goToPrevChapter} />
+      <div className={`flex flex-row gap-10 justify-center items-center text-xl ${className}`}>
+        <Button buttonType="default-shadow" disable={!prevNode} onClick={goToPrevChapter} className="aspect-square px-2! rounded-md!">
+          <ArrowLeftIcon className="w-5 h-5 cursor-pointer shrink-0" />
+        </Button>
 
-        <p className=" cursor-pointer" onClick={handleOpenStoryNodeList}>
-          {capitalizeWords(storyNode?.type ?? "")} {storyNode?.order_index}
+        <p className="w-fit cursor-pointer font-semibold" onClick={handleOpenStoryNodeList}>
+          {capitalizeWords(storyNode?.type ?? "")} {storyNode?.order_index} : <span className="font-light italic">{storyNode?.title}</span>
         </p>
 
-        <ArrowRightIcon className="w-5 h-5 cursor-pointer shrink-0" onClick={goToNextChapter} />
+        <Button buttonType="default-shadow" disable={!nextNode} onClick={goToNextChapter} className="aspect-square px-2! rounded-md!">
+          <ArrowRightIcon className="w-5 h-5 cursor-pointer shrink-0" />
+        </Button>
       </div>
     );
   },
@@ -308,6 +316,12 @@ export default function ReadingStoryPage() {
     loadingBar.close();
   }, []);
 
+  const storyHref = useMemo(() => {
+    if (!story) return "";
+
+    return routes.story({ storyType: story?.type, storyId: story?.id });
+  }, [story]);
+
   return (
     <div className="flex flex-col gap-5">
       <Navbar
@@ -326,35 +340,23 @@ export default function ReadingStoryPage() {
       />
 
       {/* Header - Story title  */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-2 px-2 justify-center items-center gap-x-2 gap-y-5 my-5">
-        <div className="m-auto">
-          <p>[{snakeCaseToCapitalizeWord(story?.type ?? "")}]</p>
-          <Link href={`/stories/${story?.type}/${story?.id}`}>
-            <p className="font-bold text-4xl cursor-pointer py-5">{story?.title}</p>
-          </Link>
-          <div className="flex flex-row flex-wrap gap-1 text-foreground py-2">
-            {storyNodes.map((node, i) => (
-              <h4 key={i}>
-                {capitalizeWords(node.type)} {node.order_index} {i < storyNodes.length - 1 && "➤"}
-              </h4>
-            ))}
-            <h4>:{storyNode?.title}</h4>
-          </div>
-          <div>
-            <span className="italic font-bold text-foreground">Lượt xem:</span> {storyNode?.view}
-          </div>
-        </div>
+
+      <div className="grid grid-rows-[auto_auto_auto] gap-10 justify-center items-center px-2">
+        <Link href={storyHref} className="w-full max-w-250 m-auto">
+          <p className="text-4xl font-semibold w-full text-center max-w-250">{story?.title}</p>
+        </Link>
 
         <StoryNodesList
           storyNode={storyNode}
+          prevNode={prevNode || undefined}
+          nextNode={nextNode || undefined}
           goToPrevChapter={goToPrevChapter}
           goToNextChapter={goToNextChapter}
           handleOpenStoryNodeList={handleOpenStoryNodeList}
         />
+        {/* Button favourite */}
+        <ButtonOfFavouriteStory story={story} className="w-full max-w-72 m-auto"></ButtonOfFavouriteStory>
       </div>
-
-      {/* Button favourite */}
-      <ButtonOfFavouriteStory story={story} className="w-full max-w-72 m-auto"></ButtonOfFavouriteStory>
 
       {/* Main content */}
       <div className="flex flex-col gap-3">
@@ -437,25 +439,35 @@ export default function ReadingStoryPage() {
         </div>
 
         {/* Button switch page */}
-        <div className="grid grid-cols-3 flex-wrap justify-center items-center gap-2 px-2 m-auto my-5">
-          <Button buttonType="default" className="font-semibold w-full py-2" disable={!prevNode} onClick={goToPrevChapter}>
-            <ArrowLeftIcon className="w-4 h-4 shrink-0" /> Trước
+        <div
+          className="grid grid-rows-2 grid-cols-6 sm:grid-rows-1 sm:grid-cols-3
+            justify-center items-center gap-2 px-2 m-auto my-5 w-full"
+        >
+          <Button
+            buttonType="default-shadow"
+            className="row-start-2 col-span-3 
+              sm:col-span-1 sm:row-span-1
+              font-semibold w-full py-2"
+            disable={!prevNode}
+            onClick={goToPrevChapter}
+          >
+            <ArrowLeftIcon className="w-4 h-4 shrink-0" /> Chapter Trước
           </Button>
 
-          <p className=" cursor-pointer w-fit m-auto text-xl" onClick={handleOpenStoryNodeList}>
-            {capitalizeWords(storyNode?.type ?? "")} {storyNode?.order_index}
+          <p className=" cursor-pointer w-fit m-auto text-xl col-span-6 sm:col-span-1" onClick={handleOpenStoryNodeList}>
+            {capitalizeWords(storyNode?.type ?? "")} {storyNode?.order_index} : <span className="font-light italic">{storyNode?.title}</span>
           </p>
 
-          <Button buttonType="default" className="font-semibold w-full py-2" disable={!nextNode} onClick={goToNextChapter}>
-            Sau <ArrowRightIcon className="w-4 h-4 shrink-0" />
+          <Button
+            buttonType="default-shadow"
+            className="row-start-2 col-span-3 
+              sm:col-span-1 sm:row-span-1 
+              font-semibold w-full py-2"
+            disable={!nextNode}
+            onClick={goToNextChapter}
+          >
+            Chapter Sau <ArrowRightIcon className="w-4 h-4 shrink-0" />
           </Button>
-        </div>
-
-        <div className="px-2">
-          <p className="text-foreground/60">[{snakeCaseToCapitalizeWord(story?.type ?? "")}]</p>
-          <Link href={`/stories/${story?.type}/${story?.id}`}>
-            <p className="font-bold text-4xl cursor-pointer py-3">{story?.title}</p>
-          </Link>
         </div>
       </div>
 

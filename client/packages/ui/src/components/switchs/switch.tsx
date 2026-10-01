@@ -73,7 +73,7 @@ function Switch({
       onClick={handleToggle}
     >
       <div
-        className={`rounded-full `}
+        className={`rounded-full`}
         style={{
           width: width,
           height: height,

@@ -92,8 +92,8 @@ const ButtonStoryNodeExpandable = React.memo(function ButtonStoryNodeExpandable(
       {/* Label*/}
       <div
         className={`flex flex-row justify-between items-center px-2 py-2 w-full cursor-pointer
-          ${index % 2 === 0 ? "bg-background-items" : "bg-foreground/10"} ${className}
-          ${isTarget ? "text-background-items bg-foreground/99 hover:bg-foreground/80" : "text-foreground hover:bg-foreground/20"}`}
+          ${index % 2 === 0 ? "bg-background-items" : "bg-foreground/5"} ${className}
+          ${isTarget ? "text-background-items bg-foreground/99 hover:bg-foreground/80" : "text-foreground hover:bg-foreground/10"}`}
         onClick={() => {
           setOpen(!open);
           onClick?.([storyNode]);

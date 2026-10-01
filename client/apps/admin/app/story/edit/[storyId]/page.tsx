@@ -49,10 +49,10 @@ export function EditStory() {
   async function fetchStory() {
     setLoading(true);
     const res = await adminService.getStory(storyId, {
-      isGettingChildren: true,
-      isGettingContent: true,
-      isGettingTrashContent: true,
-      isGettingTrashStoryNode: true,
+      // isGettingChildren: true,
+      // isGettingContent: true,
+      // isGettingTrashContent: true,
+      // isGettingTrashStoryNode: true,
     });
     setLoading(false);
 

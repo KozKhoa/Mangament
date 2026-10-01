@@ -160,11 +160,6 @@ h6 {
   font-weight: 600;
 }
 
-p {
-  font-size: inherit;
-  line-height: var(--leading-normal);
-}
-
 small {
   font-size: var(--text-xs);
 }

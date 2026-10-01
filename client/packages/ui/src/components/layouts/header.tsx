@@ -252,7 +252,7 @@ function GenreButton({ isMobile = false }: { isMobile?: boolean }) {
                 <Link
                   key={i}
                   href={getWebUrl(routes.genre({ genre: genre.name }))}
-                  className={`w-full text-start p-2 px-5 ${i !== genres.length - 1 ? "border-b" : ""} hover:bg-foreground/30 cursor-pointer`}
+                  className={`w-full text-start p-2 px-5 ${i !== genres.length - 1 ? "border-b" : ""} hover:bg-foreground/10 cursor-pointer`}
                 >
                   {genre.name}
                 </Link>
@@ -278,7 +278,7 @@ function GenreButton({ isMobile = false }: { isMobile?: boolean }) {
               <Link
                 key={i}
                 href={getWebUrl(routes.genre({ genre: genre.name }))}
-                className="w-full text-start p-2 border-b hover:bg-foreground/20 rounded-t-sm cursor-pointer"
+                className="w-full text-start p-2 border-b hover:bg-foreground/10 rounded-t-sm cursor-pointer"
               >
                 {genre.name}
               </Link>
@@ -350,7 +350,7 @@ function HeaderBar({ duration = 100, autoHide = true, className }: NavBarProps) 
       >
         <div className={`flex flex-row justify-center items-center gap-5 h-10`}>
           <Link href={getWebUrl("/")}>
-            <p className={`text-5xl font-holtwood`}>Mangament</p>
+            <p className={`text-xl font-holtwood`}>Mangament</p>
           </Link>
 
           {/* Desktop */}
