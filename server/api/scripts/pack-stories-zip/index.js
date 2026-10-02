@@ -338,6 +338,82 @@ export async function readStoryInfoJson(storyDir) {
 }
 
 /**
+ * Quét đệ quy các thư mục con để tìm cây phân cấp node (Volume, Arc, Chapter...) và file ảnh trang
+ */
+export async function scanDirectoryNodes(currentDir, relPathFromStoryDir = "", parentChain = []) {
+  const items = await fs.promises.readdir(currentDir, { withFileTypes: true });
+
+  const allImages = items
+    .filter((f) => f.isFile() && SUPPORTED_IMAGE_EXTS.has(path.extname(f.name).toLowerCase()))
+    .map((f) => f.name)
+    .sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: "base" }));
+
+  // Lọc bỏ file ảnh bìa nếu đang ở root thư mục truyện
+  const pageImageFiles =
+    relPathFromStoryDir === ""
+      ? allImages.filter((f) => !/^(cover_art|cover|poster)\.(jpe?g|png|webp|avif)$/i.test(f))
+      : allImages;
+
+  const subdirs = items
+    .filter((f) => f.isDirectory() && !f.name.startsWith("."))
+    .map((f) => f.name)
+    .sort((a, b) => a.localeCompare(b, "vi", { numeric: true, sensitivity: "base" }));
+
+  // Nếu thư mục này có chứa các trang ảnh -> Đây là 1 leaf node (chứa ảnh)
+  if (pageImageFiles.length > 0) {
+    const lastChainItem = parentChain.length > 0 ? parentChain[parentChain.length - 1] : null;
+    const effectiveChain =
+      parentChain.length > 0
+        ? parentChain
+        : [
+            {
+              type: "chapter",
+              orderIndex: 1,
+              title: "Chapter 1",
+              folderName: relPathFromStoryDir,
+            },
+          ];
+
+    return [
+      {
+        nodeChain: effectiveChain,
+        title: lastChainItem ? lastChainItem.title : "Chapter 1",
+        type: lastChainItem ? lastChainItem.type : "chapter",
+        orderIndex: lastChainItem ? lastChainItem.orderIndex : 1,
+        folderName: relPathFromStoryDir,
+        nodePath: currentDir,
+        imageFiles: pageImageFiles,
+      },
+    ];
+  }
+
+  // Nếu không có ảnh nhưng có thư mục con -> quét tiếp các thư mục con
+  const leafNodes = [];
+  for (const subDirName of subdirs) {
+    const subDirPath = path.join(currentDir, subDirName);
+    const subRelPath = relPathFromStoryDir ? `${relPathFromStoryDir}/${subDirName}` : subDirName;
+
+    const parsed = parseNodeFolderName(subDirName);
+    let nextParentChain = parentChain;
+
+    if (parsed.isValid) {
+      const nodeInfo = {
+        type: parsed.type,
+        orderIndex: parsed.orderIndex ?? (leafNodes.length + 1),
+        title: parsed.title,
+        folderName: subDirName,
+      };
+      nextParentChain = [...parentChain, nodeInfo];
+    }
+
+    const subLeafNodes = await scanDirectoryNodes(subDirPath, subRelPath, nextParentChain);
+    leafNodes.push(...subLeafNodes);
+  }
+
+  return leafNodes;
+}
+
+/**
  * Quét chi tiết nội dung của 1 truyện
  */
 export async function inspectStory(storyDir, options = {}) {
@@ -349,7 +425,7 @@ export async function inspectStory(storyDir, options = {}) {
 
   // 2. Tìm ảnh bìa cover art nếu có
   let coverArtFile = null;
-  const coverFiles = items.filter((i) => i.isFile() && /^(cover_art|cover|poster)\.(jpe?g|png|webp)$/i.test(i.name));
+  const coverFiles = items.filter((i) => i.isFile() && /^(cover_art|cover|poster)\.(jpe?g|png|webp|avif)$/i.test(i.name));
   if (coverFiles.length > 0) {
     coverArtFile = coverFiles[0].name;
   } else if (info?.raw?.cover_art && typeof info.raw.cover_art === "string") {
@@ -358,61 +434,26 @@ export async function inspectStory(storyDir, options = {}) {
     }
   }
 
-  // 3. Tìm các thư mục node / chapter
-  const rawSubdirs = items.filter((i) => i.isDirectory() && !i.name.startsWith("."));
-  const parsedNodes = [];
+  // 3. Quét cây node đệ quy
+  const leafNodes = await scanDirectoryNodes(storyDir, "", []);
 
-  for (const dir of rawSubdirs) {
-    const parsed = parseNodeFolderName(dir.name);
-    const nodePath = path.join(storyDir, dir.name);
-    const nodeFiles = await fs.promises.readdir(nodePath, { withFileTypes: true });
-
-    // Lọc các file ảnh hợp lệ và sắp xếp tự nhiên theo thứ tự trang
-    const imageFiles = nodeFiles
-      .filter((f) => f.isFile() && SUPPORTED_IMAGE_EXTS.has(path.extname(f.name).toLowerCase()))
-      .map((f) => f.name)
-      .sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: "base" }));
-
-    if (imageFiles.length > 0) {
-      if (parsed.isValid) {
-        parsedNodes.push({
-          ...parsed,
-          folderName: dir.name,
-          nodePath,
-          imageFiles,
-        });
-      }
-    } else {
-      // Trường hợp thư mục dạng nhóm/container: ví dụ Manga/chapter/01/, Manga/Chương/1/, Manga/Chuong/chap 1/
-      const subSubdirs = nodeFiles.filter((f) => f.isDirectory() && !f.name.startsWith("."));
-      for (const subDir of subSubdirs) {
-        const subParsed = parseNodeFolderName(subDir.name);
-        if (!subParsed.isValid) continue;
-
-        const subNodePath = path.join(nodePath, subDir.name);
-        const subFiles = await fs.promises.readdir(subNodePath, { withFileTypes: true });
-        const subImageFiles = subFiles
-          .filter((f) => f.isFile() && SUPPORTED_IMAGE_EXTS.has(path.extname(f.name).toLowerCase()))
-          .map((f) => f.name)
-          .sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: "base" }));
-
-        if (subImageFiles.length > 0) {
-          parsedNodes.push({
-            ...subParsed,
-            folderName: `${dir.name}/${subDir.name}`,
-            nodePath: subNodePath,
-            imageFiles: subImageFiles,
-          });
-        }
+  // Sắp xếp các leaf node theo thứ tự cây phân cấp
+  leafNodes.sort((a, b) => {
+    const chainA = a.nodeChain || [];
+    const chainB = b.nodeChain || [];
+    const minLen = Math.min(chainA.length, chainB.length);
+    for (let i = 0; i < minLen; i++) {
+      const orderA = chainA[i].orderIndex ?? 0;
+      const orderB = chainB[i].orderIndex ?? 0;
+      if (orderA !== orderB) {
+        return orderA - orderB;
       }
     }
-  }
-
-  // Sắp xếp các node theo orderIndex tăng dần
-  parsedNodes.sort((a, b) => a.orderIndex - b.orderIndex);
+    return chainA.length - chainB.length;
+  });
 
   // Giới hạn số chapter nếu được yêu cầu
-  const selectedNodes = options.chapterLimit && options.chapterLimit > 0 ? parsedNodes.slice(0, options.chapterLimit) : parsedNodes;
+  const selectedNodes = options.chapterLimit && options.chapterLimit > 0 ? leafNodes.slice(0, options.chapterLimit) : leafNodes;
 
   return {
     coverArtFile,
@@ -426,6 +467,18 @@ export async function inspectStory(storyDir, options = {}) {
  * Xây dựng nội dung file stories.csv chuẩn format batch import
  */
 export function buildCsvContent(storiesData) {
+  // Tìm độ sâu node lớn nhất giữa các truyện
+  let maxNodeDepth = 1;
+  for (const story of storiesData) {
+    for (const node of story.nodes || []) {
+      const chainLen = node.nodeChain?.length || 1;
+      if (chainLen > maxNodeDepth) {
+        maxNodeDepth = chainLen;
+      }
+    }
+  }
+
+  // Header cơ bản cho Story
   const headers = [
     "title",
     "other_titles",
@@ -438,12 +491,15 @@ export function buildCsvContent(storiesData) {
     "genres",
     "summary",
     "cover_art_path",
-    "story_node_title",
-    "story_node_type",
-    "story_node_order_index",
-    "story_node_content_order_index",
-    "story_node_content_image_path",
   ];
+
+  // Thêm các cột node theo cấp (Level 1..K)
+  for (let lvl = 0; lvl < maxNodeDepth; lvl++) {
+    headers.push("story_node_title", "story_node_type", "story_node_order_index");
+  }
+
+  // Thêm cột nội dung (gắn ở cấp node cuối)
+  headers.push("story_node_content_order_index", "story_node_content_image_path");
 
   const rows = [headers.join(",")];
 
@@ -462,52 +518,60 @@ export function buildCsvContent(storiesData) {
     const genres = story.info?.genres?.length ? story.info.genres.join(", ") : "";
     const summary = story.info?.summary || "";
 
-    if (story.nodes.length === 0) {
-      // Truyện không có chapter nào
-      const row = [
-        escapeCsvCell(storyTitle),
-        escapeCsvCell(otherTitles),
-        escapeCsvCell(storyType),
-        escapeCsvCell(storyStatus),
-        escapeCsvCell(nation),
-        escapeCsvCell(nationId),
-        escapeCsvCell(posterId),
-        escapeCsvCell(authors),
-        escapeCsvCell(genres),
-        escapeCsvCell(summary),
-        escapeCsvCell(coverArtRelPath),
-        "",
-        "",
-        "",
-        "",
-        "",
-      ];
-      rows.push(row.join(","));
+    const storyFields = [
+      escapeCsvCell(storyTitle),
+      escapeCsvCell(otherTitles),
+      escapeCsvCell(storyType),
+      escapeCsvCell(storyStatus),
+      escapeCsvCell(nation),
+      escapeCsvCell(nationId),
+      escapeCsvCell(posterId),
+      escapeCsvCell(authors),
+      escapeCsvCell(genres),
+      escapeCsvCell(summary),
+      escapeCsvCell(coverArtRelPath),
+    ];
+
+    if (!story.nodes || story.nodes.length === 0) {
+      // Truyện không có node nào
+      const emptyCols = new Array(maxNodeDepth * 3 + 2).fill("");
+      rows.push([...storyFields, ...emptyCols].join(","));
       continue;
     }
 
     for (const node of story.nodes) {
-      if (node.imageFiles.length === 0) {
-        // Node không có ảnh
-        const row = [
-          escapeCsvCell(storyTitle),
-          escapeCsvCell(otherTitles),
-          escapeCsvCell(storyType),
-          escapeCsvCell(storyStatus),
-          escapeCsvCell(nation),
-          escapeCsvCell(nationId),
-          escapeCsvCell(posterId),
-          escapeCsvCell(authors),
-          escapeCsvCell(genres),
-          escapeCsvCell(summary),
-          escapeCsvCell(coverArtRelPath),
-          escapeCsvCell(node.title),
-          escapeCsvCell(node.type),
-          escapeCsvCell(node.orderIndex),
-          "",
-          "",
-        ];
-        rows.push(row.join(","));
+      const chain =
+        node.nodeChain && node.nodeChain.length > 0
+          ? node.nodeChain
+          : [
+              {
+                title: node.title || "Chapter 1",
+                type: node.type || "chapter",
+                orderIndex: node.orderIndex ?? 1,
+                folderName: node.folderName || "",
+              },
+            ];
+
+      // Căn lề chuỗi node về phía bên phải cấp maxNodeDepth
+      const shift = maxNodeDepth - chain.length;
+      const nodeLevelCols = [];
+
+      for (let lvl = 0; lvl < maxNodeDepth; lvl++) {
+        const chainIdx = lvl - shift;
+        if (chainIdx >= 0 && chainIdx < chain.length) {
+          const item = chain[chainIdx];
+          nodeLevelCols.push(
+            escapeCsvCell(item.title),
+            escapeCsvCell(item.type),
+            escapeCsvCell(item.orderIndex),
+          );
+        } else {
+          nodeLevelCols.push("", "", "");
+        }
+      }
+
+      if (!node.imageFiles || node.imageFiles.length === 0) {
+        rows.push([...storyFields, ...nodeLevelCols, "", ""].join(","));
         continue;
       }
 
@@ -516,25 +580,11 @@ export function buildCsvContent(storiesData) {
         const imgName = node.imageFiles[i];
         const imgRelPath = `${dirPrefix}/${node.folderName}/${imgName}`;
 
-        const row = [
-          escapeCsvCell(storyTitle),
-          escapeCsvCell(otherTitles),
-          escapeCsvCell(storyType),
-          escapeCsvCell(storyStatus),
-          escapeCsvCell(nation),
-          escapeCsvCell(nationId),
-          escapeCsvCell(posterId),
-          escapeCsvCell(authors),
-          escapeCsvCell(genres),
-          escapeCsvCell(summary),
-          escapeCsvCell(coverArtRelPath),
-          escapeCsvCell(node.title),
-          escapeCsvCell(node.type),
-          escapeCsvCell(node.orderIndex),
-          escapeCsvCell(i + 1), // Thứ tự trang bắt đầu từ 1
+        const contentCols = [
+          escapeCsvCell(i + 1),
           escapeCsvCell(imgRelPath),
         ];
-        rows.push(row.join(","));
+        rows.push([...storyFields, ...nodeLevelCols, ...contentCols].join(","));
       }
     }
   }

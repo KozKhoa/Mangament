@@ -340,5 +340,62 @@ describe("Pack Stories ZIP Script", () => {
       // chapter 2 đã bị loại bỏ vì chapterLimit = 1
       expect(stdout).not.toContain("chapter 02");
     });
+
+    it("should properly scan 2-level directory hierarchy (volume -> chapter) without mixing chapters", async () => {
+      const storyName = "Multi Level Manga";
+      const storyDir = path.join(tempRoot, "source", storyName);
+
+      const vol1Chap1 = path.join(storyDir, "volume 01", "chapter 01");
+      const vol1Chap2 = path.join(storyDir, "volume 01", "chapter 02");
+      const vol2Chap1 = path.join(storyDir, "volume 02", "chapter 01");
+
+      await fs.promises.mkdir(vol1Chap1, { recursive: true });
+      await fs.promises.mkdir(vol1Chap2, { recursive: true });
+      await fs.promises.mkdir(vol2Chap1, { recursive: true });
+
+      await fs.promises.writeFile(path.join(vol1Chap1, "001.jpg"), "v1c1p1");
+      await fs.promises.writeFile(path.join(vol1Chap2, "001.jpg"), "v1c2p1");
+      await fs.promises.writeFile(path.join(vol2Chap1, "001.jpg"), "v2c1p1");
+
+      const inspected = await inspectStory(storyDir);
+      expect(inspected.nodes.length).toBe(3);
+
+      // Verify nodeChain structure
+      expect(inspected.nodes[0].nodeChain).toEqual([
+        { type: "volume", orderIndex: 1, title: "Volume 1", folderName: "volume 01" },
+        { type: "chapter", orderIndex: 1, title: "Chapter 1", folderName: "chapter 01" },
+      ]);
+      expect(inspected.nodes[1].nodeChain).toEqual([
+        { type: "volume", orderIndex: 1, title: "Volume 1", folderName: "volume 01" },
+        { type: "chapter", orderIndex: 2, title: "Chapter 2", folderName: "chapter 02" },
+      ]);
+      expect(inspected.nodes[2].nodeChain).toEqual([
+        { type: "volume", orderIndex: 2, title: "Volume 2", folderName: "volume 02" },
+        { type: "chapter", orderIndex: 1, title: "Chapter 1", folderName: "chapter 01" },
+      ]);
+
+      const csvContent = buildCsvContent([
+        {
+          storyTitle: storyName,
+          storyDir,
+          nodes: inspected.nodes,
+        },
+      ]);
+
+      const lines = csvContent.split("\n");
+
+      // Verify header has 2 sets of story_node columns for 2-level hierarchy
+      expect(lines[0]).toBe(
+        "title,other_titles,story_type,story_status,nation,nation_id,poster_id,author,genres,summary,cover_art_path,story_node_title,story_node_type,story_node_order_index,story_node_title,story_node_type,story_node_order_index,story_node_content_order_index,story_node_content_image_path",
+      );
+
+      // Verify rows order and contents:
+      // Row 1: Volume 1, Chapter 1
+      expect(lines[1]).toBe("Multi Level Manga,,manga,ongoing,,,,,,,,Volume 1,volume,1,Chapter 1,chapter,1,1,Multi Level Manga/volume 01/chapter 01/001.jpg");
+      // Row 2: Volume 1, Chapter 2
+      expect(lines[2]).toBe("Multi Level Manga,,manga,ongoing,,,,,,,,Volume 1,volume,1,Chapter 2,chapter,2,1,Multi Level Manga/volume 01/chapter 02/001.jpg");
+      // Row 3: Volume 2, Chapter 1
+      expect(lines[3]).toBe("Multi Level Manga,,manga,ongoing,,,,,,,,Volume 2,volume,2,Chapter 1,chapter,1,1,Multi Level Manga/volume 02/chapter 01/001.jpg");
+    });
   });
 });

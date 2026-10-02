@@ -40,47 +40,50 @@ model User {
   refresh_token     RefreshToken[]
   posted_story      Story[]
   poster_story_node StoryNode[]
-  avatar            Image?           @relation(fields: [avatar_id], references: [id])
-  nation            Nation?          @relation(fields: [nation_id], references: [id])
+  avatar            Image?               @relation(fields: [avatar_id], references: [id])
+  nation            Nation?              @relation(fields: [nation_id], references: [id])
   accounts          Account[]
   import_sessions   StoryImportSession[]
 }
 
 model Story {
-  id                 String                 @id @default(uuid()) @db.Uuid
-  title              String                 @unique
+  id                 String        @id @default(uuid()) @db.Uuid
+  title              String        @unique
   other_titles       String[]
-  view               Int                    @default(0)
-  star               Float                  @default(0)
-  rating_count       Int                    @default(0)
+  view               Int           @default(0)
+  star               Float         @default(0)
+  rating_count       Int           @default(0)
   type               StoryType
-  status             StoryStatus            @default(ongoing)
+  status             StoryStatus   @default(ongoing)
   next_chapter_in    DateTime?
-  number_of_children Int                    @default(0)
-  cover_art_id       String?                @db.Uuid
-  nation_id          String?                @db.Uuid
-  deleted_status     DeletedStatus          @default(not_deleted)
-  is_actived         Boolean                @default(true)
-  poster_id          String?                @db.Uuid
-  created_at         DateTime               @default(now())
-  updated_at         DateTime               @default(now())
+  number_of_children Int           @default(0)
+  cover_art_id       String?       @db.Uuid
+  nation_id          String?       @db.Uuid
+  deleted_status     DeletedStatus @default(not_deleted)
+  is_actived         Boolean       @default(true)
+  poster_id          String?       @db.Uuid
+  created_at         DateTime      @default(now())
+  updated_at         DateTime      @default(now())
 
-  children           Json?                   @default("[]") @db.JsonB
-  
-  summary            String?
-  embedding          Unsupported("vector")?
-  comment            Comment[]
-  favourite          FavouriteStory[]
-  rating             Rating[]
-  reading_history    ReadingHistory[]
-  cover_art          Image?                 @relation(fields: [cover_art_id], references: [id])
-  nation             Nation?                @relation(fields: [nation_id], references: [id])
-  poster             User?                  @relation(fields: [poster_id], references: [id])
-  
-  story_nodes        StoryNode[]
-  authors            Story_Author[]
-  genres             Story_Genre[]
-  import_items       StoryImportItem[]
+  newest_chapter_id String? @db.Uuid
+
+  children Json? @default("[]") @db.JsonB
+
+  summary         String?
+  embedding       Unsupported("vector")?
+  comment         Comment[]
+  favourite       FavouriteStory[]
+  rating          Rating[]
+  reading_history ReadingHistory[]
+  cover_art       Image?                 @relation(fields: [cover_art_id], references: [id])
+  nation          Nation?                @relation(fields: [nation_id], references: [id])
+  poster          User?                  @relation(fields: [poster_id], references: [id])
+  newest_chapter  StoryNode?             @relation("StoryNewestChapter", fields: [newest_chapter_id], references: [id], onDelete: SetNull)
+
+  story_nodes  StoryNode[]       @relation("StoryToStoryNode")
+  authors      Story_Author[]
+  genres       Story_Genre[]
+  import_items StoryImportItem[]
 
   @@index([deleted_status, is_actived, created_at(sort: Desc)])
   @@index([deleted_status, is_actived, star(sort: Desc)])
@@ -106,7 +109,8 @@ model StoryNode {
   parent             StoryNode?         @relation("StoryNodeToStoryNode", fields: [parent_id], references: [id], onDelete: Cascade)
   children           StoryNode[]        @relation("StoryNodeToStoryNode")
   poster             User?              @relation(fields: [poster_id], references: [id])
-  story              Story?             @relation(fields: [story_id], references: [id], onDelete: Cascade)
+  story              Story?             @relation("StoryToStoryNode", fields: [story_id], references: [id], onDelete: Cascade)
+  newestForStory     Story[]            @relation("StoryNewestChapter")
   content            StoryNodeContent[]
 }
 
@@ -128,7 +132,7 @@ model Image {
   provider  ImageProvider
   mine_type String //'image/jpeg', 'image/png', 'image/webp'
   size      Int           @default(0)
-  path       String?       @unique // This is 'key' in r2, 'path' in local disk
+  path      String?       @unique // This is 'key' in r2, 'path' in local disk
   width     Int?
   height    Int?
   hash      String?       @unique // SHA-256 hash của nội dung file
@@ -272,70 +276,67 @@ model RefreshToken {
   @@id([user_id, token])
 }
 
-
 model StoryImportSession {
-  id                      String              @id @default(uuid()) @db.Uuid
-  user_id                 String?             @db.Uuid
-  source_type             ImportSourceType    @default(zip_upload)
-  status                  ImportSessionStatus @default(pending)
+  id          String              @id @default(uuid()) @db.Uuid
+  user_id     String?             @db.Uuid
+  source_type ImportSourceType    @default(zip_upload)
+  status      ImportSessionStatus @default(pending)
 
-  session_id              String?             @unique
-  file_name               String?
-  file_size               BigInt?
-  source_url              String?
+  session_id String? @unique
+  file_name  String?
+  file_size  BigInt?
+  source_url String?
 
-  total_stories           Int                 @default(0)
-  processed_stories       Int                 @default(0)
-  total_rows              Int                 @default(0)
-  processed_rows          Int                 @default(0)
-  progress                Int                 @default(0)
+  total_stories     Int @default(0)
+  processed_stories Int @default(0)
+  total_rows        Int @default(0)
+  processed_rows    Int @default(0)
+  progress          Int @default(0)
 
-  created_stories_count   Int                 @default(0)
-  updated_stories_count   Int                 @default(0)
-  imported_nodes_count    Int                 @default(0)
-  imported_contents_count Int                 @default(0)
+  created_stories_count   Int @default(0)
+  updated_stories_count   Int @default(0)
+  imported_nodes_count    Int @default(0)
+  imported_contents_count Int @default(0)
 
-  error_message           String?
-  metadata                Json?               @default("{}") @db.JsonB
+  error_message String?
+  metadata      Json?   @default("{}") @db.JsonB
 
-  started_at              DateTime?
-  completed_at            DateTime?
-  created_at              DateTime            @default(now())
-  updated_at              DateTime            @default(now()) @updatedAt
+  started_at   DateTime?
+  completed_at DateTime?
+  created_at   DateTime  @default(now())
+  updated_at   DateTime  @default(now()) @updatedAt
 
-  user                    User?               @relation(fields: [user_id], references: [id], onDelete: SetNull)
-  items                   StoryImportItem[]
+  user  User?             @relation(fields: [user_id], references: [id], onDelete: SetNull)
+  items StoryImportItem[]
 
   @@index([status, created_at(sort: Desc)])
   @@index([user_id, created_at(sort: Desc)])
 }
 
 model StoryImportItem {
-  id                 String             @id @default(uuid()) @db.Uuid
-  session_id         String             @db.Uuid
-  story_id           String?            @db.Uuid
+  id         String  @id @default(uuid()) @db.Uuid
+  session_id String  @db.Uuid
+  story_id   String? @db.Uuid
 
-  story_title        String
-  action             ImportStoryAction  @default(created)
+  story_title String
+  action      ImportStoryAction @default(created)
 
-  new_nodes_count    Int                @default(0)
-  new_contents_count Int                @default(0)
-  is_cover_updated   Boolean            @default(false)
+  new_nodes_count    Int     @default(0)
+  new_contents_count Int     @default(0)
+  is_cover_updated   Boolean @default(false)
 
-  status             String             @default("success")
-  error_message      String?
+  status        String  @default("success")
+  error_message String?
 
-  created_at         DateTime           @default(now())
+  created_at DateTime @default(now())
 
-  session            StoryImportSession @relation(fields: [session_id], references: [id], onDelete: Cascade)
-  story              Story?             @relation(fields: [story_id], references: [id], onDelete: SetNull)
+  session StoryImportSession @relation(fields: [session_id], references: [id], onDelete: Cascade)
+  story   Story?             @relation(fields: [story_id], references: [id], onDelete: SetNull)
 
   @@index([session_id])
   @@index([story_id])
   @@index([action])
 }
-
-
 
 enum StoryNodeContentType {
   image

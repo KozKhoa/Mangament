@@ -9,8 +9,8 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
     <div>
       <HeaderBar className="fixed left-2.5 right-2.5 z-50" />
 
-      <div className="max-w-[1400px] m-auto transition-all duration-300">
-        <div className="max-w-[1300px] m-auto">{children}</div>
+      <div className="max-w-[1650px] m-auto transition-all duration-300">
+        <div className="m-auto">{children}</div>
       </div>
 
       <Footer></Footer>

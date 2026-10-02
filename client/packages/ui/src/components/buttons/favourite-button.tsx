@@ -66,7 +66,9 @@ export default function ButtonOfFavouriteStory({ className, story }: { className
       onClick={toggleFavourite}
       isProcessing={processing}
       disable={processing}
-      className={`${favouriteId ? "bg-red-500 text-white border-red-500" : "bg-background-items"} font-semibold  ${className}`}
+      className={`${
+        favouriteId ? "bg-red-500 text-white border-red-500 hover:bg-red-500/60 hover:border-red-500/60" : "bg-background-items"
+      } font-semibold  ${className}`}
     >
       {!processing && <HeartIcon className="w-5 h-5 shrink-0" />}
       {favouriteId ? "Đã thích" : "Yêu thích"}

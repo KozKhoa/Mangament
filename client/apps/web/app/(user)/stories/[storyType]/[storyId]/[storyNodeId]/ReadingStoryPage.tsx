@@ -122,22 +122,35 @@ const StoryNodesList = React.memo(
     goToPrevChapter: () => void;
     goToNextChapter: () => void;
     handleOpenStoryNodeList: () => void;
-    storyNode?: StoryNode;
+    storyNode?: StoryNode | StoryNode[];
 
     className?: string;
   }) => {
+    if (!storyNode) return null;
+
     return (
       <div className={`flex flex-row gap-10 justify-center items-center text-xl ${className}`}>
         <Button buttonType="default-shadow" disable={!prevNode} onClick={goToPrevChapter} className="aspect-square px-2! rounded-md!">
-          <ArrowLeftIcon className="w-5 h-5 cursor-pointer shrink-0" />
+          <ArrowLeftIcon className="w-5 h-5 shrink-0" />
         </Button>
 
-        <p className="w-fit cursor-pointer font-semibold" onClick={handleOpenStoryNodeList}>
-          {capitalizeWords(storyNode?.type ?? "")} {storyNode?.order_index} : <span className="font-light italic">{storyNode?.title}</span>
-        </p>
+        {storyNode instanceof Array ? (
+          <>
+            <p className="w-fit cursor-pointer font-semibold" onClick={handleOpenStoryNodeList}>
+              {storyNode.map((node) => `${snakeCaseToCapitalizeWord(node.type)} ${snakeCaseToCapitalizeWord(node.order_index.toString())}`).join(" | ")} :{" "}
+              <span className="font-light italic">{storyNode?.[storyNode.length ? storyNode.length - 1 : 0]?.title}</span>
+            </p>
+          </>
+        ) : (
+          <>
+            <p className="w-fit cursor-pointer font-semibold" onClick={handleOpenStoryNodeList}>
+              {capitalizeWords(storyNode?.type ?? "")} {storyNode?.order_index} : <span className="font-light italic">{storyNode?.title}</span>
+            </p>
+          </>
+        )}
 
         <Button buttonType="default-shadow" disable={!nextNode} onClick={goToNextChapter} className="aspect-square px-2! rounded-md!">
-          <ArrowRightIcon className="w-5 h-5 cursor-pointer shrink-0" />
+          <ArrowRightIcon className="w-5 h-5 shrink-0" />
         </Button>
       </div>
     );
@@ -347,7 +360,7 @@ export default function ReadingStoryPage() {
         </Link>
 
         <StoryNodesList
-          storyNode={storyNode}
+          storyNode={storyNodes}
           prevNode={prevNode || undefined}
           nextNode={nextNode || undefined}
           goToPrevChapter={goToPrevChapter}
@@ -437,38 +450,53 @@ export default function ReadingStoryPage() {
             ))}
           </InViewList>
         </div>
+      </div>
 
-        {/* Button switch page */}
-        <div
-          className="grid grid-rows-2 grid-cols-6 sm:grid-rows-1 sm:grid-cols-3
+      {/* Button switch page */}
+      <div
+        className="grid grid-rows-2 grid-cols-6 sm:grid-rows-1 sm:grid-cols-3
             justify-center items-center gap-2 px-2 m-auto my-5 w-full"
-        >
-          <Button
-            buttonType="default-shadow"
-            className="row-start-2 col-span-3 
+      >
+        <Button
+          buttonType="default-shadow"
+          className="row-start-2 col-span-3 
               sm:col-span-1 sm:row-span-1
               font-semibold w-full py-2"
-            disable={!prevNode}
-            onClick={goToPrevChapter}
-          >
-            <ArrowLeftIcon className="w-4 h-4 shrink-0" /> Chapter Trước
-          </Button>
+          disable={!prevNode}
+          onClick={goToPrevChapter}
+        >
+          <ArrowLeftIcon className="w-4 h-4 shrink-0" /> Chapter Trước
+        </Button>
 
-          <p className=" cursor-pointer w-fit m-auto text-xl col-span-6 sm:col-span-1" onClick={handleOpenStoryNodeList}>
-            {capitalizeWords(storyNode?.type ?? "")} {storyNode?.order_index} : <span className="font-light italic">{storyNode?.title}</span>
-          </p>
+        {/* <p className=" cursor-pointer w-fit m-auto text-xl col-span-6 sm:col-span-1" onClick={handleOpenStoryNodeList}>
+          {capitalizeWords(storyNode?.type ?? "")} {storyNode?.order_index} : <span className="font-light italic">{storyNode?.title}</span>
+        </p> */}
 
-          <Button
-            buttonType="default-shadow"
-            className="row-start-2 col-span-3 
+        {storyNodes instanceof Array ? (
+          <>
+            <p className="cursor-pointer w-fit m-auto text-xl col-span-6 sm:col-span-1 font-semibold" onClick={handleOpenStoryNodeList}>
+              {storyNodes.map((node) => `${snakeCaseToCapitalizeWord(node.type)} ${snakeCaseToCapitalizeWord(node.order_index.toString())}`).join(" | ")} :
+              <span className="font-light italic">{storyNode?.title}</span>
+            </p>
+          </>
+        ) : (
+          <>
+            <p className="cursor-pointer w-fit m-auto text-xl col-span-6 sm:col-span-1 font-semibold" onClick={handleOpenStoryNodeList}>
+              {capitalizeWords(storyNode?.type ?? "")} {storyNode?.order_index} : <span className="font-light italic">{storyNode?.title}</span>
+            </p>
+          </>
+        )}
+
+        <Button
+          buttonType="default-shadow"
+          className="row-start-2 col-span-3 
               sm:col-span-1 sm:row-span-1 
               font-semibold w-full py-2"
-            disable={!nextNode}
-            onClick={goToNextChapter}
-          >
-            Chapter Sau <ArrowRightIcon className="w-4 h-4 shrink-0" />
-          </Button>
-        </div>
+          disable={!nextNode}
+          onClick={goToNextChapter}
+        >
+          Chapter Sau <ArrowRightIcon className="w-4 h-4 shrink-0" />
+        </Button>
       </div>
 
       {/* Recommend */}

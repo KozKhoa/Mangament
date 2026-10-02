@@ -139,7 +139,7 @@ export default function StoryDetailPage() {
         {/* Chapter list */}
         <StoryNodeList
           onClickItem={handleNavigateStoryNode}
-          className="lg:flex-1 bg-background-items"
+          className="lg:flex-1 bg-background-items rounded-xl shadow-lg"
           storyNodes={story?.children}
           size={story?.number_of_children}
         />
@@ -147,8 +147,8 @@ export default function StoryDetailPage() {
 
       {/* Review */}
       <div
-        className="flex flex-col border border-foreground/30 rounded-sm px-5 py-2.5 gap-7 
-          bg-background-items shadow-lg animate-slide-in delay-200"
+        className="flex flex-col border border-foreground/30 px-5 py-2.5 gap-7 
+          bg-background-items animate-slide-in delay-200 rounded-xl shadow-lg"
       >
         <h2 className="w-full text-center border-b border-foreground/30 font-semibold">Xem trước</h2>
         <div

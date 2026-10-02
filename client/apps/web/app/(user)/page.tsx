@@ -191,8 +191,8 @@ export default function Home() {
             basic: 2,
             sm: 2,
             md: 2,
-            lg: 4,
-            xl: 6,
+            lg: 5,
+            xl: 7,
           }}
           isLoading={bestRankingStories.length <= 0}
           autoSlide={4000}
@@ -243,7 +243,7 @@ export default function Home() {
         {loadingNewest ? (
           <Loading className="w-full h-64" />
         ) : newestStories.length > 0 ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4 w-full">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 gap-3 sm:gap-4 w-full">
             {newestStories.map((story) => (
               <div key={story.id} className="w-full h-full">
                 <StoryCard className="bg-background-items w-full h-full" data={story} />
