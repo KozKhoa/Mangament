@@ -1,6 +1,6 @@
 import { CreateError } from "../utils/ErrorHandle.js";
 
-import * as storyService from "../services/story/index.js";
+import storyService from "../services/story/index.js";
 import * as favouriteService from "../services/favourite.service.js";
 import * as ratingService from "../services/rating.service.js";
 

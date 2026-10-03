@@ -31,7 +31,6 @@ const DEFAULT_SELECT_STORY_COLUMNS = {
   genres: { select: { genre: { select: { name: true } } } },
   cover_art: { select: { id: true, path: true, size: true, height: true, width: true } },
   nation: { select: { name: true, flag_icon: true } },
-  newest_chapter: { select: { id: true, title: true, order_index: true, parent_id: true, type: true, created_at: true, updated_at: true } },
 };
 
 export async function GetReview(storyId, number = 1) {
@@ -77,7 +76,7 @@ export async function FindAllStories({
 
   limit = 10,
   page = 1,
-  sort = "updated_at:desc",
+  sort = { updated_at: "desc" },
 }) {
   const globalStoriesVer = await redisUtils.stories().get();
 
@@ -107,7 +106,7 @@ export async function FindAllStories({
     "limit=" + limit,
     "page=" + page,
 
-    "sort=" + sort,
+    "sort=" + JSON.stringify(sort),
   ].join(":");
 
   const cached = await redis.get(REDIS_KEY);
@@ -129,7 +128,8 @@ export async function FindAllStories({
     fullTextSearchStoryIds = rawMatches.map((story) => story.id);
   }
 
-  const [sortField, sortOrder] = sort.split(":");
+  const sortField = Object.keys(sort)[0] || "updated_at";
+  const sortOrder = Object.values(sort)[0] || "desc";
 
   const pageInt = Math.max(1, parseInt(page, 10) || 1);
   const limitInt = Math.max(1, parseInt(limit, 10) || 10);
@@ -191,8 +191,6 @@ export async function FindAllStories({
       where: whereCondition,
       select: {
         ...DEFAULT_SELECT_STORY_COLUMNS,
-
-        ...(isGettingNewestChapter === false && { newest_chapter: false }),
       },
 
       orderBy: {
@@ -217,7 +215,8 @@ export async function FindAllStories({
   const totalPages = Math.ceil(totalItems / limitInt);
 
   const result = {
-    stories: mapData,
+    success: true,
+    data: mapData,
     pagination: {
       page: pageInt,
       limit: limitInt,
@@ -282,9 +281,14 @@ export async function FindStory({ id, isGettingChildren = false, isGettingConten
       : story.children,
   };
 
-  await redis.setex(REDIS_KEY, 3600, JSON.stringify(formattedResult));
+  const result = {
+    success: true,
+    data: formattedResult,
+  };
 
-  return formattedResult;
+  await redis.setex(REDIS_KEY, 3600, JSON.stringify(result));
+
+  return result;
 }
 
 export async function FindRandomStory() {

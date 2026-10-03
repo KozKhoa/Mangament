@@ -57,6 +57,8 @@ export async function getAllStories(req, res, next) {
       isGettingNewestChapter: isGettingNewestChapter,
     });
 
+    console.log(stories);
+
     if (!stories || !stories.success) {
       throw CreateError();
     }

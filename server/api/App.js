@@ -124,7 +124,6 @@ const specs = swaggerJsdoc({
             genres: { type: "array", items: { type: "string" } },
             favourite: { type: "object", properties: { id: { type: "string" } } },
             rating: { $ref: "#/components/schemas/Rating" },
-            newest_chapter: { type: "array", items: { $ref: "#/components/schemas/StoryNode" } },
             children: { type: "array", items: { $ref: "#/components/schemas/StoryNode" } },
           },
         },
