@@ -1,8 +1,6 @@
 import { CreateError } from "../utils/ErrorHandle.js";
 
-import { FindAllStories, FindStory, UpdateStory, GetReview, FindRandomStory } from "../services/story.service.js";
-
-import * as storyService from "../services/story.service.js";
+import * as storyService from "../services/story/index.js";
 import * as favouriteService from "../services/favourite.service.js";
 import * as ratingService from "../services/rating.service.js";
 
@@ -20,7 +18,7 @@ export async function GetStory(req, res, next) {
 
     const { isGettingChildren, isGettingSummary, isGettingNewestChapter } = req.query;
 
-    const story = await FindStory({
+    const story = await storyService.FindStory({
       id: storyId,
       title: title,
       isActived: true,
@@ -75,7 +73,7 @@ export async function GetStoryReview(req, res, next) {
 
     if (!storyId) throw CreateError(400, "'id' is required");
 
-    const review = await GetReview(storyId, 4);
+    const review = await storyService.GetReview(storyId, 4);
 
     return res.status(200).json({ success: true, message: "Get story review successfully ", data: review.data });
   } catch (error) {
@@ -86,7 +84,7 @@ export async function GetStoryReview(req, res, next) {
 // GET stories/random
 export async function GetRandomStory(req, res, next) {
   try {
-    const story = await FindRandomStory();
+    const story = await storyService.FindRandomStory();
 
     return res.status(200).json({
       success: true,
@@ -107,7 +105,7 @@ export async function GetAllStories(req, res, next) {
 
     if (genre && genre.length > 0) await throwErrorIfInvalidGenres(genre);
 
-    const stories = await FindAllStories({
+    const stories = await storyService.FindAllStories({
       isActived: true,
       keyword: keyword,
       type: type,
@@ -187,7 +185,7 @@ export async function AddOneViewForStory(req, res, next) {
     const storyId = req?.params?.id;
     if (!storyId) throw CreateError(400, "'id' is required");
 
-    const update = await UpdateStory(storyId, { view: { increment: 1 } });
+    const update = await storyService.UpdateStory(storyId, { view: { increment: 1 } });
     if (!update) throw CreateError();
 
     return res.status(200).json({

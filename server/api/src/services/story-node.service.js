@@ -3,7 +3,7 @@ import { redis } from "../../configs/redis.js";
 import redisUtils from "../utils/Redis.js";
 import { CreateError } from "../utils/ErrorHandle.js";
 
-import * as storyService from "./story.service.js";
+import * as storyService from "./story/index.js";
 import storyQueue from "../../worker/queues/story.queue.js";
 
 import { isUUID } from "../utils/Validators.js";

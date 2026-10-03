@@ -65,7 +65,6 @@ model Story {
   created_at         DateTime      @default(now())
   updated_at         DateTime      @default(now())
 
-  newest_chapter_id String? @db.Uuid
 
   children Json? @default("[]") @db.JsonB
 
@@ -78,7 +77,6 @@ model Story {
   cover_art       Image?                 @relation(fields: [cover_art_id], references: [id])
   nation          Nation?                @relation(fields: [nation_id], references: [id])
   poster          User?                  @relation(fields: [poster_id], references: [id])
-  newest_chapter  StoryNode?             @relation("StoryNewestChapter", fields: [newest_chapter_id], references: [id], onDelete: SetNull)
 
   story_nodes  StoryNode[]       @relation("StoryToStoryNode")
   authors      Story_Author[]
@@ -110,8 +108,11 @@ model StoryNode {
   children           StoryNode[]        @relation("StoryNodeToStoryNode")
   poster             User?              @relation(fields: [poster_id], references: [id])
   story              Story?             @relation("StoryToStoryNode", fields: [story_id], references: [id], onDelete: Cascade)
-  newestForStory     Story[]            @relation("StoryNewestChapter")
   content            StoryNodeContent[]
+
+
+  @@index([parent_id])
+  @@index([story_id, parent_id, deleted_status])
 }
 
 model StoryNodeContent {

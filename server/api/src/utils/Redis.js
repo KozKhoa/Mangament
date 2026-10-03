@@ -172,6 +172,17 @@ const clearStoriesCache = async (storyIds = [], storyTitles = []) => {
   }
 };
 
+const redisTTL = {
+  getNewestChapter: 60 * 60 * 24, // 1 ngày
+  getStory: 60 * 60, // 1 giờ
+  getStoryNode: 60 * 60, // 1 giờ
+  getStoryNodeContent: 60 * 60, // 1 giờ
+  getNewestChapterForStory: 60 * 60 * 24, // 1 ngày
+  getAllStories: 60 * 60, // 1 giờ
+  buildStoryTree: 60 * 60 * 24, // 1 ngày
+};
+export { redisTTL };
+
 const redisUtils = { stories, storyNodes, comments, ratings, histories, favourites, users, admin, image, authors, genres, clearStoriesCache };
 
 export default redisUtils;

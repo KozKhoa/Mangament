@@ -1,6 +1,5 @@
-import path from "path";
 import { CreateError } from "../../utils/ErrorHandle.js";
-import * as storyService from "../../services/story.service.js";
+import storyService from "../../services/story/index.js";
 import * as chunkUploadService from "../../services/chunk-upload.service.js";
 import { generateStoryImportTemplate } from "../../utils/spreadsheet.parser.js";
 import { ZIP_CLEANUP_AFTER_PROCESSING } from "../../constants/Story.js";
