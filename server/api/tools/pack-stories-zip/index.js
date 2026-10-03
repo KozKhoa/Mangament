@@ -30,10 +30,10 @@
  *   node index.js [options]
  */
 
-import fs from "fs";
-import path from "path";
-import crypto from "crypto";
-import { spawn } from "child_process";
+import fs from "node:fs";
+import path from "node:path";
+import crypto from "node:crypto";
+import { spawn } from "node:child_process";
 
 // Danh sách định dạng ảnh được hỗ trợ
 export const SUPPORTED_IMAGE_EXTS = new Set([".jpg", ".jpeg", ".png", ".webp", ".avif"]);
@@ -220,11 +220,62 @@ export function escapeCsvCell(val) {
 }
 
 /**
+ * Kiểm tra xem một thư mục có phải là một truyện duy nhất hay không
+ */
+export async function isSingleStoryDir(sourceDir) {
+  if (!fs.existsSync(sourceDir)) return false;
+
+  const entries = await fs.promises.readdir(sourceDir, { withFileTypes: true });
+
+  for (const entry of entries) {
+    if (entry.isFile()) {
+      const ext = path.extname(entry.name).toLowerCase();
+      if (entry.name === "info.json" || SUPPORTED_IMAGE_EXTS.has(ext)) {
+        return true;
+      }
+    }
+  }
+
+  const subdirs = entries.filter((e) => e.isDirectory() && !e.name.startsWith("."));
+  if (subdirs.length === 0) return true;
+
+  for (const subdir of subdirs.slice(0, 5)) {
+    const subPath = path.join(sourceDir, subdir.name);
+    try {
+      const subEntries = await fs.promises.readdir(subPath, { withFileTypes: true });
+      const hasDirectImages = subEntries.some(
+        (e) => e.isFile() && SUPPORTED_IMAGE_EXTS.has(path.extname(e.name).toLowerCase())
+      );
+      if (hasDirectImages) {
+        return true;
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  return false;
+}
+
+/**
  * Quét danh sách truyện trong thư mục nguồn
  */
 export async function scanStoryFolders(sourceDir, options = {}) {
   if (!fs.existsSync(sourceDir)) {
     throw new Error(`Thư mục nguồn không tồn tại: ${sourceDir}`);
+  }
+
+  const packMode = options.packMode || "auto";
+  const isSingle = packMode === "single" || (packMode === "auto" && await isSingleStoryDir(sourceDir));
+
+  if (isSingle) {
+    return [
+      {
+        name: path.basename(sourceDir),
+        isSingleStory: true,
+        storyDir: sourceDir,
+      },
+    ];
   }
 
   const entries = await fs.promises.readdir(sourceDir, { withFileTypes: true });
@@ -242,7 +293,11 @@ export async function scanStoryFolders(sourceDir, options = {}) {
     storyFolders = storyFolders.slice(0, options.limit);
   }
 
-  return storyFolders;
+  return storyFolders.map((name) => ({
+    name,
+    isSingleStory: false,
+    storyDir: path.join(sourceDir, name),
+  }));
 }
 
 /**
@@ -595,25 +650,27 @@ export function buildCsvContent(storiesData) {
 /**
  * Đóng gói dữ liệu thành file ZIP qua lệnh zip hệ thống với symlinks
  */
-export async function packStoriesToZip({ storiesData, csvContent, outputPath, compressionLevel = 1, keepTemp = false }) {
+export async function packStoriesToZip({ storiesData, csvContent, outputPath, compressionLevel = 1, keepTemp = false, onProgress = () => {} }) {
   const stagingId = `pack_stage_${Date.now()}_${crypto.randomUUID().slice(0, 6)}`;
   const stagingDir = path.resolve(process.cwd(), `temp_${stagingId}`);
 
   await fs.promises.mkdir(stagingDir, { recursive: true });
 
   try {
-    // 1. Ghi file stories.csv vào root của staging
+    let totalFilesToZip = 1; // stories.csv
+    onProgress({ task: "Đang tạo liên kết (symlinks)...", percent: 0 });
+
     const csvPath = path.join(stagingDir, "stories.csv");
     await fs.promises.writeFile(csvPath, csvContent, "utf-8");
 
-    // 2. Tạo cây thư mục tương ứng trong staging và liên kết symlink đến ảnh thật
+    let processedFolders = 0;
     for (const story of storiesData) {
       const folderNameInStage = story.dirName || story.storyTitle;
       const storyStageDir = path.join(stagingDir, folderNameInStage);
       await fs.promises.mkdir(storyStageDir, { recursive: true });
 
-      // Liên kết ảnh bìa nếu có
       if (story.coverArtFile && story.coverArtAbsPath) {
+        totalFilesToZip++;
         const destCover = path.join(storyStageDir, story.coverArtFile);
         try {
           await fs.promises.symlink(story.coverArtAbsPath, destCover);
@@ -622,11 +679,11 @@ export async function packStoriesToZip({ storiesData, csvContent, outputPath, co
         }
       }
 
-      // Sao chép file info.json nếu có
       if (story.infoFile && story.storyDir) {
         const srcInfo = path.join(story.storyDir, story.infoFile);
         const destInfo = path.join(storyStageDir, story.infoFile);
         if (fs.existsSync(srcInfo)) {
+          totalFilesToZip++;
           try {
             await fs.promises.copyFile(srcInfo, destInfo);
           } catch {
@@ -635,12 +692,12 @@ export async function packStoriesToZip({ storiesData, csvContent, outputPath, co
         }
       }
 
-      // Liên kết các chapter và trang ảnh
       for (const node of story.nodes) {
         const nodeStageDir = path.join(storyStageDir, node.folderName);
         await fs.promises.mkdir(nodeStageDir, { recursive: true });
 
         for (const imgName of node.imageFiles) {
+          totalFilesToZip++;
           const srcImgPath = path.join(node.nodePath, imgName);
           const destImgPath = path.join(nodeStageDir, imgName);
           try {
@@ -650,31 +707,49 @@ export async function packStoriesToZip({ storiesData, csvContent, outputPath, co
           }
         }
       }
+      processedFolders++;
+      onProgress({ task: "Đang tạo liên kết (symlinks)...", percent: (processedFolders / storiesData.length) * 30 });
     }
 
-    // Đảm bảo thư mục cha của output tồn tại
     const outputDir = path.dirname(outputPath);
     await fs.promises.mkdir(outputDir, { recursive: true });
 
-    // Xóa file zip cũ nếu đã tồn tại
     if (fs.existsSync(outputPath)) {
       await fs.promises.unlink(outputPath);
     }
 
-    // 3. Thực thi lệnh zip -r -<level> <outputPath> .
+    onProgress({ task: "Đang nén file ZIP...", percent: 30 });
+
     await new Promise((resolve, reject) => {
-      const zipProcess = spawn("zip", ["-q", "-r", `-${compressionLevel}`, outputPath, "."], {
+      // Bỏ flag -q để lệnh zip in ra danh sách file đã nén ("  adding: ...")
+      const zipProcess = spawn("zip", ["-r", `-${compressionLevel}`, outputPath, "."], {
         cwd: stagingDir,
         stdio: ["ignore", "pipe", "pipe"],
       });
 
       let stderr = "";
+      let zippedFilesCount = 0;
+
+      zipProcess.stdout.on("data", (chunk) => {
+        const str = chunk.toString();
+        // Mỗi file nén sẽ in ra dạng "  adding: ..."
+        const adds = (str.match(/adding:/g) || []).length;
+        if (adds > 0) {
+          zippedFilesCount += adds;
+          let zipProgress = zippedFilesCount / totalFilesToZip;
+          if (zipProgress > 1) zipProgress = 1;
+          // Progress từ 30% -> 100%
+          onProgress({ task: "Đang nén file ZIP...", percent: 30 + (zipProgress * 70) });
+        }
+      });
+
       zipProcess.stderr.on("data", (chunk) => {
         stderr += chunk.toString();
       });
 
       zipProcess.on("close", (code) => {
         if (code === 0) {
+          onProgress({ task: "Hoàn tất nén ZIP!", percent: 100 });
           resolve();
         } else {
           reject(new Error(`Lệnh zip kết thúc với mã lỗi ${code}: ${stderr}`));
@@ -706,40 +781,50 @@ export async function packStoriesToZip({ storiesData, csvContent, outputPath, co
 /**
  * Hàm điều phối chính
  */
-export async function main() {
+/**
+ * Hàm điều phối chính
+ */
+export async function main(overrideOptions = null, logger = console.log, onProgress = () => {}) {
   const startTime = Date.now();
-  const options = parseCliArgs();
+  const options = overrideOptions ? { ...parseCliArgs([]), ...overrideOptions } : parseCliArgs();
 
-  console.log("\n================================================================================");
-  console.log(" 📦 MANGAMENT - ĐÓNG GÓI BATCH IMPORT ZIP CHO TRUYỆN TRANH");
-  console.log("================================================================================");
-  console.log(`📁 Thư mục nguồn:     ${options.sourceDir}`);
-  console.log(`🎯 Giới hạn truyện:   ${options.limit > 0 ? options.limit : "Tất cả truyện tìm thấy"}`);
-  if (options.storyFilter) console.log(`🔍 Lọc theo tên:      "${options.storyFilter}"`);
-  if (options.chapterLimit) console.log(`📑 Giới hạn chapter:   ${options.chapterLimit} chapter/truyện`);
-  console.log(`🗜️  Mức độ nén ZIP:    Mức ${options.compressionLevel} (${options.compressionLevel === 0 ? "Store - Siêu tốc" : "Fast"})`);
-  console.log(`💾 File xuất ra:       ${options.outputPath}`);
-  console.log(`⚙️  Chế độ:            ${options.dryRun ? "🔍 DRY-RUN (Chỉ kiểm tra, không nén)" : options.csvOnly ? "📄 CSV-ONLY" : "⚡ TẠO FILE ZIP"}`);
-  console.log("--------------------------------------------------------------------------------\n");
+  logger("\n================================================================================");
+  logger(" 📦 MANGAMENT - ĐÓNG GÓI BATCH IMPORT ZIP CHO TRUYỆN TRANH");
+  logger("================================================================================");
+  logger(`📁 Thư mục nguồn:     ${options.sourceDir}`);
+  logger(`🎯 Giới hạn truyện:   ${options.limit > 0 ? options.limit : "Tất cả truyện tìm thấy"}`);
+  if (options.storyFilter) logger(`🔍 Lọc theo tên:      "${options.storyFilter}"`);
+  if (options.chapterLimit) logger(`📑 Giới hạn chapter:   ${options.chapterLimit} chapter/truyện`);
+  logger(`🗜️  Mức độ nén ZIP:    Mức ${options.compressionLevel} (${options.compressionLevel === 0 ? "Store - Siêu tốc" : "Fast"})`);
+  logger(`💾 File xuất ra:       ${options.outputPath}`);
+  logger(`⚙️  Chế độ:            ${options.dryRun ? "🔍 DRY-RUN (Chỉ kiểm tra, không nén)" : options.csvOnly ? "📄 CSV-ONLY" : "⚡ TẠO FILE ZIP"}`);
+  logger("--------------------------------------------------------------------------------\n");
 
   // 1. Quét danh sách truyện
-  console.log("⏳ Đang quét danh sách truyện...");
+  logger("⏳ Đang quét danh sách truyện...");
   const storyFolderNames = await scanStoryFolders(options.sourceDir, options);
 
   if (storyFolderNames.length === 0) {
-    console.log("⚠️  Không tìm thấy truyện nào thỏa mãn điều kiện lọc!");
-    return;
+    logger("⚠️  Không tìm thấy truyện nào thỏa mãn điều kiện lọc!");
+    return { success: false, message: "Không tìm thấy truyện nào thỏa mãn điều kiện lọc!" };
   }
 
-  console.log(`✅ Tìm thấy ${storyFolderNames.length} truyện cần xử lý.\n`);
+  if (storyFolderNames.length === 1 && (!options.outputPath || options.outputPath.endsWith("manga_batch.zip"))) {
+    const singleName = typeof storyFolderNames[0] === "string" ? storyFolderNames[0] : storyFolderNames[0].name;
+    const baseDir = options.outputPath ? path.dirname(options.outputPath) : process.cwd();
+    options.outputPath = path.join(baseDir, `${sanitizeFileName(singleName)}.zip`);
+  }
+
+  logger(`✅ Tìm thấy ${storyFolderNames.length} truyện cần xử lý.\n`);
 
   // 2. Quét chi tiết các node và ảnh của từng truyện
   const storiesData = [];
   let totalNodes = 0;
   let totalImages = 0;
 
-  for (const name of storyFolderNames) {
-    const storyDir = path.join(options.sourceDir, name);
+  for (const item of storyFolderNames) {
+    const name = typeof item === "string" ? item : item.name;
+    const storyDir = typeof item === "string" ? path.join(options.sourceDir, item) : item.storyDir;
     const inspected = await inspectStory(storyDir, options);
 
     const coverArtAbsPath = inspected.coverArtFile ? path.join(storyDir, inspected.coverArtFile) : null;
@@ -763,61 +848,72 @@ export async function main() {
     totalImages += storyImageCount;
 
     const titleDisplay = inspected.info?.title && inspected.info.title !== name ? ` (${inspected.info.title})` : "";
-    console.log(
+    logger(
       `  📖 [${name}]${titleDisplay} - ${inspected.coverArtFile ? "Có ảnh bìa" : "Không bìa"} | ${inspected.nodes.length} chapters | ${storyImageCount} ảnh`,
     );
   }
 
-  console.log("\n--------------------------------------------------------------------------------");
-  console.log(`📊 Tổng hợp: ${storiesData.length} truyện, ${totalNodes} chapters, ${totalImages} trang ảnh.`);
-  console.log("--------------------------------------------------------------------------------\n");
+  logger("\n--------------------------------------------------------------------------------");
+  logger(`📊 Tổng hợp: ${storiesData.length} truyện, ${totalNodes} chapters, ${totalImages} trang ảnh.`);
+  logger("--------------------------------------------------------------------------------\n");
 
   // 3. Xây dựng nội dung file stories.csv
-  console.log("⏳ Đang sinh nội dung stories.csv...");
+  logger("⏳ Đang sinh nội dung stories.csv...");
   const csvContent = buildCsvContent(storiesData);
   const csvLineCount = csvContent.split("\n").length;
-  console.log(`✅ Đã sinh nội dung CSV gồm ${csvLineCount} dòng (1 dòng tiêu đề + ${csvLineCount - 1} dòng dữ liệu).\n`);
+  logger(`✅ Đã sinh nội dung CSV gồm ${csvLineCount} dòng (1 dòng tiêu đề + ${csvLineCount - 1} dòng dữ liệu).\n`);
 
   // Nếu là chế độ dry-run
   if (options.dryRun) {
-    console.log("🔍 [DRY-RUN] Xem trước 12 dòng đầu tiên của file stories.csv:");
-    console.log("================================================================================");
+    logger("🔍 [DRY-RUN] Xem trước 12 dòng đầu tiên của file stories.csv:");
+    logger("================================================================================");
     const previewLines = csvContent.split("\n").slice(0, 12).join("\n");
-    console.log(previewLines);
-    console.log("================================================================================");
-    console.log("\n✨ Hoàn tất mô phỏng dry-run. Không có file nào được tạo.");
-    return;
+    logger(previewLines);
+    logger("================================================================================");
+    logger("\n✨ Hoàn tất mô phỏng dry-run. Không có file nào được tạo.");
+    return { success: true, dryRun: true, previewLines, totalStories: storiesData.length, totalNodes, totalImages };
   }
 
   // Nếu chỉ tạo file CSV
   if (options.csvOnly) {
     const csvOutputPath = options.outputPath.endsWith(".zip") ? options.outputPath.replace(/\.zip$/i, ".csv") : `${options.outputPath}.csv`;
     await fs.promises.writeFile(csvOutputPath, csvContent, "utf-8");
-    console.log(`✅ Đã lưu file CSV thành công: ${csvOutputPath}`);
-    return;
+    logger(`✅ Đã lưu file CSV thành công: ${csvOutputPath}`);
+    return { success: true, csvOnly: true, csvOutputPath, totalStories: storiesData.length, totalNodes, totalImages };
   }
 
   // 4. Tiến hành đóng gói ZIP
-  console.log(`🚀 Đang đóng gói file ZIP vào: ${options.outputPath}...`);
+  logger(`🚀 Đang đóng gói file ZIP vào: ${options.outputPath}...`);
   const zipResult = await packStoriesToZip({
     storiesData,
     csvContent,
     outputPath: options.outputPath,
     compressionLevel: options.compressionLevel,
     keepTemp: options.keepTemp,
+    onProgress,
   });
 
   const durationSec = ((Date.now() - startTime) / 1000).toFixed(2);
   const sizeMb = (zipResult.fileSize / (1024 * 1024)).toFixed(2);
 
-  console.log("\n================================================================================");
-  console.log(" 🎉 HOÀN TẤT ĐÓNG GÓI FILE ZIP THÀNH CÔNG!");
-  console.log("================================================================================");
-  console.log(`📦 Đường dẫn file ZIP:  ${zipResult.outputPath}`);
-  console.log(`💾 Dung lượng file:     ${sizeMb} MB (${zipResult.fileSize.toLocaleString()} bytes)`);
-  console.log(`⏱️  Thời gian xử lý:     ${durationSec} giây`);
-  console.log(`📚 Thống kê đóng gói:   ${storiesData.length} truyện | ${totalNodes} chapters | ${totalImages} ảnh`);
-  console.log("================================================================================\n");
+  logger("\n================================================================================");
+  logger(" 🎉 HOÀN TẤT ĐÓNG GÓI FILE ZIP THÀNH CÔNG!");
+  logger("================================================================================");
+  logger(`📦 Đường dẫn file ZIP:  ${zipResult.outputPath}`);
+  logger(`💾 Dung lượng file:     ${sizeMb} MB (${zipResult.fileSize.toLocaleString()} bytes)`);
+  logger(`⏱️  Thời gian xử lý:     ${durationSec} giây`);
+  logger(`📚 Thống kê đóng gói:   ${storiesData.length} truyện | ${totalNodes} chapters | ${totalImages} ảnh`);
+  logger("================================================================================\n");
+
+  return {
+    success: true,
+    outputPath: zipResult.outputPath,
+    fileSize: zipResult.fileSize,
+    durationSec,
+    totalStories: storiesData.length,
+    totalNodes,
+    totalImages,
+  };
 }
 
 // Nếu script được thực thi trực tiếp từ CLI
@@ -828,3 +924,4 @@ if (process.argv[1] && process.argv[1].endsWith("pack-stories-zip/index.js")) {
     process.exit(1);
   });
 }
+
